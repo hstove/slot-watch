@@ -1,9 +1,13 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
+const dbUrl =
+	process.env.DATABASE_URL ||
+	"postgresql://hankstoever@localhost:5432/slot_watch_dev";
+
 const client = new Client({
 	// connectionString: "postgres://user:password@host:port/db",
-	connectionString: "postgresql://hankstoever@localhost:5432/slot_watch_dev",
+	connectionString: dbUrl,
 });
 
 // or

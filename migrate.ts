@@ -7,3 +7,5 @@ await migrate(db, {
 });
 
 console.log("Done");
+
+process.exit(0);

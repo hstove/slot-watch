@@ -8,6 +8,9 @@ primary_region = 'sjc'
 
 [build]
 
+[deploy]
+  release_command = "bun run ./migrate.ts"
+
 [http_service]
   internal_port = 1080
   force_https = true
