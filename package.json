@@ -13,6 +13,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@clarigen/core": "^2.1.1",
     "@scure/base": "^1.1.9",
     "@stacks/transactions": "^6.16.1",
     "drizzle-orm": "^0.33.0",

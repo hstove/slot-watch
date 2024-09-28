@@ -2,9 +2,24 @@ import { hex } from "@scure/base";
 import { db } from "./db";
 import { getPayloadContractId, type StackerDBPayload } from "./payload";
 import { stackerDbSlots } from "./schema";
+import { eq, desc } from "drizzle-orm";
+import { burnAddress } from "./constants";
 
-const rows = await db.select().from(stackerDbSlots);
-console.log(rows);
+// const rows = await db.select().from(stackerDbSlots);
+// console.log(rows);
+
+function makeContractIdQuery(contractIdQuery: string | null) {
+	if (typeof contractIdQuery === "string") {
+		let contractId = contractIdQuery;
+		if (!contractIdQuery.includes(".")) {
+			contractId = `${burnAddress}.${contractIdQuery}`;
+		}
+		return eq(stackerDbSlots.contractId, contractId);
+	}
+	return undefined;
+}
+
+const CHUNKS_EVENT = "chunks";
 
 const server = Bun.serve({
 	port: 1080,
@@ -17,18 +32,73 @@ const server = Bun.serve({
 			console.log(
 				`Got ${data.modified_slots.length} updates for ${contractId}`,
 			);
+			const receivedAt = new Date();
 			for (const chunk of data.modified_slots) {
-				await db.insert(stackerDbSlots).values({
+				const sharedPayload = {
 					slotId: chunk.slot_id,
-					version: chunk.slot_id,
+					version: chunk.slot_version,
+					contractId,
+				};
+				await db.insert(stackerDbSlots).values({
+					...sharedPayload,
 					signature: hex.decode(chunk.sig),
 					data: hex.decode(chunk.data),
-					contractId,
+					createdAt: receivedAt,
 				});
+				server.publish(
+					CHUNKS_EVENT,
+					JSON.stringify({
+						...sharedPayload,
+						signature: chunk.sig,
+						data: chunk.data,
+						createdAt: receivedAt.toISOString(),
+					}),
+				);
 			}
-			// console.log(data);
+			return new Response("OK", { status: 200 });
+		}
+
+		if (url.pathname === "/get_chunks") {
+			const contractIdQuery = url.searchParams.get("contractId");
+			console.log(`Getting chunks for ${contractIdQuery}`);
+			const chunks = await db
+				.select()
+				.from(stackerDbSlots)
+				.where(makeContractIdQuery(contractIdQuery))
+				.orderBy(desc(stackerDbSlots.createdAt))
+				.limit(100);
+			const chunksResponse = chunks.map((chunk) => {
+				return {
+					slotId: chunk.slotId,
+					receivedAt: chunk.createdAt,
+					version: chunk.version,
+					data: hex.encode(chunk.data),
+				};
+			});
+			return new Response(JSON.stringify(chunksResponse), {
+				status: 200,
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		}
+
+		if (url.pathname === "/watch") {
+			if (server.upgrade(req)) {
+				return; // do not return a Response
+			}
+			return new Response("Upgrade failed", { status: 500 });
 		}
 
 		return new Response("Hello World");
+	},
+	websocket: {
+		async open(ws) {
+			ws.subscribe(CHUNKS_EVENT);
+		},
+		async message(ws, message) {},
+		async close(ws, code, reason) {
+			ws.unsubscribe(CHUNKS_EVENT);
+		},
 	},
 });

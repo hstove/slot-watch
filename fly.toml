@@ -11,6 +11,9 @@ primary_region = 'sjc'
 [deploy]
   release_command = "bun run ./migrate.ts"
 
+[env]
+  STACKS_NETWORK = 'testnet'
+
 [http_service]
   internal_port = 1080
   force_https = true

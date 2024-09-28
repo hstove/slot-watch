@@ -9,6 +9,6 @@ export function fixtureToJson(fixture: string): StackerDBPayload {
 	if (!jsonLine) {
 		throw new Error("No JSON line found in the fixture");
 	}
-	console.log(json);
+	// console.log(json);
 	return JSON.parse(json);
 }
