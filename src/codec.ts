@@ -1,3 +1,4 @@
+// import { webcrypto } from "web";
 import * as P from "micro-packed";
 
 export type BitVec = {
@@ -46,8 +47,46 @@ export const SignerMessageTypePrefix = {
 	MockBlock: 5,
 } as const;
 
+export type SignerMessageTypeId =
+	(typeof SignerMessageTypePrefix)[keyof typeof SignerMessageTypePrefix];
+
+export function TypeIdCoder<T extends SignerMessageTypeId>(
+	id: T,
+): P.CoderType<T> {
+	return P.wrap({
+		encodeStream: (w: P.Writer, value: T) => w.byte(value),
+		decodeStream: (r: P.Reader): T => {
+			const value = r.byte();
+			return value as T;
+		},
+		validate: (value: T) => {
+			if (typeof value !== "number")
+				throw new Error(`TypeIdCoder: invalid value ${value}`);
+			if (value !== id) throw new Error(`TypeIdCoder: invalid value ${value}`);
+			return value;
+		},
+	});
+}
+
+export const _TypeIdCoder = (
+	id: SignerMessageTypeId,
+): P.CoderType<SignerMessageTypeId> =>
+	P.wrap({
+		encodeStream: (w: P.Writer, value: SignerMessageTypeId) => w.byte(value),
+		decodeStream: (r: P.Reader): SignerMessageTypeId => {
+			const value = r.byte();
+			return value as SignerMessageTypeId;
+		},
+		validate: (value: SignerMessageTypeId) => {
+			if (typeof value !== "number")
+				throw new Error(`TypeIdCoder: invalid value ${value}`);
+			if (value !== id) throw new Error(`TypeIdCoder: invalid value ${value}`);
+			return value;
+		},
+	});
+
 export const MockProposalCoder = P.struct({
-	typeId: P.U8,
+	typeId: TypeIdCoder(SignerMessageTypePrefix.MockProposal),
 	burnBlockHeight: P.U64BE,
 	consensusHash: P.bytes(20),
 	stacksTip: P.bytes(32),
@@ -59,14 +98,14 @@ export const MockProposalCoder = P.struct({
 });
 
 export const MockBlockCoder = P.struct({
-	typeId: P.U8,
+	typeId: TypeIdCoder(SignerMessageTypePrefix.MockBlock),
 	proposal: MockProposalCoder,
 	signatures: P.array(P.U32BE, P.bytes(65)),
 	rest: P.bytes(null),
 });
 
 export const BlockProposalCoder = P.struct({
-	typeId: P.U8,
+	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockProposal),
 	blockVersion: P.U8,
 	chainLength: P.U64BE,
 	burnSpent: P.U64BE,
@@ -85,7 +124,7 @@ export const BlockProposalCoder = P.struct({
 });
 
 export const BlockPushedCoder = P.struct({
-	typeId: P.U8,
+	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockPushed),
 	blockVersion: P.U8,
 	chainLength: P.U64BE,
 	burnSpent: P.U64BE,
@@ -101,7 +140,7 @@ export const BlockPushedCoder = P.struct({
 	rest: P.bytes(null),
 });
 
-export const MinerSignatureHashCoder = P.struct({
+export const SignerSignatureHashCoder = P.struct({
 	blockVersion: P.U8,
 	chainLength: P.U64BE,
 	burnSpent: P.U64BE,
@@ -114,19 +153,34 @@ export const MinerSignatureHashCoder = P.struct({
 	bitvec: BitVecCoder,
 });
 
+export const InverseBoolCoder: P.CoderType<boolean> = /* @__PURE__ */ P.wrap({
+	size: 1,
+	encodeStream: (w: P.Writer, value: boolean) => w.byte(value ? 0 : 1),
+	decodeStream: (r: P.Reader): boolean => {
+		const value = r.byte();
+		if (value !== 0 && value !== 1) throw r.err(`bool: invalid value ${value}`);
+		return value === 0;
+	},
+	validate: (value) => {
+		if (typeof value !== "boolean")
+			throw new Error(`bool: invalid value ${value}`);
+		return value;
+	},
+});
+
 export const BlockResponseAcceptedCoder = P.struct({
-	typeId: P.U8,
-	accepted: P.U8,
-	hash: P.bytes(32),
+	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockResponse),
+	accepted: InverseBoolCoder,
+	signerSignatureHash: P.bytes(32),
 	signature: P.bytes(65),
 });
 
 export const BlockResponseRejectedCoder = P.struct({
-	typeId: P.U8,
-	rejected: P.U8,
+	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockResponse),
+	accepted: InverseBoolCoder,
 	reason: P.prefix(P.U32BE, P.string(null)),
 	reason_code: P.U8,
-	signer_signature_hash: P.bytes(32),
+	signerSignatureHash: P.bytes(32),
 	chain_id: P.U32BE,
 	signature: P.bytes(65),
 });
@@ -143,6 +197,13 @@ export type BlockResponseRejected = P.UnwrapCoder<
 export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
 
 export type NakamotoBlock = Omit<BlockPushed, "rest">;
+
+export function chunkTypeName(chunk: Uint8Array) {
+	const type = chunk[0];
+	return Object.keys(SignerMessageTypePrefix)[type];
+}
+
+export type DecodedChunk = ReturnType<typeof decodeChunk>;
 
 export function decodeChunk(chunk: Uint8Array) {
 	const type = chunk[0];
@@ -163,7 +224,17 @@ export function decodeChunk(chunk: Uint8Array) {
 		return BlockResponseRejectedCoder.decode(chunk);
 	}
 	if (type === SignerMessageTypePrefix.BlockProposal) {
-		return BlockProposalCoder.decode(chunk);
+		const { rest: remaining, ...proposal } = BlockProposalCoder.decode(chunk);
+		const withoutTxs = remaining.slice(-16);
+		const extra = P.struct({
+			blockHeight: P.U64BE,
+			rewardCycle: P.U64BE,
+		}).decode(withoutTxs);
+		return {
+			...proposal,
+			blockHeight: extra.blockHeight,
+			rewardCycle: extra.rewardCycle,
+		};
 	}
 	if (type === SignerMessageTypePrefix.BlockPushed) {
 		return BlockPushedCoder.decode(chunk);
@@ -171,13 +242,4 @@ export function decodeChunk(chunk: Uint8Array) {
 	throw new Error(
 		`Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
 	);
-}
-
-export function makeSignerSignatureHash(
-	block: Omit<NakamotoBlock, "signer_signature_hash">,
-) {
-	const message = MinerSignatureHashCoder.encode(block);
-	const hasher = new Bun.CryptoHasher("sha512-256");
-	hasher.update(message);
-	return new Uint8Array(hasher.digest());
 }

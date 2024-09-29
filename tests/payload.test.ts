@@ -11,10 +11,10 @@ import { hex } from "@scure/base";
 import { getPayloadContractId } from "../src/payload";
 import {
 	decodeChunk,
-	makeSignerSignatureHash,
 	type BlockResponseAccepted,
 	type NakamotoBlock,
 } from "../src/codec";
+import { makeSignerSignatureHash } from "../src/hashes";
 
 test("parse-fixtures", () => {
 	const payload = fixtureToJson(fixtures.signers1);
@@ -66,7 +66,7 @@ test("miners payload", () => {
 		const data = hex.decode(slot.data);
 		const decoded = decodeChunk(data);
 		// console.log(decoded);
-		// console.log((decoded as BlockResponseAccepted).hash);
+		// console.log((decoded as BlockResponseAccepted).signerSignatureHash);
 	}
 });
 
@@ -78,4 +78,11 @@ test("block proposal fixture", () => {
 	expect(hex.encode(signerSignatureHash)).toEqual(
 		"ced4ed4e61eef9b2859ae1053bc5df414e7b3a901c927107ea7c66d1a81a7f28",
 	);
+});
+
+test("decoding", () => {
+	const chunkData =
+		"01008058e991f5255b43078efd1d5ab4c05fbbd6520e37fc6b4feb51870602bb24c50172238b998b6467c0dfc28ee48319526f98ee1fd6077ad9b53a64d116525ccdc919132fdcb9d43777504ad807e4d16514a942b3a0cf6b66551350a8d030169be6";
+	const decoded = decodeChunk(hex.decode(chunkData));
+	// console.log(decoded);
 });
