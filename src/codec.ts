@@ -1,5 +1,6 @@
 // import { webcrypto } from "web";
 import * as P from "micro-packed";
+import { sha512_256 } from "@noble/hashes/sha2";
 
 export type BitVec = {
 	length: number;
@@ -196,7 +197,7 @@ export type BlockResponseRejected = P.UnwrapCoder<
 >;
 export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
 
-export type NakamotoBlock = Omit<BlockPushed, "rest">;
+export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
 
 export function chunkTypeName(chunk: Uint8Array) {
 	const type = chunk[0];
@@ -242,4 +243,11 @@ export function decodeChunk(chunk: Uint8Array) {
 	throw new Error(
 		`Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
 	);
+}
+
+export function makeSignerSignatureHash(
+	block: Omit<NakamotoBlock, "signer_signature_hash">,
+) {
+	const message = SignerSignatureHashCoder.encode(block);
+	return sha512_256(message);
 }

@@ -1,10 +1,14 @@
 import { SignerSignatureHashCoder, type NakamotoBlock } from "./codec";
+import { sha512_256 } from "@noble/hashes/sha2";
 
-export function makeSignerSignatureHash(
+export async function makeSignerSignatureHash(
 	block: Omit<NakamotoBlock, "signer_signature_hash">,
 ) {
 	const message = SignerSignatureHashCoder.encode(block);
-	const hasher = new Bun.CryptoHasher("sha512-256");
-	hasher.update(message);
-	return new Uint8Array(hasher.digest());
+	return sha512_256(message);
+	// const hashed = await crypto.subtle.digest("SHA-512", message);
+	// hasher.update(message);
+	// const
+	// return new Uint8Array(hasher.digest());
+	// return new Uint8Array(hashed.slice(0, 32));
 }
