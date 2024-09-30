@@ -5,7 +5,8 @@
   "scripts": {
     "dev:client": "cd client && bun run dev",
     "build:common": "cd common && bunx tsc",
-    "build:client": "cd client && bun run build"
+    "build:client": "cd client && bun run build",
+    "build": "bun run build:common && bun run build:client"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
