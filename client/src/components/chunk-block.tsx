@@ -10,12 +10,32 @@ import type { ChunkEvent } from "@/lib/types";
 import { hex } from "@scure/base";
 import { useEffect, useState } from "react";
 import { colord } from "colord";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useCopyToClipboard } from "usehooks-ts";
 
 export const BlockHash = ({ hash }: { hash: Uint8Array }) => {
   const hexString = hex.encode(hash);
   const hexCode = hexString.slice(0, 6);
+  const [_, copy] = useCopyToClipboard();
   // const color = colord(hexCode).toHex();
-  return <span style={{ color: `#${hexCode}` }}>{hexString.slice(0, 8)}</span>;
+  // return <span style={{ color: `#${hexCode}` }}>{hexString.slice(0, 8)}</span>;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger onClick={() => copy(hexString)}>
+          <span style={{ color: `#${hexCode}` }}>{hexString.slice(0, 8)}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{hexString}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 
 export const ChunkBlock = ({ chunk }: { chunk: ChunkEvent }) => {

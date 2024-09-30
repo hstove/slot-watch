@@ -12,6 +12,31 @@ function dataLen(_len: number) {
 	return len / 8n + extra;
 }
 
+// Rust code:
+
+// /// Serialize a BitVec to a string of 1s and 0s for display
+//     /// purposes. For example, a BitVec with [true, false, true]
+//     /// will be serialized to "101".
+//     pub fn binary_str(&self) -> String {
+// 			self.clone()
+// 					.data
+// 					.into_iter()
+// 					.fold(String::new(), |acc, byte| {
+// 							acc + &format!("{:08b}", byte).chars().rev().collect::<String>()
+// 					})
+// 					.chars()
+// 					.take(self.len() as usize)
+// 					.collect::<String>()
+// 	}
+
+export function binaryString(bitvec: BitVec) {
+	return bitvec.bytes
+		.reduce((acc, byte) => {
+			return acc + byte.toString(2).padStart(8, "0");
+		}, "")
+		.slice(0, bitvec.length);
+}
+
 export const BitVecCoder = P.wrap({
 	encodeStream: (w: P.Writer, data: BitVec) => {
 		// const len = data.length;

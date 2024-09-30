@@ -3,9 +3,9 @@
   "module": "src/run.ts",
   "type": "module",
   "scripts": {
-    "dev:client": "turbo dev --filter=client",
+    "dev:client": "turbo dev --filter=slot-watch-ui",
     "build:common": "turbo build --filter=slot-watch-common",
-    "build:client": "turbo build --filter=client",
+    "build:client": "turbo build --filter=slot-watch-ui",
     "build": "turbo build",
     "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run start",
@@ -14,10 +14,11 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
     "@flydotio/dockerfile": "latest",
+    "shadcn": "^2.1.0",
     "turbo": "^2.1.2"
   },
   "peerDependencies": {},
-  "dependencies": {},
+  "dependencies": { "usehooks-ts": "^3.1.0" },
   "workspaces": [
     "./client",
     "./common",

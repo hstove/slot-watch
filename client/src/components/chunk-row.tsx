@@ -10,8 +10,9 @@ import {
 import type { ChunkEvent } from "@/lib/types";
 import { useState } from "react";
 import { hex } from "@scure/base";
-import { ChunkData } from "./chunk-data";
+import { ChunkLabel } from "./chunk-label";
 import { ChunkBlock } from "./chunk-block";
+import { ChunkData } from "./chunk-data";
 
 export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
   const [expandData, setExpandData] = useState(false);
@@ -30,33 +31,13 @@ export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
         {addr.slice(0, 4)}...{name}
       </TableCell>
       <TableCell>
-        <ChunkData data={chunk.data} />
+        <ChunkLabel data={chunk.data} />
       </TableCell>
       <TableCell>
         <ChunkBlock chunk={chunk} />
       </TableCell>
-      <TableCell className="w-[100px] md:w-[300px]">
-        {expandData ? (
-          <div
-            className="text-wrap text-xs break-all cursor-pointer"
-            onClick={() => setExpandData(!expandData)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setExpandData(!expandData);
-              }
-            }}
-          >
-            {chunk.data}
-          </div>
-        ) : (
-          <button type="button" onClick={() => setExpandData(!expandData)}>
-            Show Data
-          </button>
-        )}
-        {/* <button type="button" onClick={() => setExpandData(!expandData)}>
-					{expandData ? "Hide" : "Show"}
-				</button>
-				{expandData && ( */}
+      <TableCell className="flex justify-end">
+        <ChunkData data={chunk.data} />
       </TableCell>
     </TableRow>
   );

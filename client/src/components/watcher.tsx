@@ -48,57 +48,6 @@ export const Watcher = () => {
 
   const chunks = useWebSocket(handleNewMessage);
 
-  // // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  // useEffect(() => {
-  // 	const { scrollTop, scrollHeight, clientHeight } =
-  // 		// biome-ignore lint/style/noNonNullAssertion: <explanation>
-  // 		document.querySelector("html")!;
-  // 	// Allow for a small buffer (1px) to account for potential rounding errors
-  // 	console.log({
-  // 		scrollTop,
-  // 		scrollHeight,
-  // 		clientHeight,
-  // 		diff: scrollHeight - scrollTop - clientHeight,
-  // 	});
-  // 	const isScrolledToBottom = scrollHeight - scrollTop - clientHeight <= 1;
-
-  // 	if (isScrolledToBottom) {
-  // 		scrollToBottom();
-  // 	}
-  // }, [chunks.length, scrollToBottom]);
-
-  // useEffect(() => {
-  // 	const ws = new WebSocket(wsUrl);
-
-  // 	ws.onopen = () => {
-  // 		console.debug("WebSocket connection opened");
-  // 	};
-
-  // 	ws.onmessage = (event) => {
-  // 		const chunk = JSON.parse(event.data);
-  // 		const isScrolled = isScrolledToBottom();
-  // 		setChunks((prevChunks) => [...prevChunks, chunk]);
-  // 		if (isScrolled) {
-  // 			setTimeout(() => {
-  // 				scrollToBottom();
-  // 			}, 200);
-  // 			// scrollToBottom();
-  // 		}
-  // 	};
-
-  // 	ws.onclose = () => {
-  // 		console.debug("WebSocket connection closed");
-  // 	};
-
-  // 	ws.onerror = (error) => {
-  // 		console.debug("WebSocket error:", error);
-  // 	};
-
-  // 	return () => {
-  // 		ws.close();
-  // 	};
-  // }, [scrollToBottom, isScrolledToBottom]);
-
   return (
     <Table ref={containerRef}>
       <TableHeader>
@@ -109,7 +58,7 @@ export const Watcher = () => {
           <TableHead>Contract</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Block</TableHead>
-          <TableHead>Data</TableHead>
+          <TableHead className="text-right">{""}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
