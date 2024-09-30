@@ -15,6 +15,13 @@
       "when": 1727446723648,
       "tag": "0001_sour_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1727724224963,
+      "tag": "0002_lazy_elektra",
+      "breakpoints": true
     }
   ]
 }

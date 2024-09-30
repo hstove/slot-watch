@@ -13,8 +13,12 @@ import {
 	decodeChunk,
 	type BlockResponseAccepted,
 	type NakamotoBlock,
-} from "../src/codec";
-import { makeSignerSignatureHash } from "../src/hashes";
+	makeSignerSignatureHash,
+} from "slot-watch-common";
+// import { makeSignerSignatureHash } from "../src/hashes";
+import { randomBytes } from "@noble/hashes/utils";
+
+console.log(hex.encode(randomBytes(8)));
 
 test("parse-fixtures", () => {
 	const payload = fixtureToJson(fixtures.signers1);

@@ -6,31 +6,21 @@
     "dev:client": "cd client && bun run dev",
     "build:common": "cd common && bunx tsc",
     "build:client": "cd client && bun run build",
-    "build": "bun run build:common && bun run build:client"
+    "build": "bun run build:common && bun run build:client",
+    "dev:server": "cd server && bun run start",
+    "migrate": "cd server && bun run migrate.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
     "@flydotio/dockerfile": "latest",
-    "@types/bun": "latest",
-    "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.24.2"
+    "turbo": "^2.1.2"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@clarigen/core": "^2.1.1",
-    "@noble/hashes": "^1.5.0",
-    "@scure/base": "^1.1.9",
-    "@stacks/transactions": "^6.16.1",
-    "drizzle-orm": "^0.33.0",
-    "micro-packed": "^0.6.3",
-    "pg": "^8.13.0",
-    "postgres": "^3.4.4",
-    "vitest": "^2.1.1"
-  },
+  "peerDependencies": {},
+  "dependencies": {},
   "workspaces": [
     "./client",
-    "./common"
-  ]
+    "./common",
+    "./server"
+  ],
+  "packageManager": "bun@1.0.22"
 }

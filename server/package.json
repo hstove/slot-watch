@@ -1,0 +1,31 @@
+{
+  "name": "slot-watch-api",
+  "module": "src/run.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/run.ts",
+    "start": "bun run src/run.ts",
+    "typecheck": "tsc --noEmit",
+    "generate-migrations": "drizzle-kit generate"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.24.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@clarigen/core": "^2.1.1",
+    "@noble/hashes": "^1.5.0",
+    "@scure/base": "^1.1.9",
+    "@stacks/transactions": "^6.16.1",
+    "drizzle-orm": "^0.33.0",
+    "micro-packed": "^0.6.3",
+    "pg": "^8.13.0",
+    "postgres": "^3.4.4",
+    "react-use-websocket": "^4.8.1",
+    "vitest": "^2.1.1"
+  }
+}

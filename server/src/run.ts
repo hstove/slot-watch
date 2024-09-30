@@ -4,9 +4,7 @@ import { getPayloadContractId, type StackerDBPayload } from "./payload";
 import { stackerDbSlots } from "./schema";
 import { eq, desc } from "drizzle-orm";
 import { burnAddress } from "./constants";
-
-// const rows = await db.select().from(stackerDbSlots);
-// console.log(rows);
+import { getNetworkKey } from "./auth";
 
 function makeContractIdQuery(contractIdQuery: string | null) {
 	if (typeof contractIdQuery === "string") {
@@ -26,7 +24,8 @@ const server = Bun.serve({
 	port: 1080,
 	async fetch(req) {
 		const url = new URL(req.url);
-		console.log(url.pathname);
+		const networkKey = getNetworkKey(req);
+		console.log(`${url.pathname} with network key ${networkKey ?? "none"}`);
 		if (url.pathname === "/stackerdb_chunks") {
 			const data = (await req.json()) as StackerDBPayload;
 			const contractId = getPayloadContractId(data);
@@ -39,6 +38,7 @@ const server = Bun.serve({
 					slotId: chunk.slot_id,
 					version: chunk.slot_version,
 					contractId,
+					networkKey,
 				};
 				server.publish(
 					CHUNKS_EVENT,
@@ -110,3 +110,5 @@ const server = Bun.serve({
 		},
 	},
 });
+
+console.log(`Server is running on ${server.url}`);

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@noble/hashes": "^1.5.0",
@@ -16,11 +17,12 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",
-    "slot-watch-common": "workspace:*",
     "lucide-react": "^0.446.0",
     "micro-packed": "^0.6.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-use-websocket": "^4.8.1",
+    "slot-watch-common": "workspace:*",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

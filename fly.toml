@@ -9,7 +9,7 @@ primary_region = 'sjc'
 [build]
 
 [deploy]
-  release_command = "bun run ./migrate.ts"
+  release_command = "bun run migrate"
 
 [env]
   STACKS_NETWORK = 'testnet'
