@@ -3,7 +3,8 @@
   "module": "src/run.ts",
   "type": "module",
   "scripts": {
-    "dev:client": "cd client && bun run dev"
+    "dev:client": "cd client && bun run dev",
+    "build:client": "cd client && bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
