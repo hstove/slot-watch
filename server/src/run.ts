@@ -75,10 +75,12 @@ const server = Bun.serve({
 				.limit(100);
 			const chunksResponse = chunks.map((chunk) => {
 				return {
+					...chunk,
 					slotId: chunk.slotId,
 					receivedAt: chunk.createdAt,
 					version: chunk.version,
 					data: hex.encode(chunk.data),
+					signature: hex.encode(chunk.signature),
 				};
 			});
 			return new Response(JSON.stringify(chunksResponse), {
