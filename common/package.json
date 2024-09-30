@@ -4,7 +4,8 @@
   "type": "module",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --format esm"
+    "build": "bun build src/index.ts --outdir dist --format esm",
+    "postinstall": "bun run build"
   },
   "devDependencies": {
     "@types/bun": "latest"
