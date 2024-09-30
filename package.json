@@ -2,6 +2,9 @@
   "name": "slot-watch",
   "module": "src/run.ts",
   "type": "module",
+  "scripts": {
+    "dev:client": "cd client && bun run dev"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
     "@flydotio/dockerfile": "latest",
@@ -22,5 +25,9 @@
     "pg": "^8.13.0",
     "postgres": "^3.4.4",
     "vitest": "^2.1.1"
-  }
+  },
+  "workspaces": [
+    "./client",
+    "./common"
+  ]
 }

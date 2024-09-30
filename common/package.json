@@ -1,0 +1,15 @@
+{
+  "name": "slot-watch-common",
+  "module": "src/index.ts",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --format esm"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

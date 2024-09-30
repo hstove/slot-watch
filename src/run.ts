@@ -20,6 +20,7 @@ function makeContractIdQuery(contractIdQuery: string | null) {
 }
 
 const CHUNKS_EVENT = "chunks";
+const BURN_BLOCKS_EVENT = "burn_blocks";
 
 const server = Bun.serve({
 	port: 1080,
@@ -39,12 +40,6 @@ const server = Bun.serve({
 					version: chunk.slot_version,
 					contractId,
 				};
-				await db.insert(stackerDbSlots).values({
-					...sharedPayload,
-					signature: hex.decode(chunk.sig),
-					data: hex.decode(chunk.data),
-					createdAt: receivedAt,
-				});
 				server.publish(
 					CHUNKS_EVENT,
 					JSON.stringify({
@@ -54,8 +49,19 @@ const server = Bun.serve({
 						createdAt: receivedAt.toISOString(),
 					}),
 				);
+				await db.insert(stackerDbSlots).values({
+					...sharedPayload,
+					signature: hex.decode(chunk.sig),
+					data: hex.decode(chunk.data),
+					createdAt: receivedAt,
+				});
 			}
 			return new Response("OK", { status: 200 });
+		}
+
+		if (url.pathname === "/new_burn_block") {
+			const data = await req.json();
+			// server.publish(BURN_BLOCKS_EVENT, JSON.stringify(data));
 		}
 
 		if (url.pathname === "/get_chunks") {
@@ -95,10 +101,12 @@ const server = Bun.serve({
 	websocket: {
 		async open(ws) {
 			ws.subscribe(CHUNKS_EVENT);
+			ws.subscribe(BURN_BLOCKS_EVENT);
 		},
 		async message(ws, message) {},
 		async close(ws, code, reason) {
 			ws.unsubscribe(CHUNKS_EVENT);
+			ws.unsubscribe(BURN_BLOCKS_EVENT);
 		},
 	},
 });

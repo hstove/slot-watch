@@ -97,11 +97,31 @@ test("signature hashing", async () => {
 		"010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e8";
 	const response = decodeChunk(hex.decode(responseHex));
 	const proposalHash = await makeSignerSignatureHash(proposal as NakamotoBlock);
-	console.log(hex.encode(proposalHash));
-	console.log(
-		hex.encode((response as BlockResponseAccepted).signerSignatureHash),
-	);
+	// console.log(hex.encode(proposalHash));
+	// console.log(
+	// 	hex.encode((response as BlockResponseAccepted).signerSignatureHash),
+	// );
 	expect(hex.encode(proposalHash)).toEqual(
 		hex.encode((response as BlockResponseAccepted).signerSignatureHash),
 	);
+});
+
+test("rejection parsing", () => {
+	const payload = decodeChunk(
+		hex.decode(
+			"01010000004654686520626c6f636b207761732072656a65637465642064756520746f2061206d69736d61746368207769746820657870656374656420736f72746974696f6e20766965772e04534480f316913655629e3986637e5e1ea083dca1be98dfdd0d21ac0384d88a0e800000000158245645958d7a9422d634c4b5b5ae07f153775f07914d972d5ceee5e73a9d951a3ed7e89ea402103f58c2432a088043ceb8ba2d83001a8dcdb7991829d239fa",
+		),
+	);
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	expect((payload as any).validationCode).toEqual(undefined);
+});
+
+test("another rejection payload", () => {
+	const payload = decodeChunk(
+		hex.decode(
+			"010100000038426c6f636b206973206e6f7420686967686572207468616e20746865206869676865737420626c6f636b20696e206974732074656e7572650002c7239e6150054022bebe334b4010bfdef5f2e14fb5e437f3b4a8f7c71e0c833f8000000001da4afd21645dced50eb27395a0bc28cf2d1cb14a19feb1ff4d01d998aeecadca60abb442f3a57b5bfc015b9f964990f2a9f3464924ac24225811c0a96217010e",
+		),
+	);
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	expect((payload as any).validationCode).toEqual(2);
 });
