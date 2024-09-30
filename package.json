@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev:client": "cd client && bun run dev",
+    "build:common": "cd common && bunx tsc",
     "build:client": "cd client && bun run build"
   },
   "devDependencies": {
