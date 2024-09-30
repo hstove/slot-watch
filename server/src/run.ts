@@ -49,12 +49,16 @@ const server = Bun.serve({
 						createdAt: receivedAt.toISOString(),
 					}),
 				);
-				await db.insert(stackerDbSlots).values({
-					...sharedPayload,
-					signature: hex.decode(chunk.sig),
-					data: hex.decode(chunk.data),
-					createdAt: receivedAt,
-				});
+				try {
+					await db.insert(stackerDbSlots).values({
+						...sharedPayload,
+						signature: hex.decode(chunk.sig),
+						data: hex.decode(chunk.data),
+						createdAt: receivedAt,
+					});
+				} catch (error) {
+					console.error(`Error inserting chunk: ${error}`);
+				}
 			}
 			return new Response("OK", { status: 200 });
 		}

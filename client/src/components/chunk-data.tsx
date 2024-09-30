@@ -13,11 +13,13 @@ function RejectedLabel({ data }: { data: string }) {
     if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
       return null;
     }
-    const reasonCode =
-      "reasonCode" in decoded ? (decoded.reasonCode as number) : null;
-    return (
-      <>{reasonCode ? <span className="ml-2">({reasonCode})</span> : null}</>
-    );
+    if (decoded.accepted === true) return null;
+    const { reasonCode, validationCode } = decoded;
+    let str = `${reasonCode}`;
+    if (typeof validationCode === "number") {
+      str += ` - ${validationCode}`;
+    }
+    return <span className="ml-2">({str})</span>;
   } catch {
     console.error("Failed to decode chunk in RejectedLabel", data);
     return null;

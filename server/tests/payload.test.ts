@@ -129,3 +129,12 @@ test("another rejection payload", () => {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	expect((payload as any).validationCode).toEqual(2);
 });
+
+test("another rejection", () => {
+	const payload = decodeChunk(
+		hex.decode(
+			"010100000050426c6f636b206973206e6f7420612074656e7572652d737461727420626c6f636b2c20616e642068617320616e20756e7265636f676e697a65642074656e75726520636f6e73656e7375732068617368000691f95f84b7045f7dce7757052caa986ef042cb58f7df5031a3b5b5d0e3dda63e80000000006fb349212e1a1af1a3c712878d5159b5ec14636adb6f70be00a6da4ad4f88a9934d8a9abb229620dd8e0f225d63401e36c64817fb29e6c05591dcbe95c512df3",
+		),
+	);
+	console.log(payload);
+});

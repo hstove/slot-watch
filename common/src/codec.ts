@@ -194,12 +194,14 @@ export const BlockResponseRejectedCoder = P.struct({
 export type MockBlock = P.UnwrapCoder<typeof MockBlockCoder>;
 export type MockProposal = P.UnwrapCoder<typeof MockProposalCoder>;
 export type BlockProposal = P.UnwrapCoder<typeof BlockProposalCoder>;
-export type BlockResponseAccepted = P.UnwrapCoder<
-	typeof BlockResponseAcceptedCoder
->;
-export type BlockResponseRejected = P.UnwrapCoder<
-	typeof BlockResponseRejectedCoder
->;
+export type BlockResponseAccepted = Omit<
+	P.UnwrapCoder<typeof BlockResponseAcceptedCoder>,
+	"accepted"
+> & { accepted: true };
+export type BlockResponseRejected = Omit<
+	P.UnwrapCoder<typeof BlockResponseRejectedCoder>,
+	"accepted"
+> & { reasonCode: number; validationCode: number | undefined; accepted: false };
 export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
 
 export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
@@ -225,14 +227,14 @@ export function decodeChunk(chunk: Uint8Array) {
 	if (type === SignerMessageTypePrefix.BlockResponse) {
 		const accepted = chunk[1];
 		if (accepted === 0) {
-			return BlockResponseAcceptedCoder.decode(chunk);
+			return BlockResponseAcceptedCoder.decode(chunk) as BlockResponseAccepted;
 		}
 		const { reasonCode, ...rejection } =
 			BlockResponseRejectedCoder.decode(chunk);
 		return {
 			...rejection,
 			...reasonCode,
-		};
+		} as BlockResponseRejected;
 	}
 	if (type === SignerMessageTypePrefix.BlockProposal) {
 		const { rest: remaining, ...proposal } = BlockProposalCoder.decode(chunk);

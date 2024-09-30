@@ -19,7 +19,11 @@ const client = new Client({
 // 	database: "db_name",
 // });
 
-await client.connect();
-console.log("Connected to DB");
+try {
+	await client.connect();
+	console.log("Connected to DB");
+} catch (error) {
+	console.error(`Error connecting to DB: ${error}`);
+}
 
 export const db = drizzle(client);

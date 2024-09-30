@@ -3,10 +3,11 @@
   "module": "src/run.ts",
   "type": "module",
   "scripts": {
-    "dev:client": "cd client && bun run dev",
-    "build:common": "cd common && bunx tsc",
-    "build:client": "cd client && bun run build",
-    "build": "bun run build:common && bun run build:client",
+    "dev:client": "turbo dev --filter=client",
+    "build:common": "turbo build --filter=slot-watch-common",
+    "build:client": "turbo build --filter=client",
+    "build": "turbo build",
+    "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run start",
     "migrate": "cd server && bun run migrate.ts"
   },
