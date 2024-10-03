@@ -203,3 +203,7 @@ dist-ssr
 .turbo
 
 fly.db.toml
+_fly.db.toml
+
+Caddyfile
+Caddyfile.test

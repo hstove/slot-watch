@@ -50,11 +50,13 @@ const server = Bun.serve({
 					}),
 				);
 				try {
-					await db.insert(stackerDbSlots).values({
-						...sharedPayload,
-						signature: hex.decode(chunk.sig),
-						data: hex.decode(chunk.data),
-						createdAt: receivedAt,
+					process.nextTick(async () => {
+						await db.insert(stackerDbSlots).values({
+							...sharedPayload,
+							signature: hex.decode(chunk.sig),
+							data: hex.decode(chunk.data),
+							createdAt: receivedAt,
+						});
 					});
 				} catch (error) {
 					console.error(`Error inserting chunk: ${error}`);

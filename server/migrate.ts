@@ -2,9 +2,14 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { db } from "./src/db";
 
 console.log("Migrating...");
-await migrate(db, {
-	migrationsFolder: "./drizzle",
-});
+try {
+	await migrate(db, {
+		migrationsFolder: "./drizzle",
+	});
+} catch (error) {
+	console.error(error);
+	process.exit(1);
+}
 
 console.log("Done");
 
