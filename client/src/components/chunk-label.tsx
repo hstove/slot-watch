@@ -3,9 +3,14 @@ import {
   decodeChunk,
   SignerMessageTypePrefix,
 } from "slot-watch-common";
-import type { ChunkEvent } from "@/lib/types";
+import {
+  BlockResponseRejectCodes,
+  BlockResponseValidationCodes,
+  type ChunkEvent,
+} from "@/lib/types";
 import { memo, useState } from "react";
 import { hex } from "@scure/base";
+import { SimpleTooltip } from "./simple-tooltip";
 
 function RejectedLabel({ data }: { data: string }) {
   try {
@@ -15,15 +20,35 @@ function RejectedLabel({ data }: { data: string }) {
     }
     if (decoded.accepted === true) return null;
     const { reasonCode, validationCode } = decoded;
-    let str = `${reasonCode}`;
-    if (typeof validationCode === "number") {
-      str += ` - ${validationCode}`;
+    const hasValidationCode = typeof validationCode === "number";
+    const reason = BlockResponseRejectCodes[reasonCode];
+    let validfationReason = "Unknown";
+    if (hasValidationCode) {
+      validfationReason = BlockResponseValidationCodes[validationCode];
     }
-    return <span className="ml-2">({str})</span>;
+    return (
+      <span className="ml-2">
+        (<ValidationError code={reasonCode} message={reason} />
+        {hasValidationCode ? (
+          <>
+            {" - "}
+            <ValidationError
+              code={validationCode}
+              message={validfationReason}
+            />
+          </>
+        ) : null}
+        )
+      </span>
+    );
   } catch {
     console.error("Failed to decode chunk in RejectedLabel", data);
     return null;
   }
+}
+
+function ValidationError({ code, message }: { code: number; message: string }) {
+  return <SimpleTooltip content={<span>{message}</span>}>{code}</SimpleTooltip>;
 }
 
 function ChunkLabelOuter({ data }: { data: string }) {
