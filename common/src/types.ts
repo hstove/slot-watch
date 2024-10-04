@@ -25,3 +25,18 @@ export const BlockResponseValidationCodes = [
 	"Non Canonical Tenure",
 	"No Such Tenure",
 ] as const;
+
+export type ModifiedSlot = {
+	slot_id: number;
+	slot_version: number;
+	data: string;
+	sig: string;
+};
+
+export type StackerDBPayload = {
+	contract_id: {
+		issuer: [number, Uint8Array];
+		name: string;
+	};
+	modified_slots: ModifiedSlot[];
+};

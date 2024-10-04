@@ -218,7 +218,13 @@ export const BlockResponseRejectedCoder = P.struct({
 
 export type MockBlock = P.UnwrapCoder<typeof MockBlockCoder>;
 export type MockProposal = P.UnwrapCoder<typeof MockProposalCoder>;
-export type BlockProposal = P.UnwrapCoder<typeof BlockProposalCoder>;
+export type BlockProposal = Omit<
+	P.UnwrapCoder<typeof BlockProposalCoder>,
+	"rest"
+> & {
+	blockHeight: bigint;
+	rewardCycle: bigint;
+};
 export type BlockResponseAccepted = Omit<
 	P.UnwrapCoder<typeof BlockResponseAcceptedCoder>,
 	"accepted"
@@ -272,7 +278,7 @@ export function decodeChunk(chunk: Uint8Array) {
 			...proposal,
 			blockHeight: extra.blockHeight,
 			rewardCycle: extra.rewardCycle,
-		};
+		} satisfies BlockProposal;
 	}
 	if (type === SignerMessageTypePrefix.BlockPushed) {
 		return BlockPushedCoder.decode(chunk);
@@ -280,6 +286,14 @@ export function decodeChunk(chunk: Uint8Array) {
 	throw new Error(
 		`Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
 	);
+}
+
+export function decodeChunkMaybe(chunk: Uint8Array): DecodedChunk | null {
+	try {
+		return decodeChunk(chunk);
+	} catch (error) {
+		return null;
+	}
 }
 
 export function makeSignerSignatureHash(

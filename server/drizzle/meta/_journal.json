@@ -22,6 +22,13 @@
       "when": 1727724224963,
       "tag": "0002_lazy_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1728071444205,
+      "tag": "0003_open_firebrand",
+      "breakpoints": true
     }
   ]
 }

@@ -39,7 +39,7 @@ export const blockProposals = pgTable(
 	"block_proposals",
 	{
 		id: serial("id").primaryKey(),
-		minerSignatureHash: varchar("miner_signature_hash", {
+		signerSignatureHash: varchar("signer_signature_hash", {
 			length: 64,
 		}).notNull(),
 		chainLength: integer("chain_length").notNull(),
@@ -47,10 +47,12 @@ export const blockProposals = pgTable(
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 	},
 	(table) => ({
-		networkKeyIndex: index("network_key_idx").on(table.networkKey),
-		minerSignatureHashIndex: index("miner_signature_hash_idx").on(
-			table.minerSignatureHash,
+		networkKeyIndex: index("block_proposals_network_key_idx").on(
+			table.networkKey,
 		),
+		signerSignatureHashIndex: index(
+			"block_proposals_signer_signature_hash_idx",
+		).on(table.signerSignatureHash),
 	}),
 );
 
@@ -58,7 +60,7 @@ export const blockResponses = pgTable(
 	"block_responses",
 	{
 		id: serial("id").primaryKey(),
-		minerSignatureHash: varchar("miner_signature_hash", {
+		signerSignatureHash: varchar("signer_signature_hash", {
 			length: 64,
 		}).notNull(),
 		slotId: smallint("slot_id").notNull(),
@@ -66,10 +68,31 @@ export const blockResponses = pgTable(
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 	},
 	(table) => ({
-		networkKeyIndex: index("network_key_idx").on(table.networkKey),
-		minerSignatureHashIndex: index("miner_signature_hash_idx").on(
-			table.minerSignatureHash,
+		networkKeyIndex: index("block_responses_network_key_idx").on(
+			table.networkKey,
 		),
+		signerSignatureHashIndex: index(
+			"block_responses_signer_signature_hash_idx",
+		).on(table.signerSignatureHash),
 		slotIdIndex: index("slot_id_idx").on(table.slotId),
+	}),
+);
+
+export const blockPushes = pgTable(
+	"block_pushes",
+	{
+		id: serial("id").primaryKey(),
+		signerSignatureHash: varchar("signer_signature_hash", {
+			length: 64,
+		}).notNull(),
+		chainLength: integer("chain_length").notNull(),
+		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+		networkKey: varchar("network_key", { length: 20 }).notNull(),
+	},
+	(table) => ({
+		networkKeyIndex: index("block_pushes_network_key_idx").on(table.networkKey),
+		signerSignatureHashIndex: index(
+			"block_pushes_signer_signature_hash_idx",
+		).on(table.signerSignatureHash),
 	}),
 );

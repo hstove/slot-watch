@@ -1,10 +1,13 @@
 import { hex } from "@scure/base";
 import { db } from "./db";
-import { getPayloadContractId, type StackerDBPayload } from "./payload";
+import { getPayloadContractId } from "./utils";
+import type { StackerDBPayload } from "slot-watch-common";
 import { stackerDbSlots } from "./schema";
 import { eq, desc } from "drizzle-orm";
 import { burnAddress } from "./constants";
 import { getNetworkKey } from "./auth";
+import type { ChunkEvent } from "slot-watch-common";
+import { handleStackerDBChunk } from "./events/stackerdb";
 
 function makeContractIdQuery(contractIdQuery: string | null) {
 	if (typeof contractIdQuery === "string") {
@@ -49,21 +52,16 @@ const server = Bun.serve({
 						signature: chunk.sig,
 						data: chunk.data,
 						createdAt: receivedAt.toISOString(),
-					}),
+					} satisfies ChunkEvent),
 				);
-				try {
-					process.nextTick(async () => {
-						await db.insert(stackerDbSlots).values({
-							...sharedPayload,
-							signature: hex.decode(chunk.sig),
-							data: hex.decode(chunk.data),
-							createdAt: receivedAt,
-						});
-					});
-				} catch (error) {
-					console.error(`Error inserting chunk: ${error}`);
-				}
 			}
+			process.nextTick(async () => {
+				try {
+					await handleStackerDBChunk(data, receivedAt, networkKey);
+				} catch (error) {
+					console.error(`Error handling stacker db chunk: ${error}`);
+				}
+			});
 			return new Response("OK", { status: 200 });
 		}
 

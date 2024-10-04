@@ -8,7 +8,7 @@ import {
 	AddressVersion,
 } from "@stacks/transactions";
 import { hex } from "@scure/base";
-import { getPayloadContractId } from "../src/payload";
+import { getPayloadContractId } from "../src/utils";
 import {
 	decodeChunk,
 	type BlockResponseAccepted,

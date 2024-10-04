@@ -4,19 +4,7 @@ import {
 	addressToString,
 } from "@stacks/transactions";
 import { hex } from "@scure/base";
-
-export type StackerDBPayload = {
-	contract_id: {
-		issuer: [number, Uint8Array];
-		name: string;
-	};
-	modified_slots: {
-		data: string;
-		sig: string;
-		slot_id: number;
-		slot_version: number;
-	}[];
-};
+import type { StackerDBPayload } from "slot-watch-common";
 
 export function getPayloadContractId(payload: StackerDBPayload) {
 	const version =

@@ -2,7 +2,7 @@ import { defineConfig } from "drizzle-kit";
 
 const dbUrl =
 	process.env.DATABASE_URL ||
-	"postgresql://hankstoever@localhost:5432/slot_watch_dev";
+	"postgresql://hankstoever@localhost:5432/slot_watch";
 
 export default defineConfig({
 	schema: "./src/schema.ts",
