@@ -5,8 +5,8 @@ import {
   type NakamotoBlock,
   SignerMessageTypePrefix,
   makeSignerSignatureHash,
+  type ChunkEvent,
 } from "slot-watch-common";
-import type { ChunkEvent } from "@/lib/types";
 import { hex } from "@scure/base";
 import { useEffect, useState } from "react";
 import { colord } from "colord";

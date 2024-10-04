@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ChunkEvent } from "@/lib/types";
+import type { ChunkEvent } from "slot-watch-common";
 import { useMemo, useState } from "react";
 import { hex } from "@scure/base";
 import { ChunkLabel } from "./chunk-label";

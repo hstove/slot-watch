@@ -9,7 +9,8 @@
     "build": "turbo build",
     "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run start",
-    "migrate": "cd server && bun run migrate.ts"
+    "migrate": "cd server && bun run migrate.ts",
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
@@ -19,7 +20,9 @@
     "turbo": "^2.1.2"
   },
   "peerDependencies": {},
-  "dependencies": { "usehooks-ts": "^3.1.0" },
+  "dependencies": {
+    "usehooks-ts": "^3.1.0"
+  },
   "workspaces": [
     "./client",
     "./common",

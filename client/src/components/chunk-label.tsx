@@ -2,12 +2,10 @@ import {
   chunkTypeName,
   decodeChunk,
   SignerMessageTypePrefix,
-} from "slot-watch-common";
-import {
+  type ChunkEvent,
   BlockResponseRejectCodes,
   BlockResponseValidationCodes,
-  type ChunkEvent,
-} from "@/lib/types";
+} from "slot-watch-common";
 import { memo, useState } from "react";
 import { hex } from "@scure/base";
 import { SimpleTooltip } from "./simple-tooltip";

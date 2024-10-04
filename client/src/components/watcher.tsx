@@ -1,4 +1,4 @@
-import type { ChunkEvent } from "@/lib/types";
+import type { ChunkEvent } from "slot-watch-common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Table,

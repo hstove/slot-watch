@@ -25,12 +25,14 @@ const server = Bun.serve({
 	async fetch(req) {
 		const url = new URL(req.url);
 		const networkKey = getNetworkKey(req);
-		console.log(`${url.pathname} with network key ${networkKey ?? "none"}`);
 		if (url.pathname === "/stackerdb_chunks") {
+			if (networkKey === null) {
+				return new Response("Unauthorized", { status: 200 });
+			}
 			const data = (await req.json()) as StackerDBPayload;
 			const contractId = getPayloadContractId(data);
 			console.log(
-				`Got ${data.modified_slots.length} updates for ${contractId}`,
+				`${networkKey}: Got ${data.modified_slots.length} updates for ${contractId}`,
 			);
 			const receivedAt = new Date();
 			for (const chunk of data.modified_slots) {
@@ -64,6 +66,8 @@ const server = Bun.serve({
 			}
 			return new Response("OK", { status: 200 });
 		}
+
+		console.log(`${url.pathname} with network key ${networkKey ?? "none"}`);
 
 		if (url.pathname === "/new_burn_block") {
 			const data = await req.json();
