@@ -45,6 +45,7 @@ export const blockProposals = pgTable(
 		chainLength: integer("chain_length").notNull(),
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
+		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_proposals_network_key_idx").on(
@@ -53,6 +54,10 @@ export const blockProposals = pgTable(
 		signerSignatureHashIndex: index(
 			"block_proposals_signer_signature_hash_idx",
 		).on(table.signerSignatureHash),
+		chainLengthIndex: index("block_proposals_chain_length_idx").on(
+			table.chainLength,
+		),
+		chunkIdIndex: index("block_proposals_chunk_id_idx").on(table.chunkId),
 	}),
 );
 
@@ -66,6 +71,7 @@ export const blockResponses = pgTable(
 		slotId: smallint("slot_id").notNull(),
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
+		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_responses_network_key_idx").on(
@@ -75,6 +81,7 @@ export const blockResponses = pgTable(
 			"block_responses_signer_signature_hash_idx",
 		).on(table.signerSignatureHash),
 		slotIdIndex: index("slot_id_idx").on(table.slotId),
+		chunkIdIndex: index("block_responses_chunk_id_idx").on(table.chunkId),
 	}),
 );
 
@@ -88,11 +95,16 @@ export const blockPushes = pgTable(
 		chainLength: integer("chain_length").notNull(),
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
+		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_pushes_network_key_idx").on(table.networkKey),
 		signerSignatureHashIndex: index(
 			"block_pushes_signer_signature_hash_idx",
 		).on(table.signerSignatureHash),
+		chainLengthIndex: index("block_pushes_chain_length_idx").on(
+			table.chainLength,
+		),
+		chunkIdIndex: index("block_pushes_chunk_id_idx").on(table.chunkId),
 	}),
 );

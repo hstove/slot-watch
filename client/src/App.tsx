@@ -9,7 +9,7 @@ import { Header } from "@/components/header";
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="container min-h-screen flex flex-col mx-auto py-10 gap-10">
+      <div className="container min-h-screen flex flex-col mx-auto py-6 gap-6">
         {/* header */}
         <Header />
         {/* body */}

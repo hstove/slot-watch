@@ -6,7 +6,8 @@
     "dev": "bun run src/run.ts",
     "start": "bun run src/run.ts",
     "typecheck": "tsc --noEmit",
-    "generate-migrations": "drizzle-kit generate"
+    "generate-migrations": "drizzle-kit generate",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -20,7 +21,7 @@
   },
   "dependencies": {
     "slot-watch-common": "workspace:*",
-    "@clarigen/core": "^2.1.1",
+    "@clarigen/core": "^2.1.2",
     "@noble/hashes": "^1.5.0",
     "@scure/base": "^1.1.9",
     "@stacks/transactions": "^6.16.1",

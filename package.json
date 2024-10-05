@@ -28,5 +28,11 @@
     "./common",
     "./server"
   ],
-  "packageManager": "bun@1.0.22"
+  "packageManager": "bun@1.0.22",
+  "resolutions": {
+    "whatwg-url": "^14.0.0"
+  },
+  "overrides": {
+    "whatwg-url": "^14.0.0"
+  }
 }

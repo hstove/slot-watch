@@ -11,9 +11,9 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    // "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
 
     /* Linting */
     "skipLibCheck": true,

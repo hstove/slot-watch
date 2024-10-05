@@ -32,7 +32,7 @@ function dataLen(_len: number) {
 export function binaryString(bitvec: BitVec) {
 	return bitvec.bytes
 		.reduce((acc, byte) => {
-			return acc + byte.toString(2).padStart(8, "0");
+			return acc + byte.toString(2).split("").reverse().join("");
 		}, "")
 		.slice(0, bitvec.length);
 }

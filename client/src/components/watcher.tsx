@@ -46,7 +46,7 @@ export const Watcher = () => {
     }
   }, [isScrolledToBottom, scrollToBottom]);
 
-  const chunks = useWebSocket(handleNewMessage);
+  const { chunks } = useWebSocket(handleNewMessage);
 
   return (
     <Table ref={containerRef}>

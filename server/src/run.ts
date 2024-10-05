@@ -2,8 +2,13 @@ import { hex } from "@scure/base";
 import { db } from "./db";
 import { getPayloadContractId } from "./utils";
 import type { StackerDBPayload } from "slot-watch-common";
-import { stackerDbSlots } from "./schema";
-import { eq, desc } from "drizzle-orm";
+import {
+	blockProposals,
+	blockPushes,
+	blockResponses,
+	stackerDbSlots,
+} from "./schema";
+import { eq, desc, not, inArray } from "drizzle-orm";
 import { burnAddress } from "./constants";
 import { getNetworkKey } from "./auth";
 import type { ChunkEvent } from "slot-watch-common";
@@ -97,6 +102,86 @@ const server = Bun.serve({
 					"Content-Type": "application/json",
 				},
 			});
+		}
+
+		if (url.pathname === "/get_block") {
+			const blockId = url.searchParams.get("blockId");
+			if (blockId === null) {
+				return new Response("Missing blockId", { status: 400 });
+			}
+
+			const [blockPushed] = await db
+				.select()
+				.from(blockPushes)
+				.where(eq(blockPushes.signerSignatureHash, blockId))
+				.limit(1);
+			const [proposal] = await db
+				.select()
+				.from(blockProposals)
+				.where(eq(blockProposals.signerSignatureHash, blockId))
+				.limit(1);
+			const responses = await db
+				.select()
+				.from(blockResponses)
+				.where(eq(blockResponses.signerSignatureHash, blockId));
+			const response = {
+				proposal,
+				responses,
+				blockPushed,
+			};
+			return new Response(JSON.stringify(response), {
+				status: 200,
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		}
+
+		if (url.pathname === "/get_blocks") {
+			const limit = 10;
+			const blockHeights = await db
+				.select({
+					chainLength: blockProposals.chainLength,
+					signerSignatureHash: blockProposals.signerSignatureHash,
+				})
+				.from(blockProposals)
+				.limit(limit);
+			const pushedHeights = await db
+				.select({
+					chainLength: blockPushes.chainLength,
+					signerSignatureHash: blockPushes.signerSignatureHash,
+				})
+				.from(blockPushes)
+				.where(
+					not(
+						inArray(
+							blockPushes.chainLength,
+							blockHeights.map((b) => b.chainLength),
+						),
+					),
+				)
+				.limit(limit);
+			// combine to get unique list of sorted heights
+			const combined = [...blockHeights, ...pushedHeights];
+			const heights = combined
+				.slice()
+				.sort((a, b) => b.chainLength - a.chainLength)
+				.map((h) => h.chainLength);
+			const responses = await db
+				.select()
+				.from(blockResponses)
+				.where(
+					inArray(
+						blockResponses.signerSignatureHash,
+						combined.map((b) => b.signerSignatureHash),
+					),
+				);
+			// return new Response(JSON.stringify(proposed), {
+			// 	status: 200,
+			// 	headers: {
+			// 		"Content-Type": "application/json",
+			// 	},
+			// });
 		}
 
 		if (url.pathname === "/watch") {

@@ -24,7 +24,6 @@ function valueToString(value: any) {
   } else if (typeof value === "boolean") {
     valString = value ? "true" : "false";
   } else if (Array.isArray(value)) {
-    console.log("is array", value);
     valString = value
       .map((v) => {
         return valueToString(v);
