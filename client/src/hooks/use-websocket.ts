@@ -24,10 +24,10 @@ export const useWebSocket = ({
 	useEffect(() => {
 		if (lastMessage) {
 			const payload = JSON.parse(lastMessage.data) as WSPayload;
+			console.dir(payload, { depth: 4 });
 			if ("networkKey" in payload && payload.networkKey !== networkKey) {
 				return;
 			}
-			console.dir(payload, { depth: 4 });
 			newMessageCallback();
 			setChunks((prevChunks) => [...prevChunks, payload]);
 		}
