@@ -27,19 +27,9 @@ export const useWebSocket = ({
 			if ("networkKey" in payload && payload.networkKey !== networkKey) {
 				return;
 			}
+			console.dir(payload, { depth: 4 });
 			newMessageCallback();
 			setChunks((prevChunks) => [...prevChunks, payload]);
-			// let chunk: ChunkEvent | null = null;
-			// if ("type" in payload && payload.type === CHUNKS_EVENT) {
-			// 	chunk = payload.payload;
-			// }
-			// if ("data" in payload) {
-			// 	chunk = payload;
-			// }
-			// if (chunk) {
-			// 	newMessageCallback();
-			// 	setChunks((prevChunks) => [...prevChunks, chunk]);
-			// }
 		}
 	}, [lastMessage, newMessageCallback, networkKey]);
 

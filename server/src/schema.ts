@@ -46,6 +46,7 @@ export const blockProposals = pgTable(
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
+		minerPublicKey: varchar("miner_public_key", { length: 66 }),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_proposals_network_key_idx").on(
@@ -58,6 +59,9 @@ export const blockProposals = pgTable(
 			table.chainLength,
 		),
 		chunkIdIndex: index("block_proposals_chunk_id_idx").on(table.chunkId),
+		minerPublicKeyIndex: index("block_proposals_miner_public_key_idx").on(
+			table.minerPublicKey,
+		),
 	}),
 );
 
@@ -72,6 +76,7 @@ export const blockResponses = pgTable(
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
+		signerPublicKey: varchar("signer_public_key", { length: 66 }),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_responses_network_key_idx").on(
@@ -82,6 +87,9 @@ export const blockResponses = pgTable(
 		).on(table.signerSignatureHash),
 		slotIdIndex: index("slot_id_idx").on(table.slotId),
 		chunkIdIndex: index("block_responses_chunk_id_idx").on(table.chunkId),
+		signerPublicKeyIndex: index("block_responses_signer_public_key_idx").on(
+			table.signerPublicKey,
+		),
 	}),
 );
 
@@ -96,6 +104,7 @@ export const blockPushes = pgTable(
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
+		minerPublicKey: varchar("miner_public_key", { length: 66 }),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_pushes_network_key_idx").on(table.networkKey),
@@ -106,5 +115,8 @@ export const blockPushes = pgTable(
 			table.chainLength,
 		),
 		chunkIdIndex: index("block_pushes_chunk_id_idx").on(table.chunkId),
+		minerPublicKeyIndex: index("block_pushes_miner_public_key_idx").on(
+			table.minerPublicKey,
+		),
 	}),
 );

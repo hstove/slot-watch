@@ -10,6 +10,7 @@ import {
 	type StackerDBPayload,
 	SignerMessageTypePrefix,
 	decodeChunkMaybe,
+	recoverChunkPublicKey,
 } from "slot-watch-common";
 import { db } from "../db";
 import { getPayloadContractId } from "../utils";
@@ -29,6 +30,12 @@ export async function handleStackerDBChunk(
 	const contractId = getPayloadContractId(payload);
 
 	for (const chunk of payload.modified_slots) {
+		const publicKey = recoverChunkPublicKey({
+			data: hex.decode(chunk.data),
+			slotId: chunk.slot_id,
+			version: chunk.slot_version,
+			signature: hex.decode(chunk.sig),
+		}).toHex();
 		const sharedPayload = {
 			slotId: chunk.slot_id,
 			version: chunk.slot_version,
@@ -47,53 +54,91 @@ export async function handleStackerDBChunk(
 			continue;
 		}
 		if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
-			await handleBlockProposal(decoded, receivedAt, networkKey);
+			await handleBlockProposal({
+				payload: decoded,
+				receivedAt,
+				networkKey,
+				publicKey,
+			});
 		} else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-			await handleBlockPush(decoded, receivedAt, networkKey);
+			await handleBlockPush({
+				payload: decoded,
+				receivedAt,
+				networkKey,
+				publicKey,
+			});
 		} else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-			await handleBlockResponse(chunk, decoded, receivedAt, networkKey);
+			await handleBlockResponse({
+				chunk,
+				payload: decoded,
+				receivedAt,
+				networkKey,
+				publicKey,
+			});
 		}
 	}
 }
 
-export async function handleBlockProposal(
-	payload: BlockProposal,
-	receivedAt: Date,
-	networkKey: string,
-) {
+export async function handleBlockProposal({
+	payload,
+	receivedAt,
+	networkKey,
+	publicKey,
+}: {
+	payload: BlockProposal;
+	receivedAt: Date;
+	networkKey: string;
+	publicKey: string;
+}) {
 	const signerSignatureHash = makeSignerSignatureHash(payload);
 	await db.insert(blockProposals).values({
 		signerSignatureHash: hex.encode(signerSignatureHash),
 		chainLength: Number(payload.chainLength),
 		createdAt: receivedAt,
 		networkKey,
+		minerPublicKey: publicKey,
 	});
 }
 
-export async function handleBlockPush(
-	payload: BlockPushed,
-	receivedAt: Date,
-	networkKey: string,
-) {
+export async function handleBlockPush({
+	payload,
+	receivedAt,
+	networkKey,
+	publicKey,
+}: {
+	payload: BlockPushed;
+	receivedAt: Date;
+	networkKey: string;
+	publicKey: string;
+}) {
 	const signerSignatureHash = makeSignerSignatureHash(payload);
 	await db.insert(blockPushes).values({
 		signerSignatureHash: hex.encode(signerSignatureHash),
 		chainLength: Number(payload.chainLength),
 		createdAt: receivedAt,
 		networkKey,
+		minerPublicKey: publicKey,
 	});
 }
 
-export async function handleBlockResponse(
-	chunk: ModifiedSlot,
-	payload: BlockResponseAccepted | BlockResponseRejected,
-	receivedAt: Date,
-	networkKey: string,
-) {
+export async function handleBlockResponse({
+	chunk,
+	payload,
+	receivedAt,
+	networkKey,
+	publicKey,
+}: {
+	chunk: ModifiedSlot;
+	payload: BlockResponseAccepted | BlockResponseRejected;
+	receivedAt: Date;
+	networkKey: string;
+	publicKey: string;
+}) {
 	await db.insert(blockResponses).values({
 		signerSignatureHash: hex.encode(payload.signerSignatureHash),
 		slotId: chunk.slot_id,
 		createdAt: receivedAt,
 		networkKey,
+		signerPublicKey: publicKey,
 	});
 }

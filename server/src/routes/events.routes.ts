@@ -11,6 +11,8 @@ import {
 	type WSNewBlock,
 	type CoreNodeBlockMessage,
 	NEW_BLOCK_EVENT,
+	type CoreNodeBurnBlockMessage,
+	type WSBurnBlock,
 } from "slot-watch-common";
 import { getNetworkKey, getNetworkKeyHono } from "../auth";
 import { handleStackerDBChunk } from "../events/stackerdb";
@@ -84,7 +86,7 @@ eventsRoutes.post("/new_block", async (c) => {
 	const server = getBunServer(c);
 	const networkKey = c.get("networkKey");
 	const data = await c.req.json<CoreNodeBlockMessage>();
-	console.log(`${networkKey}: Got new Block`);
+	console.log(`${networkKey}: Got new Block (${data.block_height})`);
 	const receivedAt = new Date();
 	const sharedPayload: WSNewBlock = {
 		type: NEW_BLOCK_EVENT,
@@ -93,6 +95,21 @@ eventsRoutes.post("/new_block", async (c) => {
 		receivedAt: receivedAt.toISOString(),
 	};
 	server.publish(NEW_BLOCK_EVENT, JSON.stringify(sharedPayload));
+	return new Response("OK", { status: 200 });
+});
+
+eventsRoutes.post("/new_burn_block", async (c) => {
+	const server = getBunServer(c);
+	const networkKey = c.get("networkKey");
+	const data = await c.req.json<CoreNodeBurnBlockMessage>();
+	console.log(`${networkKey}: Got new Burn Block (${data.burn_block_height})`);
+	const payload: WSBurnBlock = {
+		type: BURN_BLOCKS_EVENT,
+		receivedAt: new Date().toISOString(),
+		networkKey,
+		payload: data,
+	};
+	server.publish(BURN_BLOCKS_EVENT, JSON.stringify(payload));
 	return new Response("OK", { status: 200 });
 });
 

@@ -3,10 +3,11 @@
   "module": "src/run.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun run src/run.ts",
-    "start": "bun run src/run.ts",
+    "dev": "bun src/app.ts",
+    "start": "bun src/app.ts",
     "typecheck": "tsc --noEmit",
     "generate-migrations": "drizzle-kit generate",
+    "migrate": "bun migrate.ts",
     "test:watch": "vitest"
   },
   "devDependencies": {
