@@ -1,4 +1,4 @@
-import type { ChunkEvent } from "slot-watch-common";
+import { getPayloadId, type ChunkEvent } from "slot-watch-common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Table,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { ChunkRow } from "./chunk-row";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { WatcherRow } from "./watcher-row";
 
 const wsUrl = "wss://slot-watch.fly.dev/watch";
 
@@ -46,7 +47,10 @@ export const Watcher = () => {
     }
   }, [isScrolledToBottom, scrollToBottom]);
 
-  const { chunks } = useWebSocket(handleNewMessage);
+  const { chunks } = useWebSocket({
+    newMessageCallback: handleNewMessage,
+    networkKey: "naka-testnet",
+  });
 
   return (
     <Table ref={containerRef}>
@@ -63,10 +67,7 @@ export const Watcher = () => {
       </TableHeader>
       <TableBody>
         {chunks.map((chunk) => (
-          <ChunkRow
-            key={`${chunk.slotId}-${chunk.version}-${chunk.contractId}`}
-            chunk={chunk}
-          />
+          <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
         ))}
         <TableRow ref={endOfTableRef} />
       </TableBody>

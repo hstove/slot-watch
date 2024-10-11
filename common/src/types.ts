@@ -1,3 +1,14 @@
+import type {
+	CoreNodeBlockMessage,
+	CoreNodeBurnBlockMessage,
+} from "./event-stream-types";
+
+export const CHUNKS_EVENT = "chunks";
+export const BURN_BLOCKS_EVENT = "burn_blocks";
+export const NEW_BLOCK_EVENT = "new_block";
+
+export type { ModifiedSlot, StackerDBPayload } from "./event-stream-types";
+
 export type ChunkEvent = {
 	contractId: string;
 	slotId: number;
@@ -26,17 +37,33 @@ export const BlockResponseValidationCodes = [
 	"No Such Tenure",
 ] as const;
 
-export type ModifiedSlot = {
-	slot_id: number;
-	slot_version: number;
-	data: string;
-	sig: string;
+export type WSBase<Type extends string> = {
+	networkKey: string;
+	type: Type;
+	receivedAt: string;
 };
 
-export type StackerDBPayload = {
-	contract_id: {
-		issuer: [number, Uint8Array];
-		name: string;
-	};
-	modified_slots: ModifiedSlot[];
+export type WSChunkEvent = WSBase<typeof CHUNKS_EVENT> & {
+	payload: ChunkEvent;
 };
+
+export type WSNewBlock = WSBase<typeof NEW_BLOCK_EVENT> & {
+	payload: CoreNodeBlockMessage;
+};
+
+export type WSBurnBlock = WSBase<typeof BURN_BLOCKS_EVENT> & {
+	payload: CoreNodeBurnBlockMessage;
+};
+
+export type WSPayload = WSChunkEvent | ChunkEvent | WSNewBlock | WSBurnBlock;
+
+export function getPayloadId(payload: WSPayload): string {
+	if (!("type" in payload)) {
+		return `${payload.slotId}-${payload.version}-${payload.contractId}`;
+	}
+	if (payload.type === CHUNKS_EVENT) {
+		const chunk = payload.payload;
+		return `${payload.type}-${chunk.slotId}-${chunk.version}-${chunk.contractId}`;
+	}
+	return `${payload.type}-${payload.receivedAt}`;
+}

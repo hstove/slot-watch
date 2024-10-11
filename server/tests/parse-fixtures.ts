@@ -5,10 +5,10 @@ const logPrefix =
 
 export function fixtureToJson(fixture: string): StackerDBPayload {
 	const [_start, rust, _, jsonLine] = fixture.split("\n");
-	const json = jsonLine.slice(logPrefix.length, -1).replaceAll("\\", "");
 	if (!jsonLine) {
 		throw new Error("No JSON line found in the fixture");
 	}
+	const json = jsonLine.slice(logPrefix.length, -1).replaceAll("\\", "");
 	// console.log(json);
 	return JSON.parse(json);
 }

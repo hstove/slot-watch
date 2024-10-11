@@ -20,16 +20,19 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "slot-watch-common": "workspace:*",
     "@clarigen/core": "^2.1.2",
     "@noble/hashes": "^1.5.0",
     "@scure/base": "^1.1.9",
     "@stacks/transactions": "^6.16.1",
+    "@stricjs/app": "^1.0.0-rc.34",
+    "@stricjs/utils": "^2.0.7",
     "drizzle-orm": "^0.33.0",
+    "hono": "^4.6.3",
     "micro-packed": "^0.6.3",
     "pg": "^8.13.0",
     "postgres": "^3.4.4",
     "react-use-websocket": "^4.8.1",
+    "slot-watch-common": "workspace:*",
     "vitest": "^2.1.1"
   }
 }
