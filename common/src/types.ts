@@ -2,12 +2,11 @@ import type {
 	CoreNodeBlockMessage,
 	CoreNodeBurnBlockMessage,
 } from "./event-stream-types";
+export type { ModifiedSlot, StackerDBPayload } from "./event-stream-types";
 
 export const CHUNKS_EVENT = "chunks";
 export const BURN_BLOCKS_EVENT = "burn_blocks";
 export const NEW_BLOCK_EVENT = "new_block";
-
-export type { ModifiedSlot, StackerDBPayload } from "./event-stream-types";
 
 export type ChunkEvent = {
 	contractId: string;

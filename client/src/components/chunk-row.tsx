@@ -15,7 +15,6 @@ import { ChunkBlock } from "./chunk-block";
 import { ChunkData } from "./chunk-data";
 
 export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
-  const [expandData, setExpandData] = useState(false);
   const [addr, name] = chunk.contractId.split(".");
   const dateTimeString = useMemo(() => {
     const date = new Date(chunk.createdAt);

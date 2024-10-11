@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { BitVecCoder } from "slot-watch-common";
+import { BitVecCoder } from "../src";
 
 test("bitvec", () => {
 	const data = [0, 10, 0, 0, 0, 2, 41, 0];

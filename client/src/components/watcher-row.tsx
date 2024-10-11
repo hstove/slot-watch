@@ -10,12 +10,17 @@ export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
   if ("type" in payload && payload.type === CHUNKS_EVENT) {
     chunk = payload.payload;
   }
+  if ("data" in payload) {
+    chunk = payload;
+  }
   if (!chunk) {
     return null;
   }
 
-  <ChunkRow
-    key={`${chunk.slotId}-${chunk.version}-${chunk.contractId}`}
-    chunk={chunk}
-  />;
+  return (
+    <ChunkRow
+      // key={`${chunk.slotId}-${chunk.version}-${chunk.contractId}`}
+      chunk={chunk}
+    />
+  );
 };

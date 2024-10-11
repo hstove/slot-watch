@@ -1,5 +1,7 @@
 import * as P from "micro-packed";
 import { sha512_256 } from "@noble/hashes/sha2";
+import type { ChunkEvent } from "./types";
+import { secp256k1 } from "@noble/curves/secp256k1";
 
 export type BitVec = {
 	length: number;
@@ -301,4 +303,50 @@ export function makeSignerSignatureHash(
 ) {
 	const message = SignerSignatureHashCoder.encode(block);
 	return sha512_256(message);
+}
+
+export const ChunkAuthDigestCoder = P.struct({
+	slotId: P.U32BE,
+	version: P.U32BE,
+	dataHash: P.bytes(32),
+});
+
+type MinimalChunkData = {
+	slotId: number;
+	version: number;
+	data: Uint8Array;
+};
+
+export function chunkAuthDigest(chunk: MinimalChunkData) {
+	const dataHash = sha512_256(chunk.data);
+	const message = ChunkAuthDigestCoder.encode({
+		slotId: chunk.slotId,
+		version: chunk.version,
+		dataHash: dataHash,
+	});
+	return sha512_256(message);
+}
+
+export function vrsToRsv(sig: Uint8Array) {
+	return new Uint8Array([...sig.slice(1), ...sig.slice(0, 1)]).slice(0, 64);
+}
+
+export function rsvToVrs(sig: Uint8Array) {
+	return new Uint8Array([...sig.slice(1, 64), sig[0]]);
+}
+
+// Sig is in VRS
+export function compactToSig(sig: Uint8Array) {
+	const base = vrsToRsv(sig);
+	const recovery = sig[0];
+	const signature = secp256k1.Signature.fromCompact(base);
+	return signature.addRecoveryBit(recovery);
+}
+
+export function recoverChunkPublicKey(
+	chunk: MinimalChunkData & { signature: Uint8Array },
+) {
+	const message = chunkAuthDigest(chunk);
+	const sig = compactToSig(chunk.signature);
+	return sig.recoverPublicKey(message);
 }
