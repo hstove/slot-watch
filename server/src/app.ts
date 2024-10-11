@@ -36,7 +36,7 @@ app.get(
 	}),
 );
 
-app.route("*", eventsRoutes);
+app.route("/", eventsRoutes);
 
 app.get("/", (c) => c.text("Hello World"));
 
