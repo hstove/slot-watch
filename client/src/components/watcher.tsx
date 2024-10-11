@@ -49,7 +49,7 @@ export const Watcher = () => {
 
   const { chunks } = useWebSocket({
     newMessageCallback: handleNewMessage,
-    networkKey: "naka-testnet",
+    networkKey: "testnet",
   });
 
   return (

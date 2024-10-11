@@ -36,7 +36,8 @@ type Env = {
 const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 	const networkKey = getNetworkKeyHono(c.req);
 	if (!networkKey) {
-		return new Response("Unauthorized", { status: 200 });
+		// return new Response("Unauthorized", { status: 200 });
+		return c.text("Unauthorized", 200);
 	}
 	c.set("networkKey", networkKey);
 	await next();
@@ -44,7 +45,11 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 
 const eventsRoutes = new Hono<Env>();
 
-eventsRoutes.use(basicAuthMiddleware);
+eventsRoutes.get("/auth-test", basicAuthMiddleware, (c) => {
+	return c.text("OK", 200);
+});
+
+// eventsRoutes.use(basicAuthMiddleware);
 
 // handle getting network key
 eventsRoutes.post("/stackerdb_chunks", basicAuthMiddleware, async (c) => {
@@ -82,7 +87,7 @@ eventsRoutes.post("/stackerdb_chunks", basicAuthMiddleware, async (c) => {
 	return new Response("OK", { status: 200 });
 });
 
-eventsRoutes.post("/new_block", async (c) => {
+eventsRoutes.post("/new_block", basicAuthMiddleware, async (c) => {
 	const server = getBunServer(c);
 	const networkKey = c.get("networkKey");
 	const data = await c.req.json<CoreNodeBlockMessage>();
@@ -98,7 +103,7 @@ eventsRoutes.post("/new_block", async (c) => {
 	return new Response("OK", { status: 200 });
 });
 
-eventsRoutes.post("/new_burn_block", async (c) => {
+eventsRoutes.post("/new_burn_block", basicAuthMiddleware, async (c) => {
 	const server = getBunServer(c);
 	const networkKey = c.get("networkKey");
 	const data = await c.req.json<CoreNodeBurnBlockMessage>();

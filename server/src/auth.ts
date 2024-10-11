@@ -61,6 +61,7 @@ export function getNetworkKeyHono(request: HonoRequest): string | null {
 	}
 
 	if (auth.password !== process.env.OBSERVER_TOKEN) {
+		console.log("Invalid password", auth.password, process.env.OBSERVER_TOKEN);
 		return null;
 	}
 

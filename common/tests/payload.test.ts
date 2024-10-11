@@ -211,3 +211,10 @@ test("recovering public key", () => {
 		"03157271cca37f5ebb4147aad30538fb4b33392ec1cc7161de5f815e29d5146041",
 	);
 });
+
+test.skip("bad block response test", async () => {
+	const payloadStr =
+		"01010000003054686520626c6f636b207761732072656a65637465642064756520746f206e6f20736f72746974696f6e20766965772e03fed12577663acaa5c847773494f64cbcf7a22867d6eab4bfe9665a7e65bfa444";
+	const payload = decodeChunk(hex.decode(payloadStr));
+	console.log(payload);
+});

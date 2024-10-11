@@ -50,7 +50,7 @@ export async function handleStackerDBChunk(
 		});
 		const decoded = decodeChunkMaybe(hex.decode(chunk.data));
 		if (decoded === null) {
-			console.error(`Error decoding chunk: ${chunk.data}`);
+			console.error(`Error decoding chunk: ${chunk.data}`, chunk);
 			continue;
 		}
 		if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {

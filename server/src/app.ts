@@ -36,9 +36,9 @@ app.get(
 	}),
 );
 
-app.route("/", eventsRoutes);
-
 app.get("/", (c) => c.text("Hello World"));
+
+app.route("/", eventsRoutes);
 
 app.notFound((c) => {
 	console.log(`${c.req.method} ${c.req.url} not found`);
