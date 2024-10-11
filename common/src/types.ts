@@ -5,6 +5,7 @@ import type {
 export type { ModifiedSlot, StackerDBPayload } from "./event-stream-types";
 
 export const CHUNKS_EVENT = "chunks";
+export const MANY_CHUNKS_EVENT = "many_chunks";
 export const BURN_BLOCKS_EVENT = "burn_blocks";
 export const NEW_BLOCK_EVENT = "new_block";
 
@@ -54,15 +55,23 @@ export type WSBurnBlock = WSBase<typeof BURN_BLOCKS_EVENT> & {
 	payload: CoreNodeBurnBlockMessage;
 };
 
-export type WSPayload = WSChunkEvent | ChunkEvent | WSNewBlock | WSBurnBlock;
+export type WSManyChunks = WSBase<typeof MANY_CHUNKS_EVENT> & {
+	payload: ChunkEvent[];
+};
+
+export type WSPayload = WSChunkEvent | WSNewBlock | WSBurnBlock | WSManyChunks;
+
+export function getChunkId(chunk: ChunkEvent): string {
+	return `${chunk.slotId}-${chunk.version}-${chunk.contractId}`;
+}
 
 export function getPayloadId(payload: WSPayload): string {
-	if (!("type" in payload)) {
-		return `${payload.slotId}-${payload.version}-${payload.contractId}`;
-	}
 	if (payload.type === CHUNKS_EVENT) {
-		const chunk = payload.payload;
-		return `${payload.type}-${chunk.slotId}-${chunk.version}-${chunk.contractId}`;
+		return getChunkId(payload.payload);
+	}
+	if (payload.type === MANY_CHUNKS_EVENT) {
+		const contractId = payload.payload[0].contractId ?? "unknown";
+		return `${payload.type}-${contractId}-${payload.receivedAt}`;
 	}
 	return `${payload.type}-${payload.receivedAt}`;
 }

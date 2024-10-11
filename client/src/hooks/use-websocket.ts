@@ -1,5 +1,6 @@
 import {
 	CHUNKS_EVENT,
+	getPayloadId,
 	type ChunkEvent,
 	type WSPayload,
 } from "slot-watch-common";
@@ -24,12 +25,12 @@ export const useWebSocket = ({
 	useEffect(() => {
 		if (lastMessage) {
 			const payload = JSON.parse(lastMessage.data) as WSPayload;
-			console.dir(payload, { depth: 4 });
+			console.log(getPayloadId(payload), payload.payload);
 			if ("networkKey" in payload && payload.networkKey !== networkKey) {
 				return;
 			}
-			newMessageCallback();
 			setChunks((prevChunks) => [...prevChunks, payload]);
+			newMessageCallback();
 		}
 	}, [lastMessage, newMessageCallback, networkKey]);
 

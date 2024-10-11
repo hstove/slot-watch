@@ -13,6 +13,8 @@ import {
 	NEW_BLOCK_EVENT,
 	type CoreNodeBurnBlockMessage,
 	type WSBurnBlock,
+	MANY_CHUNKS_EVENT,
+	type WSManyChunks,
 } from "slot-watch-common";
 import { getNetworkKey, getNetworkKeyHono } from "../auth";
 import { handleStackerDBChunk } from "../events/stackerdb";
@@ -61,21 +63,31 @@ eventsRoutes.post("/stackerdb_chunks", basicAuthMiddleware, async (c) => {
 		`${networkKey}: Got ${data.modified_slots.length} updates for ${contractId}`,
 	);
 	const receivedAt = new Date();
+	const chunks: ChunkEvent[] = [];
 	for (const chunk of data.modified_slots) {
-		const sharedPayload: WSChunkEvent = {
-			type: CHUNKS_EVENT,
-			networkKey,
-			receivedAt: receivedAt.toISOString(),
-			payload: {
-				slotId: chunk.slot_id,
-				version: chunk.slot_version,
-				contractId,
-				signature: chunk.sig,
-				data: chunk.data,
-				createdAt: receivedAt.toISOString(),
-			},
-		};
-		server.publish(CHUNKS_EVENT, JSON.stringify(sharedPayload));
+		chunks.push({
+			slotId: chunk.slot_id,
+			version: chunk.slot_version,
+			contractId,
+			signature: chunk.sig,
+			data: chunk.data,
+			createdAt: receivedAt.toISOString(),
+		});
+	}
+	const manyChunksPayload: WSManyChunks = {
+		type: MANY_CHUNKS_EVENT,
+		networkKey,
+		payload: chunks,
+		receivedAt: receivedAt.toISOString(),
+	};
+	const status = server.publish(
+		MANY_CHUNKS_EVENT,
+		JSON.stringify(manyChunksPayload),
+	);
+	if (status === -1) {
+		console.debug("Failed to publish MANY_CHUNKS_EVENT");
+	} else if (status === 0) {
+		console.debug("Backpressure on MANY_CHUNKS_EVENT");
 	}
 	process.nextTick(async () => {
 		try {

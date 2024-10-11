@@ -1,26 +1,21 @@
 import {
   CHUNKS_EVENT,
+  getChunkId,
+  getPayloadId,
+  MANY_CHUNKS_EVENT,
   type ChunkEvent,
   type WSPayload,
 } from "slot-watch-common";
 import { ChunkRow } from "./chunk-row";
 
 export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
-  let chunk: ChunkEvent | null = null;
-  if ("type" in payload && payload.type === CHUNKS_EVENT) {
-    chunk = payload.payload;
+  if (payload.type === CHUNKS_EVENT) {
+    return <ChunkRow chunk={payload.payload} />;
   }
-  if ("data" in payload) {
-    chunk = payload;
+  if (payload.type === MANY_CHUNKS_EVENT) {
+    return payload.payload.map((chunk) => (
+      <ChunkRow key={getChunkId(chunk)} chunk={chunk} />
+    ));
   }
-  if (!chunk) {
-    return null;
-  }
-
-  return (
-    <ChunkRow
-      // key={`${chunk.slotId}-${chunk.version}-${chunk.contractId}`}
-      chunk={chunk}
-    />
-  );
+  return null;
 };

@@ -6,6 +6,7 @@ import {
   SignerMessageTypePrefix,
   makeSignerSignatureHash,
   type ChunkEvent,
+  decodeChunkMaybe,
 } from "slot-watch-common";
 import { hex } from "@scure/base";
 import { useEffect, useState } from "react";
@@ -38,13 +39,8 @@ export const BlockHash = ({ hash }: { hash: Uint8Array }) => {
   );
 };
 
-export const ChunkBlock = ({ chunk }: { chunk: ChunkEvent }) => {
-  let decoded: DecodedChunk | null = null;
-  try {
-    decoded = decodeChunk(hex.decode(chunk.data));
-  } catch (error) {
-    console.error("Failed to decode chunk in ChunkBlock", chunk.data);
-  }
+export const ChunkBlock = ({ chunkData }: { chunkData: string }) => {
+  const decoded = decodeChunkMaybe(hex.decode(chunkData));
 
   if (!decoded) {
     return <div>Unknown chunk</div>;
@@ -68,11 +64,6 @@ export const ChunkBlock = ({ chunk }: { chunk: ChunkEvent }) => {
       </>
     );
   }
-
-  // if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-  // 	const signatureHash = makeSignerSignatureHash(decoded as NakamotoBlock);
-  // 	return <BlockHash hash={signatureHash} />;
-  // }
 
   return null;
 };

@@ -38,7 +38,7 @@ export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
         <ChunkLabel data={chunk.data} />
       </TableCell>
       <TableCell>
-        <ChunkBlock chunk={chunk} />
+        <ChunkBlock chunkData={chunk.data} />
       </TableCell>
       <TableCell className="flex justify-end">
         <ChunkData data={chunk.data} />
