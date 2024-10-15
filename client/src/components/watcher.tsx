@@ -1,5 +1,12 @@
 import { getPayloadId, type ChunkEvent } from "slot-watch-common";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Table,
   TableBody,
@@ -12,43 +19,58 @@ import {
 import { ChunkRow } from "./chunk-row";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { WatcherRow } from "./watcher-row";
-
+import { useInView } from "react-intersection-observer";
 const wsUrl = "wss://slot-watch.fly.dev/watch";
+import useResizeObserver from "@react-hook/resize-observer";
+import { useChunksStore } from "@/store";
 
 type BurnBlockEvent = {
   burn_block_height: number;
 };
 
 export const Watcher = () => {
-  const [_chunks, setChunks] = useState<ChunkEvent[]>([]);
+  const chunks = useChunksStore((state) => state.chunks);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const endOfTableRef = useRef<HTMLTableRowElement>(null!);
+  const { ref: visibleRef, inView } = useInView({
+    threshold: 0,
+  });
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [wasInView, setWasInView] = useState(false);
+  const [lastHeight, setLastHeight] = useState(0);
 
-  const scrollToBottom = useCallback(() => {
-    endOfTableRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useLayoutEffect(() => {
+    setContainerHeight(containerRef.current.clientHeight);
+  }, [containerRef.current]);
 
-  const isScrolledToBottom = useCallback(() => {
-    const { scrollTop, scrollHeight, clientHeight } =
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      document.querySelector("html")!;
-    // Allow for a small buffer (1px) to account for potential rounding errors
-    return scrollHeight - scrollTop - clientHeight <= 1;
-  }, []);
+  useResizeObserver(containerRef, (entry) => {
+    setContainerHeight(entry.contentRect.height);
+  });
 
-  const handleNewMessage = useCallback(() => {
-    const isScrolled = isScrolledToBottom();
-    if (isScrolled) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 200);
+  useEffect(() => {
+    const sameHeight = containerHeight === lastHeight;
+    if (inView && sameHeight) {
+      setWasInView(true);
+    } else if (!inView && sameHeight) {
+      setWasInView(false);
     }
-  }, [isScrolledToBottom, scrollToBottom]);
+  }, [inView, containerHeight, lastHeight]);
 
-  const { chunks } = useWebSocket({
-    newMessageCallback: handleNewMessage,
+  // biome-ignore lint/correctness/useExhaustiveDependencies(endOfTableRef):
+  // biome-ignore lint/correctness/useExhaustiveDependencies(setLastHeight):
+  // biome-ignore lint/correctness/useExhaustiveDependencies(inView):
+  useEffect(() => {
+    // console.log("Height changed", containerHeight, inView, wasInView);
+    if (wasInView) {
+      endOfTableRef.current?.scrollIntoView({ behavior: "instant" });
+    }
+    setLastHeight(containerHeight);
+  }, [containerHeight, endOfTableRef, setLastHeight, wasInView]);
+
+  useWebSocket({
     networkKey: "testnet",
   });
 
@@ -69,7 +91,13 @@ export const Watcher = () => {
         {chunks.map((chunk) => (
           <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
         ))}
+        {/* <TableRow>
+          <TableCell colSpan={4}>17:56:12.363</TableCell>
+          <TableCell>New Burn Block</TableCell>
+          <TableCell>51002</TableCell>
+        </TableRow> */}
         <TableRow ref={endOfTableRef} />
+        <TableRow ref={visibleRef} />
       </TableBody>
     </Table>
   );

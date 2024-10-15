@@ -33,15 +33,14 @@ const connectionStatus = {
 } as const;
 
 export const Header = () => {
-  const nullCallback = useCallback(() => {}, []);
-  const { readyState } = useWebSocket(nullCallback);
+  // const { readyState } = useWebSocket({ networkKey: "testnet" });
   return (
     <header className="flex items-center justify-between sticky top-0 z-50 bg-background py-3">
       <h1 className="text-2xl font-bold">Slot watch</h1>
       <div className="flex gap-5">
-        <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
+        {/* <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
           <div className={cn(connectionStatusVariants({ readyState }))} />
-        </SimpleTooltip>
+        </SimpleTooltip> */}
         <ModeToggle />
       </div>
     </header>

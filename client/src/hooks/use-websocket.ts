@@ -6,19 +6,16 @@ import {
 } from "slot-watch-common";
 import { useState, useEffect, useCallback, useRef } from "react";
 import _useWebSocket, { ReadyState } from "react-use-websocket";
+import { useChunksStore } from "@/store";
 
 const wsUrl = "wss://slot-watch.fly.dev/watch";
 
 type UseWebSocketProps = {
-	newMessageCallback: () => void;
 	networkKey?: string;
 };
 
-export const useWebSocket = ({
-	newMessageCallback,
-	networkKey,
-}: UseWebSocketProps) => {
-	const [chunks, setChunks] = useState<WSPayload[]>([]);
+export const useWebSocket = ({ networkKey }: UseWebSocketProps) => {
+	const addChunk = useChunksStore((state) => state.addChunk);
 
 	const { lastMessage, readyState } = _useWebSocket(wsUrl);
 
@@ -29,13 +26,11 @@ export const useWebSocket = ({
 			if ("networkKey" in payload && payload.networkKey !== networkKey) {
 				return;
 			}
-			setChunks((prevChunks) => [...prevChunks, payload]);
-			newMessageCallback();
+			addChunk(payload);
 		}
-	}, [lastMessage, newMessageCallback, networkKey]);
+	}, [lastMessage, networkKey, addChunk]);
 
 	return {
-		chunks,
 		readyState,
 	};
 };

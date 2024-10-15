@@ -56,5 +56,8 @@ console.log("Listening on http://localhost:1080");
 export default {
 	port: 1080,
 	fetch: app.fetch,
-	websocket,
+	websocket: {
+		...websocket,
+		backpressureLimit: 1024 * 1024 * 5, // 5MB
+	},
 };

@@ -51,6 +51,14 @@ eventsRoutes.get("/auth-test", basicAuthMiddleware, (c) => {
 	return c.text("OK", 200);
 });
 
+function logSendStatus(status: number) {
+	if (status === -1) {
+		console.debug("Failed to publish");
+	} else if (status === 0) {
+		console.debug("Backpressure");
+	}
+}
+
 // eventsRoutes.use(basicAuthMiddleware);
 
 // handle getting network key
@@ -83,12 +91,9 @@ eventsRoutes.post("/stackerdb_chunks", basicAuthMiddleware, async (c) => {
 	const status = server.publish(
 		MANY_CHUNKS_EVENT,
 		JSON.stringify(manyChunksPayload),
+		true,
 	);
-	if (status === -1) {
-		console.debug("Failed to publish MANY_CHUNKS_EVENT");
-	} else if (status === 0) {
-		console.debug("Backpressure on MANY_CHUNKS_EVENT");
-	}
+	logSendStatus(status);
 	process.nextTick(async () => {
 		try {
 			await handleStackerDBChunk(data, receivedAt, networkKey);
@@ -111,7 +116,12 @@ eventsRoutes.post("/new_block", basicAuthMiddleware, async (c) => {
 		payload: data,
 		receivedAt: receivedAt.toISOString(),
 	};
-	server.publish(NEW_BLOCK_EVENT, JSON.stringify(sharedPayload));
+	const status = server.publish(
+		NEW_BLOCK_EVENT,
+		JSON.stringify(sharedPayload),
+		true,
+	);
+	logSendStatus(status);
 	return new Response("OK", { status: 200 });
 });
 
@@ -126,7 +136,12 @@ eventsRoutes.post("/new_burn_block", basicAuthMiddleware, async (c) => {
 		networkKey,
 		payload: data,
 	};
-	server.publish(BURN_BLOCKS_EVENT, JSON.stringify(payload));
+	const status = server.publish(
+		BURN_BLOCKS_EVENT,
+		JSON.stringify(payload),
+		true,
+	);
+	logSendStatus(status);
 	return new Response("OK", { status: 200 });
 });
 

@@ -71,7 +71,8 @@ export function getPayloadId(payload: WSPayload): string {
 	}
 	if (payload.type === MANY_CHUNKS_EVENT) {
 		const contractId = payload.payload[0].contractId ?? "unknown";
-		return `${payload.type}-${contractId}-${payload.receivedAt}`;
+		const [addr, name] = contractId.split(".");
+		return `${payload.networkKey}-${payload.type}-${addr.slice(0, 4)}...${name}-${payload.receivedAt}`;
 	}
-	return `${payload.type}-${payload.receivedAt}`;
+	return `${payload.networkKey}-${payload.type}-${payload.receivedAt}`;
 }

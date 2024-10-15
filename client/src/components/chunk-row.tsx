@@ -13,22 +13,14 @@ import { hex } from "@scure/base";
 import { ChunkLabel } from "./chunk-label";
 import { ChunkBlock } from "./chunk-block";
 import { ChunkData } from "./chunk-data";
+import { useTimestamp } from "@/hooks/use-timestamp";
 
 export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
   const [addr, name] = chunk.contractId.split(".");
-  const dateTimeString = useMemo(() => {
-    const date = new Date(chunk.createdAt);
-    let str = date.toLocaleTimeString("en-US", {
-      hour12: false,
-    });
-    const millis = date.getMilliseconds();
-    // left pad with 0s
-    str += `.${millis.toString().padStart(3, "0")}`;
-    return str;
-  }, [chunk.createdAt]);
+  const { timestamp } = useTimestamp(chunk.createdAt);
   return (
     <TableRow>
-      <TableCell>{dateTimeString}</TableCell>
+      <TableCell>{timestamp}</TableCell>
       <TableCell>{chunk.slotId}</TableCell>
       <TableCell>{chunk.version}</TableCell>
       <TableCell>

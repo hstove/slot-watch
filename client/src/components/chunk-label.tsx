@@ -5,6 +5,7 @@ import {
   type ChunkEvent,
   BlockResponseRejectCodes,
   BlockResponseValidationCodes,
+  decodeChunkMaybe,
 } from "slot-watch-common";
 import { memo, useState } from "react";
 import { hex } from "@scure/base";
@@ -12,7 +13,10 @@ import { SimpleTooltip } from "./simple-tooltip";
 
 function RejectedLabel({ data }: { data: string }) {
   try {
-    const decoded = decodeChunk(hex.decode(data));
+    const decoded = decodeChunkMaybe(hex.decode(data));
+    if (!decoded) {
+      return null;
+    }
     if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
       return null;
     }
