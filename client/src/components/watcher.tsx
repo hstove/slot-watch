@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ChunkRow } from "./chunk-row";
-import { useWebSocket } from "@/hooks/use-websocket";
+import { useChunksWatcher, useWebSocket } from "@/hooks/use-websocket";
 import { WatcherRow } from "./watcher-row";
 import { useInView } from "react-intersection-observer";
 const wsUrl = "wss://slot-watch.fly.dev/watch";
@@ -72,11 +72,11 @@ export const Watcher = () => {
   // biome-ignore lint/correctness/useExhaustiveDependencies(containerHeight):
   useEffect(() => {
     if (keepScrolled) {
-      endOfTableRef.current?.scrollIntoView({ behavior: "instant" });
+      endOfTableRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
 
-  useWebSocket({
+  useChunksWatcher({
     networkKey: "testnet",
   });
 
@@ -111,7 +111,10 @@ export const Watcher = () => {
         </Table>
       </div>
       <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
-        <Button onClick={() => setKeepScrolled(!keepScrolled)}>
+        <Button
+          onClick={() => setKeepScrolled(!keepScrolled)}
+          variant={"outline"}
+        >
           {keepScrolled ? <CheckIcon /> : <Cross2Icon />}
           <span className="ml-2">Keep Scrolled</span>
         </Button>
