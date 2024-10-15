@@ -1,4 +1,8 @@
-import { getPayloadId, type ChunkEvent } from "slot-watch-common";
+import {
+  getPayloadId,
+  type WSPayload,
+  type ChunkEvent,
+} from "slot-watch-common";
 import {
   useCallback,
   useEffect,
@@ -23,6 +27,9 @@ import { useInView } from "react-intersection-observer";
 const wsUrl = "wss://slot-watch.fly.dev/watch";
 import useResizeObserver from "@react-hook/resize-observer";
 import { useChunksStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
+import { Button } from "./ui/button";
+import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 
 type BurnBlockEvent = {
   burn_block_height: number;
@@ -30,6 +37,7 @@ type BurnBlockEvent = {
 
 export const Watcher = () => {
   const chunks = useChunksStore((state) => state.chunks);
+  const [keepScrolled, setKeepScrolled] = useState(false);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -61,44 +69,52 @@ export const Watcher = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies(endOfTableRef):
   // biome-ignore lint/correctness/useExhaustiveDependencies(setLastHeight):
-  // biome-ignore lint/correctness/useExhaustiveDependencies(inView):
+  // biome-ignore lint/correctness/useExhaustiveDependencies(containerHeight):
   useEffect(() => {
-    // console.log("Height changed", containerHeight, inView, wasInView);
-    if (wasInView) {
+    if (keepScrolled) {
       endOfTableRef.current?.scrollIntoView({ behavior: "instant" });
     }
-    setLastHeight(containerHeight);
-  }, [containerHeight, endOfTableRef, setLastHeight, wasInView]);
+  }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
 
   useWebSocket({
     networkKey: "testnet",
   });
 
   return (
-    <Table ref={containerRef}>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Time</TableHead>
-          <TableHead>Slot</TableHead>
-          <TableHead>Version</TableHead>
-          <TableHead>Contract</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Block</TableHead>
-          <TableHead className="text-right">{""}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {chunks.map((chunk) => (
-          <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
-        ))}
-        {/* <TableRow>
+    <>
+      <div className="flex-1 flex flex-col w-full pb-10">
+        <Table ref={containerRef}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Time</TableHead>
+              <TableHead>Slot</TableHead>
+              <TableHead>Version</TableHead>
+              <TableHead>Contract</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Block</TableHead>
+              <TableHead className="text-right">{""}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {chunks.map((chunk) => (
+              <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
+            ))}
+            {/* <TableRow>
           <TableCell colSpan={4}>17:56:12.363</TableCell>
           <TableCell>New Burn Block</TableCell>
           <TableCell>51002</TableCell>
         </TableRow> */}
-        <TableRow ref={endOfTableRef} />
-        <TableRow ref={visibleRef} />
-      </TableBody>
-    </Table>
+            <TableRow ref={endOfTableRef} />
+            <TableRow ref={visibleRef} />
+          </TableBody>
+        </Table>
+      </div>
+      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
+        <Button onClick={() => setKeepScrolled(!keepScrolled)}>
+          {keepScrolled ? <CheckIcon /> : <Cross2Icon />}
+          <span className="ml-2">Keep Scrolled</span>
+        </Button>
+      </div>
+    </>
   );
 };

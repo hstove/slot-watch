@@ -18,7 +18,7 @@ import {
 } from "slot-watch-common";
 import { getNetworkKey, getNetworkKeyHono } from "../auth";
 import { handleStackerDBChunk } from "../events/stackerdb";
-
+// import { sockets } from "../sockets";
 export const getBunServer = (c: Context): Server => {
 	const server = ("server" in c.env ? c.env.server : c.env) as
 		| Server

@@ -97,7 +97,9 @@ export const ChunkData = memo(({ data }: { data: string }) => {
     <Dialog>
       <DialogTrigger>
         {/* <span>{data}</span> */}
-        <Button variant={"outline"}>Show Data</Button>
+        <Button asChild variant={"outline"}>
+          <span>Show Data</span>
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
