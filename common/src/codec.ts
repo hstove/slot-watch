@@ -2,6 +2,11 @@ import * as P from "micro-packed";
 import { sha512_256 } from "@noble/hashes/sha2";
 import type { ChunkEvent } from "./types";
 import { secp256k1 } from "@noble/curves/secp256k1";
+import type { StacksTransaction } from "@stacks/transactions";
+import {
+	deserializeTransaction,
+	serializeTransaction,
+} from "@stacks/transactions/dist/transaction";
 
 export type BitVec = {
 	length: number;
@@ -114,6 +119,17 @@ export const MockBlockCoder = P.struct({
 	rest: P.bytes(null),
 });
 
+export const StacksTxCoder: P.CoderType<StacksTransaction> = P.wrap({
+	encodeStream: (w: P.Writer, data: StacksTransaction) => {
+		const bytes = serializeTransaction(data);
+		w.bytes(bytes);
+	},
+	decodeStream: (r: P.Reader) => {
+		const bytes = P.bytes(null).decodeStream(r);
+		return deserializeTransaction(bytes);
+	},
+});
+
 export const BlockProposalCoder = P.struct({
 	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockProposal),
 	blockVersion: P.U8,
@@ -148,6 +164,7 @@ export const BlockPushedCoder = P.struct({
 	bitvec: BitVecCoder,
 	// txs
 	rest: P.bytes(null),
+	// txs: P.array(P.U32BE, StacksTxCoder),
 });
 
 export const SignerSignatureHashCoder = P.struct({
@@ -239,9 +256,29 @@ export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
 
 export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
 
+export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
+
 export function chunkTypeName(chunk: Uint8Array) {
 	const type = chunk[0];
-	return Object.keys(SignerMessageTypePrefix)[type];
+	const key = Object.keys(SignerMessageTypePrefix)[type] as ChunkIdKeys;
+	switch (key) {
+		case "BlockProposal":
+			return "Block Proposal";
+		case "BlockResponse": {
+			const accepted = chunk[1] === 0;
+			return accepted ? "Block Accepted" : "Block Rejected";
+		}
+		case "BlockPushed":
+			return "Block Pushed";
+		case "MockProposal":
+			return "Mock Proposal";
+		case "MockSignature":
+			return "Mock Signature";
+		case "MockBlock":
+			return "Mock Block";
+		default:
+			return "Unknown";
+	}
 }
 
 export type DecodedChunk = ReturnType<typeof decodeChunk>;

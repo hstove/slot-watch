@@ -37,7 +37,7 @@ type BurnBlockEvent = {
 
 export const Watcher = () => {
   const chunks = useChunksStore((state) => state.chunks);
-  const [keepScrolled, setKeepScrolled] = useState(false);
+  const [keepScrolled, setKeepScrolled] = useState(true);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -92,6 +92,7 @@ export const Watcher = () => {
               <TableHead>Contract</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Block</TableHead>
+              <TableHead>Signer</TableHead>
               <TableHead className="text-right">{""}</TableHead>
             </TableRow>
           </TableHeader>

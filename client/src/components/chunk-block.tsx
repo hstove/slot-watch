@@ -18,17 +18,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCopyToClipboard } from "usehooks-ts";
+import { useToast } from "@/hooks/use-toast";
 
 export const BlockHash = ({ hash }: { hash: Uint8Array }) => {
   const hexString = hex.encode(hash);
   const hexCode = hexString.slice(0, 6);
   const [_, copy] = useCopyToClipboard();
+  const { toast } = useToast();
   // const color = colord(hexCode).toHex();
   // return <span style={{ color: `#${hexCode}` }}>{hexString.slice(0, 8)}</span>;
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger onClick={() => copy(hexString)}>
+        <TooltipTrigger
+          onClick={() => {
+            copy(hexString);
+            toast({
+              title: "Copied to clipboard",
+            });
+          }}
+        >
           <span style={{ color: `#${hexCode}` }}>{hexString.slice(0, 8)}</span>
         </TooltipTrigger>
         <TooltipContent>

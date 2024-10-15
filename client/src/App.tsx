@@ -5,6 +5,7 @@ import "./App.css";
 import { Watcher } from "./components/watcher";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           {/* <h1 className="text-lg">Hello World</h1> */}
           <Watcher />
         </main>
+        <Toaster />
         {/* footer */}
         {/* <footer className="flex items-center justify-center">
 				<h1 className="text-2xl font-bold">Hello World</h1>

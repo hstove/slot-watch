@@ -14,6 +14,7 @@ import { ChunkLabel } from "./chunk-label";
 import { ChunkBlock } from "./chunk-block";
 import { ChunkData } from "./chunk-data";
 import { useTimestamp } from "@/hooks/use-timestamp";
+import { ChunkSigner } from "./chunk-signer";
 
 export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
   const [addr, name] = chunk.contractId.split(".");
@@ -23,14 +24,15 @@ export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
       <TableCell>{timestamp}</TableCell>
       <TableCell>{chunk.slotId}</TableCell>
       <TableCell>{chunk.version}</TableCell>
-      <TableCell>
-        {addr.slice(0, 4)}...{name}
-      </TableCell>
+      <TableCell>{name}</TableCell>
       <TableCell>
         <ChunkLabel data={chunk.data} />
       </TableCell>
       <TableCell>
         <ChunkBlock chunkData={chunk.data} />
+      </TableCell>
+      <TableCell>
+        <ChunkSigner chunk={chunk} />
       </TableCell>
       <TableCell className="flex justify-end">
         <ChunkData data={chunk.data} />

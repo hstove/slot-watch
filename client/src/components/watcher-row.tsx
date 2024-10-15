@@ -23,11 +23,18 @@ export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
     ));
   }
   if (payload.type === NEW_BLOCK_EVENT) {
+    const blockId = payload.payload.block_hash;
+    const hexCode = blockId.slice(2, 8);
     return (
       <TableRow>
         <TableCell colSpan={4}>{timestamp}</TableCell>
         <TableCell>Stacks Block</TableCell>
-        <TableCell>{payload.payload.block_height}</TableCell>
+        <TableCell>
+          <span className="mr-2" style={{ color: `#${hexCode}` }}>
+            {blockId.slice(2, 10)}
+          </span>
+          ({payload.payload.block_height})
+        </TableCell>
       </TableRow>
     );
   }
