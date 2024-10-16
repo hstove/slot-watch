@@ -109,6 +109,13 @@ export const Watcher = () => {
             <TableRow ref={visibleRef} />
           </TableBody>
         </Table>
+        {chunks.length === 0 && (
+          <div className="w-full flex p-10 items-center justify-center">
+            <div className="max-w-[500px]">
+              <span className="text-lg">Waiting for new data...</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
         <Button
