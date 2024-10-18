@@ -30,6 +30,7 @@
     "react-intersection-observer": "^9.13.1",
     "react-use-websocket": "^4.8.1",
     "slot-watch-common": "workspace:*",
+    "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.0-rc.2"

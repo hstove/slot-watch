@@ -20,8 +20,9 @@
   },
   "peerDependencies": {},
   "dependencies": {
-    "usehooks-ts": "^3.1.0",
-    "turbo": "^2.1.2"
+    "superjson": "^2.2.1",
+    "turbo": "^2.1.2",
+    "usehooks-ts": "^3.1.0"
   },
   "workspaces": [
     "./client",

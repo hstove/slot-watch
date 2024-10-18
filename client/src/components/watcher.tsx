@@ -77,7 +77,7 @@ export const Watcher = () => {
   }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
 
   useChunksWatcher({
-    networkKey: "testnet",
+    networkKey: "naka-testnet",
   });
 
   return (
@@ -100,11 +100,6 @@ export const Watcher = () => {
             {chunks.map((chunk) => (
               <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
             ))}
-            {/* <TableRow>
-          <TableCell colSpan={4}>17:56:12.363</TableCell>
-          <TableCell>New Burn Block</TableCell>
-          <TableCell>51002</TableCell>
-        </TableRow> */}
             <TableRow ref={endOfTableRef} />
             <TableRow ref={visibleRef} />
           </TableBody>

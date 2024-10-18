@@ -36,17 +36,15 @@ export async function handleStackerDBChunk(
 			version: chunk.slot_version,
 			signature: hex.decode(chunk.sig),
 		}).toHex();
-		const sharedPayload = {
+		await db.insert(stackerDbSlots).values({
 			slotId: chunk.slot_id,
 			version: chunk.slot_version,
 			contractId,
 			networkKey,
-		};
-		await db.insert(stackerDbSlots).values({
-			...sharedPayload,
 			signature: hex.decode(chunk.sig),
 			data: hex.decode(chunk.data),
 			createdAt: receivedAt,
+			publicKey,
 		});
 		const decoded = decodeChunkMaybe(hex.decode(chunk.data));
 		if (decoded === null) {

@@ -10,13 +10,15 @@ import {
 	NEW_BLOCK_EVENT,
 } from "slot-watch-common";
 import { getBlockRoute } from "./routes/get-block.routes";
+import { getChunksRoutes } from "./routes/chunks.routes";
+import { prettyJSON } from "hono/pretty-json";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
 const app = new Hono();
 
 app.use(logger());
-
+app.use(prettyJSON());
 app.get(
 	"/watch",
 	upgradeWebSocket((c) => {
@@ -45,6 +47,7 @@ app.get("/", (c) => c.text("Hello World"));
 app.route("/", eventsRoutes);
 
 app.route("/", getBlockRoute);
+app.route("/", getChunksRoutes);
 
 app.notFound((c) => {
 	console.log(`${c.req.method} ${c.req.url} not found`);

@@ -60,7 +60,15 @@ export const ChunkBlock = ({ chunkData }: { chunkData: string }) => {
 
     return <BlockHash hash={blockHash} />;
   }
-
+  if (decoded.typeId === SignerMessageTypePrefix.MockSignature) {
+    return <span>{decoded.proposal.stacksHeight.toString()}</span>;
+  }
+  if (decoded.typeId === SignerMessageTypePrefix.MockBlock) {
+    return <span>{decoded.proposal.stacksHeight.toString()}</span>;
+  }
+  if (decoded.typeId === SignerMessageTypePrefix.MockProposal) {
+    return <span>{decoded.stacksHeight.toString()}</span>;
+  }
   if (
     decoded.typeId === SignerMessageTypePrefix.BlockProposal ||
     decoded.typeId === SignerMessageTypePrefix.BlockPushed

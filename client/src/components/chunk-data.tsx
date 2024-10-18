@@ -15,6 +15,7 @@ import {
 } from "slot-watch-common";
 import { hex } from "@scure/base";
 import { useCopyToClipboard } from "usehooks-ts";
+import { serialize } from "superjson";
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function valueToString(value: any) {
@@ -34,7 +35,8 @@ function valueToString(value: any) {
     if ("length" in value && "bytes" in value) {
       valString = binaryString(value);
     } else {
-      valString = JSON.stringify(value, null, 2);
+      const { json } = serialize(value);
+      valString = JSON.stringify(json, null, 2);
     }
   }
   return valString;

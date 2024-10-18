@@ -94,14 +94,14 @@ export function TypeIdCoder<T extends SignerMessageTypeId>(
 		validate: (value: T) => {
 			if (typeof value !== "number")
 				throw new Error(`TypeIdCoder: invalid value ${value}`);
-			if (value !== id) throw new Error(`TypeIdCoder: invalid value ${value}`);
+			if (value !== id)
+				throw new Error(`TypeIdCoder: invalid value ${value}, expected ${id}`);
 			return value;
 		},
 	});
 }
 
-export const MockProposalCoder = P.struct({
-	typeId: TypeIdCoder(SignerMessageTypePrefix.MockProposal),
+const MockProposalInnerObj = {
 	burnBlockHeight: P.U64BE,
 	consensusHash: P.bytes(20),
 	stacksTip: P.bytes(32),
@@ -110,13 +110,28 @@ export const MockProposalCoder = P.struct({
 	poxConsensus: P.bytes(20),
 	chainId: P.U32BE,
 	signature: P.bytes(65),
+};
+
+const MockProposalInnerCoder = P.struct(MockProposalInnerObj);
+
+export type MockProposalInner = P.UnwrapCoder<typeof MockProposalInnerCoder>;
+
+export const MockProposalCoder = P.struct({
+	typeId: TypeIdCoder(SignerMessageTypePrefix.MockProposal),
+	...MockProposalInnerObj,
 });
 
 export const MockBlockCoder = P.struct({
 	typeId: TypeIdCoder(SignerMessageTypePrefix.MockBlock),
-	proposal: MockProposalCoder,
+	proposal: P.struct(MockProposalInnerObj),
 	signatures: P.array(P.U32BE, P.bytes(65)),
 	rest: P.bytes(null),
+});
+
+export const MockSignatureCoder = P.struct({
+	typeId: TypeIdCoder(SignerMessageTypePrefix.MockSignature),
+	signature: P.bytes(65),
+	proposal: P.struct(MockProposalInnerObj),
 });
 
 export const StacksTxCoder: P.CoderType<StacksTransaction> = P.wrap({
@@ -235,8 +250,19 @@ export const BlockResponseRejectedCoder = P.struct({
 	signature: P.bytes(65),
 });
 
-export type MockBlock = P.UnwrapCoder<typeof MockBlockCoder>;
+export type MockBlock = Omit<
+	P.UnwrapCoder<typeof MockBlockCoder>,
+	"proposal"
+> & {
+	proposal: MockProposalInner;
+};
 export type MockProposal = P.UnwrapCoder<typeof MockProposalCoder>;
+export type MockSignature = Omit<
+	P.UnwrapCoder<typeof MockSignatureCoder>,
+	"proposal"
+> & {
+	proposal: MockProposalInner;
+};
 export type BlockProposal = Omit<
 	P.UnwrapCoder<typeof BlockProposalCoder>,
 	"rest"
@@ -281,6 +307,8 @@ export function chunkTypeName(chunk: Uint8Array) {
 	}
 }
 
+export type ChunkType = ReturnType<typeof chunkTypeName>;
+
 export type DecodedChunk = ReturnType<typeof decodeChunk>;
 
 export function decodeChunk(chunk: Uint8Array) {
@@ -289,10 +317,10 @@ export function decodeChunk(chunk: Uint8Array) {
 	// console.log("Type: ", type);
 	// console.log(Object.keys(SignerMessageTypePrefix)[type]);
 	if (type === SignerMessageTypePrefix.MockBlock) {
-		return MockBlockCoder.decode(chunk);
+		return MockBlockCoder.decode(chunk) as MockBlock;
 	}
 	if (type === SignerMessageTypePrefix.MockProposal) {
-		return MockProposalCoder.decode(chunk);
+		return MockProposalCoder.decode(chunk) as MockProposal;
 	}
 	if (type === SignerMessageTypePrefix.BlockResponse) {
 		const accepted = chunk[1];
@@ -321,6 +349,9 @@ export function decodeChunk(chunk: Uint8Array) {
 	}
 	if (type === SignerMessageTypePrefix.BlockPushed) {
 		return BlockPushedCoder.decode(chunk);
+	}
+	if (type === SignerMessageTypePrefix.MockSignature) {
+		return MockSignatureCoder.decode(chunk) as MockSignature;
 	}
 	throw new Error(
 		`Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,

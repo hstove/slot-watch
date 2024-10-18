@@ -1,3 +1,4 @@
+import type { ChunkIdKeys, ChunkType, DecodedChunk } from "./codec";
 import type {
 	CoreNodeBlockMessage,
 	CoreNodeBurnBlockMessage,
@@ -16,6 +17,12 @@ export type ChunkEvent = {
 	data: string;
 	signature: string;
 	createdAt: string;
+};
+
+export type ChunkEventParsed = ChunkEvent & {
+	publicKey: string;
+	// decoded: DecodedChunk | null;
+	type: ChunkType;
 };
 
 export const BlockResponseRejectCodes = [

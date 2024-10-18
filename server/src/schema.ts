@@ -29,9 +29,11 @@ export const stackerDbSlots = pgTable(
 		contractId: varchar("contract_id", { length: 255 }).notNull(),
 		createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 		networkKey: varchar("network_key", { length: 20 }),
+		publicKey: varchar("public_key", { length: 66 }),
 	},
 	(table) => ({
 		networkKeyIndex: index("network_key_idx").on(table.networkKey),
+		publicKeyIndex: index("public_key_idx").on(table.publicKey),
 	}),
 );
 

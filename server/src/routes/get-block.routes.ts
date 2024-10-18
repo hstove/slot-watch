@@ -11,7 +11,7 @@ getBlockRoute.get("/get_block/:blockId", async (c) => {
 		return c.text("Missing blockId", 400);
 	}
 
-	const [blockPushed] = await db
+	const [pushes] = await db
 		.select()
 		.from(blockPushes)
 		.where(eq(blockPushes.signerSignatureHash, blockId))
@@ -28,7 +28,7 @@ getBlockRoute.get("/get_block/:blockId", async (c) => {
 	const response = {
 		proposal,
 		responses,
-		blockPushed,
+		pushes,
 	};
 	return c.json(response);
 });
