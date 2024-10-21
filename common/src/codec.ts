@@ -212,11 +212,33 @@ export const InverseBoolCoder: P.CoderType<boolean> = /* @__PURE__ */ P.wrap({
 	},
 });
 
+export const SignerMetadataCoder: P.CoderType<string | null> = P.wrap({
+	encodeStream: (w: P.Writer, data: string | null) => {
+		if (data === null) {
+			// w.byte(0);
+		} else {
+			// P.U8.encodeStream(w, data.length);
+			// const bytes = P.string(data.length).encodeStream(w, data);
+			P.string(P.U32BE).encodeStream(w, data);
+		}
+	},
+	decodeStream: (r: P.Reader) => {
+		try {
+			// const length = P.U32BE.decodeStream(r);
+			// return P.prefix(P.U8, P.string(null)).decodeStream(r);
+			return P.string(P.U32BE).decodeStream(r);
+		} catch (error) {
+			return null;
+		}
+	},
+});
+
 export const BlockResponseAcceptedCoder = P.struct({
 	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockResponse),
 	accepted: InverseBoolCoder,
 	signerSignatureHash: P.bytes(32),
 	signature: P.bytes(65),
+	metadata: SignerMetadataCoder,
 });
 
 export const ValidationErrorCoder: P.CoderType<{
@@ -250,6 +272,7 @@ export const BlockResponseRejectedCoder = P.struct({
 	signerSignatureHash: P.bytes(32),
 	chainId: P.U32BE,
 	signature: P.bytes(65),
+	metadata: SignerMetadataCoder,
 });
 
 export const MockSignatureOldCoder = P.struct({

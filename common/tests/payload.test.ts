@@ -277,3 +277,21 @@ test("old mock signature data", () => {
 	expect(payload.typeId).toEqual(SignerMessageTypePrefix.MockSignatureOld);
 	expect((payload as MockSignatureOld).isMockSignatureOld).toBeTruthy();
 });
+
+test("new signer message with metadata", () => {
+	const hexStr =
+		"010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e80000000b48656c6c6f20776f726c64";
+	const decoded = decodeChunk(hex.decode(hexStr));
+	// expect(decoded.typeId).toEqual(SignerMessageTypePrefix.BlockResponse);
+	if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
+		throw new Error("Invalid type id");
+	}
+	expect(decoded.metadata).toEqual("Hello world");
+});
+
+test("string decoding", () => {
+	const hexStr = "0000000b48656c6c6f20776f726c64";
+	// const decoded = P.prefix(P.U8, P.string(null)).decode(hex.decode(hexStr));
+	const decoded = P.string(P.U32BE).decode(hex.decode(hexStr));
+	expect(decoded).toEqual("Hello world");
+});
