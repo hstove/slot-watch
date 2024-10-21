@@ -1,4 +1,5 @@
 export const knownSigners: Record<string, string> = {
+	// Primary testnet
 	"03bb6f40a2331f7a092c2a273adfe20f18511b10cd59f8cbb251edd24a189d6e45":
 		"TM Miner",
 	"037fc1bb0eab484f5807ba2bfdeb208f9104fa89abbbb8034e23f33df4b9e5ab10":
@@ -19,4 +20,6 @@ export const knownSigners: Record<string, string> = {
 	"02b92d62973131ed54796e33b3f4926324bcc27e1dd9ce67958082cbc491a7c9ff":
 		"Charlie",
 	"035e857e32f941f5fff32dc7b1b8d0f3afb92e7bb41123d343ad4663f973dcd59a": "Hiro",
+	// Naka testnet
+	"03fbbbc6f26cb4105faf48008f8d7ef1900943a96fdbf63a95b94d7f2d87a4e9bb": "TM",
 };

@@ -77,6 +77,8 @@ export const SignerMessageTypePrefix = {
 	MockSignature: 4,
 	/// Mock block message from Epoch 2.5 miners
 	MockBlock: 5,
+	/// Earlier mock signature message
+	MockSignatureOld: 3,
 } as const;
 
 export type SignerMessageTypeId =
@@ -250,6 +252,19 @@ export const BlockResponseRejectedCoder = P.struct({
 	signature: P.bytes(65),
 });
 
+export const MockSignatureOldCoder = P.struct({
+	typeId: TypeIdCoder(SignerMessageTypePrefix.MockSignatureOld),
+	signature: P.bytes(65),
+	burnBlockHeight: P.U64BE,
+	consensusHash: P.bytes(20),
+	stacksTip: P.bytes(32),
+	stacksHeight: P.U64BE,
+	server: P.prefix(P.U8, P.string(null)),
+	poxConsensus: P.bytes(20),
+	eventBurnHeight: P.U64BE,
+	chainId: P.U32BE,
+});
+
 export type MockBlock = Omit<
 	P.UnwrapCoder<typeof MockBlockCoder>,
 	"proposal"
@@ -282,6 +297,10 @@ export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
 
 export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
 
+export type MockSignatureOld = P.UnwrapCoder<typeof MockSignatureOldCoder> & {
+	isMockSignatureOld: true;
+};
+
 export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
 export function chunkTypeName(chunk: Uint8Array) {
@@ -313,14 +332,19 @@ export type DecodedChunk = ReturnType<typeof decodeChunk>;
 
 export function decodeChunk(chunk: Uint8Array) {
 	const type = chunk[0];
-	// console.log(Object.keys(SignerMessageTypePrefix));
-	// console.log("Type: ", type);
-	// console.log(Object.keys(SignerMessageTypePrefix)[type]);
 	if (type === SignerMessageTypePrefix.MockBlock) {
 		return MockBlockCoder.decode(chunk) as MockBlock;
 	}
 	if (type === SignerMessageTypePrefix.MockProposal) {
-		return MockProposalCoder.decode(chunk) as MockProposal;
+		try {
+			return MockProposalCoder.decode(chunk) as MockProposal;
+		} catch (error) {
+			const decoded = MockSignatureOldCoder.decode(chunk);
+			return {
+				...decoded,
+				isMockSignatureOld: true,
+			} satisfies MockSignatureOld;
+		}
 	}
 	if (type === SignerMessageTypePrefix.BlockResponse) {
 		const accepted = chunk[1];

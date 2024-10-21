@@ -77,7 +77,7 @@ export const Watcher = () => {
   }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
 
   useChunksWatcher({
-    networkKey: "naka-testnet",
+    networkKey: "testnet",
   });
 
   return (

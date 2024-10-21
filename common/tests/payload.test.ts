@@ -14,6 +14,8 @@ import { hex } from "@scure/base";
 import {
 	getPayloadContractId,
 	MockSignatureCoder,
+	type MockSignatureOld,
+	MockSignatureOldCoder,
 	SignerMessageTypePrefix,
 } from "../src";
 import {
@@ -27,6 +29,7 @@ import {
 	chunkAuthDigest,
 	recoverChunkPublicKey,
 } from "../src";
+import * as P from "micro-packed";
 
 test("parse-fixtures", () => {
 	const payload = fixtureToJson(fixtures.signers1);
@@ -108,7 +111,8 @@ test("signature hashing", async () => {
 	const responseHex =
 		"010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e8";
 	const response = decodeChunk(hex.decode(responseHex));
-	const proposalHash = await makeSignerSignatureHash(proposal as NakamotoBlock);
+	// console.log(response);
+	const proposalHash = makeSignerSignatureHash(proposal as NakamotoBlock);
 	// console.log(hex.encode(proposalHash));
 	// console.log(
 	// 	hex.encode((response as BlockResponseAccepted).signerSignatureHash),
@@ -220,7 +224,7 @@ test.skip("bad block response test", async () => {
 	const payloadStr =
 		"01010000003054686520626c6f636b207761732072656a65637465642064756520746f206e6f20736f72746974696f6e20766965772e03fed12577663acaa5c847773494f64cbcf7a22867d6eab4bfe9665a7e65bfa444";
 	const payload = decodeChunk(hex.decode(payloadStr));
-	console.log(payload);
+	// console.log(payload);
 });
 
 test("block pushed transactions", () => {
@@ -254,5 +258,22 @@ test("mock block", () => {
 		throw new Error("Invalid type id");
 	}
 	expect(decoded.proposal.stacksHeight).toEqual(353n);
-	console.log(decoded.rest);
+	// console.log(decoded.rest);
+});
+
+test("making a serialized string", () => {
+	const coder = P.prefix(P.U32BE, P.string(null));
+	const encoded = coder.encode("Hello world");
+	// console.log(hex.encode(encoded));
+});
+
+test("old mock signature data", () => {
+	const hexStr =
+		"0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001679eb70799056ec4040404040404040404040404040404040404040929292929292929292929292929292929292929292929292929292929292929203107c44f19cd3c005302e302e30505050505050505050505050505050505050505081490a983495afe580000000";
+	const decoded = MockSignatureOldCoder.decode(hex.decode(hexStr));
+	expect(decoded.chainId).toEqual(2147483648);
+
+	const payload = decodeChunk(hex.decode(hexStr));
+	expect(payload.typeId).toEqual(SignerMessageTypePrefix.MockSignatureOld);
+	expect((payload as MockSignatureOld).isMockSignatureOld).toBeTruthy();
 });
