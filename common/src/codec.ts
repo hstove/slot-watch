@@ -103,12 +103,27 @@ export function TypeIdCoder<T extends SignerMessageTypeId>(
 	});
 }
 
+export const SignerMetadataCoder: P.CoderType<string | null> = P.wrap({
+	encodeStream: (w: P.Writer, data: string | null) => {
+		if (data !== null) {
+			P.string(P.U32BE).encodeStream(w, data);
+		}
+	},
+	decodeStream: (r: P.Reader) => {
+		try {
+			return P.string(P.U32BE).decodeStream(r);
+		} catch (error) {
+			return null;
+		}
+	},
+});
+
 const MockProposalInnerObj = {
 	burnBlockHeight: P.U64BE,
 	consensusHash: P.bytes(20),
 	stacksTip: P.bytes(32),
 	stacksHeight: P.U64BE,
-	server: P.prefix(P.U8, P.string(null)),
+	version: P.prefix(P.U8, P.string(null)),
 	poxConsensus: P.bytes(20),
 	chainId: P.U32BE,
 	signature: P.bytes(65),
@@ -134,6 +149,7 @@ export const MockSignatureCoder = P.struct({
 	typeId: TypeIdCoder(SignerMessageTypePrefix.MockSignature),
 	signature: P.bytes(65),
 	proposal: P.struct(MockProposalInnerObj),
+	metadata: SignerMetadataCoder,
 });
 
 export const StacksTxCoder: P.CoderType<StacksTransaction> = P.wrap({
@@ -212,27 +228,6 @@ export const InverseBoolCoder: P.CoderType<boolean> = /* @__PURE__ */ P.wrap({
 	},
 });
 
-export const SignerMetadataCoder: P.CoderType<string | null> = P.wrap({
-	encodeStream: (w: P.Writer, data: string | null) => {
-		if (data === null) {
-			// w.byte(0);
-		} else {
-			// P.U8.encodeStream(w, data.length);
-			// const bytes = P.string(data.length).encodeStream(w, data);
-			P.string(P.U32BE).encodeStream(w, data);
-		}
-	},
-	decodeStream: (r: P.Reader) => {
-		try {
-			// const length = P.U32BE.decodeStream(r);
-			// return P.prefix(P.U8, P.string(null)).decodeStream(r);
-			return P.string(P.U32BE).decodeStream(r);
-		} catch (error) {
-			return null;
-		}
-	},
-});
-
 export const BlockResponseAcceptedCoder = P.struct({
 	typeId: TypeIdCoder(SignerMessageTypePrefix.BlockResponse),
 	accepted: InverseBoolCoder,
@@ -282,7 +277,7 @@ export const MockSignatureOldCoder = P.struct({
 	consensusHash: P.bytes(20),
 	stacksTip: P.bytes(32),
 	stacksHeight: P.U64BE,
-	server: P.prefix(P.U8, P.string(null)),
+	version: P.prefix(P.U8, P.string(null)),
 	poxConsensus: P.bytes(20),
 	eventBurnHeight: P.U64BE,
 	chainId: P.U32BE,
@@ -328,21 +323,24 @@ export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
 export function chunkTypeName(chunk: Uint8Array) {
 	const type = chunk[0];
-	const key = Object.keys(SignerMessageTypePrefix)[type] as ChunkIdKeys;
-	switch (key) {
-		case "BlockProposal":
+	switch (type) {
+		case SignerMessageTypePrefix.BlockProposal:
 			return "Block Proposal";
-		case "BlockResponse": {
-			const accepted = chunk[1] === 0;
-			return accepted ? "Block Accepted" : "Block Rejected";
-		}
-		case "BlockPushed":
+		case SignerMessageTypePrefix.BlockResponse:
+			return "Block Response";
+		case SignerMessageTypePrefix.BlockPushed:
 			return "Block Pushed";
-		case "MockProposal":
-			return "Mock Proposal";
-		case "MockSignature":
+		case SignerMessageTypePrefix.MockProposal: {
+			try {
+				MockSignatureOldCoder.decode(chunk);
+				return "Mock Signature (v0)";
+			} catch (error) {
+				return "Mock Proposal";
+			}
+		}
+		case SignerMessageTypePrefix.MockSignature:
 			return "Mock Signature";
-		case "MockBlock":
+		case SignerMessageTypePrefix.MockBlock:
 			return "Mock Block";
 		default:
 			return "Unknown";

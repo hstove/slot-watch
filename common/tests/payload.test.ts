@@ -28,6 +28,7 @@ import {
 	type ChunkEvent,
 	chunkAuthDigest,
 	recoverChunkPublicKey,
+	chunkTypeName,
 } from "../src";
 import * as P from "micro-packed";
 
@@ -276,6 +277,8 @@ test("old mock signature data", () => {
 	const payload = decodeChunk(hex.decode(hexStr));
 	expect(payload.typeId).toEqual(SignerMessageTypePrefix.MockSignatureOld);
 	expect((payload as MockSignatureOld).isMockSignatureOld).toBeTruthy();
+	const name = chunkTypeName(hex.decode(hexStr));
+	expect(name).toEqual("Mock Signature (v0)");
 });
 
 test("new signer message with metadata", () => {
