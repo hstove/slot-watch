@@ -24,19 +24,20 @@ import { ChunkRow } from "./chunk-row";
 import { useChunksWatcher, useWebSocket } from "@/hooks/use-websocket";
 import { WatcherRow } from "./watcher-row";
 import { useInView } from "react-intersection-observer";
-const wsUrl = "wss://slot-watch.fly.dev/watch";
 import useResizeObserver from "@react-hook/resize-observer";
-import { useChunksStore } from "@/store";
-import { useShallow } from "zustand/react/shallow";
 import { Button } from "./ui/button";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { useAtomValue } from "jotai";
+import { networkIdAtom } from "@/store/network";
+import { currentNetworkChunksStore } from "@/store/chunks-store";
 
 type BurnBlockEvent = {
   burn_block_height: number;
 };
 
 export const Watcher = () => {
-  const chunks = useChunksStore((state) => state.chunks);
+  useChunksWatcher();
+  const chunks = useAtomValue(currentNetworkChunksStore);
   const [keepScrolled, setKeepScrolled] = useState(true);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);
@@ -75,10 +76,6 @@ export const Watcher = () => {
       endOfTableRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
-
-  useChunksWatcher({
-    networkKey: "testnet",
-  });
 
   return (
     <>

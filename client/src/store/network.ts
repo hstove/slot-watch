@@ -1,0 +1,38 @@
+import { atom } from "jotai";
+
+export type Network = {
+	id: string;
+	name: string;
+};
+
+export const NETWORKS: Network[] = [
+	{
+		id: "testnet",
+		name: "Testnet",
+	},
+	{
+		id: "naka-testnet",
+		name: "Nakamoto Testnet",
+	},
+];
+
+export const DEFAULT_NETWORK = NETWORKS[0];
+
+export function getNetwork(networkId: string | null) {
+	return (
+		NETWORKS.find((network) => network.id === networkId) || DEFAULT_NETWORK
+	);
+}
+
+export const networkAtom = atom<Network, [string | null], void>(
+	(get) => get(currentNetworkAtom),
+	(_get, set, networkId) => {
+		set(currentNetworkAtom, getNetwork(networkId));
+	},
+);
+
+export const currentNetworkAtom = atom(DEFAULT_NETWORK);
+
+export const networkIdAtom = atom((get) => get(currentNetworkAtom).id);
+
+export const networkNameAtom = atom((get) => get(currentNetworkAtom).name);

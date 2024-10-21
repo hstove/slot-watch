@@ -5,6 +5,7 @@ import { ReadyState } from "react-use-websocket";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { SimpleTooltip } from "./simple-tooltip";
+import { NetworkPicker } from "./network-picker";
 
 const connectionStatusVariants = cva(
   "text-sm text-muted-foreground h-4 w-4 rounded-full",
@@ -38,6 +39,7 @@ export const Header = () => {
     <header className="flex items-center justify-between sticky top-0 z-50 bg-background py-3">
       <h1 className="text-2xl font-bold">Slot watch</h1>
       <div className="flex gap-5">
+        <NetworkPicker />
         <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
           <div className={cn(connectionStatusVariants({ readyState }))} />
         </SimpleTooltip>

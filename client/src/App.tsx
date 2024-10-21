@@ -6,16 +6,20 @@ import { Watcher } from "./components/watcher";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
+import { useSearchParams } from "react-router-dom";
+import { useHydrateAtoms } from "jotai/utils";
+import { getNetwork, networkAtom } from "@/store/network";
 
 function App() {
+  const [searchParams] = useSearchParams();
+  const networkId = searchParams.get("network");
+
+  useHydrateAtoms([[networkAtom, networkId]]);
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="container min-h-screen flex flex-col mx-auto py-6 gap-6">
-        {/* header */}
         <Header />
-        {/* body */}
         <main className="flex-1 flex flex-col w-full">
-          {/* <h1 className="text-lg">Hello World</h1> */}
           <Watcher />
         </main>
         <Toaster />
