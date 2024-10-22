@@ -12,6 +12,7 @@ import {
 import { getBlockRoute } from "./routes/get-block.routes";
 import { getChunksRoutes } from "./routes/chunks.routes";
 import { prettyJSON } from "hono/pretty-json";
+import { getRecentsRoutes } from "./routes/recents.routes";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
@@ -48,6 +49,7 @@ app.route("/", eventsRoutes);
 
 app.route("/", getBlockRoute);
 app.route("/", getChunksRoutes);
+app.route("/", getRecentsRoutes);
 
 app.notFound((c) => {
 	console.log(`${c.req.method} ${c.req.url} not found`);

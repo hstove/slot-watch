@@ -8,7 +8,7 @@
     "build:client": "turbo build --filter=slot-watch-ui",
     "build": "turbo build",
     "build:packages": "turbo build --filter=slot-watch-common",
-    "dev:server": "cd server && bun run start",
+    "dev:server": "cd server && bun run dev:watch",
     "migrate": "cd server && bun run migrate.ts",
     "typecheck": "turbo typecheck"
   },
