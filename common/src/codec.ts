@@ -302,6 +302,7 @@ export type BlockProposal = Omit<
 > & {
 	blockHeight: bigint;
 	rewardCycle: bigint;
+	txCount: number;
 };
 export type BlockResponseAccepted = Omit<
 	P.UnwrapCoder<typeof BlockResponseAcceptedCoder>,
@@ -311,7 +312,12 @@ export type BlockResponseRejected = Omit<
 	P.UnwrapCoder<typeof BlockResponseRejectedCoder>,
 	"accepted"
 > & { reasonCode: number; validationCode: number | undefined; accepted: false };
-export type BlockPushed = P.UnwrapCoder<typeof BlockPushedCoder>;
+export type BlockPushed = Omit<
+	P.UnwrapCoder<typeof BlockPushedCoder>,
+	"rest"
+> & {
+	txCount: number;
+};
 
 export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
 
@@ -386,14 +392,22 @@ export function decodeChunk(chunk: Uint8Array) {
 			blockHeight: P.U64BE,
 			rewardCycle: P.U64BE,
 		}).decode(withoutTxs);
+		const txs = remaining.slice(0, -16);
+		const txCount = P.U32BE.decode(txs.slice(0, 4));
 		return {
 			...proposal,
 			blockHeight: extra.blockHeight,
 			rewardCycle: extra.rewardCycle,
+			txCount: txCount,
 		} satisfies BlockProposal;
 	}
 	if (type === SignerMessageTypePrefix.BlockPushed) {
-		return BlockPushedCoder.decode(chunk);
+		const { rest, ...pushed } = BlockPushedCoder.decode(chunk);
+		const txCount = P.U32BE.decode(rest.slice(0, 4));
+		return {
+			...pushed,
+			txCount,
+		} satisfies BlockPushed;
 	}
 	if (type === SignerMessageTypePrefix.MockSignature) {
 		return MockSignatureCoder.decode(chunk) as MockSignature;

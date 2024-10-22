@@ -21,10 +21,10 @@ export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
   const { timestamp } = useTimestamp(chunk.createdAt);
   return (
     <TableRow>
-      <TableCell>{timestamp}</TableCell>
-      <TableCell>{chunk.slotId}</TableCell>
-      <TableCell>{chunk.version}</TableCell>
-      <TableCell>{name}</TableCell>
+      <TableCell className="font-mono text-xs">{timestamp}</TableCell>
+      <TableCell className="font-mono text-xs">{chunk.slotId}</TableCell>
+      <TableCell className="font-mono text-xs">{chunk.version}</TableCell>
+      {/* <TableCell>{name}</TableCell> */}
       <TableCell>
         <ChunkLabel data={chunk.data} />
       </TableCell>

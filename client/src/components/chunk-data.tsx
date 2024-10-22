@@ -31,6 +31,8 @@ function valueToString(value: any) {
       })
       .join(", ");
     valString = `[${valString}]`;
+  } else if (value === null) {
+    valString = "null";
   } else if (typeof value === "object") {
     if ("length" in value && "bytes" in value) {
       valString = binaryString(value);

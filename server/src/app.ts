@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { logger } from "hono/logger";
 import eventsRoutes, { getBunServer } from "./routes/events.routes";
 import { createBunWebSocket } from "hono/bun";
+import { cors } from "hono/cors";
 import type { ServerWebSocket } from "bun";
 import {
 	BURN_BLOCKS_EVENT,
@@ -20,6 +21,7 @@ const app = new Hono();
 
 app.use(logger());
 app.use(prettyJSON());
+app.use(cors());
 app.get(
 	"/watch",
 	upgradeWebSocket((c) => {

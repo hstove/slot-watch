@@ -6,6 +6,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { SimpleTooltip } from "./simple-tooltip";
 import { NetworkPicker } from "./network-picker";
+import { Link } from "react-router-dom";
+import { textVariants } from "@/lib/text-variants";
+import { useAtomValue } from "jotai";
+import { networkIdAtom } from "@/store/network";
 
 const connectionStatusVariants = cva(
   "text-sm text-muted-foreground h-4 w-4 rounded-full",
@@ -35,10 +39,37 @@ const connectionStatus = {
 
 export const Header = () => {
   const { readyState } = useWebSocket();
+  const network = useAtomValue(networkIdAtom);
   return (
     <header className="flex items-center justify-between sticky top-0 z-50 bg-background py-3">
-      <h1 className="text-2xl font-bold">Slot watch</h1>
-      <div className="flex gap-5">
+      <div className="flex gap-5 items-center">
+        <h1 className="text-2xl font-bold">Slot watch</h1>
+      </div>
+      <div className="flex gap-5 items-center">
+        <Link
+          to={{
+            pathname: "/",
+            search: `network=${network}`,
+          }}
+          className={textVariants({
+            variant: "small",
+            className: "font-normal",
+          })}
+        >
+          Stream
+        </Link>
+        <Link
+          to={{
+            pathname: "/recent-signers",
+            search: `network=${network}`,
+          }}
+          className={textVariants({
+            variant: "small",
+            className: "font-normal",
+          })}
+        >
+          Recent signers
+        </Link>
         <NetworkPicker />
         <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
           <div className={cn(connectionStatusVariants({ readyState }))} />

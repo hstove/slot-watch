@@ -86,7 +86,6 @@ export const Watcher = () => {
               <TableHead>Time</TableHead>
               <TableHead>Slot</TableHead>
               <TableHead>Version</TableHead>
-              <TableHead>Contract</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Block</TableHead>
               <TableHead>Signer</TableHead>

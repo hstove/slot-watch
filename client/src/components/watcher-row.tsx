@@ -27,7 +27,9 @@ export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
     const hexCode = blockId.slice(2, 8);
     return (
       <TableRow>
-        <TableCell colSpan={4}>{timestamp}</TableCell>
+        <TableCell colSpan={3} className="font-mono text-xs">
+          {timestamp}
+        </TableCell>
         <TableCell>Stacks Block</TableCell>
         <TableCell>
           <span className="mr-2" style={{ color: `#${hexCode}` }}>
@@ -41,7 +43,9 @@ export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
   if (payload.type === BURN_BLOCKS_EVENT) {
     return (
       <TableRow>
-        <TableCell colSpan={4}>{timestamp}</TableCell>
+        <TableCell colSpan={3} className="font-mono text-xs">
+          {timestamp}
+        </TableCell>
         <TableCell>Burn Block</TableCell>
         <TableCell>{payload.payload.burn_block_height}</TableCell>
       </TableRow>

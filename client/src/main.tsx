@@ -3,11 +3,23 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RecentSigners } from "./components/recent-signers/index.tsx";
+import { Watcher } from "./components/watcher.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    children: [
+      {
+        path: "/",
+        element: <Watcher />,
+      },
+      {
+        path: "/recent-signers",
+        element: <RecentSigners />,
+      },
+    ],
   },
 ]);
 

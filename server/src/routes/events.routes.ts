@@ -18,6 +18,7 @@ import {
 } from "slot-watch-common";
 import { getNetworkKey, getNetworkKeyHono } from "../auth";
 import { handleStackerDBChunk } from "../events/stackerdb";
+import { warmCache } from "../stacks-api";
 // import { sockets } from "../sockets";
 export const getBunServer = (c: Context): Server => {
 	const server = ("server" in c.env ? c.env.server : c.env) as
@@ -142,6 +143,9 @@ eventsRoutes.post("/new_burn_block", basicAuthMiddleware, async (c) => {
 		true,
 	);
 	logSendStatus(status);
+	process.nextTick(async () => {
+		await warmCache(networkKey);
+	});
 	return new Response("OK", { status: 200 });
 });
 

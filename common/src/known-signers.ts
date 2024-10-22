@@ -22,4 +22,9 @@ export const knownSigners: Record<string, string> = {
 	"035e857e32f941f5fff32dc7b1b8d0f3afb92e7bb41123d343ad4663f973dcd59a": "Hiro",
 	// Naka testnet
 	"03fbbbc6f26cb4105faf48008f8d7ef1900943a96fdbf63a95b94d7f2d87a4e9bb": "TM",
+	"026ddf4e4e144eac1aad4a215641feee86386a1bff3776f981430364d0ae89cd36": "Hiro",
+	"02e77164ae21938de2058eb349353f0ae2ac3b76e1a69a03ea94c6fc352164c467": "Hiro",
+	"0343b909be3379621d5e68a883e6c74c2222666f4bf6cc38fade2c9d1c57d92213": "Hiro",
+	"03157271cca37f5ebb4147aad30538fb4b33392ec1cc7161de5f815e29d5146041":
+		"Foundation",
 };

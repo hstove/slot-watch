@@ -1,0 +1,102 @@
+import React, { useMemo } from "react";
+import { TimeAgo } from "../time-ago";
+import {
+  decodeChunkMaybe,
+  getVersionFromString,
+  knownSigners,
+  SignerMessageTypePrefix,
+} from "slot-watch-common";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { RecentSigner } from "slot-watch-common";
+import type { RecentSignerWithPower } from "@/store/signers";
+import { hex } from "@scure/base";
+import { SimpleTooltip } from "../simple-tooltip";
+import { useToast } from "@/hooks/use-toast";
+import { useCopyToClipboard } from "usehooks-ts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { Text } from "../text";
+import { textVariants } from "@/lib/text-variants";
+
+export const RecentSignerRow = ({
+  signer,
+}: {
+  signer: RecentSignerWithPower;
+}) => {
+  const { toast } = useToast();
+  const [_, copy] = useCopyToClipboard();
+  const power = useMemo(() => {
+    // return Math.round(signer.power * 100);
+    const multiplied = signer.power * 10000;
+    const rounded = Math.round(multiplied);
+    return rounded / 100;
+  }, [signer.power]);
+
+  const versionString = useMemo(() => {
+    if (!signer.data) return "";
+    const decoded = decodeChunkMaybe(hex.decode(signer.data));
+    if (!decoded) return "";
+    if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
+      return decoded.metadata;
+    }
+    if (decoded.typeId === SignerMessageTypePrefix.MockSignature) {
+      return decoded.metadata;
+    }
+    if (decoded.typeId === SignerMessageTypePrefix.MockSignatureOld) {
+      return decoded.version;
+    }
+    return "";
+  }, [signer.data]);
+
+  const version = useMemo(() => {
+    return getVersionFromString(versionString ?? "");
+  }, [versionString]);
+
+  return (
+    <TableRow>
+      <TableCell>{signer.slotId}</TableCell>
+      <TableCell>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger
+              className="cursor-pointer"
+              onClick={() => {
+                copy(signer.publicKey);
+                toast({
+                  title: "Copied to clipboard",
+                });
+              }}
+            >
+              <code className={textVariants({ variant: "code" })}>
+                {signer.publicKey.slice(0, 8)}
+              </code>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{signer.publicKey}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </TableCell>
+      <TableCell>{knownSigners[signer.publicKey] ?? ""}</TableCell>
+      <TableCell>{power}%</TableCell>
+      <TableCell>
+        {signer.createdAt ? <TimeAgo date={signer.createdAt} /> : ""}
+      </TableCell>
+      <TableCell>
+        <SimpleTooltip content={versionString}>{version}</SimpleTooltip>
+      </TableCell>
+    </TableRow>
+  );
+};

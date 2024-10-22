@@ -5,3 +5,4 @@ export * from "./known-signers";
 export * from "./networks";
 export * from "./stacks-api";
 export * from "./server-types";
+export * from "./utils";
