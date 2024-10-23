@@ -78,6 +78,7 @@ export const ChunkBlock = ({ chunkData }: { chunkData: string }) => {
       <>
         <BlockHash hash={signatureHash} />
         <span className="ml-2">({decoded.chainLength.toString()})</span>
+        <span className="ml-2">({decoded.txCount} tx)</span>
       </>
     );
   }

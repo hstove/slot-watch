@@ -44,9 +44,6 @@ export const RecentSigners = () => {
   const totalUpdated = useAtomValue(totalUpatedSignersAtom);
   const networkId = useAtomValue(networkIdAtom);
   const isMainnet = networkId === "mainnet";
-  // const totalRecents = useMemo(() => {
-
-  // // }, [recentSigners])
 
   return (
     <div className="flex flex-col gap-2">
