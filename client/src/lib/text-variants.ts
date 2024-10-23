@@ -13,7 +13,7 @@ export const textVariants = cva("", {
 			blockquote: "mt-6 border-l-2 pl-6 italic",
 			th: "border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right",
 			td: "border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right",
-			code: "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
+			code: "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-normal",
 			lead: "text-xl text-muted-foreground",
 			large: "text-lg font-semibold",
 			small: "text-sm font-medium leading-none",

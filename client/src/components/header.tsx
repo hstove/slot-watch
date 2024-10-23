@@ -68,7 +68,7 @@ export const Header = () => {
             className: "font-normal",
           })}
         >
-          Recent signers
+          Signers
         </Link>
         <NetworkPicker />
         <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
