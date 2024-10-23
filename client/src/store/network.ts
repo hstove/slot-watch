@@ -14,6 +14,10 @@ export const NETWORKS: Network[] = [
 		id: "naka-testnet",
 		name: "Nakamoto Testnet",
 	},
+	{
+		id: "mainnet",
+		name: "Mainnet",
+	},
 ];
 
 export const DEFAULT_NETWORK = NETWORKS[0];

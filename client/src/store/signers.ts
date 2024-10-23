@@ -63,7 +63,7 @@ export const totalRecentSignersAtom = atom(async (get) => {
 	for (const signer of recentSigners.signers) {
 		if (!signer.createdAt) continue;
 		const secondAgo = differenceInSeconds(new Date(), signer.createdAt);
-		if (secondAgo > 60) continue;
+		if (secondAgo > 60 * 10) continue;
 		total += signer.weight;
 		numSigners++;
 	}
