@@ -1,6 +1,6 @@
 import "react";
 import { useAtomValue } from "jotai";
-import { recentSignersAtom } from "@/store/signers";
+import { recentSignersAtom, totalRecentSignersAtom } from "@/store/signers";
 import { knownSigners } from "slot-watch-common";
 import {
   Table,
@@ -16,6 +16,8 @@ import { RecentSignerRow } from "./recent-signer-row";
 import { colord, extend } from "colord";
 import { differenceInSeconds, parseISO } from "date-fns";
 import mixPlugin from "colord/plugins/mix";
+import { useMemo } from "react";
+import { textVariants } from "@/lib/text-variants";
 
 extend([mixPlugin]);
 
@@ -33,10 +35,35 @@ function colorForTimeAgo(timeAgo: string | null) {
 
 export const RecentSigners = () => {
   const recentSigners = useAtomValue(recentSignersAtom);
+  const totalRecents = useAtomValue(totalRecentSignersAtom);
+
+  // const totalRecents = useMemo(() => {
+
+  // // }, [recentSigners])
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="w-full rounded-md h-10 border border-border flex overflow-hidden">
+      <div className="flex w-full py-10">
+        <div className="flex-1 flex flex-col gap-0">
+          <h2 className={textVariants({ variant: "h2" })}>
+            {totalRecents.percentStr}%
+          </h2>
+          <p className={textVariants({ variant: "muted" })}>
+            Percent of signer weight recently active
+          </p>
+        </div>
+        <div className="flex-1 flex flex-col gap-0">
+          <h2 className={textVariants({ variant: "h2" })}>
+            {totalRecents.numSigners}
+            <span className="opacity-50 mx-2">/</span>
+            {recentSigners.signers.length}
+          </h2>
+          <p className={textVariants({ variant: "muted" })}>
+            Number of signers recently active
+          </p>
+        </div>
+      </div>
+      <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8">
         {recentSigners.signers.map((s) => {
           const color = colorForTimeAgo(s.createdAt);
           return (

@@ -7,6 +7,7 @@ import {
 	type RecentSignersResponse,
 	type RecentSigner,
 } from "slot-watch-common";
+import { differenceInSeconds } from "date-fns";
 
 // export const stackerSetAtom = atom<StackerSetSigner[]>([]);
 
@@ -52,5 +53,27 @@ export const recentSignersAtom = atom(async (get) => {
 					power: signer.weight / total,
 				}) satisfies RecentSignerWithPower,
 		),
+	};
+});
+
+export const totalRecentSignersAtom = atom(async (get) => {
+	const recentSigners = await get(recentSignersAtom);
+	let total = 0;
+	let numSigners = 0;
+	for (const signer of recentSigners.signers) {
+		if (!signer.createdAt) continue;
+		const secondAgo = differenceInSeconds(new Date(), signer.createdAt);
+		if (secondAgo > 60) continue;
+		total += signer.weight;
+		numSigners++;
+	}
+	const percent = (total / recentSigners.total) * 10000;
+	const percentString = Math.round(percent) / 100;
+	return {
+		percentStr: percentString,
+		percent,
+		weight: total,
+		total: recentSigners.total,
+		numSigners,
 	};
 });
