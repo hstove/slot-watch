@@ -77,3 +77,23 @@ export const totalRecentSignersAtom = atom(async (get) => {
 		numSigners,
 	};
 });
+
+export const totalUpatedSignersAtom = atom(async (get) => {
+	const recentSigners = await get(recentSignersAtom);
+	let total = 0;
+	let numSigners = 0;
+	for (const signer of recentSigners.signers) {
+		if (!signer.createdAt) continue;
+		total += signer.weight;
+		numSigners++;
+	}
+	const percent = (total / recentSigners.total) * 10000;
+	const percentString = Math.round(percent) / 100;
+	return {
+		percentStr: percentString,
+		percent,
+		weight: total,
+		total: recentSigners.total,
+		numSigners,
+	};
+});
