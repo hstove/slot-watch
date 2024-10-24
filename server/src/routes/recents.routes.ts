@@ -10,7 +10,11 @@ import {
 } from "../schema";
 import { getBurnAddress } from "../constants";
 import { getPoxInfo, getStackerSet } from "../stacks-api";
-import type { RecentSignersResponse } from "slot-watch-common";
+import {
+	getVersionFromString,
+	versionFromData,
+	type RecentSignersResponse,
+} from "slot-watch-common";
 import { hex } from "@scure/base";
 
 const getRecentsRoutes = new Hono();
@@ -74,27 +78,38 @@ getRecentsRoutes.get("/signer-recency/:networkKey", async (c) => {
 		contract_id: string;
 	}>(query);
 
+	const totalWeight = signers.reduce((acc, signer) => acc + signer.weight, 0);
+
 	const signersResponse: RecentSignersResponse["signers"] = signers.map(
 		(signer, index) => {
 			const chunk = recentChunks.find(
 				(c) => c.public_key === signer.signing_key,
 			);
+			const percent = (signer.weight / totalWeight) * 10000;
+			const percentStr = Math.round(percent) / 100;
+			const data = chunk ? hex.encode(chunk.data) : null;
+			const version = versionFromData(data);
+			const versionShort = getVersionFromString(version);
+
 			const common = {
 				publicKey: signer.signing_key,
 				slotId: index,
 				weight: signer.weight,
+				weightPercent: percent / 100,
+				weightPercentStr: percentStr.toString(),
+				version,
+				versionShort,
+				data,
 			};
 			if (!chunk) {
 				return {
 					...common,
 					createdAt: null,
-					data: null,
 				};
 			}
 			return {
 				...common,
 				createdAt: new Date(chunk.created_at).toISOString(),
-				data: hex.encode(chunk.data),
 			};
 		},
 	);
@@ -102,6 +117,7 @@ getRecentsRoutes.get("/signer-recency/:networkKey", async (c) => {
 	const response: RecentSignersResponse = {
 		networkKey,
 		rewardCycle: cycle,
+		totalWeight,
 		signers: signersResponse,
 	};
 	return c.json(response);

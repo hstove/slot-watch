@@ -5,6 +5,7 @@ import {
   getVersionFromString,
   knownSigners,
   SignerMessageTypePrefix,
+  versionFromData,
 } from "slot-watch-common";
 import {
   Table,
@@ -45,19 +46,7 @@ export const RecentSignerRow = ({
   }, [signer.power]);
 
   const versionString = useMemo(() => {
-    if (!signer.data) return "";
-    const decoded = decodeChunkMaybe(hex.decode(signer.data));
-    if (!decoded) return "";
-    if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      return decoded.metadata;
-    }
-    if (decoded.typeId === SignerMessageTypePrefix.MockSignature) {
-      return decoded.metadata;
-    }
-    if (decoded.typeId === SignerMessageTypePrefix.MockSignatureOld) {
-      return decoded.version;
-    }
-    return "";
+    return versionFromData(signer.data);
   }, [signer.data]);
 
   const version = useMemo(() => {

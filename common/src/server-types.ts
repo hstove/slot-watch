@@ -4,10 +4,15 @@ export type RecentSigner = {
 	data: string | null;
 	weight: number;
 	slotId: number;
+	versionShort: string;
+	version: string;
+	weightPercent: number;
+	weightPercentStr: string;
 };
 
 export type RecentSignersResponse = {
 	networkKey: string;
 	rewardCycle: number;
+	totalWeight: number;
 	signers: RecentSigner[];
 };

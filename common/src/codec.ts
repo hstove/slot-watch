@@ -7,6 +7,7 @@ import {
 	deserializeTransaction,
 	serializeTransaction,
 } from "@stacks/transactions/dist/transaction";
+import type { Prettify } from "./utils";
 
 export type BitVec = {
 	length: number;
@@ -103,9 +104,9 @@ export function TypeIdCoder<T extends SignerMessageTypeId>(
 	});
 }
 
-export const SignerMetadataCoder: P.CoderType<string | null> = P.wrap({
-	encodeStream: (w: P.Writer, data: string | null) => {
-		if (data !== null) {
+export const SignerMetadataCoder: P.CoderType<string | undefined> = P.wrap({
+	encodeStream: (w: P.Writer, data: string | undefined) => {
+		if (typeof data === "string") {
 			P.string(P.U32BE).encodeStream(w, data);
 		}
 	},
@@ -113,7 +114,7 @@ export const SignerMetadataCoder: P.CoderType<string | null> = P.wrap({
 		try {
 			return P.string(P.U32BE).decodeStream(r);
 		} catch (error) {
-			return null;
+			return undefined;
 		}
 	},
 });
@@ -283,47 +284,49 @@ export const MockSignatureOldCoder = P.struct({
 	chainId: P.U32BE,
 });
 
-export type MockBlock = Omit<
-	P.UnwrapCoder<typeof MockBlockCoder>,
-	"proposal"
-> & {
-	proposal: MockProposalInner;
-};
-export type MockProposal = P.UnwrapCoder<typeof MockProposalCoder>;
-export type MockSignature = Omit<
-	P.UnwrapCoder<typeof MockSignatureCoder>,
-	"proposal"
-> & {
-	proposal: MockProposalInner;
-};
-export type BlockProposal = Omit<
-	P.UnwrapCoder<typeof BlockProposalCoder>,
-	"rest"
-> & {
-	blockHeight: bigint;
-	rewardCycle: bigint;
-	txCount: number;
-};
-export type BlockResponseAccepted = Omit<
-	P.UnwrapCoder<typeof BlockResponseAcceptedCoder>,
-	"accepted"
-> & { accepted: true };
-export type BlockResponseRejected = Omit<
-	P.UnwrapCoder<typeof BlockResponseRejectedCoder>,
-	"accepted"
-> & { reasonCode: number; validationCode: number | undefined; accepted: false };
-export type BlockPushed = Omit<
-	P.UnwrapCoder<typeof BlockPushedCoder>,
-	"rest"
-> & {
-	txCount: number;
-};
+export type MockBlock = Prettify<
+	Omit<P.UnwrapCoder<typeof MockBlockCoder>, "proposal"> & {
+		proposal: MockProposalInner;
+	}
+>;
+export type MockProposal = Prettify<P.UnwrapCoder<typeof MockProposalCoder>>;
+export type MockSignature = Prettify<
+	Omit<P.UnwrapCoder<typeof MockSignatureCoder>, "proposal"> & {
+		proposal: MockProposalInner;
+	}
+>;
+export type BlockProposal = Prettify<
+	Omit<P.UnwrapCoder<typeof BlockProposalCoder>, "rest"> & {
+		blockHeight: bigint;
+		rewardCycle: bigint;
+		txCount: number;
+	}
+>;
+export type BlockResponseAccepted = Prettify<
+	{
+		accepted: true;
+	} & Omit<P.UnwrapCoder<typeof BlockResponseAcceptedCoder>, "accepted">
+>;
+export type BlockResponseRejected = Prettify<
+	Omit<P.UnwrapCoder<typeof BlockResponseRejectedCoder>, "accepted"> & {
+		reasonCode: number;
+		validationCode: number | undefined;
+		accepted: false;
+	}
+>;
+export type BlockPushed = Prettify<
+	Omit<P.UnwrapCoder<typeof BlockPushedCoder>, "rest"> & {
+		txCount: number;
+	}
+>;
 
-export type NakamotoBlock = Omit<BlockPushed, "rest" | "typeId">;
+export type NakamotoBlock = Prettify<Omit<BlockPushed, "rest" | "typeId">>;
 
-export type MockSignatureOld = P.UnwrapCoder<typeof MockSignatureOldCoder> & {
-	isMockSignatureOld: true;
-};
+export type MockSignatureOld = Prettify<
+	P.UnwrapCoder<typeof MockSignatureOldCoder> & {
+		isMockSignatureOld: true;
+	}
+>;
 
 export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
