@@ -69,6 +69,12 @@ export const RecentSigners = () => {
             Number of signers {isMainnet ? "updated" : "recently active"}
           </p>
         </div>
+        <div className="flex-1 flex flex-col gap-0">
+          <h2 className={textVariants({ variant: "h2" })}>
+            {recentSigners.rewardCycle}
+          </h2>
+          <p className={textVariants({ variant: "muted" })}>Reward Cycle</p>
+        </div>
       </div>
       {isMainnet ? null : (
         <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8">
