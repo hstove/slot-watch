@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RecentSigner } from "slot-watch-common";
+import type { RecentSigner } from "slot-watch-common";
 import type { RecentSignerWithPower } from "@/store/signers";
 import { hex } from "@scure/base";
 import { SimpleTooltip } from "../simple-tooltip";
@@ -31,19 +31,9 @@ import {
 import { Text } from "../text";
 import { textVariants } from "@/lib/text-variants";
 
-export const RecentSignerRow = ({
-  signer,
-}: {
-  signer: RecentSignerWithPower;
-}) => {
+export const RecentSignerRow = ({ signer }: { signer: RecentSigner }) => {
   const { toast } = useToast();
   const [_, copy] = useCopyToClipboard();
-  const power = useMemo(() => {
-    // return Math.round(signer.power * 100);
-    const multiplied = signer.power * 10000;
-    const rounded = Math.round(multiplied);
-    return rounded / 100;
-  }, [signer.power]);
 
   const versionString = useMemo(() => {
     return versionFromData(signer.data);
@@ -79,12 +69,14 @@ export const RecentSignerRow = ({
         </TooltipProvider>
       </TableCell>
       <TableCell>{knownSigners[signer.publicKey] ?? ""}</TableCell>
-      <TableCell>{power}%</TableCell>
+      <TableCell>{signer.weightPercentStr}%</TableCell>
       <TableCell>
         {signer.createdAt ? <TimeAgo date={signer.createdAt} /> : ""}
       </TableCell>
       <TableCell>
-        <SimpleTooltip content={versionString}>{version}</SimpleTooltip>
+        <SimpleTooltip content={signer.version}>
+          {signer.versionShort}
+        </SimpleTooltip>
       </TableCell>
     </TableRow>
   );

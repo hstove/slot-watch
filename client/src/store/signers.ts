@@ -35,9 +35,7 @@ export async function getRecentSigners(networkId: string) {
 	return data;
 }
 
-export type RecentSignerWithPower = RecentSigner & {
-	power: number;
-};
+export type RecentSignerWithPower = RecentSigner;
 
 export const recentSignersAtom = atom(async (get) => {
 	const networkId = get(networkIdAtom);
@@ -46,13 +44,13 @@ export const recentSignersAtom = atom(async (get) => {
 	return {
 		...signers,
 		total,
-		signers: signers.signers.map(
-			(signer) =>
-				({
-					...signer,
-					power: signer.weight / total,
-				}) satisfies RecentSignerWithPower,
-		),
+		// signers: signers.signers.map(
+		// 	(signer) =>
+		// 		({
+		// 			...signer,
+		// 			power: signer.weight / total,
+		// 		}) satisfies RecentSignerWithPower,
+		// ),
 	};
 });
 
@@ -67,13 +65,13 @@ export const totalRecentSignersAtom = atom(async (get) => {
 		total += signer.weight;
 		numSigners++;
 	}
-	const percent = (total / recentSigners.total) * 10000;
+	const percent = (total / recentSigners.totalWeight) * 10000;
 	const percentString = Math.round(percent) / 100;
 	return {
 		percentStr: percentString,
 		percent,
 		weight: total,
-		total: recentSigners.total,
+		total: recentSigners.totalWeight,
 		numSigners,
 	};
 });
@@ -87,13 +85,13 @@ export const totalUpatedSignersAtom = atom(async (get) => {
 		total += signer.weight;
 		numSigners++;
 	}
-	const percent = (total / recentSigners.total) * 10000;
+	const percent = (total / recentSigners.totalWeight) * 10000;
 	const percentString = Math.round(percent) / 100;
 	return {
 		percentStr: percentString,
 		percent,
 		weight: total,
-		total: recentSigners.total,
+		total: recentSigners.totalWeight,
 		numSigners,
 	};
 });

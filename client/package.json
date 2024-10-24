@@ -21,6 +21,7 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@react-hook/resize-observer": "^2.0.2",
     "@scure/base": "^1.1.9",
+    "@tanstack/react-table": "^8.20.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",

@@ -23,6 +23,8 @@ import mixPlugin from "colord/plugins/mix";
 import { useMemo } from "react";
 import { textVariants } from "@/lib/text-variants";
 import { networkIdAtom } from "@/store/network";
+import { DataTable } from "../ui/data-table";
+import { columns } from "./columns";
 
 extend([mixPlugin]);
 
@@ -78,7 +80,7 @@ export const RecentSigners = () => {
                 className="h-full border-r border-background last:border-none box-border"
                 style={{
                   // width: `${s.power * 100}%`,
-                  flexGrow: s.power,
+                  flexGrow: s.weight,
                   backgroundColor: color,
                 }}
               />
@@ -86,7 +88,8 @@ export const RecentSigners = () => {
           })}
         </div>
       )}
-      <Table>
+      <DataTable columns={columns} data={recentSigners.signers} />
+      {/* <Table>
         <TableHeader>
           <TableRow>
             <TableHead>#</TableHead>
@@ -102,7 +105,7 @@ export const RecentSigners = () => {
             return <RecentSignerRow key={signer.publicKey} signer={signer} />;
           })}
         </TableBody>
-      </Table>
+      </Table> */}
     </div>
   );
 };
