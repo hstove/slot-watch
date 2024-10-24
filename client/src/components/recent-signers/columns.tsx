@@ -99,7 +99,18 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
     cell: ({ row }) => {
       if (!row.original.createdAt) return null;
-      return <TimeAgo date={row.original.createdAt} className="ml-4" />;
+      const date = new Date(row.original.createdAt);
+      return (
+        <SimpleTooltip
+          content={date.toLocaleString(undefined, {
+            timeStyle: "long",
+            dateStyle: "long",
+          })}
+        >
+          <TimeAgo date={row.original.createdAt} className="ml-4" />
+        </SimpleTooltip>
+      );
+      // return <TimeAgo date={row.original.createdAt} className="ml-4" />;
     },
     header: ({ column }) => {
       return <SortableHeader column={column}>Last Seen</SortableHeader>;
