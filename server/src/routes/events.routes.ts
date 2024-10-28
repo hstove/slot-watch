@@ -49,7 +49,7 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 const eventsRoutes = new Hono<Env>();
 
 eventsRoutes.get("/auth-test", basicAuthMiddleware, (c) => {
-	return c.text("OK", 200);
+	return c.text(`Hello ${c.get("networkKey")}`, 200);
 });
 
 function logSendStatus(status: number) {
