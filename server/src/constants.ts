@@ -11,7 +11,10 @@ export const networkKeyToMainnet: Record<string, boolean> = {
 };
 
 export function isMainnet(networkKey: string) {
-	return networkKeyToMainnet[networkKey] ?? true;
+	if (Object.keys(networkKeyToMainnet).includes(networkKey)) {
+		return networkKeyToMainnet[networkKey];
+	}
+	return networkKey.includes("mainnet");
 }
 
 export function getBurnAddress(networkKey: string) {
