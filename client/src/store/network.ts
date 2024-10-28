@@ -23,8 +23,14 @@ export const NETWORKS: Network[] = [
 export const DEFAULT_NETWORK = NETWORKS[0];
 
 export function getNetwork(networkId: string | null) {
+	if (typeof networkId !== "string") {
+		return DEFAULT_NETWORK;
+	}
 	return (
-		NETWORKS.find((network) => network.id === networkId) || DEFAULT_NETWORK
+		NETWORKS.find((network) => network.id === networkId) || {
+			id: networkId,
+			name: networkId,
+		}
 	);
 }
 
