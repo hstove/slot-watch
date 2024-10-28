@@ -28,7 +28,7 @@ getChunksRoutes.get("/chunks/:networkKey", async (c) => {
 		.from(stackerDbSlots)
 		.where(eq(stackerDbSlots.networkKey, networkKey))
 		.orderBy(desc(stackerDbSlots.createdAt))
-		.limit(100);
+		.limit(1000);
 
 	const chunkEvents: ChunkEventParsed[] = chunks.map((chunk) => {
 		const publicKey = recoverChunkPublicKey(chunk).toHex();
