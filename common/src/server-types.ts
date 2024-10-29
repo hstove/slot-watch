@@ -24,6 +24,8 @@ export type TimelineChunk = {
 	signature: string;
 	data: string;
 	createdAt: string;
+	publicKey: string | null;
+	entity: string | null;
 	others: Record<
 		string,
 		null | {

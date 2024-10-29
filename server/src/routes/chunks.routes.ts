@@ -11,6 +11,7 @@ import { getBurnAddress } from "../constants";
 import {
 	chunkTypeName,
 	decodeChunkMaybe,
+	knownSigners,
 	recoverChunkPublicKey,
 	type ChunkEvent,
 	type ChunkEventParsed,
@@ -71,11 +72,16 @@ getChunksRoutes.get("/chunks/timeline", async (c) => {
 			}),
 		);
 
+		const publicKey = recoverChunkPublicKey(chunk).toHex();
+		const entity = knownSigners[publicKey] ?? null;
+
 		return {
 			...chunk,
 			signature: hex.encode(chunk.signature),
 			data: hex.encode(chunk.data),
 			createdAt: chunk.createdAt.toISOString(),
+			publicKey,
+			entity,
 			others: othersFound,
 		};
 	});
