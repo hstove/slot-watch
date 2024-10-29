@@ -40,7 +40,7 @@ function colorForTimeAgo(timeAgo: string | null) {
   return okColor.mix(badColor, ratio).toHex();
 }
 
-const MAINNET_LAUNCHED = false;
+const MAINNET_LAUNCHED = true;
 
 export const RecentSigners = () => {
   const recentSigners = useAtomValue(recentSignersAtom);
