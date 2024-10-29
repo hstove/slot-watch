@@ -20,7 +20,7 @@ export const NETWORKS: Network[] = [
 	},
 ];
 
-export const DEFAULT_NETWORK = NETWORKS[0];
+export const DEFAULT_NETWORK = NETWORKS[2];
 
 export function getNetwork(networkId: string | null) {
 	if (typeof networkId !== "string") {
