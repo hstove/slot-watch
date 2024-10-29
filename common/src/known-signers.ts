@@ -64,4 +64,8 @@ export const knownSigners: Record<string, string> = {
 		"Chorus One",
 	"0284df4505c6318a0017a7848aa0a95bf8cd3db697a89d2ec1978a027bece770ef":
 		"Degen Labs",
+	"0302328212d5e430a8a880f8e2365a8f976ee50490ff030c106866c0b789eae91a":
+		"Xverse",
+	"03b3b78738abbdc573cdcefd8200b1bca999e2f2fd8ecdf70c64ced1e4105437b7":
+		"Xverse",
 };
