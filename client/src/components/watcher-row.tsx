@@ -11,8 +11,14 @@ import {
 import { ChunkRow } from "./chunk-row";
 import { TableCell, TableRow } from "./ui/table";
 import { useTimestamp } from "@/hooks/use-timestamp";
+import { type PrimitiveAtom, useAtomValue } from "jotai";
 
-export const WatcherRow = ({ payload }: { payload: WSPayload }) => {
+export const WatcherRow = ({
+  payloadAtom,
+}: {
+  payloadAtom: PrimitiveAtom<WSPayload>;
+}) => {
+  const payload = useAtomValue(payloadAtom);
   const { timestamp } = useTimestamp(payload.receivedAt);
   if (payload.type === CHUNKS_EVENT) {
     return <ChunkRow chunk={payload.payload} />;

@@ -29,15 +29,49 @@ import { Button } from "./ui/button";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { networkIdAtom } from "@/store/network";
-import { currentNetworkChunksStore } from "@/store/chunks-store";
+import {
+  currentNetworkChunksStore,
+  splitNetworkChunksStore,
+} from "@/store/chunks-store";
 
 type BurnBlockEvent = {
   burn_block_height: number;
 };
 
+const WatcherTable = () => {
+  const currentNetworkKey = useAtomValue(networkIdAtom);
+  const chunks = useAtomValue(splitNetworkChunksStore(currentNetworkKey));
+
+  return (
+    <>
+      {chunks.map((chunk) => (
+        // <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
+        <WatcherRow key={chunk.toString()} payloadAtom={chunk} />
+        // <WatcherRow payloadAtom={chunk} />
+      ))}
+    </>
+  );
+};
+
+export const WatcherWaiting = () => {
+  const currentNetworkKey = useAtomValue(networkIdAtom);
+  const chunks = useAtomValue(splitNetworkChunksStore(currentNetworkKey));
+
+  if (chunks.length === 0) {
+    return (
+      <div className="w-full flex p-10 items-center justify-center">
+        <div className="max-w-[500px]">
+          <span className="text-lg">Waiting for new data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 export const Watcher = () => {
   useChunksWatcher();
-  const chunks = useAtomValue(currentNetworkChunksStore);
   const [keepScrolled, setKeepScrolled] = useState(true);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);
@@ -93,20 +127,12 @@ export const Watcher = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {chunks.map((chunk) => (
-              <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
-            ))}
+            <WatcherTable />
             <TableRow ref={endOfTableRef} />
             <TableRow ref={visibleRef} />
           </TableBody>
         </Table>
-        {chunks.length === 0 && (
-          <div className="w-full flex p-10 items-center justify-center">
-            <div className="max-w-[500px]">
-              <span className="text-lg">Waiting for new data...</span>
-            </div>
-          </div>
-        )}
+        <WatcherWaiting />
       </div>
       <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
         <Button
