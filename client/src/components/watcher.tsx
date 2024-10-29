@@ -1,61 +1,35 @@
-import {
-  getPayloadId,
-  type WSPayload,
-  type ChunkEvent,
-} from "slot-watch-common";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChunkRow } from "./chunk-row";
-import { useChunksWatcher, useWebSocket } from "@/hooks/use-websocket";
-import { WatcherRow } from "./watcher-row";
+import { useChunksWatcher } from "@/hooks/use-websocket";
+import { WatcherRow } from "./stream/watcher-row";
 import { useInView } from "react-intersection-observer";
 import useResizeObserver from "@react-hook/resize-observer";
 import { Button } from "./ui/button";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { networkIdAtom } from "@/store/network";
-import {
-  currentNetworkChunksStore,
-  splitNetworkChunksStore,
-} from "@/store/chunks-store";
-
-type BurnBlockEvent = {
-  burn_block_height: number;
-};
+import { allPayloadsAtomsAtom } from "@/store/chunks-store";
 
 const WatcherTable = () => {
-  const currentNetworkKey = useAtomValue(networkIdAtom);
-  const chunks = useAtomValue(splitNetworkChunksStore(currentNetworkKey));
+  const chunks = useAtomValue(allPayloadsAtomsAtom);
 
   return (
     <>
       {chunks.map((chunk) => (
-        // <WatcherRow key={getPayloadId(chunk)} payload={chunk} />
         <WatcherRow key={chunk.toString()} payloadAtom={chunk} />
-        // <WatcherRow payloadAtom={chunk} />
       ))}
     </>
   );
 };
 
 export const WatcherWaiting = () => {
-  const currentNetworkKey = useAtomValue(networkIdAtom);
-  const chunks = useAtomValue(splitNetworkChunksStore(currentNetworkKey));
+  const chunks = useAtomValue(allPayloadsAtomsAtom);
 
   if (chunks.length === 0) {
     return (
@@ -71,7 +45,6 @@ export const WatcherWaiting = () => {
 };
 
 export const Watcher = () => {
-  useChunksWatcher();
   const [keepScrolled, setKeepScrolled] = useState(true);
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const containerRef = useRef<HTMLTableElement>(null!);

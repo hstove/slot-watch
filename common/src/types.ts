@@ -3,6 +3,7 @@ import type {
 	CoreNodeBlockMessage,
 	CoreNodeBurnBlockMessage,
 } from "./event-stream-types";
+import type { Prettify } from "./utils";
 export type { ModifiedSlot, StackerDBPayload } from "./event-stream-types";
 
 export const CHUNKS_EVENT = "chunks";
@@ -44,27 +45,23 @@ export const BlockResponseValidationCodes = [
 	"No Such Tenure",
 ] as const;
 
-export type WSBase<Type extends string> = {
+export type WSBase<Type extends string, T> = {
 	networkKey: string;
 	type: Type;
 	receivedAt: string;
+	payload: Prettify<T>;
 };
 
-export type WSChunkEvent = WSBase<typeof CHUNKS_EVENT> & {
-	payload: ChunkEvent;
-};
+export type WSChunkEvent = WSBase<typeof CHUNKS_EVENT, ChunkEvent>;
 
-export type WSNewBlock = WSBase<typeof NEW_BLOCK_EVENT> & {
-	payload: CoreNodeBlockMessage;
-};
+export type WSNewBlock = WSBase<typeof NEW_BLOCK_EVENT, CoreNodeBlockMessage>;
 
-export type WSBurnBlock = WSBase<typeof BURN_BLOCKS_EVENT> & {
-	payload: CoreNodeBurnBlockMessage;
-};
+export type WSBurnBlock = WSBase<
+	typeof BURN_BLOCKS_EVENT,
+	CoreNodeBurnBlockMessage
+>;
 
-export type WSManyChunks = WSBase<typeof MANY_CHUNKS_EVENT> & {
-	payload: ChunkEvent[];
-};
+export type WSManyChunks = WSBase<typeof MANY_CHUNKS_EVENT, ChunkEvent[]>;
 
 export type WSPayload = WSChunkEvent | WSNewBlock | WSBurnBlock | WSManyChunks;
 

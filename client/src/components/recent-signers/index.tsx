@@ -57,8 +57,8 @@ export const RecentSigners = () => {
             {showCustom ? totalUpdated.percentStr : totalRecents.percentStr}%
           </h2>
           <p className={textVariants({ variant: "muted" })}>
-            Percent of signer weight
-            {showCustom ? " updated" : " recently active"}
+            Percent of signer weight{" "}
+            {showCustom ? "updated" : "active in last 10 minutes"}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">
@@ -68,7 +68,8 @@ export const RecentSigners = () => {
             {recentSigners.signers.length}
           </h2>
           <p className={textVariants({ variant: "muted" })}>
-            Number of signers {showCustom ? "updated" : "recently active"}
+            Number of signers{" "}
+            {showCustom ? "updated" : "active in last 10 minutes"}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">

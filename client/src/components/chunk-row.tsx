@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ChunkEvent } from "slot-watch-common";
+import { CHUNKS_EVENT, type ChunkEvent } from "slot-watch-common";
 import { useMemo, useState } from "react";
 import { hex } from "@scure/base";
 import { ChunkLabel } from "./chunk-label";
@@ -15,13 +15,19 @@ import { ChunkBlock } from "./chunk-block";
 import { ChunkData } from "./chunk-data";
 import { useTimestamp } from "@/hooks/use-timestamp";
 import { ChunkSigner } from "./chunk-signer";
+import type { PayloadAtom } from "@/store/chunks-store";
+import { useAtomValue } from "jotai";
+import { Timestamp } from "./timestamp";
 
-export const ChunkRow = ({ chunk }: { chunk: ChunkEvent }) => {
-  const [addr, name] = chunk.contractId.split(".");
-  const { timestamp } = useTimestamp(chunk.createdAt);
+export const ChunkRow = ({ chunkAtom }: { chunkAtom: PayloadAtom }) => {
+  const payload = useAtomValue(chunkAtom);
+  if (payload.type !== CHUNKS_EVENT) return null;
+  const chunk = payload.payload;
   return (
     <TableRow>
-      <TableCell className="font-mono text-xs">{timestamp}</TableCell>
+      <TableCell className="font-mono text-xs">
+        <Timestamp timestamp={chunk.createdAt} />
+      </TableCell>
       <TableCell className="font-mono text-xs">{chunk.slotId}</TableCell>
       <TableCell className="font-mono text-xs">{chunk.version}</TableCell>
       {/* <TableCell>{name}</TableCell> */}

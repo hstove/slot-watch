@@ -8,12 +8,20 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { useSearchParams, Outlet } from "react-router-dom";
 import { useHydrateAtoms } from "jotai/utils";
+import { useAtomsDevtools } from "jotai-devtools";
 import { getNetwork, networkAtom } from "@/store/network";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import { useChunksWatcher } from "./hooks/use-websocket";
+
+function ChunkWatcher() {
+  useChunksWatcher();
+  return null;
+}
 
 function App() {
   const [searchParams] = useSearchParams();
   const networkId = searchParams.get("network");
+  useAtomsDevtools("slotwatch");
 
   useHydrateAtoms([[networkAtom, networkId]]);
   return (
@@ -34,6 +42,7 @@ function App() {
           </Suspense>
         </main>
         <Toaster />
+        <ChunkWatcher />
         {/* footer */}
         {/* <footer className="flex items-center justify-center">
 				<h1 className="text-2xl font-bold">Hello World</h1>

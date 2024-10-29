@@ -7,7 +7,10 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react";
 import _useWebSocket, { ReadyState } from "react-use-websocket";
 import { useSetAtom } from "jotai";
-import { allChunksStore } from "@/store/chunks-store";
+import { allChunksStore, allPayloadsSetterAtom } from "@/store/chunks-store";
+import { useAtomCallback } from "jotai/utils";
+import React from "react";
+import { networkIdAtom } from "@/store/network";
 
 const wsUrl = "wss://slot-watch.fly.dev/watch";
 
@@ -17,35 +20,27 @@ type UseWebSocketProps = {
 
 export const useChunksWatcher = () => {
 	const { lastMessage, readyState } = useWebSocket();
-	// const addChunk = useChunksStore((state) => state.addChunk);
-	const addChunk = useSetAtom(allChunksStore);
+
+	const handleMessage = useAtomCallback(
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		React.useCallback((get, set, message: MessageEvent<any> | null) => {
+			if (message === null) return;
+			const networkId = get(networkIdAtom);
+			const payload = JSON.parse(message.data) as WSPayload;
+			if (payload.networkKey !== networkId) return;
+			set(allPayloadsSetterAtom, payload);
+		}, []),
+	);
 
 	useEffect(() => {
-		if (lastMessage) {
-			const payload = JSON.parse(lastMessage.data) as WSPayload;
-			// if ("networkKey" in payload && payload.networkKey !== networkKey) {
-			// 	return;
-			// }
-			addChunk(payload);
-		}
-	}, [lastMessage, addChunk]);
+		handleMessage(lastMessage);
+	}, [lastMessage, handleMessage]);
 };
 
 export const useWebSocket = () => {
 	// const addChunk = useChunksStore((state) => state.addChunk);
 
 	const { lastMessage, readyState } = _useWebSocket(wsUrl);
-
-	// useEffect(() => {
-	// 	if (lastMessage) {
-	// 		const payload = JSON.parse(lastMessage.data) as WSPayload;
-	// 		console.log(getPayloadId(payload), payload.payload);
-	// 		if ("networkKey" in payload && payload.networkKey !== networkKey) {
-	// 			return;
-	// 		}
-	// 		addChunk(payload);
-	// 	}
-	// }, [lastMessage, networkKey, addChunk]);
 
 	return {
 		readyState,

@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { SimpleTooltip } from "./simple-tooltip";
 import { NetworkPicker } from "./network-picker";
-import { Link } from "react-router-dom";
+import { Link } from "@/components/link";
 import { textVariants } from "@/lib/text-variants";
 import { useAtomValue } from "jotai";
 import { networkIdAtom } from "@/store/network";
@@ -47,10 +47,7 @@ export const Header = () => {
       </div>
       <div className="flex gap-5 items-center">
         <Link
-          to={{
-            pathname: "/",
-            search: `network=${network}`,
-          }}
+          to={"/"}
           className={textVariants({
             variant: "small",
             className: "font-normal",
@@ -59,10 +56,7 @@ export const Header = () => {
           Stream
         </Link>
         <Link
-          to={{
-            pathname: "/recent-signers",
-            search: `network=${network}`,
-          }}
+          to={"/recent-signers"}
           className={textVariants({
             variant: "small",
             className: "font-normal",
