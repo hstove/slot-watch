@@ -40,33 +40,35 @@ function colorForTimeAgo(timeAgo: string | null) {
   return okColor.mix(badColor, ratio).toHex();
 }
 
+const MAINNET_LAUNCHED = false;
+
 export const RecentSigners = () => {
   const recentSigners = useAtomValue(recentSignersAtom);
   const totalRecents = useAtomValue(totalRecentSignersAtom);
   const totalUpdated = useAtomValue(totalUpatedSignersAtom);
   const networkId = useAtomValue(networkIdAtom);
-  const isMainnet = networkId === "mainnet";
+  const showCustom = !MAINNET_LAUNCHED && networkId === "mainnet";
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex w-full py-10">
         <div className="flex-1 flex flex-col gap-0">
           <h2 className={textVariants({ variant: "h2" })}>
-            {isMainnet ? totalUpdated.percentStr : totalRecents.percentStr}%
+            {showCustom ? totalUpdated.percentStr : totalRecents.percentStr}%
           </h2>
           <p className={textVariants({ variant: "muted" })}>
             Percent of signer weight
-            {isMainnet ? " updated" : " recently active"}
+            {showCustom ? " updated" : " recently active"}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">
           <h2 className={textVariants({ variant: "h2" })}>
-            {isMainnet ? totalUpdated.numSigners : totalRecents.numSigners}
+            {showCustom ? totalUpdated.numSigners : totalRecents.numSigners}
             <span className="opacity-50 mx-2">/</span>
             {recentSigners.signers.length}
           </h2>
           <p className={textVariants({ variant: "muted" })}>
-            Number of signers {isMainnet ? "updated" : "recently active"}
+            Number of signers {showCustom ? "updated" : "recently active"}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">
@@ -76,7 +78,7 @@ export const RecentSigners = () => {
           <p className={textVariants({ variant: "muted" })}>Reward Cycle</p>
         </div>
       </div>
-      {isMainnet ? null : (
+      {showCustom ? null : (
         <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8">
           {recentSigners.signers.map((s) => {
             const color = colorForTimeAgo(s.createdAt);
