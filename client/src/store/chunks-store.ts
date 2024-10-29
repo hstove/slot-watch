@@ -11,7 +11,9 @@ export const allChunksStore = atom<null, [WSPayload], void>(
 	null,
 	(_get, set, payload) => {
 		const networkId = payload.networkKey;
-		set(chunksFamilyStore(networkId), (chunks) => [...chunks, payload]);
+		set(chunksFamilyStore(networkId), (chunks) => {
+			return [...chunks.slice(0, 1000), payload];
+		});
 	},
 );
 
