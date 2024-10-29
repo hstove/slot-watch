@@ -13,6 +13,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { colord, extend } from "colord";
+import harmoniesPlugin from "colord/plugins/harmonies";
+
+extend([harmoniesPlugin]);
 
 export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
   const { toast } = useToast();
@@ -27,6 +31,11 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
     return pubKey.toHex();
   }, [chunk]);
   const hexCode = pubKey.slice(0, 6);
+  const background = useMemo(() => {
+    const text = colord(`#${hexCode}`);
+    // return text.invert().alpha(0.5).toHex();
+    return text.harmonies("rectangle")[2].lighten(0.7).toHex();
+  }, [hexCode]);
   const [_, copy] = useCopyToClipboard();
   const name = knownSigners[pubKey];
   return (
@@ -40,9 +49,14 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
             });
           }}
         >
-          <span style={{ color: `#${hexCode}` }}>
-            {name ?? pubKey.slice(0, 8)}
-          </span>
+          <div
+            className="px-1 rounded-md"
+            style={{ backgroundColor: background }}
+          >
+            <span className="" style={{ color: `#${hexCode}` }}>
+              {name ?? pubKey.slice(0, 8)}
+            </span>
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           <p>{pubKey}</p>
