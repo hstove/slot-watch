@@ -43,9 +43,9 @@ getRecentsRoutes.get("/signer-recency/:networkKey/:cycleId", async (c) => {
 
 getRecentsRoutes.get("/signer-recency/:networkKey", async (c) => {
 	const networkKey = c.req.param("networkKey");
-	const poxInfo = await getPoxInfo(networkKey);
+	const poxInfo = await getPoxInfo.get(networkKey);
 	const cycle = poxInfo.reward_cycle_id;
-	const signers = await getStackerSet(networkKey, cycle);
+	const signers = await getStackerSet.get(networkKey, cycle);
 	const signerKeys = signers.map((s) => s.signing_key);
 
 	const query = sql`

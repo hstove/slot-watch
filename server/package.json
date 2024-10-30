@@ -21,6 +21,7 @@
     "@types/pg": "^8.11.10",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.24.2",
+    "ts-toolbelt": "^9.6.0",
     "tsx": "^4.19.1"
   },
   "peerDependencies": {
@@ -44,6 +45,6 @@
     "postgres": "^3.4.4",
     "react-use-websocket": "^4.8.1",
     "slot-watch-common": "workspace:*",
-    "vitest": "^2.1.1"
+    "vitest": "^2.1.2"
   }
 }
