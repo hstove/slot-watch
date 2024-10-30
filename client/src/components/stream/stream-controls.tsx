@@ -27,7 +27,7 @@ export const StreamControls = () => {
     }, [])
   );
   return (
-    <div className="w-full flex gap-6 items-center">
+    <div className="w-full flex gap-6 items-center sticky top-10 z-50 bg-background py-3">
       <div className="flex gap-2 items-center">
         <Switch checked={isStreamLive} onCheckedChange={toggleStreamLive} />
         <Text
