@@ -55,7 +55,7 @@ export const clearAllPayloadsAtom = atom(null, (get, set) => {
 
 export const allPayloadsSetterAtom = atom<null, [WSPayload], void>(
 	null,
-	(_get, set, payload) => {
+	(get, set, payload) => {
 		let events: Payload[];
 		if (payload.type === CHUNKS_EVENT) {
 			events = [payload];
@@ -74,7 +74,10 @@ export const allPayloadsSetterAtom = atom<null, [WSPayload], void>(
 			});
 			events = [...chunkEvents];
 		}
-		set(allPayloadsAtom, (payloads) => [...payloads, ...events]);
+		const isLive = get(isStreamLiveAtom);
+		if (isLive) {
+			set(allPayloadsAtom, (payloads) => [...payloads, ...events]);
+		}
 		// const networkId = payload.networkKey;
 		// set(allPayloadsFamilyStore(networkId), (payloads) => [
 		// 	...payloads,
