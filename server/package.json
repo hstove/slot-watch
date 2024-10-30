@@ -2,9 +2,14 @@
   "name": "slot-watch-api",
   "module": "src/run.ts",
   "type": "module",
+  "exports": {
+    ".": "./dist/app.js"
+  },
+  "types": "./dist/app.d.ts",
   "scripts": {
     "dev": "bun src/app.ts",
     "dev:watch": "bun --watch src/app.ts",
+    "build": "tsup",
     "start": "bun src/app.ts",
     "typecheck": "tsc --noEmit",
     "generate-migrations": "drizzle-kit generate",
@@ -23,6 +28,7 @@
   },
   "dependencies": {
     "@clarigen/core": "^2.1.2",
+    "@hono/zod-validator": "^0.4.1",
     "@noble/hashes": "^1.5.0",
     "@scure/base": "^1.1.9",
     "@stacks/stacks-blockchain-api-types": "^7.14.1",
@@ -30,7 +36,7 @@
     "@stricjs/app": "^1.0.0-rc.34",
     "@stricjs/utils": "^2.0.7",
     "drizzle-orm": "^0.33.0",
-    "hono": "^4.6.3",
+    "hono": "^4.6.8",
     "memory-cache": "^0.2.0",
     "micro-packed": "^0.6.3",
     "node-cache": "^5.1.2",

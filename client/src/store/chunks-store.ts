@@ -3,6 +3,7 @@ import { atomFamily, splitAtom } from "jotai/utils";
 import {
 	BURN_BLOCKS_EVENT,
 	type ChunkEvent,
+	type ChunkEventParsed,
 	CHUNKS_EVENT,
 	type CoreNodeBlockMessage,
 	type CoreNodeBurnBlockMessage,
@@ -15,6 +16,7 @@ import {
 	type WSPayload,
 } from "slot-watch-common";
 import { networkIdAtom } from "./network";
+import { format } from "date-fns";
 
 export const chunksFamilyStore = atomFamily((_networkId: string) =>
 	atom<WSPayload[]>([]),
@@ -95,3 +97,67 @@ export const splitNetworkChunksStore = atomFamily((networkId: string) =>
 // 		getPayloadId(payload),
 // 	),
 // );
+
+export const isStreamLiveAtom = atom(true);
+
+export const streamStartAtom = atom<number | null>((get) => {
+	const streamStartInput = get(streamStartInputAtom);
+	const date = Date.parse(streamStartInput);
+	if (Number.isNaN(date)) {
+		return null;
+	}
+	return date;
+});
+export const streamEndAtom = atom<number | null>((get) => {
+	const streamEndInput = get(streamEndInputAtom);
+	const date = Date.parse(streamEndInput);
+	if (Number.isNaN(date)) {
+		return null;
+	}
+	return date;
+});
+
+const now = new Date().getTime();
+
+export const streamStartInputAtom = atom(
+	new Date(now - 1000 * 60 * 5).toLocaleString(),
+);
+export const streamEndInputAtom = atom(new Date().toLocaleString());
+
+export const searchInputsValidAtom = atom((get) => {
+	const start = get(streamStartAtom);
+	const end = get(streamEndAtom);
+	return start && end;
+});
+
+export async function getChunksByTime(
+	networkId: string,
+	start: number,
+	end: number,
+) {
+	const res = await fetch(
+		`https://slot-watch.fly.dev/chunks/${networkId}/${start}/${end}`,
+	);
+	const data = (await res.json()) as { chunks: ChunkEventParsed[] };
+	return data.chunks;
+}
+
+export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
+	const networkId = get(networkIdAtom);
+	const start = get(streamStartAtom);
+	const end = get(streamEndAtom);
+	console.log("Searching chunks", { start, end });
+	if (!start || !end) {
+		return;
+	}
+	const chunksResponse = await getChunksByTime(networkId, start, end);
+	const chunks: WSChunkEvent[] = chunksResponse.map((chunk) => {
+		return {
+			type: CHUNKS_EVENT,
+			payload: chunk,
+			networkKey: networkId,
+			receivedAt: chunk.createdAt,
+		};
+	});
+	set(allPayloadsAtom, chunks);
+});

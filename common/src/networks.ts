@@ -1,4 +1,5 @@
-import { MAINNET_BURN_ADDRESS, TESTNET_BURN_ADDRESS } from "@clarigen/core";
+const TESTNET_BURN_ADDRESS = "ST000000000000000000002AMW42H";
+const MAINNET_BURN_ADDRESS = "SP000000000000000000002Q6VF78";
 
 export const networkKeyToMainnet: Record<string, boolean> = {
 	testnet: false,

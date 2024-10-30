@@ -9,13 +9,16 @@
     "build": "turbo build",
     "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run dev:watch",
+    "dev:common": "cd common && bun run dev",
     "migrate": "cd server && bun run migrate.ts",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
     "@flydotio/dockerfile": "latest",
     "shadcn": "^2.1.0",
+    "tsup": "^8.3.5",
     "tsx": "^4.19.1"
   },
   "peerDependencies": {},

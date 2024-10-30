@@ -1,93 +1,111 @@
 import { Hono } from "hono";
 import { db } from "../db";
-import { desc, eq, inArray } from "drizzle-orm";
-import {
-	blockPushes,
-	blockProposals,
-	blockResponses,
-	stackerDbSlots,
-} from "../schema";
-import { getBurnAddress } from "../constants";
-import {
-	chunkTypeName,
-	decodeChunkMaybe,
-	knownSigners,
-	recoverChunkPublicKey,
-	type ChunkEvent,
-	type ChunkEventParsed,
-	type TimelineChunk,
-	type TimelineResponse,
+import { desc, eq, inArray, and, gte, lte, asc } from "drizzle-orm";
+import { stackerDbSlots } from "../schema";
+import type {
+	ChunkEventParsed,
+	TimelineChunk,
+	TimelineResponse,
 } from "slot-watch-common";
-import { hex } from "@scure/base";
-import { serialize } from "superjson";
 import * as P from "micro-packed";
+import { serializeDbChunk } from "../utils";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 const getChunksRoutes = new Hono();
 
-getChunksRoutes.get("/chunks/timeline", async (c) => {
-	const networkKeys = (c.req.query("networkKeys") ?? "").split(",");
+getChunksRoutes.get(
+	"/chunks/timeline",
+	zValidator("query", z.object({})),
+	async (c) => {
+		const networkKeys = (c.req.query("networkKeys") ?? "").split(",");
 
-	const [first, ...otherNetworks] = networkKeys;
-	if (!first) {
-		throw new Error("No network key provided");
+		const [first, ...otherNetworks] = networkKeys;
+		if (!first) {
+			throw new Error("No network key provided");
+		}
+
+		const firstChunks = await db
+			.select()
+			.from(stackerDbSlots)
+			.where(eq(stackerDbSlots.networkKey, first))
+			.orderBy(desc(stackerDbSlots.createdAt))
+			.limit(200);
+
+		const otherChunks = await db
+			.select()
+			.from(stackerDbSlots)
+			.where(inArray(stackerDbSlots.networkKey, otherNetworks))
+			.orderBy(desc(stackerDbSlots.createdAt))
+			.limit(400);
+
+		const groupedChunks: TimelineChunk[] = firstChunks.map((chunk) => {
+			const othersFound = Object.fromEntries(
+				otherNetworks.map((networkKey) => {
+					const found = otherChunks.find((otherChunk) => {
+						return (
+							P.utils.equalBytes(chunk.data, otherChunk.data) &&
+							otherChunk.networkKey === networkKey &&
+							otherChunk.version === chunk.version &&
+							otherChunk.slotId === chunk.slotId
+						);
+					});
+
+					if (typeof found === "undefined") {
+						return [networkKey, null];
+					}
+
+					const diffSeconds =
+						(found.createdAt.getTime() - chunk.createdAt.getTime()) / 1000;
+
+					return [
+						networkKey,
+						{ createdAt: found.createdAt.toISOString(), diffSeconds },
+					];
+				}),
+			);
+
+			const chunkEvent = serializeDbChunk(chunk);
+
+			return {
+				...chunkEvent,
+				others: othersFound,
+			};
+		});
+
+		return c.json<TimelineResponse>({
+			chunks: groupedChunks,
+		});
+	},
+);
+
+getChunksRoutes.get("/chunks/:networkKey/:from/:to", async (c) => {
+	const networkKey = c.req.param("networkKey");
+	function getDate(key: string) {
+		const param = c.req.param(key);
+		if (!param) {
+			throw new Error(`${key} is required`);
+		}
+		return new Date(Number.parseInt(param, 10));
 	}
+	const from = getDate("from");
+	const to = getDate("to");
 
-	const firstChunks = await db
+	const chunks = await db
 		.select()
 		.from(stackerDbSlots)
-		.where(eq(stackerDbSlots.networkKey, first))
-		.orderBy(desc(stackerDbSlots.createdAt))
+		.where(
+			and(
+				eq(stackerDbSlots.networkKey, networkKey),
+				gte(stackerDbSlots.createdAt, from),
+				lte(stackerDbSlots.createdAt, to),
+			),
+		)
+		.orderBy(asc(stackerDbSlots.createdAt))
 		.limit(200);
 
-	const otherChunks = await db
-		.select()
-		.from(stackerDbSlots)
-		.where(inArray(stackerDbSlots.networkKey, otherNetworks))
-		.orderBy(desc(stackerDbSlots.createdAt))
-		.limit(400);
-
-	const groupedChunks: TimelineChunk[] = firstChunks.map((chunk) => {
-		const othersFound = Object.fromEntries(
-			otherNetworks.map((networkKey) => {
-				const found = otherChunks.find((otherChunk) => {
-					return (
-						P.utils.equalBytes(chunk.data, otherChunk.data) &&
-						otherChunk.networkKey === networkKey &&
-						otherChunk.version === chunk.version &&
-						otherChunk.slotId === chunk.slotId
-					);
-				});
-
-				if (typeof found === "undefined") {
-					return [networkKey, null];
-				}
-
-				const diffSeconds =
-					(found.createdAt.getTime() - chunk.createdAt.getTime()) / 1000;
-
-				return [
-					networkKey,
-					{ createdAt: found.createdAt.toISOString(), diffSeconds },
-				];
-			}),
-		);
-
-		const publicKey = recoverChunkPublicKey(chunk).toHex();
-		const entity = knownSigners[publicKey] ?? null;
-
-		return {
-			...chunk,
-			signature: hex.encode(chunk.signature),
-			data: hex.encode(chunk.data),
-			createdAt: chunk.createdAt.toISOString(),
-			publicKey,
-			entity,
-			others: othersFound,
-		};
-	});
-
-	return c.json<TimelineResponse>({
-		chunks: groupedChunks,
+	return c.json<{ chunks: ChunkEventParsed[] }>({
+		chunks: chunks.map(serializeDbChunk),
 	});
 });
 
@@ -101,21 +119,11 @@ getChunksRoutes.get("/chunks/:networkKey", async (c) => {
 		.orderBy(desc(stackerDbSlots.createdAt))
 		.limit(1000);
 
-	const chunkEvents: ChunkEventParsed[] = chunks.map((chunk) => {
-		const publicKey = recoverChunkPublicKey(chunk).toHex();
-		return {
-			slotId: chunk.slotId,
-			version: chunk.version,
-			contractId: chunk.contractId,
-			signature: hex.encode(chunk.signature),
-			data: hex.encode(chunk.data),
-			createdAt: chunk.createdAt.toISOString(),
-			publicKey: publicKey,
-			type: chunkTypeName(chunk.data),
-		};
-	});
+	const chunkEvents: ChunkEventParsed[] = chunks.map(serializeDbChunk);
 
 	return c.json(chunkEvents);
 });
+
+export type GetChunksRoutes = typeof getChunksRoutes;
 
 export { getChunksRoutes };

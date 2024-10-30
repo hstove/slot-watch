@@ -7,14 +7,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useChunksWatcher } from "@/hooks/use-websocket";
-import { WatcherRow } from "./stream/watcher-row";
+import { WatcherRow } from "./watcher-row";
 import { useInView } from "react-intersection-observer";
 import useResizeObserver from "@react-hook/resize-observer";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai";
 import { networkIdAtom } from "@/store/network";
 import { allPayloadsAtomsAtom } from "@/store/chunks-store";
+import { StreamControls } from "./stream-controls";
 
 const WatcherTable = () => {
   const chunks = useAtomValue(allPayloadsAtomsAtom);
@@ -86,7 +87,8 @@ export const Watcher = () => {
 
   return (
     <>
-      <div className="flex-1 flex flex-col w-full pb-10">
+      <div className="flex-1 flex flex-col w-full pb-10 gap-4">
+        <StreamControls />
         <Table ref={containerRef}>
           <TableHeader>
             <TableRow>

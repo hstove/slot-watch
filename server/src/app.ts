@@ -14,10 +14,11 @@ import { getBlockRoute } from "./routes/get-block.routes";
 import { getChunksRoutes } from "./routes/chunks.routes";
 import { prettyJSON } from "hono/pretty-json";
 import { getRecentsRoutes } from "./routes/recents.routes";
+export type { GetChunksRoutes } from "./routes/chunks.routes";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
-const app = new Hono();
+export const app = new Hono();
 
 app.use(logger());
 app.use(prettyJSON());
@@ -58,13 +59,24 @@ app.notFound((c) => {
 	return c.text("Not Found", 200);
 });
 
-console.log("Listening on http://localhost:1080");
+export type SlotWatchServer = typeof app;
 
-export default {
+// export default {
+// 	port: 1080,
+// 	fetch: app.fetch,
+// 	websocket: {
+// 		...websocket,
+// 		backpressureLimit: 1024 * 1024 * 5, // 5MB
+// 	},
+// };
+
+Bun.serve({
 	port: 1080,
 	fetch: app.fetch,
 	websocket: {
 		...websocket,
 		backpressureLimit: 1024 * 1024 * 5, // 5MB
 	},
-};
+});
+
+console.log("Listening on http://localhost:1080");

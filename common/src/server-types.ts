@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type RecentSigner = {
 	publicKey: string;
 	createdAt: string | null;
@@ -38,3 +40,7 @@ export type TimelineChunk = {
 export type TimelineResponse = {
 	chunks: TimelineChunk[];
 };
+
+export const paginationSchema = z.object({
+	offset: z.coerce.number().optional(),
+});

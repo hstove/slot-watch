@@ -13,6 +13,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "noUncheckedIndexedAccess": true,
+    "preserveSymlinks": true,
 
     /* Linting */
     "skipLibCheck": true,

@@ -24,6 +24,7 @@ export type ChunkEventParsed = ChunkEvent & {
 	publicKey: string;
 	// decoded: DecodedChunk | null;
 	type: ChunkType;
+	entity: string | null;
 };
 
 export const BlockResponseRejectCodes = [

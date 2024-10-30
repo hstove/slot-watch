@@ -16,6 +16,7 @@ export const textVariants = cva("", {
 			code: "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-normal",
 			lead: "text-xl text-muted-foreground",
 			large: "text-lg font-semibold",
+			medium: "text-base font-medium",
 			small: "text-sm font-medium leading-none",
 			muted: "text-sm text-muted-foreground",
 			// Body01: "text-body01",

@@ -1,15 +1,12 @@
-import { useState, Suspense } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { Suspense } from "react";
 import "./App.css";
-import { Watcher } from "./components/watcher";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { useSearchParams, Outlet } from "react-router-dom";
 import { useHydrateAtoms } from "jotai/utils";
 import { useAtomsDevtools } from "jotai-devtools";
-import { getNetwork, networkAtom } from "@/store/network";
+import { networkAtom } from "@/store/network";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useChunksWatcher } from "./hooks/use-websocket";
 
