@@ -102,7 +102,7 @@ getChunksRoutes.get("/chunks/:networkKey/:from/:to", async (c) => {
 			),
 		)
 		.orderBy(asc(stackerDbSlots.createdAt))
-		.limit(200);
+		.limit(5000);
 
 	return c.json<{ chunks: ChunkEventParsed[] }>({
 		chunks: chunks.map(serializeDbChunk),
