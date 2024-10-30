@@ -17,38 +17,16 @@ import {
 } from "slot-watch-common";
 import { hex } from "@scure/base";
 
-const getRecentsRoutes = new Hono();
+const getRecentsRoutes = new Hono().get(
+	"/signer-recency/:networkKey",
+	async (c) => {
+		const networkKey = c.req.param("networkKey");
+		const poxInfo = await getPoxInfo.get(networkKey);
+		const cycle = poxInfo.rewardCycleId;
+		const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+		const signerKeys = signers.map((s) => s.signing_key);
 
-getRecentsRoutes.get("/signer-recency/:networkKey/:cycleId", async (c) => {
-	const networkKey = c.req.param("networkKey");
-	const cycleId = Number.parseInt(c.req.param("cycleId"), 10);
-	const page = cycleId % 2;
-	const burnAddress = getBurnAddress(networkKey);
-	const contractId = `${burnAddress}.signers-${page}-1`;
-
-	// const [blockPushed] = await db
-	// 	.select()
-	// 	.from(blockPushes)
-	// 	.where(eq(blockPushes.networkKey, networkKey))
-	// 	.limit(1);
-
-	// const responses = await db
-	//   .select()
-	//   .from(blockResponses)
-	//   .groupBy(blockResponses.signerPublicKey)
-	//   .where(eq(blockResponses.networkKey, networkKey))
-	//   .orderBy(desc(blockResponses.createdAt))
-	//   .limit(100);
-});
-
-getRecentsRoutes.get("/signer-recency/:networkKey", async (c) => {
-	const networkKey = c.req.param("networkKey");
-	const poxInfo = await getPoxInfo.get(networkKey);
-	const cycle = poxInfo.reward_cycle_id;
-	const signers = await getStackerSet.get(networkKey, cycle);
-	const signerKeys = signers.map((s) => s.signing_key);
-
-	const query = sql`
+		const query = sql`
 		with latest_chunks as (
 			select
 				max(id) as chunk_id
@@ -70,57 +48,56 @@ getRecentsRoutes.get("/signer-recency/:networkKey", async (c) => {
 			on sl.id = lc.chunk_id
 		`;
 
-	const recentChunks = await db.execute<{
-		id: number;
-		public_key: string;
-		created_at: string;
-		data: Uint8Array;
-		contract_id: string;
-	}>(query);
+		const recentChunks = await db.execute<{
+			id: number;
+			public_key: string;
+			created_at: string;
+			data: Uint8Array;
+			contract_id: string;
+		}>(query);
 
-	const totalWeight = signers.reduce((acc, signer) => acc + signer.weight, 0);
+		const signersResponse: RecentSignersResponse["signers"] = signers.map(
+			(signer, index) => {
+				const chunk = recentChunks.find(
+					(c) => c.public_key === signer.signing_key,
+				);
+				const percent = (signer.weight / totalWeight) * 10000;
+				const percentStr = Math.round(percent) / 100;
+				const data = chunk ? hex.encode(chunk.data) : null;
+				const version = versionFromData(data);
+				const versionShort = getVersionFromString(version);
 
-	const signersResponse: RecentSignersResponse["signers"] = signers.map(
-		(signer, index) => {
-			const chunk = recentChunks.find(
-				(c) => c.public_key === signer.signing_key,
-			);
-			const percent = (signer.weight / totalWeight) * 10000;
-			const percentStr = Math.round(percent) / 100;
-			const data = chunk ? hex.encode(chunk.data) : null;
-			const version = versionFromData(data);
-			const versionShort = getVersionFromString(version);
-
-			const common = {
-				publicKey: signer.signing_key,
-				slotId: index,
-				weight: signer.weight,
-				weightPercent: percent / 100,
-				weightPercentStr: percentStr.toString(),
-				version,
-				versionShort,
-				data,
-			};
-			if (!chunk) {
+				const common = {
+					publicKey: signer.signing_key,
+					slotId: index,
+					weight: signer.weight,
+					weightPercent: percent / 100,
+					weightPercentStr: percentStr.toString(),
+					version,
+					versionShort,
+					data,
+				};
+				if (!chunk) {
+					return {
+						...common,
+						createdAt: null,
+					};
+				}
 				return {
 					...common,
-					createdAt: null,
+					createdAt: new Date(chunk.created_at).toISOString(),
 				};
-			}
-			return {
-				...common,
-				createdAt: new Date(chunk.created_at).toISOString(),
-			};
-		},
-	);
+			},
+		);
 
-	const response: RecentSignersResponse = {
-		networkKey,
-		rewardCycle: cycle,
-		totalWeight,
-		signers: signersResponse,
-	};
-	return c.json(response);
-});
+		const response: RecentSignersResponse = {
+			networkKey,
+			rewardCycle: cycle,
+			totalWeight,
+			signers: signersResponse,
+		};
+		return c.json(response);
+	},
+);
 
 export { getRecentsRoutes };

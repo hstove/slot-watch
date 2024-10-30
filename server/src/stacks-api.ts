@@ -1,14 +1,30 @@
 import {
 	getStackerSet as getStackerSetInner,
 	getPoxInfo as getPoxInfoInner,
+	type StackerSetSigner,
 } from "slot-watch-common";
 import { memoizeCache } from "./cache";
 
-export const getStackerSet = memoizeCache(
+export const getStackerSetCache = memoizeCache(
 	(networkKey: string, rewardCycle: number) =>
 		`stacker_set_${networkKey}_${rewardCycle}`,
 	getStackerSetInner,
 );
+
+export async function getStackerSet(networkKey: string, rewardCycle: number) {
+	const signers = await getStackerSetCache.get(networkKey, rewardCycle);
+	const signersByKey = new Map<string, StackerSetSigner>();
+	for (const signer of signers) {
+		signersByKey.set(signer.signing_key, signer);
+	}
+	const totalWeight = signers.reduce((acc, signer) => acc + signer.weight, 0);
+
+	return {
+		signers,
+		signersByKey,
+		totalWeight,
+	};
+}
 
 // export async function _getStackerSet(networkKey: string, rewardCycle: number) {
 // 	const cacheKey = `stacker_set_${networkKey}_${rewardCycle}`;
@@ -24,7 +40,7 @@ export const getStackerSet = memoizeCache(
 export async function getSmallPoxInfo(networkKey: string) {
 	const poxInfo = await getPoxInfoInner(networkKey);
 	return {
-		reward_cycle_id: poxInfo.reward_cycle_id,
+		rewardCycleId: poxInfo.reward_cycle_id,
 	};
 }
 export const getPoxInfo = memoizeCache(
@@ -46,8 +62,7 @@ export const getPoxInfo = memoizeCache(
 // }
 
 export async function warmCache(networkKey: string) {
-	const poxInfo: { reward_cycle_id: number } =
-		await getPoxInfo.warm(networkKey);
-	const rewardCycle = poxInfo.reward_cycle_id;
-	await getStackerSet.warm(networkKey, rewardCycle);
+	const poxInfo = await getPoxInfo.warm(networkKey);
+	const rewardCycle = poxInfo.rewardCycleId;
+	await getStackerSetCache.warm(networkKey, rewardCycle);
 }

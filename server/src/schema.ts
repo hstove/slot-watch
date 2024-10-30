@@ -9,8 +9,9 @@ import {
 	timestamp,
 	index,
 	bigint,
+	boolean,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { sql, type InferSelectModel } from "drizzle-orm";
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
 	dataType() {
@@ -36,6 +37,8 @@ export const stackerDbSlots = pgTable(
 		publicKeyIndex: index("public_key_idx").on(table.publicKey),
 	}),
 );
+
+export type StackerDbSlotDb = InferSelectModel<typeof stackerDbSlots>;
 
 export const blockProposals = pgTable(
 	"block_proposals",
@@ -67,6 +70,8 @@ export const blockProposals = pgTable(
 	}),
 );
 
+export type BlockProposalDb = InferSelectModel<typeof blockProposals>;
+
 export const blockResponses = pgTable(
 	"block_responses",
 	{
@@ -79,6 +84,7 @@ export const blockResponses = pgTable(
 		networkKey: varchar("network_key", { length: 20 }).notNull(),
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 		signerPublicKey: varchar("signer_public_key", { length: 66 }),
+		accepted: boolean("accepted"),
 	},
 	(table) => ({
 		networkKeyIndex: index("block_responses_network_key_idx").on(
@@ -94,6 +100,8 @@ export const blockResponses = pgTable(
 		),
 	}),
 );
+
+export type BlockResponseDb = InferSelectModel<typeof blockResponses>;
 
 export const blockPushes = pgTable(
 	"block_pushes",
@@ -122,3 +130,5 @@ export const blockPushes = pgTable(
 		),
 	}),
 );
+
+export type BlockPushDb = InferSelectModel<typeof blockPushes>;

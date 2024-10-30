@@ -43,6 +43,13 @@
       "when": 1729225671944,
       "tag": "0005_light_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1730318051183,
+      "tag": "0006_redundant_ricochet",
+      "breakpoints": true
     }
   ]
 }

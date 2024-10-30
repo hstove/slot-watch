@@ -14,50 +14,48 @@ import { getBlockRoute } from "./routes/get-block.routes";
 import { getChunksRoutes } from "./routes/chunks.routes";
 import { prettyJSON } from "hono/pretty-json";
 import { getRecentsRoutes } from "./routes/recents.routes";
-export type { GetChunksRoutes } from "./routes/chunks.routes";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
-export const app = new Hono();
+export const app = new Hono()
+	.use(logger())
+	.use(prettyJSON())
+	.use(cors())
+	.get(
+		"/watch",
+		upgradeWebSocket((c) => {
+			return {
+				async onOpen(e, ws) {
+					const rawWs = ws.raw as ServerWebSocket;
+					rawWs.subscribe(CHUNKS_EVENT);
+					rawWs.subscribe(BURN_BLOCKS_EVENT);
+					rawWs.subscribe(NEW_BLOCK_EVENT);
+					rawWs.subscribe(MANY_CHUNKS_EVENT);
+				},
+				// async message(ws, message) {},
+				async onClose(evt, ws) {
+					const rawWs = ws.raw as ServerWebSocket;
+					rawWs.unsubscribe(CHUNKS_EVENT);
+					rawWs.unsubscribe(BURN_BLOCKS_EVENT);
+					rawWs.unsubscribe(NEW_BLOCK_EVENT);
+					rawWs.unsubscribe(MANY_CHUNKS_EVENT);
+				},
+			};
+		}),
+	)
 
-app.use(logger());
-app.use(prettyJSON());
-app.use(cors());
-app.get(
-	"/watch",
-	upgradeWebSocket((c) => {
-		return {
-			async onOpen(e, ws) {
-				const rawWs = ws.raw as ServerWebSocket;
-				rawWs.subscribe(CHUNKS_EVENT);
-				rawWs.subscribe(BURN_BLOCKS_EVENT);
-				rawWs.subscribe(NEW_BLOCK_EVENT);
-				rawWs.subscribe(MANY_CHUNKS_EVENT);
-			},
-			// async message(ws, message) {},
-			async onClose(evt, ws) {
-				const rawWs = ws.raw as ServerWebSocket;
-				rawWs.unsubscribe(CHUNKS_EVENT);
-				rawWs.unsubscribe(BURN_BLOCKS_EVENT);
-				rawWs.unsubscribe(NEW_BLOCK_EVENT);
-				rawWs.unsubscribe(MANY_CHUNKS_EVENT);
-			},
-		};
-	}),
-);
+	.get("/", (c) => c.text("Hello World"))
 
-app.get("/", (c) => c.text("Hello World"));
+	.route("/", eventsRoutes)
 
-app.route("/", eventsRoutes);
+	.route("/", getBlockRoute)
+	.route("/", getChunksRoutes)
+	.route("/", getRecentsRoutes)
 
-app.route("/", getBlockRoute);
-app.route("/", getChunksRoutes);
-app.route("/", getRecentsRoutes);
-
-app.notFound((c) => {
-	console.log(`${c.req.method} ${c.req.url} not found`);
-	return c.text("Not Found", 200);
-});
+	.notFound((c) => {
+		console.log(`${c.req.method} ${c.req.url} not found`);
+		return c.text("Not Found", 200);
+	});
 
 export type SlotWatchServer = typeof app;
 

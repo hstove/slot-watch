@@ -12,12 +12,9 @@ import { serializeDbChunk } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const getChunksRoutes = new Hono();
+const getChunksRoutes = new Hono()
 
-getChunksRoutes.get(
-	"/chunks/timeline",
-	zValidator("query", z.object({})),
-	async (c) => {
+	.get("/chunks/timeline", zValidator("query", z.object({})), async (c) => {
 		const networkKeys = (c.req.query("networkKeys") ?? "").split(",");
 
 		const [first, ...otherNetworks] = networkKeys;
@@ -76,54 +73,51 @@ getChunksRoutes.get(
 		return c.json<TimelineResponse>({
 			chunks: groupedChunks,
 		});
-	},
-);
+	})
 
-getChunksRoutes.get("/chunks/:networkKey/:from/:to", async (c) => {
-	const networkKey = c.req.param("networkKey");
-	function getDate(key: string) {
-		const param = c.req.param(key);
-		if (!param) {
-			throw new Error(`${key} is required`);
+	.get("/chunks/:networkKey/:from/:to", async (c) => {
+		const networkKey = c.req.param("networkKey");
+		function getDate(key: string) {
+			const param = c.req.param(key);
+			if (!param) {
+				throw new Error(`${key} is required`);
+			}
+			return new Date(Number.parseInt(param, 10));
 		}
-		return new Date(Number.parseInt(param, 10));
-	}
-	const from = getDate("from");
-	const to = getDate("to");
+		const from = getDate("from");
+		const to = getDate("to");
 
-	const chunks = await db
-		.select()
-		.from(stackerDbSlots)
-		.where(
-			and(
-				eq(stackerDbSlots.networkKey, networkKey),
-				gte(stackerDbSlots.createdAt, from),
-				lte(stackerDbSlots.createdAt, to),
-			),
-		)
-		.orderBy(asc(stackerDbSlots.createdAt))
-		.limit(5000);
+		const chunks = await db
+			.select()
+			.from(stackerDbSlots)
+			.where(
+				and(
+					eq(stackerDbSlots.networkKey, networkKey),
+					gte(stackerDbSlots.createdAt, from),
+					lte(stackerDbSlots.createdAt, to),
+				),
+			)
+			.orderBy(asc(stackerDbSlots.createdAt))
+			.limit(5000);
 
-	return c.json<{ chunks: ChunkEventParsed[] }>({
-		chunks: chunks.map(serializeDbChunk),
+		return c.json<{ chunks: ChunkEventParsed[] }>({
+			chunks: chunks.map(serializeDbChunk),
+		});
+	})
+
+	.get("/chunks/:networkKey", async (c) => {
+		const networkKey = c.req.param("networkKey");
+
+		const chunks = await db
+			.select()
+			.from(stackerDbSlots)
+			.where(eq(stackerDbSlots.networkKey, networkKey))
+			.orderBy(desc(stackerDbSlots.createdAt))
+			.limit(1000);
+
+		const chunkEvents: ChunkEventParsed[] = chunks.map(serializeDbChunk);
+
+		return c.json(chunkEvents);
 	});
-});
-
-getChunksRoutes.get("/chunks/:networkKey", async (c) => {
-	const networkKey = c.req.param("networkKey");
-
-	const chunks = await db
-		.select()
-		.from(stackerDbSlots)
-		.where(eq(stackerDbSlots.networkKey, networkKey))
-		.orderBy(desc(stackerDbSlots.createdAt))
-		.limit(1000);
-
-	const chunkEvents: ChunkEventParsed[] = chunks.map(serializeDbChunk);
-
-	return c.json(chunkEvents);
-});
-
-export type GetChunksRoutes = typeof getChunksRoutes;
 
 export { getChunksRoutes };

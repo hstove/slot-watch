@@ -138,5 +138,6 @@ export async function handleBlockResponse({
 		createdAt: receivedAt,
 		networkKey,
 		signerPublicKey: publicKey,
+		accepted: payload.accepted,
 	});
 }
