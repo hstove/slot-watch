@@ -103,9 +103,10 @@ export async function getRecentBlocksHealth(networkKey: string) {
 			weightAccept,
 			weightReject,
 			rejectRatio,
+			totalWeight,
 			acceptRatio,
 			accepted,
-			// signers: signersArr,
+			signers: signersArr,
 		};
 	});
 

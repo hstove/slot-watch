@@ -15,6 +15,7 @@ import { getChunksRoutes } from "./routes/chunks.routes";
 import { prettyJSON } from "hono/pretty-json";
 import { getRecentsRoutes } from "./routes/recents.routes";
 import { healthRoutes } from "./routes/health.routes";
+import { metricsRoutes } from "./routes/metrics.routes";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
@@ -53,6 +54,7 @@ export const app = new Hono()
 	.route("/", getChunksRoutes)
 	.route("/", getRecentsRoutes)
 	.route("/health", healthRoutes)
+	.route("/", metricsRoutes)
 
 	.notFound((c) => {
 		console.log(`${c.req.method} ${c.req.url} not found`);

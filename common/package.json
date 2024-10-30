@@ -16,7 +16,7 @@
     "vitest": "^2.1.2"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "@noble/curves": "^1.6.0",
