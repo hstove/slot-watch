@@ -36,16 +36,20 @@ export async function handleStackerDBChunk(
 			version: chunk.slot_version,
 			signature: hex.decode(chunk.sig),
 		}).toHex();
-		await db.insert(stackerDbSlots).values({
-			slotId: chunk.slot_id,
-			version: chunk.slot_version,
-			contractId,
-			networkKey,
-			signature: hex.decode(chunk.sig),
-			data: hex.decode(chunk.data),
-			createdAt: receivedAt,
-			publicKey,
-		});
+		const [newRow] = await db
+			.insert(stackerDbSlots)
+			.values({
+				slotId: chunk.slot_id,
+				version: chunk.slot_version,
+				contractId,
+				networkKey,
+				signature: hex.decode(chunk.sig),
+				data: hex.decode(chunk.data),
+				createdAt: receivedAt,
+				publicKey,
+			})
+			.returning({ id: stackerDbSlots.id });
+		const chunkId = newRow?.id ?? null;
 		const decoded = decodeChunkMaybe(hex.decode(chunk.data));
 		if (decoded === null) {
 			console.error(`Error decoding chunk: ${chunk.data}`, chunk);
@@ -57,6 +61,7 @@ export async function handleStackerDBChunk(
 				receivedAt,
 				networkKey,
 				publicKey,
+				chunkId,
 			});
 		} else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
 			await handleBlockPush({
@@ -64,6 +69,7 @@ export async function handleStackerDBChunk(
 				receivedAt,
 				networkKey,
 				publicKey,
+				chunkId,
 			});
 		} else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
 			await handleBlockResponse({
@@ -72,6 +78,7 @@ export async function handleStackerDBChunk(
 				receivedAt,
 				networkKey,
 				publicKey,
+				chunkId,
 			});
 		}
 	}
@@ -82,11 +89,13 @@ export async function handleBlockProposal({
 	receivedAt,
 	networkKey,
 	publicKey,
+	chunkId,
 }: {
 	payload: BlockProposal;
 	receivedAt: Date;
 	networkKey: string;
 	publicKey: string;
+	chunkId: number | null;
 }) {
 	const signerSignatureHash = makeSignerSignatureHash(payload);
 	await db.insert(blockProposals).values({
@@ -95,6 +104,7 @@ export async function handleBlockProposal({
 		createdAt: receivedAt,
 		networkKey,
 		minerPublicKey: publicKey,
+		chunkId,
 	});
 }
 
@@ -103,11 +113,13 @@ export async function handleBlockPush({
 	receivedAt,
 	networkKey,
 	publicKey,
+	chunkId,
 }: {
 	payload: BlockPushed;
 	receivedAt: Date;
 	networkKey: string;
 	publicKey: string;
+	chunkId: number | null;
 }) {
 	const signerSignatureHash = makeSignerSignatureHash(payload);
 	await db.insert(blockPushes).values({
@@ -116,6 +128,7 @@ export async function handleBlockPush({
 		createdAt: receivedAt,
 		networkKey,
 		minerPublicKey: publicKey,
+		chunkId,
 	});
 }
 
@@ -125,12 +138,14 @@ export async function handleBlockResponse({
 	receivedAt,
 	networkKey,
 	publicKey,
+	chunkId,
 }: {
 	chunk: ModifiedSlot;
 	payload: BlockResponseAccepted | BlockResponseRejected;
 	receivedAt: Date;
 	networkKey: string;
 	publicKey: string;
+	chunkId: number | null;
 }) {
 	await db.insert(blockResponses).values({
 		signerSignatureHash: hex.encode(payload.signerSignatureHash),
@@ -139,5 +154,6 @@ export async function handleBlockResponse({
 		networkKey,
 		signerPublicKey: publicKey,
 		accepted: payload.accepted,
+		chunkId,
 	});
 }

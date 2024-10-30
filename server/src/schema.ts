@@ -32,10 +32,10 @@ export const stackerDbSlots = pgTable(
 		networkKey: varchar("network_key", { length: 20 }),
 		publicKey: varchar("public_key", { length: 66 }),
 	},
-	(table) => ({
-		networkKeyIndex: index("network_key_idx").on(table.networkKey),
-		publicKeyIndex: index("public_key_idx").on(table.publicKey),
-	}),
+	(table) => [
+		index("network_key_idx").on(table.networkKey),
+		index("public_key_idx").on(table.publicKey),
+	],
 );
 
 export type StackerDbSlotDb = InferSelectModel<typeof stackerDbSlots>;
@@ -53,21 +53,15 @@ export const blockProposals = pgTable(
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 		minerPublicKey: varchar("miner_public_key", { length: 66 }),
 	},
-	(table) => ({
-		networkKeyIndex: index("block_proposals_network_key_idx").on(
-			table.networkKey,
+	(table) => [
+		index("block_proposals_network_key_idx").on(table.networkKey),
+		index("block_proposals_signer_signature_hash_idx").on(
+			table.signerSignatureHash,
 		),
-		signerSignatureHashIndex: index(
-			"block_proposals_signer_signature_hash_idx",
-		).on(table.signerSignatureHash),
-		chainLengthIndex: index("block_proposals_chain_length_idx").on(
-			table.chainLength,
-		),
-		chunkIdIndex: index("block_proposals_chunk_id_idx").on(table.chunkId),
-		minerPublicKeyIndex: index("block_proposals_miner_public_key_idx").on(
-			table.minerPublicKey,
-		),
-	}),
+		index("block_proposals_chain_length_idx").on(table.chainLength),
+		index("block_proposals_chunk_id_idx").on(table.chunkId),
+		index("block_proposals_miner_public_key_idx").on(table.minerPublicKey),
+	],
 );
 
 export type BlockProposalDb = InferSelectModel<typeof blockProposals>;
@@ -86,19 +80,15 @@ export const blockResponses = pgTable(
 		signerPublicKey: varchar("signer_public_key", { length: 66 }),
 		accepted: boolean("accepted"),
 	},
-	(table) => ({
-		networkKeyIndex: index("block_responses_network_key_idx").on(
-			table.networkKey,
+	(table) => [
+		index("block_responses_network_key_idx").on(table.networkKey),
+		index("block_responses_signer_signature_hash_idx").on(
+			table.signerSignatureHash,
 		),
-		signerSignatureHashIndex: index(
-			"block_responses_signer_signature_hash_idx",
-		).on(table.signerSignatureHash),
-		slotIdIndex: index("slot_id_idx").on(table.slotId),
-		chunkIdIndex: index("block_responses_chunk_id_idx").on(table.chunkId),
-		signerPublicKeyIndex: index("block_responses_signer_public_key_idx").on(
-			table.signerPublicKey,
-		),
-	}),
+		index("slot_id_idx").on(table.slotId),
+		index("block_responses_chunk_id_idx").on(table.chunkId),
+		index("block_responses_signer_public_key_idx").on(table.signerPublicKey),
+	],
 );
 
 export type BlockResponseDb = InferSelectModel<typeof blockResponses>;
@@ -116,19 +106,15 @@ export const blockPushes = pgTable(
 		chunkId: integer("chunk_id").references(() => stackerDbSlots.id),
 		minerPublicKey: varchar("miner_public_key", { length: 66 }),
 	},
-	(table) => ({
-		networkKeyIndex: index("block_pushes_network_key_idx").on(table.networkKey),
-		signerSignatureHashIndex: index(
-			"block_pushes_signer_signature_hash_idx",
-		).on(table.signerSignatureHash),
-		chainLengthIndex: index("block_pushes_chain_length_idx").on(
-			table.chainLength,
+	(table) => [
+		index("block_pushes_network_key_idx").on(table.networkKey),
+		index("block_pushes_signer_signature_hash_idx").on(
+			table.signerSignatureHash,
 		),
-		chunkIdIndex: index("block_pushes_chunk_id_idx").on(table.chunkId),
-		minerPublicKeyIndex: index("block_pushes_miner_public_key_idx").on(
-			table.minerPublicKey,
-		),
-	}),
+		index("block_pushes_chain_length_idx").on(table.chainLength),
+		index("block_pushes_chunk_id_idx").on(table.chunkId),
+		index("block_pushes_miner_public_key_idx").on(table.minerPublicKey),
+	],
 );
 
 export type BlockPushDb = InferSelectModel<typeof blockPushes>;
