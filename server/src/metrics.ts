@@ -3,19 +3,19 @@ import { getRecentBlocksHealth } from "./health/health-checks";
 
 export const acceptanceRateLastBlocks = new Gauge({
 	name: "slot_watch_block_acceptance_rate",
-	help: "Of the last N blocks, how many were accepted",
+	help: "The percentage of blocks that were accepted",
 	labelNames: ["last_n_blocks"],
 });
 
 export const averageAcceptanceRateLastBlocks = new Gauge({
 	name: "slot_watch_average_block_acceptance_rate",
-	help: "Average weight accepted of the last N blocks",
+	help: "Average weight accepted per block",
 	labelNames: ["last_n_blocks"],
 });
 
 export const averageTimeToPushedLastBlocks = new Gauge({
 	name: "slot_watch_average_time_to_pushed",
-	help: "Average time between proposal and push of the last N blocks",
+	help: "Average time (seconds) between BlockProposal and BlockPushed",
 	labelNames: ["last_n_blocks"],
 });
 
