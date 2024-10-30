@@ -17,6 +17,7 @@ import {
 } from "slot-watch-common";
 import { networkIdAtom } from "./network";
 import { format } from "date-fns";
+import { atomWithHash } from "jotai-location";
 
 export const chunksFamilyStore = atomFamily((_networkId: string) =>
 	atom<WSPayload[]>([]),
@@ -101,7 +102,7 @@ export const splitNetworkChunksStore = atomFamily((networkId: string) =>
 // 	),
 // );
 
-export const isStreamLiveAtom = atom(true);
+export const isStreamLiveAtom = atomWithHash("live", true);
 
 export const streamStartAtom = atom<number | null>((get) => {
 	const streamStartInput = get(streamStartInputAtom);
@@ -122,10 +123,14 @@ export const streamEndAtom = atom<number | null>((get) => {
 
 const now = new Date().getTime();
 
-export const streamStartInputAtom = atom(
+export const streamStartInputAtom = atomWithHash(
+	"start",
 	new Date(now - 1000 * 60 * 5).toLocaleString(),
 );
-export const streamEndInputAtom = atom(new Date().toLocaleString());
+export const streamEndInputAtom = atomWithHash(
+	"end",
+	new Date().toLocaleString(),
+);
 
 export const searchInputsValidAtom = atom((get) => {
 	const start = get(streamStartAtom);

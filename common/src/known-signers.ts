@@ -68,4 +68,6 @@ export const knownSigners: Record<string, string> = {
 		"Xverse",
 	"03b3b78738abbdc573cdcefd8200b1bca999e2f2fd8ecdf70c64ced1e4105437b7":
 		"Xverse",
+	"03ed732eab6b99b90315f9b58ce9c3e2d1991bc4e9cfa59841535c0ef7dbba38e0":
+		"PlanBetter",
 };

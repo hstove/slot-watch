@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Switch } from "../ui/switch";
 import {
   isStreamLiveAtom,
@@ -20,6 +20,24 @@ export const StreamControls = () => {
   const [streamEnd, setStreamEnd] = useAtom(streamEndInputAtom);
   const searchInputsValid = useAtomValue(searchInputsValidAtom);
   const searchChunks = useSetAtom(searchChunksAtom);
+
+  const hash = React.useMemo(() => {
+    return window.location.hash.length > 1 && !isStreamLive;
+  }, [isStreamLive]);
+
+  const search = useAtomCallback(
+    React.useCallback((_get, set) => {
+      set(searchChunksAtom);
+    }, [])
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies(hash): <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies(search): <explanation>
+  React.useEffect(() => {
+    if (hash) {
+      search();
+    }
+  }, []);
 
   const toggleStreamLive = useAtomCallback(
     React.useCallback((_get, set) => {
@@ -49,11 +67,7 @@ export const StreamControls = () => {
         onChange={(e) => setStreamEnd(e.target.value)}
       />
 
-      <Button
-        variant="outline"
-        onClick={searchChunks}
-        disabled={!searchInputsValid}
-      >
+      <Button variant="outline" onClick={search} disabled={!searchInputsValid}>
         Search
       </Button>
     </div>
