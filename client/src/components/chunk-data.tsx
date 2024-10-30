@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   Dialog,
   DialogDescription,
@@ -33,6 +33,8 @@ function valueToString(value: any) {
     valString = `[${valString}]`;
   } else if (value === null) {
     valString = "null";
+  } else if (typeof value === "bigint") {
+    valString = value.toString();
   } else if (typeof value === "object") {
     if ("length" in value && "bytes" in value) {
       valString = binaryString(value);
@@ -46,14 +48,18 @@ function valueToString(value: any) {
 
 export const ChunkData = memo(({ data }: { data: string }) => {
   const [_, copy] = useCopyToClipboard();
-  let decoded: DecodedChunk | null = null;
-  try {
-    decoded = decodeChunk(hex.decode(data));
-  } catch (error) {
-    return null;
-  }
+  const [open, setOpen] = useState(false);
 
   const rows = useMemo(() => {
+    if (!open) {
+      return null;
+    }
+    let decoded: DecodedChunk | null = null;
+    try {
+      decoded = decodeChunk(hex.decode(data));
+    } catch (error) {
+      return null;
+    }
     return Object.entries(decoded).map(([key, value]) => {
       // let valString = value;
       // if (value instanceof Uint8Array) {
@@ -96,9 +102,9 @@ export const ChunkData = memo(({ data }: { data: string }) => {
     // return decoded.map((row) => {
     //   return <div key={row.key}>{row.value}</div>;
     // });
-  }, [decoded]);
+  }, [data, open]);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
         {/* <span>{data}</span> */}
         <Button asChild variant={"outline"} size={"sm"}>

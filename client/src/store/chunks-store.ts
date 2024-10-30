@@ -150,14 +150,19 @@ export async function getChunksByTime(
 	return data.chunks;
 }
 
+const isSearchingAtom = atom(false);
+
 export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
 	const networkId = get(networkIdAtom);
 	const start = get(streamStartAtom);
 	const end = get(streamEndAtom);
-	console.log("Searching chunks", { start, end });
-	if (!start || !end) {
+	const isSearching = get(isSearchingAtom);
+	if (!start || !end || isSearching) {
 		return;
 	}
+	console.log("Searching chunks", { start, end });
+	set(allPayloadsAtom, []);
+	set(isSearchingAtom, true);
 	const chunksResponse = await getChunksByTime(networkId, start, end);
 	const chunks: WSChunkEvent[] = chunksResponse.map((chunk) => {
 		return {
@@ -168,4 +173,5 @@ export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
 		};
 	});
 	set(allPayloadsAtom, chunks);
+	set(isSearchingAtom, false);
 });
