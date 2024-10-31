@@ -40,6 +40,8 @@ export async function getStackerSet(networkKey: string, rewardCycle: number) {
 export async function getSmallPoxInfo(networkKey: string) {
 	const poxInfo = await getPoxInfoInner(networkKey);
 	return {
+		firstBurnchainBlockHeight: poxInfo.first_burnchain_block_height,
+		rewardCycleLength: poxInfo.reward_cycle_length,
 		rewardCycleId: poxInfo.reward_cycle_id,
 	};
 }

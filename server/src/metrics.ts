@@ -1,5 +1,6 @@
 import { Gauge } from "prom-client";
 import { getRecentBlocksHealth } from "./health/health-checks";
+import { getStackerSet, getPoxInfo } from "./stacks-api";
 
 export const acceptanceRateLastBlocks = new Gauge({
 	name: "slot_watch_block_acceptance_rate",
@@ -19,6 +20,12 @@ export const averageTimeToPushedLastBlocks = new Gauge({
 	labelNames: ["last_n_blocks"],
 });
 
+export const signerParticipationRate = new Gauge({
+	name: "slot_watch_signer_participation_rate",
+	help: "The percentage of blocks that a signer participated in",
+	labelNames: ["last_n_blocks", "signer_key"],
+});
+
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
 
@@ -29,6 +36,8 @@ export async function warmupMetrics() {
 
 	console.log("Warming up metrics");
 	const recentBlocks = await getRecentBlocksHealth("mainnet");
+	const { rewardCycleId } = await getPoxInfo.get("mainnet");
+	const stackerSet = await getStackerSet("mainnet", rewardCycleId);
 
 	const lastNs = [10, 25, 50];
 
@@ -67,6 +76,26 @@ export async function warmupMetrics() {
 			{ last_n_blocks: n },
 			sumTimeToPushed / 1000 / blocksWithPush.length,
 		);
+
+		// Now get signer participation rates
+		// Reset so that we don't show stale signers
+		signerParticipationRate.reset();
+		for (const signer of stackerSet.signers) {
+			let blocksSigned = 0;
+			for (const block of lastNBlocks) {
+				const foundSigner = block.signers.find(
+					(s) => s.signing_key === signer.signing_key,
+				);
+				if (!foundSigner) continue;
+				if (foundSigner.accepted !== null) {
+					blocksSigned++;
+				}
+			}
+			signerParticipationRate.set(
+				{ last_n_blocks: n, signer_key: signer.signing_key },
+				blocksSigned / lastNBlocks.length,
+			);
+		}
 	}
 
 	lastRun = Date.now();
