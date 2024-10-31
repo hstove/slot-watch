@@ -2,9 +2,12 @@ import React, { useEffect } from "react";
 import { Switch } from "../ui/switch";
 import {
   isStreamLiveAtom,
+  isValidDateString,
   searchChunksAtom,
   searchInputsValidAtom,
+  streamEndAtom,
   streamEndInputAtom,
+  streamStartAtom,
   streamStartInputAtom,
 } from "@/store/chunks-store";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -31,11 +34,37 @@ export const StreamControls = () => {
     }, [])
   );
 
+  const setFromLocation = useAtomCallback(
+    React.useCallback((get, set) => {
+      const startUnix = get(streamStartAtom);
+      const endUnix = get(streamEndAtom);
+      if (startUnix === null || endUnix === null) return;
+      const startNum = Number.parseInt(startUnix, 10);
+      const endNum = Number.parseInt(endUnix, 10);
+      set(streamStartInputAtom, new Date(startNum).toLocaleString());
+      set(streamEndInputAtom, new Date(endNum).toLocaleString());
+    }, [])
+  );
+
+  const submitSearch = useAtomCallback(
+    React.useCallback((get, set) => {
+      const startString = get(streamStartInputAtom);
+      const endString = get(streamEndInputAtom);
+      if (!isValidDateString(startString) || !isValidDateString(endString))
+        return;
+      set(streamStartAtom, Date.parse(startString).toString());
+      set(streamEndAtom, Date.parse(endString).toString());
+      set(searchChunksAtom);
+    }, [])
+  );
+
   // biome-ignore lint/correctness/useExhaustiveDependencies(hash): <explanation>
   // biome-ignore lint/correctness/useExhaustiveDependencies(search): <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies(setFromLocation): <explanation>
   React.useEffect(() => {
     if (hash) {
       search();
+      setFromLocation();
     }
   }, []);
 
@@ -67,7 +96,11 @@ export const StreamControls = () => {
         onChange={(e) => setStreamEnd(e.target.value)}
       />
 
-      <Button variant="outline" onClick={search} disabled={!searchInputsValid}>
+      <Button
+        variant="outline"
+        onClick={submitSearch}
+        disabled={!searchInputsValid}
+      >
         Search
       </Button>
     </div>

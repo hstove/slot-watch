@@ -104,44 +104,34 @@ export const splitNetworkChunksStore = atomFamily((networkId: string) =>
 
 export const isStreamLiveAtom = atomWithHash("live", true);
 
-export const streamStartAtom = atom<number | null>((get) => {
-	const streamStartInput = get(streamStartInputAtom);
-	const date = Date.parse(streamStartInput);
-	if (Number.isNaN(date)) {
-		return null;
-	}
-	return date;
-});
-export const streamEndAtom = atom<number | null>((get) => {
-	const streamEndInput = get(streamEndInputAtom);
-	const date = Date.parse(streamEndInput);
-	if (Number.isNaN(date)) {
-		return null;
-	}
-	return date;
-});
+export const streamStartAtom = atomWithHash<string | null>("start", null);
+export const streamEndAtom = atomWithHash<string | null>("end", null);
 
 const now = new Date().getTime();
 
-export const streamStartInputAtom = atomWithHash(
-	"start",
-	new Date(now - 1000 * 60 * 5).toLocaleString(),
-);
-export const streamEndInputAtom = atomWithHash(
-	"end",
-	new Date().toLocaleString(),
-);
+const defaultStart = new Date(now - 1000 * 60 * 5).toLocaleString();
+// export const streamStartInputAtom = atomWithHash("start", defaultStart);
+export const streamStartInputAtom = atom(defaultStart);
+
+const defaultEnd = new Date(now).toLocaleString();
+export const streamEndInputAtom = atom(defaultEnd);
+
+export function isValidDateString(dateString: string) {
+	const date = Date.parse(dateString);
+	if (Number.isNaN(date)) return false;
+	return true;
+}
 
 export const searchInputsValidAtom = atom((get) => {
-	const start = get(streamStartAtom);
-	const end = get(streamEndAtom);
-	return start && end;
+	const startString = get(streamStartInputAtom);
+	const endString = get(streamEndInputAtom);
+	return isValidDateString(startString) && isValidDateString(endString);
 });
 
 export async function getChunksByTime(
 	networkId: string,
-	start: number,
-	end: number,
+	start: string,
+	end: string,
 ) {
 	const res = await fetch(
 		`https://slot-watch.fly.dev/chunks/${networkId}/${start}/${end}`,
@@ -154,13 +144,20 @@ const isSearchingAtom = atom(false);
 
 export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
 	const networkId = get(networkIdAtom);
+	// const startString = get(streamStartInputAtom);
+	// const endString = get(streamEndInputAtom);
+	const isSearching = get(isSearchingAtom);
 	const start = get(streamStartAtom);
 	const end = get(streamEndAtom);
-	const isSearching = get(isSearchingAtom);
 	if (!start || !end || isSearching) {
+		console.log("Not searching", { start, end, isSearching });
 		return;
 	}
+	// const start = Date.parse(startString);
+	// const end = Date.parse(endString);
 	console.log("Searching chunks", { start, end });
+	// set(streamStartAtom, start.toString());
+	// set(streamEndAtom, end.toString());
 	set(allPayloadsAtom, []);
 	set(isSearchingAtom, true);
 	const chunksResponse = await getChunksByTime(networkId, start, end);
