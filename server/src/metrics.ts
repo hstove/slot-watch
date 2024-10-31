@@ -39,6 +39,9 @@ export async function warmupMetrics() {
 	const { rewardCycleId } = await getPoxInfo.get("mainnet");
 	const stackerSet = await getStackerSet("mainnet", rewardCycleId);
 
+	// Reset so that we don't show stale signers
+	signerParticipationRate.reset();
+
 	const lastNs = [10, 25, 50];
 
 	const blocksResolved = recentBlocks.blocks.filter(
@@ -78,8 +81,6 @@ export async function warmupMetrics() {
 		);
 
 		// Now get signer participation rates
-		// Reset so that we don't show stale signers
-		signerParticipationRate.reset();
 		for (const signer of stackerSet.signers) {
 			let blocksSigned = 0;
 			for (const block of lastNBlocks) {
