@@ -12,14 +12,14 @@ import {
 	decodeChunkMaybe,
 	recoverChunkPublicKey,
 } from "slot-watch-common";
-import { db } from "../db";
+import { db } from "../db/db";
 import { getPayloadContractId } from "../utils";
 import {
 	blockProposals,
 	blockPushes,
 	blockResponses,
 	stackerDbSlots,
-} from "../schema";
+} from "../db/schema";
 import { hex } from "@scure/base";
 
 export async function handleStackerDBChunk(

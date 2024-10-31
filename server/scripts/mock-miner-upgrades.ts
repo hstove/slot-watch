@@ -5,9 +5,9 @@ import {
 	SignerMessageTypePrefix,
 	TypeIdCoder,
 } from "slot-watch-common";
-import { db } from "../src/db";
+import { db } from "../src/db/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { stackerDbSlots } from "../src/schema";
+import { stackerDbSlots } from "../src/db/schema";
 import { hex } from "@scure/base";
 import {
 	addressToString,

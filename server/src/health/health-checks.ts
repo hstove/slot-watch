@@ -1,21 +1,19 @@
-import { db } from "../db";
+import { db } from "../db/db";
 import { eq, desc, and, inArray, getTableColumns } from "drizzle-orm";
 import {
 	blockPushes,
 	blockProposals as blockProposalsSchema,
 	blockResponses as blockResponsesSchema,
 	type BlockResponseDb,
-} from "../schema";
+} from "../db/schema";
 import { getPoxInfo, getStackerSet } from "../stacks-api";
 import { hex } from "@scure/base";
 import { knownSigners, type StackerSetSigner } from "slot-watch-common";
+import { mapSignerDataToResponses } from "../db/block-responses";
 
 export async function getRecentBlocksHealth(networkKey: string) {
 	const { rewardCycleId } = await getPoxInfo.get(networkKey);
-	const { signers, signersByKey, totalWeight } = await getStackerSet(
-		networkKey,
-		rewardCycleId,
-	);
+	const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
 	const recentBlocks = await db
 		.select({
@@ -63,50 +61,13 @@ export async function getRecentBlocksHealth(networkKey: string) {
 
 	const blocksWithInfo = recentBlocks.map((b) => {
 		const responses = responsesByBlock.get(b.signerSignatureHash) ?? [];
-		let weightAccept = 0;
-		let weightReject = 0;
-		const alreadyCounted = new Set<string>();
-		const blockSigners: Record<string, { accepted: boolean | null }> = {};
-		for (const response of responses) {
-			const signer = signersByKey.get(response.signerPublicKey ?? "");
-			if (!signer || !response.signerPublicKey) {
-				continue;
-			}
-			const { weight } = signer;
-			if (alreadyCounted.has(response.signerPublicKey)) {
-				continue;
-			}
-			blockSigners[response.signerPublicKey] = {
-				...signer,
-				accepted: response.accepted,
-			};
-			alreadyCounted.add(response.signerPublicKey);
-			if (response.accepted) {
-				weightAccept += weight;
-			} else {
-				weightReject += weight;
-			}
-		}
-		const signersArr = signers.map((s) => {
-			return {
-				...s,
-				accepted: blockSigners[s.signing_key]?.accepted ?? null,
-				entity: knownSigners[s.signing_key] ?? null,
-			};
+		const responseInfo = mapSignerDataToResponses({
+			stackerSet: stackerSet,
+			responses,
 		});
-		const rejectRatio = weightReject / totalWeight;
-		const acceptRatio = weightAccept / totalWeight;
-		const accepted =
-			acceptRatio >= 0.7 ? true : rejectRatio >= 0.3 ? false : null;
 		return {
 			...b,
-			weightAccept,
-			weightReject,
-			rejectRatio,
-			totalWeight,
-			acceptRatio,
-			accepted,
-			signers: signersArr,
+			...responseInfo,
 		};
 	});
 

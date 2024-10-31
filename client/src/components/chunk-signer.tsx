@@ -1,5 +1,5 @@
 import { hex } from "@scure/base";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import {
   recoverChunkPublicKey,
   type ChunkEvent,
@@ -15,6 +15,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { colord, extend } from "colord";
 import harmoniesPlugin from "colord/plugins/harmonies";
+import React from "react";
+import { getEntity } from "@/lib/local-signers";
 
 extend([harmoniesPlugin]);
 
@@ -30,6 +32,9 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
     });
     return pubKey.toHex();
   }, [chunk]);
+  const name = React.useMemo(() => {
+    return getEntity(pubKey);
+  }, [pubKey]);
   const hexCode = pubKey.slice(0, 6);
   const background = useMemo(() => {
     const text = colord(`#${hexCode}`);
@@ -37,7 +42,6 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
     return text.harmonies("rectangle")[2].lighten(0.7).toHex();
   }, [hexCode]);
   const [_, copy] = useCopyToClipboard();
-  const name = knownSigners[pubKey];
   return (
     <TooltipProvider>
       <Tooltip>

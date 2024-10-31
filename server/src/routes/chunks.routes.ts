@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db } from "../db/db";
 import { desc, eq, inArray, and, gte, lte, asc } from "drizzle-orm";
-import { stackerDbSlots } from "../schema";
+import { stackerDbSlots } from "../db/schema";
 import type {
 	ChunkEventParsed,
 	TimelineChunk,

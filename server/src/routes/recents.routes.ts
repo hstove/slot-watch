@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db } from "../db/db";
 import { eq, inArray, sql } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
 import {
@@ -7,7 +7,7 @@ import {
 	blockProposals,
 	blockResponses,
 	stackerDbSlots,
-} from "../schema";
+} from "../db/schema";
 import { getBurnAddress } from "../constants";
 import { getPoxInfo, getStackerSet } from "../stacks-api";
 import {

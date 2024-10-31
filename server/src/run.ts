@@ -1,5 +1,5 @@
 import { hex } from "@scure/base";
-import { db } from "./db";
+import { db } from "./db/db";
 import { getPayloadContractId } from "./utils";
 import type { StackerDBPayload } from "slot-watch-common";
 import {
@@ -7,7 +7,7 @@ import {
 	blockPushes,
 	blockResponses,
 	stackerDbSlots,
-} from "./schema";
+} from "./db/schema";
 import { eq, desc, not, inArray } from "drizzle-orm";
 import { burnAddress } from "./constants";
 import { getNetworkKey } from "./auth";

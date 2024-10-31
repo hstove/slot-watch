@@ -2,14 +2,17 @@ import {
 	getStackerSet as getStackerSetInner,
 	getPoxInfo as getPoxInfoInner,
 	type StackerSetSigner,
+	getApiUrl,
 } from "slot-watch-common";
 import { memoizeCache } from "./cache";
 
 export const getStackerSetCache = memoizeCache(
 	(networkKey: string, rewardCycle: number) =>
-		`stacker_set_${networkKey}_${rewardCycle}`,
+		`stacker_set_${getApiUrl(networkKey)}_${rewardCycle}`,
 	getStackerSetInner,
 );
+
+export type StackerSet = Awaited<ReturnType<typeof getStackerSet>>;
 
 export async function getStackerSet(networkKey: string, rewardCycle: number) {
 	const signers = await getStackerSetCache.get(networkKey, rewardCycle);
@@ -46,7 +49,7 @@ export async function getSmallPoxInfo(networkKey: string) {
 	};
 }
 export const getPoxInfo = memoizeCache(
-	(networkKey: string) => `pox_info_${networkKey}`,
+	(networkKey: string) => `pox_info_${getApiUrl(networkKey)}`,
 	getSmallPoxInfo,
 );
 
