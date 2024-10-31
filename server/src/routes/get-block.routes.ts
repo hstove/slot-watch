@@ -1,30 +1,43 @@
 import { Hono } from "hono";
 import { db } from "../db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { blockPushes, blockProposals, blockResponses } from "../schema";
 
 const getBlockRoute = new Hono();
 
-getBlockRoute.get("/get_block/:blockId", async (c) => {
+getBlockRoute.get("/get_block/:networkKey/:blockId", async (c) => {
+	const networkKey = c.req.param("networkKey");
 	const blockId = c.req.param("blockId");
-	if (blockId === null) {
-		return c.text("Missing blockId", 400);
-	}
 
 	const [pushes] = await db
 		.select()
 		.from(blockPushes)
-		.where(eq(blockPushes.signerSignatureHash, blockId))
+		.where(
+			and(
+				eq(blockPushes.signerSignatureHash, blockId),
+				eq(blockPushes.networkKey, networkKey),
+			),
+		)
 		.limit(1);
 	const [proposal] = await db
 		.select()
 		.from(blockProposals)
-		.where(eq(blockProposals.signerSignatureHash, blockId))
+		.where(
+			and(
+				eq(blockProposals.signerSignatureHash, blockId),
+				eq(blockProposals.networkKey, networkKey),
+			),
+		)
 		.limit(1);
 	const responses = await db
 		.select()
 		.from(blockResponses)
-		.where(eq(blockResponses.signerSignatureHash, blockId));
+		.where(
+			and(
+				eq(blockResponses.signerSignatureHash, blockId),
+				eq(blockResponses.networkKey, networkKey),
+			),
+		);
 	const response = {
 		proposal,
 		responses,
