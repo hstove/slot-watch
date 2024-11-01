@@ -41,6 +41,7 @@ export function mapSignerDataToResponses({
   const signersArr = stackerSet.signers.map((s) => {
     const blockSigner = blockSigners[s.signing_key] || {
       accepted: null,
+      createdAt: null,
     };
     return {
       ...s,

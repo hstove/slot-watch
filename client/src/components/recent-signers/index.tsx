@@ -5,22 +5,9 @@ import {
   totalRecentSignersAtom,
   totalUpatedSignersAtom,
 } from '@/store/signers';
-import { knownSigners } from 'slot-watch-common';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { TimeAgo } from '../time-ago';
-import { RecentSignerRow } from './recent-signer-row';
 import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import mixPlugin from 'colord/plugins/mix';
-import { useMemo } from 'react';
 import { textVariants } from '@/lib/text-variants';
 import { networkIdAtom } from '@/store/network';
 import { DataTable } from '../ui/data-table';

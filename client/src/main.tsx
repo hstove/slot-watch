@@ -5,6 +5,7 @@ import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { RecentSigners } from './components/recent-signers/index.tsx';
 import { Watcher } from './components/stream/watcher.tsx';
+import { BlocksList } from './components/blocks/blocks-list.tsx';
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: '/recent-signers',
         element: <RecentSigners />,
+      },
+      {
+        path: '/blocks',
+        element: <BlocksList />,
       },
     ],
   },

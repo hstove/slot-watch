@@ -3,11 +3,11 @@
   "module": "src/run.ts",
   "type": "module",
   "exports": {
-    ".": "./dist/app.js"
+    ".": "./dist/exports.js"
   },
-  "types": "./dist/app.d.ts",
+  "types": "./dist/exports.d.ts",
   "scripts": {
-    "dev": "bun src/app.ts",
+    "dev": "tsup --watch",
     "dev:watch": "bun --watch src/app.ts",
     "build": "tsup",
     "start": "bun src/app.ts",

@@ -52,6 +52,7 @@ export const blockProposals = pgTable(
     networkKey: varchar('network_key', { length: 20 }).notNull(),
     chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
     minerPublicKey: varchar('miner_public_key', { length: 66 }),
+    consensusHash: varchar('consensus_hash', { length: 64 }),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),

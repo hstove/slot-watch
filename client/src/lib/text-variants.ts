@@ -36,6 +36,10 @@ export const textVariants = cva('', {
       // Label01: "text-label01",
       // Label02: "text-label02",
     },
+    navActive: {
+      true: '',
+      false: 'text-muted-foreground',
+    },
   },
   defaultVariants: {
     variant: 'p',
@@ -46,6 +50,9 @@ type TextVariants = VariantProps<typeof textVariants> & { className?: string };
 
 export type TextVariantProps = VariantProps<typeof textVariants>;
 
-export function textStyles({ variant, className }: TextVariants) {
+export function textStyles(
+  variant: TextVariantProps['variant'],
+  className?: string,
+) {
   return cn(textVariants({ variant, className }));
 }

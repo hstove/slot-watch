@@ -30,3 +30,9 @@ export function versionFromData(data: string | null): string {
   }
   return '';
 }
+
+export function percentString(value: number) {
+  const percent = value * 10000;
+  const percentString = Math.round(percent) / 100;
+  return percentString.toString();
+}

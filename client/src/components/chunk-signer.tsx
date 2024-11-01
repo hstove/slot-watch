@@ -1,5 +1,6 @@
+import React from 'react';
 import { hex } from '@scure/base';
-import { memo, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   recoverChunkPublicKey,
   type ChunkEvent,
@@ -15,8 +16,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { colord, extend } from 'colord';
 import harmoniesPlugin from 'colord/plugins/harmonies';
-import React from 'react';
-import { getEntity } from '@/lib/local-signers';
+
+import { useEntity } from '@/hooks/use-entity';
 
 extend([harmoniesPlugin]);
 
@@ -32,9 +33,7 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
     });
     return pubKey.toHex();
   }, [chunk]);
-  const name = React.useMemo(() => {
-    return getEntity(pubKey);
-  }, [pubKey]);
+  const name = useEntity(pubKey);
   const hexCode = pubKey.slice(0, 6);
   const background = useMemo(() => {
     const text = colord(`#${hexCode}`);

@@ -9,14 +9,16 @@ import {
 export const SimpleTooltip = ({
   children,
   content,
+  triggerProps = {},
 }: {
   children: React.ReactNode;
   content: React.ReactNode;
+  triggerProps?: React.ComponentPropsWithoutRef<typeof TooltipTrigger>;
 }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>{children}</TooltipTrigger>
+        <TooltipTrigger {...triggerProps}>{children}</TooltipTrigger>
         <TooltipContent>{content}</TooltipContent>
       </Tooltip>
     </TooltipProvider>

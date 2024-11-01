@@ -1,52 +1,9 @@
-import type { ColumnDef, SortingColumn } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { knownSigners, type RecentSigner } from 'slot-watch-common';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
-import { useCopyToClipboard } from 'usehooks-ts';
-import { textVariants } from '@/lib/text-variants';
 import { TimeAgo } from '../time-ago';
 import { SimpleTooltip } from '../simple-tooltip';
-import { Button } from '../ui/button';
-import { ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { SortableHeader } from '../ui/data-table';
-import { cn } from '@/lib/utils';
-
-const PublicKeyCell = ({ publicKey }: { publicKey: string }) => {
-  const { toast } = useToast();
-  const [_, copy] = useCopyToClipboard();
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger
-          className="cursor-pointer"
-          onClick={() => {
-            copy(publicKey);
-            toast({
-              title: 'Copied to clipboard',
-            });
-          }}
-        >
-          <code
-            className={cn(
-              textVariants({ variant: 'code' }),
-              'max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip',
-            )}
-          >
-            {publicKey}
-          </code>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{publicKey}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
+import { PublicKey } from '../public-key';
 
 export const columns: ColumnDef<RecentSigner>[] = [
   {
@@ -67,7 +24,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     header: 'Public Key',
     // accessorKey: "publicKey",
     cell: ({ row }) => {
-      return <PublicKeyCell publicKey={row.original.publicKey} />;
+      return <PublicKey publicKey={row.original.publicKey} />;
     },
   },
   {
