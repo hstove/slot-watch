@@ -14,6 +14,7 @@ import { SimpleTooltip } from "../simple-tooltip";
 import { Button } from "../ui/button";
 import { ArrowDownIcon, ArrowUpIcon } from "@radix-ui/react-icons";
 import { SortableHeader } from "../ui/data-table";
+import { cn } from "@/lib/utils";
 
 const PublicKeyCell = ({ publicKey }: { publicKey: string }) => {
   const { toast } = useToast();
@@ -30,8 +31,13 @@ const PublicKeyCell = ({ publicKey }: { publicKey: string }) => {
             });
           }}
         >
-          <code className={textVariants({ variant: "code" })}>
-            {publicKey.slice(0, 8)}
+          <code
+            className={cn(
+              textVariants({ variant: "code" }),
+              "max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip"
+            )}
+          >
+            {publicKey}
           </code>
         </TooltipTrigger>
         <TooltipContent>
