@@ -5,7 +5,7 @@ const dbUrl =
   'postgresql://hankstoever@localhost:5432/slot_watch';
 
 export default defineConfig({
-  schema: './src/schema.ts',
+  schema: './src/db/schema.ts',
   out: './drizzle',
   dialect: 'postgresql', // 'postgresql' | 'mysql' | 'sqlite'
   dbCredentials: {
