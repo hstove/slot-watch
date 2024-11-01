@@ -1,21 +1,21 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { useChunksWatcher } from "@/hooks/use-websocket";
-import { WatcherRow } from "./watcher-row";
-import { useInView } from "react-intersection-observer";
-import useResizeObserver from "@react-hook/resize-observer";
-import { Button } from "../ui/button";
-import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { useAtomValue } from "jotai";
-import { networkIdAtom } from "@/store/network";
-import { allPayloadsAtomsAtom } from "@/store/chunks-store";
-import { StreamControls } from "./stream-controls";
+} from '@/components/ui/table';
+import { useChunksWatcher } from '@/hooks/use-websocket';
+import { WatcherRow } from './watcher-row';
+import { useInView } from 'react-intersection-observer';
+import useResizeObserver from '@react-hook/resize-observer';
+import { Button } from '../ui/button';
+import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { useAtomValue } from 'jotai';
+import { networkIdAtom } from '@/store/network';
+import { allPayloadsAtomsAtom } from '@/store/chunks-store';
+import { StreamControls } from './stream-controls';
 
 const WatcherTable = () => {
   const chunks = useAtomValue(allPayloadsAtomsAtom);
@@ -81,7 +81,7 @@ export const Watcher = () => {
   // biome-ignore lint/correctness/useExhaustiveDependencies(containerHeight):
   useEffect(() => {
     if (keepScrolled) {
-      endOfTableRef.current?.scrollIntoView({ behavior: "smooth" });
+      endOfTableRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [containerHeight, endOfTableRef, setLastHeight, keepScrolled]);
 
@@ -98,7 +98,7 @@ export const Watcher = () => {
               <TableHead>Type</TableHead>
               <TableHead>Block</TableHead>
               <TableHead>Signer</TableHead>
-              <TableHead className="text-right">{""}</TableHead>
+              <TableHead className="text-right">{''}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -112,7 +112,7 @@ export const Watcher = () => {
       <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
         <Button
           onClick={() => setKeepScrolled(!keepScrolled)}
-          variant={"outline"}
+          variant={'outline'}
         >
           {keepScrolled ? <CheckIcon /> : <Cross2Icon />}
           <span className="ml-2">Keep Scrolled</span>

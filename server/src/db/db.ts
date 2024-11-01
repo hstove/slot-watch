@@ -1,11 +1,11 @@
 // import { drizzle } from "drizzle-orm/node-postgres";
-import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
+import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
 // import { Client, Pool } from "pg";
-import postgres from "postgres";
+import postgres from 'postgres';
 
 const dbUrl =
-	process.env.DATABASE_URL ||
-	"postgresql://hankstoever@localhost:5432/slot_watch";
+  process.env.DATABASE_URL ||
+  'postgresql://hankstoever@localhost:5432/slot_watch';
 
 // const client = new Pool({
 // 	connectionString: dbUrl,

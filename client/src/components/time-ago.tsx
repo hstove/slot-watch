@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
-import React from "react";
+import { useMemo } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+import React from 'react';
 
 export interface TimeAgoProps extends React.HTMLAttributes<HTMLSpanElement> {
   date: string;
@@ -17,5 +17,5 @@ export const TimeAgo = React.forwardRef<HTMLSpanElement, TimeAgoProps>(
         {timeAgo}
       </span>
     );
-  }
+  },
 );

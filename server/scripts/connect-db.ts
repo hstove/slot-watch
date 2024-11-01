@@ -1,15 +1,15 @@
 // import { Client } from "pg";
-import pg from "pg";
-import postgres from "postgres";
-import dotenv from "dotenv";
+import pg from 'pg';
+import postgres from 'postgres';
+import dotenv from 'dotenv';
 dotenv.config();
 const { Client } = pg;
 
 const dbUrl =
-	process.env.DATABASE_URL ||
-	"postgresql://hankstoever@localhost:5432/slot_watch";
+  process.env.DATABASE_URL ||
+  'postgresql://hankstoever@localhost:5432/slot_watch';
 
-console.log("DB URL", dbUrl);
+console.log('DB URL', dbUrl);
 
 // const client = new Client({
 // 	// connectionString: "postgres://user:password@host:port/db",
@@ -17,12 +17,12 @@ console.log("DB URL", dbUrl);
 // });
 
 const client = new Client({
-	connectionTimeoutMillis: 10000,
-	connectionString: dbUrl,
+  connectionTimeoutMillis: 10000,
+  connectionString: dbUrl,
 });
 
 const sql = postgres(dbUrl, {
-	ssl: false,
+  ssl: false,
 });
 
 // try {

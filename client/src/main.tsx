@@ -1,22 +1,22 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { RecentSigners } from "./components/recent-signers/index.tsx";
-import { Watcher } from "./components/stream/watcher.tsx";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { RecentSigners } from './components/recent-signers/index.tsx';
+import { Watcher } from './components/stream/watcher.tsx';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <App />,
     children: [
       {
-        path: "/",
+        path: '/',
         element: <Watcher />,
       },
       {
-        path: "/recent-signers",
+        path: '/recent-signers',
         element: <RecentSigners />,
       },
     ],
@@ -24,8 +24,8 @@ const router = createBrowserRouter([
 ]);
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
+  </StrictMode>,
 );

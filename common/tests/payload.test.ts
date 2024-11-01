@@ -1,321 +1,321 @@
-process.on("warning", (warning) => {
-	console.log(warning.stack);
+process.on('warning', (warning) => {
+  console.log(warning.stack);
 });
-import { test, expect } from "vitest";
-import * as fixtures from "./fixtures";
-import { fixtureToJson } from "./parse-fixtures";
+import { test, expect } from 'vitest';
+import * as fixtures from './fixtures';
+import { fixtureToJson } from './parse-fixtures';
 import {
-	addressFromHashMode,
-	addressFromVersionHash,
-	addressToString,
-	AddressVersion,
-} from "@stacks/transactions";
-import { hex } from "@scure/base";
+  addressFromHashMode,
+  addressFromVersionHash,
+  addressToString,
+  AddressVersion,
+} from '@stacks/transactions';
+import { hex } from '@scure/base';
 import {
-	getPayloadContractId,
-	MockSignatureCoder,
-	type MockSignatureOld,
-	MockSignatureOldCoder,
-	SignerMessageTypePrefix,
-} from "../src";
+  getPayloadContractId,
+  MockSignatureCoder,
+  type MockSignatureOld,
+  MockSignatureOldCoder,
+  SignerMessageTypePrefix,
+} from '../src';
 import {
-	decodeChunk,
-	type BlockResponseAccepted,
-	type NakamotoBlock,
-	makeSignerSignatureHash,
-	type BlockPushed,
-	binaryString,
-	type ChunkEvent,
-	chunkAuthDigest,
-	recoverChunkPublicKey,
-	chunkTypeName,
-} from "../src";
-import * as P from "micro-packed";
+  decodeChunk,
+  type BlockResponseAccepted,
+  type NakamotoBlock,
+  makeSignerSignatureHash,
+  type BlockPushed,
+  binaryString,
+  type ChunkEvent,
+  chunkAuthDigest,
+  recoverChunkPublicKey,
+  chunkTypeName,
+} from '../src';
+import * as P from 'micro-packed';
 
-test("parse-fixtures", () => {
-	const payload = fixtureToJson(fixtures.signers1);
-	// console.log(payload);
-	// console.log(payload.contract_id);
-	const version =
-		payload.contract_id.issuer[0] === 26
-			? AddressVersion.TestnetSingleSig
-			: AddressVersion.MainnetSingleSig;
-	const address = addressFromVersionHash(
-		version,
-		hex.encode(new Uint8Array(payload.contract_id.issuer[1])),
-	);
-	// console.log(addressToString(address));
-	// console.log(getPayloadContractId(payload));
-	expect(getPayloadContractId(payload)).toEqual(
-		"ST000000000000000000002AMW42H.signers-1-1",
-	);
+test('parse-fixtures', () => {
+  const payload = fixtureToJson(fixtures.signers1);
+  // console.log(payload);
+  // console.log(payload.contract_id);
+  const version =
+    payload.contract_id.issuer[0] === 26
+      ? AddressVersion.TestnetSingleSig
+      : AddressVersion.MainnetSingleSig;
+  const address = addressFromVersionHash(
+    version,
+    hex.encode(new Uint8Array(payload.contract_id.issuer[1])),
+  );
+  // console.log(addressToString(address));
+  // console.log(getPayloadContractId(payload));
+  expect(getPayloadContractId(payload)).toEqual(
+    'ST000000000000000000002AMW42H.signers-1-1',
+  );
 });
 
-test("decode block response payload", () => {
-	const payload = fixtureToJson(fixtures.signers1);
-	for (const slot of payload.modified_slots) {
-		const data = hex.decode(slot.data);
-		const decoded = decodeChunk(data);
-		// console.log(decoded);
-	}
+test('decode block response payload', () => {
+  const payload = fixtureToJson(fixtures.signers1);
+  for (const slot of payload.modified_slots) {
+    const data = hex.decode(slot.data);
+    const decoded = decodeChunk(data);
+    // console.log(decoded);
+  }
 });
 
-test("get rejection payload", () => {
-	const payload = fixtureToJson(fixtures.signersReject);
-	for (const slot of payload.modified_slots) {
-		const data = hex.decode(slot.data);
-		const decoded = decodeChunk(data);
-		// console.log(decoded);
-	}
+test('get rejection payload', () => {
+  const payload = fixtureToJson(fixtures.signersReject);
+  for (const slot of payload.modified_slots) {
+    const data = hex.decode(slot.data);
+    const decoded = decodeChunk(data);
+    // console.log(decoded);
+  }
 });
 
-test("miners payload", () => {
-	const payload = fixtureToJson(fixtures.miners1);
-	for (const slot of payload.modified_slots) {
-		const data = hex.decode(slot.data);
-		const decoded = decodeChunk(data);
-		// console.log(decoded);
-		// console.log(makeSignerSignatureHash(decoded as NakamotoBlock));
-	}
-	const signersResponse = fixtureToJson(fixtures.signers1);
-	for (const slot of signersResponse.modified_slots) {
-		const data = hex.decode(slot.data);
-		const decoded = decodeChunk(data);
-		// console.log(decoded);
-		// console.log((decoded as BlockResponseAccepted).signerSignatureHash);
-	}
+test('miners payload', () => {
+  const payload = fixtureToJson(fixtures.miners1);
+  for (const slot of payload.modified_slots) {
+    const data = hex.decode(slot.data);
+    const decoded = decodeChunk(data);
+    // console.log(decoded);
+    // console.log(makeSignerSignatureHash(decoded as NakamotoBlock));
+  }
+  const signersResponse = fixtureToJson(fixtures.signers1);
+  for (const slot of signersResponse.modified_slots) {
+    const data = hex.decode(slot.data);
+    const decoded = decodeChunk(data);
+    // console.log(decoded);
+    // console.log((decoded as BlockResponseAccepted).signerSignatureHash);
+  }
 });
 
-test("block proposal fixture", async () => {
-	const messageHex =
-		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000010000000000afbcfa26acafaa29a3e73ecee6bb07c8";
-	const message = decodeChunk(hex.decode(messageHex));
-	if (message.typeId !== SignerMessageTypePrefix.BlockProposal) {
-		throw new Error("Invalid type id");
-	}
-	const signerSignatureHash = makeSignerSignatureHash(message as NakamotoBlock);
-	expect(hex.encode(signerSignatureHash)).toEqual(
-		"ced4ed4e61eef9b2859ae1053bc5df414e7b3a901c927107ea7c66d1a81a7f28",
-	);
-	expect(message.txCount).toEqual(0);
+test('block proposal fixture', async () => {
+  const messageHex =
+    '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000010000000000afbcfa26acafaa29a3e73ecee6bb07c8';
+  const message = decodeChunk(hex.decode(messageHex));
+  if (message.typeId !== SignerMessageTypePrefix.BlockProposal) {
+    throw new Error('Invalid type id');
+  }
+  const signerSignatureHash = makeSignerSignatureHash(message as NakamotoBlock);
+  expect(hex.encode(signerSignatureHash)).toEqual(
+    'ced4ed4e61eef9b2859ae1053bc5df414e7b3a901c927107ea7c66d1a81a7f28',
+  );
+  expect(message.txCount).toEqual(0);
 });
 
-test("decoding", () => {
-	const chunkData =
-		"01008058e991f5255b43078efd1d5ab4c05fbbd6520e37fc6b4feb51870602bb24c50172238b998b6467c0dfc28ee48319526f98ee1fd6077ad9b53a64d116525ccdc919132fdcb9d43777504ad807e4d16514a942b3a0cf6b66551350a8d030169be6";
-	const decoded = decodeChunk(hex.decode(chunkData));
-	// console.log(decoded);
+test('decoding', () => {
+  const chunkData =
+    '01008058e991f5255b43078efd1d5ab4c05fbbd6520e37fc6b4feb51870602bb24c50172238b998b6467c0dfc28ee48319526f98ee1fd6077ad9b53a64d116525ccdc919132fdcb9d43777504ad807e4d16514a942b3a0cf6b66551350a8d030169be6';
+  const decoded = decodeChunk(hex.decode(chunkData));
+  // console.log(decoded);
 });
 
-test("signature hashing", async () => {
-	const proposalHex =
-		"0000000000000001247700000001d6841e30f2142481aae594961e8320efe6b8ec428b7e066f76d2b170a3fd900782f7eee04f06e76991971aa7f186bdcefa1ece5f3fec44c4a7e413dfb97ff858472e4a1f86caa283437bf9f2ba6d8a7a7a6346923f31851ed9c350144609c2781a539dff68e4ebb60c4277d3026ee65500fcb83f6ad7551b0000000066f9c1980118c4760cbc18e8c5454af95a06c5f93de28fa48e8c265c70713b0fa3e320150741ab0018c23f1e10aadc3f3f74c0ec28d1f378fb379960cfab6e7a624c8d7a8e00000000063d000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1f0000000180800000000400e959844d85de7954970675332446df1c5a54419c0000000000000900000000000000012c0001b7d22aae49bc34b0dd8f747ccd26a5befac5f4f2f5b9fa45c4504a89fa18946271419a03dae49d73ed4aac7beccb05850a89c4ae16027e02df6a20b55559418503020000000000051a08825323da99657d20e45820f6e7d1baaab3632000000000000003e8000000000000000000000000000000000000000000000000000000000000000000000000000000011eb30000000000000051";
-	const proposal = decodeChunk(hex.decode(proposalHex));
-	if (proposal.typeId !== SignerMessageTypePrefix.BlockProposal) {
-		throw new Error("Invalid type id");
-	}
-	expect(proposal.txCount).toEqual(1);
-	const responseHex =
-		"010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e8";
-	const response = decodeChunk(hex.decode(responseHex));
-	// console.log(response);
-	const proposalHash = makeSignerSignatureHash(proposal as NakamotoBlock);
-	// console.log(hex.encode(proposalHash));
-	// console.log(
-	// 	hex.encode((response as BlockResponseAccepted).signerSignatureHash),
-	// );
-	expect(hex.encode(proposalHash)).toEqual(
-		hex.encode((response as BlockResponseAccepted).signerSignatureHash),
-	);
+test('signature hashing', async () => {
+  const proposalHex =
+    '0000000000000001247700000001d6841e30f2142481aae594961e8320efe6b8ec428b7e066f76d2b170a3fd900782f7eee04f06e76991971aa7f186bdcefa1ece5f3fec44c4a7e413dfb97ff858472e4a1f86caa283437bf9f2ba6d8a7a7a6346923f31851ed9c350144609c2781a539dff68e4ebb60c4277d3026ee65500fcb83f6ad7551b0000000066f9c1980118c4760cbc18e8c5454af95a06c5f93de28fa48e8c265c70713b0fa3e320150741ab0018c23f1e10aadc3f3f74c0ec28d1f378fb379960cfab6e7a624c8d7a8e00000000063d000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1f0000000180800000000400e959844d85de7954970675332446df1c5a54419c0000000000000900000000000000012c0001b7d22aae49bc34b0dd8f747ccd26a5befac5f4f2f5b9fa45c4504a89fa18946271419a03dae49d73ed4aac7beccb05850a89c4ae16027e02df6a20b55559418503020000000000051a08825323da99657d20e45820f6e7d1baaab3632000000000000003e8000000000000000000000000000000000000000000000000000000000000000000000000000000011eb30000000000000051';
+  const proposal = decodeChunk(hex.decode(proposalHex));
+  if (proposal.typeId !== SignerMessageTypePrefix.BlockProposal) {
+    throw new Error('Invalid type id');
+  }
+  expect(proposal.txCount).toEqual(1);
+  const responseHex =
+    '010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e8';
+  const response = decodeChunk(hex.decode(responseHex));
+  // console.log(response);
+  const proposalHash = makeSignerSignatureHash(proposal as NakamotoBlock);
+  // console.log(hex.encode(proposalHash));
+  // console.log(
+  // 	hex.encode((response as BlockResponseAccepted).signerSignatureHash),
+  // );
+  expect(hex.encode(proposalHash)).toEqual(
+    hex.encode((response as BlockResponseAccepted).signerSignatureHash),
+  );
 });
 
-test("rejection parsing", () => {
-	const payload = decodeChunk(
-		hex.decode(
-			"01010000004654686520626c6f636b207761732072656a65637465642064756520746f2061206d69736d61746368207769746820657870656374656420736f72746974696f6e20766965772e04534480f316913655629e3986637e5e1ea083dca1be98dfdd0d21ac0384d88a0e800000000158245645958d7a9422d634c4b5b5ae07f153775f07914d972d5ceee5e73a9d951a3ed7e89ea402103f58c2432a088043ceb8ba2d83001a8dcdb7991829d239fa",
-		),
-	);
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	expect((payload as any).validationCode).toEqual(undefined);
+test('rejection parsing', () => {
+  const payload = decodeChunk(
+    hex.decode(
+      '01010000004654686520626c6f636b207761732072656a65637465642064756520746f2061206d69736d61746368207769746820657870656374656420736f72746974696f6e20766965772e04534480f316913655629e3986637e5e1ea083dca1be98dfdd0d21ac0384d88a0e800000000158245645958d7a9422d634c4b5b5ae07f153775f07914d972d5ceee5e73a9d951a3ed7e89ea402103f58c2432a088043ceb8ba2d83001a8dcdb7991829d239fa',
+    ),
+  );
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  expect((payload as any).validationCode).toEqual(undefined);
 });
 
-test("another rejection payload", () => {
-	const payload = decodeChunk(
-		hex.decode(
-			"010100000038426c6f636b206973206e6f7420686967686572207468616e20746865206869676865737420626c6f636b20696e206974732074656e7572650002c7239e6150054022bebe334b4010bfdef5f2e14fb5e437f3b4a8f7c71e0c833f8000000001da4afd21645dced50eb27395a0bc28cf2d1cb14a19feb1ff4d01d998aeecadca60abb442f3a57b5bfc015b9f964990f2a9f3464924ac24225811c0a96217010e",
-		),
-	);
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	expect((payload as any).validationCode).toEqual(2);
+test('another rejection payload', () => {
+  const payload = decodeChunk(
+    hex.decode(
+      '010100000038426c6f636b206973206e6f7420686967686572207468616e20746865206869676865737420626c6f636b20696e206974732074656e7572650002c7239e6150054022bebe334b4010bfdef5f2e14fb5e437f3b4a8f7c71e0c833f8000000001da4afd21645dced50eb27395a0bc28cf2d1cb14a19feb1ff4d01d998aeecadca60abb442f3a57b5bfc015b9f964990f2a9f3464924ac24225811c0a96217010e',
+    ),
+  );
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  expect((payload as any).validationCode).toEqual(2);
 });
 
-test("another rejection", () => {
-	const payload = decodeChunk(
-		hex.decode(
-			"010100000050426c6f636b206973206e6f7420612074656e7572652d737461727420626c6f636b2c20616e642068617320616e20756e7265636f676e697a65642074656e75726520636f6e73656e7375732068617368000691f95f84b7045f7dce7757052caa986ef042cb58f7df5031a3b5b5d0e3dda63e80000000006fb349212e1a1af1a3c712878d5159b5ec14636adb6f70be00a6da4ad4f88a9934d8a9abb229620dd8e0f225d63401e36c64817fb29e6c05591dcbe95c512df3",
-		),
-	);
-	// console.log(payload);
+test('another rejection', () => {
+  const payload = decodeChunk(
+    hex.decode(
+      '010100000050426c6f636b206973206e6f7420612074656e7572652d737461727420626c6f636b2c20616e642068617320616e20756e7265636f676e697a65642074656e75726520636f6e73656e7375732068617368000691f95f84b7045f7dce7757052caa986ef042cb58f7df5031a3b5b5d0e3dda63e80000000006fb349212e1a1af1a3c712878d5159b5ec14636adb6f70be00a6da4ad4f88a9934d8a9abb229620dd8e0f225d63401e36c64817fb29e6c05591dcbe95c512df3',
+    ),
+  );
+  // console.log(payload);
 });
 
-test("block pushed", () => {
-	const hexStr =
-		"02000000000000013f2500000001d966a4b0e1b02d867a3873b7be86271a2b21fd2c439d2945e42ffb681bc3bc1ba1b0e0973166ef3558f76af63b9dcf6b8dbd9a47ae1ab7d03d0471d2fa025db5e5a45423331d6da561ccd10536624db9f88839a1fbe61184ff290d813a5633e270aff20e7fdbce928dcd39b5c3daf9959f715211f0bb0bf00000000066fb165301200ee096a1be28ec9dfb23a34d0395da0027d3e5f757c2cbe976e004351c9a0e1b718159635b76976be13e90c11e714d493eacc68b678018f68bafe358915f8c00000003014f8f1f95b7f6080af1afdf5c5b107d09c82403d19dd3e0c41ad800c91ff92a5e5f6179b86977d07e96235eaad2a06e6af19b07352e2326d0b4d4ebe2eecd909501a3a406c35904d4b69fc64c8ecf1c9521bf96ed4362d2938f4dfaf975aadf5c8813b8f69c2e205d646ed991cad024a8eb33516cf85d3fac968452aae77a131431019d5c077e46c6c2d35eba8d9f905ba1ee6bb84a9c32581da596630e09cd80c6d903484fe4b9f046f1321076efc6fc975af5c87e39eeab19e81ec3ca6d68d320e2063d000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1f00000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e400000000000011a0000000000000012c0001478fb516b6dd7629a8a7848250b3be06f3d3520877a3a3ec9e7a558855f172713c5e46ce17c0cbb1245411fa6a0d1c49b0aa128342231924500b7fadf00bd5fc03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000";
-	const payload = decodeChunk(hex.decode(hexStr));
-	if (payload.typeId !== SignerMessageTypePrefix.BlockPushed) {
-		throw new Error("Invalid type id");
-	}
-	expect(payload.txCount).toEqual(1);
-	// console.log(payload);
-	// // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	// console.log(Array.isArray((payload as any).signerSignature));
+test('block pushed', () => {
+  const hexStr =
+    '02000000000000013f2500000001d966a4b0e1b02d867a3873b7be86271a2b21fd2c439d2945e42ffb681bc3bc1ba1b0e0973166ef3558f76af63b9dcf6b8dbd9a47ae1ab7d03d0471d2fa025db5e5a45423331d6da561ccd10536624db9f88839a1fbe61184ff290d813a5633e270aff20e7fdbce928dcd39b5c3daf9959f715211f0bb0bf00000000066fb165301200ee096a1be28ec9dfb23a34d0395da0027d3e5f757c2cbe976e004351c9a0e1b718159635b76976be13e90c11e714d493eacc68b678018f68bafe358915f8c00000003014f8f1f95b7f6080af1afdf5c5b107d09c82403d19dd3e0c41ad800c91ff92a5e5f6179b86977d07e96235eaad2a06e6af19b07352e2326d0b4d4ebe2eecd909501a3a406c35904d4b69fc64c8ecf1c9521bf96ed4362d2938f4dfaf975aadf5c8813b8f69c2e205d646ed991cad024a8eb33516cf85d3fac968452aae77a131431019d5c077e46c6c2d35eba8d9f905ba1ee6bb84a9c32581da596630e09cd80c6d903484fe4b9f046f1321076efc6fc975af5c87e39eeab19e81ec3ca6d68d320e2063d000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1f00000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e400000000000011a0000000000000012c0001478fb516b6dd7629a8a7848250b3be06f3d3520877a3a3ec9e7a558855f172713c5e46ce17c0cbb1245411fa6a0d1c49b0aa128342231924500b7fadf00bd5fc03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000';
+  const payload = decodeChunk(hex.decode(hexStr));
+  if (payload.typeId !== SignerMessageTypePrefix.BlockPushed) {
+    throw new Error('Invalid type id');
+  }
+  expect(payload.txCount).toEqual(1);
+  // console.log(payload);
+  // // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // console.log(Array.isArray((payload as any).signerSignature));
 });
 
-test("bitvec from block pushed", () => {
-	const hexStr =
-		"0200000000000001895c00000001e60f9c30d41040200b1748a525a4923d2c86ba579ce5ab6397577cd52c76347038ca4b2e9be20e6bd50f117714cf40491d79e35d0caf2de9b07a8e594f0d75018bd67a2c416a2c555359a82e51ad0f237d8816469602b38af8d902fc0690b3760191e18f0a53204455e9b2327c863543c0bf20f696081fe5000000006700845b00e8d7fb30c98896536cb6c66cceed8d5bc3e90976cf24e0599cc3a7983a7284741e645fee317934b604f27cfa5980259c44d27578c832cd98b9a6eaaebf09806900000004007eb8786d17c2704d1e3e22b7ae0a7120424cc296ddbb3e3ce1bfcd49999c132143595832a028f8418638843413d8bfde177d6b0a2a44255050c278e4fc007aea009f4279b460fb5dc4df3c00e673bb208b903e3f1d42a1ef76b580ea41b8542665786ef651f4d326b194eb91985a064eb2fb30ed1ce07eb7b354247c8ada8d80eb015b06553a7ebe53d64e62f8b1114bf5c1ec5c1ba53ef647685c849ee83f4938c30eec013ac1687745efe0a59b42904a7dbf96c3614c080c44d0761379c0ea173a01e571c31078d7c2da5741c31a13dde439f0e179156b570586da34e2b7bc2e8fba262b0af0f1cbee9f60724a64e93e56d950a31f856abfb948f51a91362931acfe063b000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0700000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e4000000000000293f000000000000012c000190a3c5ac010dab9c6e0fd86301f8c16d5f0192b29dd91aa87fe8e2e08af9303c51e64015da24bb2f8296e44a8ca2b237c03b89a9059e48fab5e5d93d37af1d6f03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000";
-	const payload = decodeChunk(hex.decode(hexStr));
-	const bitvec = (payload as BlockPushed).bitvec;
-	const expected = {
-		data: [
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-			255, 255, 255, 255, 7,
-		],
-		len: 1595,
-	};
-	const binary = binaryString(bitvec);
-	expect(bitvec.bytes).toStrictEqual(new Uint8Array(expected.data));
-	// expect(bitvec.bytes).toEqual(expected.data);
-	expect(bitvec.length).toEqual(expected.len);
-	expect(binary).toEqual(
-		"11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-	);
+test('bitvec from block pushed', () => {
+  const hexStr =
+    '0200000000000001895c00000001e60f9c30d41040200b1748a525a4923d2c86ba579ce5ab6397577cd52c76347038ca4b2e9be20e6bd50f117714cf40491d79e35d0caf2de9b07a8e594f0d75018bd67a2c416a2c555359a82e51ad0f237d8816469602b38af8d902fc0690b3760191e18f0a53204455e9b2327c863543c0bf20f696081fe5000000006700845b00e8d7fb30c98896536cb6c66cceed8d5bc3e90976cf24e0599cc3a7983a7284741e645fee317934b604f27cfa5980259c44d27578c832cd98b9a6eaaebf09806900000004007eb8786d17c2704d1e3e22b7ae0a7120424cc296ddbb3e3ce1bfcd49999c132143595832a028f8418638843413d8bfde177d6b0a2a44255050c278e4fc007aea009f4279b460fb5dc4df3c00e673bb208b903e3f1d42a1ef76b580ea41b8542665786ef651f4d326b194eb91985a064eb2fb30ed1ce07eb7b354247c8ada8d80eb015b06553a7ebe53d64e62f8b1114bf5c1ec5c1ba53ef647685c849ee83f4938c30eec013ac1687745efe0a59b42904a7dbf96c3614c080c44d0761379c0ea173a01e571c31078d7c2da5741c31a13dde439f0e179156b570586da34e2b7bc2e8fba262b0af0f1cbee9f60724a64e93e56d950a31f856abfb948f51a91362931acfe063b000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0700000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e4000000000000293f000000000000012c000190a3c5ac010dab9c6e0fd86301f8c16d5f0192b29dd91aa87fe8e2e08af9303c51e64015da24bb2f8296e44a8ca2b237c03b89a9059e48fab5e5d93d37af1d6f03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000';
+  const payload = decodeChunk(hex.decode(hexStr));
+  const bitvec = (payload as BlockPushed).bitvec;
+  const expected = {
+    data: [
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 7,
+    ],
+    len: 1595,
+  };
+  const binary = binaryString(bitvec);
+  expect(bitvec.bytes).toStrictEqual(new Uint8Array(expected.data));
+  // expect(bitvec.bytes).toEqual(expected.data);
+  expect(bitvec.length).toEqual(expected.len);
+  expect(binary).toEqual(
+    '11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111',
+  );
 });
 
-test("chunk data hash", () => {
-	const authDigest = chunkAuthDigest({
-		data: new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-		slotId: 2,
-		version: 1,
-	});
-	expect(hex.encode(authDigest)).toEqual(
-		"7658387acd2716487e94b0ea6c3a251ceeec3c8bb63bf7b019f8c27d4b9e64ff",
-	);
+test('chunk data hash', () => {
+  const authDigest = chunkAuthDigest({
+    data: new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    slotId: 2,
+    version: 1,
+  });
+  expect(hex.encode(authDigest)).toEqual(
+    '7658387acd2716487e94b0ea6c3a251ceeec3c8bb63bf7b019f8c27d4b9e64ff',
+  );
 });
 
-test("recovering public key", () => {
-	const pubkey = recoverChunkPublicKey({
-		data: hex.decode(
-			"0100c5955eb491c3f924b5063a3eeed5b6d1084d4395d8a358fbe8ffa21b3e26407500161b182cdf8352e2891503b862a481ede06577f2e2b041afda418bddf0f46b7c05b3ff53e58933c302aa706a386a9b2d2ee2c694c08916236f7abe681a8488c0",
-		),
-		slotId: 2,
-		version: 9378,
-		signature: hex.decode(
-			"00b278daa9912a671f51d468fda097dcb6e698891beae187d15188474f0dee69e836c0e9bb4a4fa0512f2e0167fd7321f35a5c18acb5695a40ffd47999ce85e429",
-		),
-	});
-	expect(pubkey.toHex()).toEqual(
-		"03157271cca37f5ebb4147aad30538fb4b33392ec1cc7161de5f815e29d5146041",
-	);
+test('recovering public key', () => {
+  const pubkey = recoverChunkPublicKey({
+    data: hex.decode(
+      '0100c5955eb491c3f924b5063a3eeed5b6d1084d4395d8a358fbe8ffa21b3e26407500161b182cdf8352e2891503b862a481ede06577f2e2b041afda418bddf0f46b7c05b3ff53e58933c302aa706a386a9b2d2ee2c694c08916236f7abe681a8488c0',
+    ),
+    slotId: 2,
+    version: 9378,
+    signature: hex.decode(
+      '00b278daa9912a671f51d468fda097dcb6e698891beae187d15188474f0dee69e836c0e9bb4a4fa0512f2e0167fd7321f35a5c18acb5695a40ffd47999ce85e429',
+    ),
+  });
+  expect(pubkey.toHex()).toEqual(
+    '03157271cca37f5ebb4147aad30538fb4b33392ec1cc7161de5f815e29d5146041',
+  );
 });
 
-test.skip("bad block response test", async () => {
-	const payloadStr =
-		"01010000003054686520626c6f636b207761732072656a65637465642064756520746f206e6f20736f72746974696f6e20766965772e03fed12577663acaa5c847773494f64cbcf7a22867d6eab4bfe9665a7e65bfa444";
-	const payload = decodeChunk(hex.decode(payloadStr));
-	// console.log(payload);
+test.skip('bad block response test', async () => {
+  const payloadStr =
+    '01010000003054686520626c6f636b207761732072656a65637465642064756520746f206e6f20736f72746974696f6e20766965772e03fed12577663acaa5c847773494f64cbcf7a22867d6eab4bfe9665a7e65bfa444';
+  const payload = decodeChunk(hex.decode(payloadStr));
+  // console.log(payload);
 });
 
-test("block pushed transactions", () => {
-	const hexStr =
-		"0200000000000001895c00000001e60f9c30d41040200b1748a525a4923d2c86ba579ce5ab6397577cd52c76347038ca4b2e9be20e6bd50f117714cf40491d79e35d0caf2de9b07a8e594f0d75018bd67a2c416a2c555359a82e51ad0f237d8816469602b38af8d902fc0690b3760191e18f0a53204455e9b2327c863543c0bf20f696081fe5000000006700845b00e8d7fb30c98896536cb6c66cceed8d5bc3e90976cf24e0599cc3a7983a7284741e645fee317934b604f27cfa5980259c44d27578c832cd98b9a6eaaebf09806900000004007eb8786d17c2704d1e3e22b7ae0a7120424cc296ddbb3e3ce1bfcd49999c132143595832a028f8418638843413d8bfde177d6b0a2a44255050c278e4fc007aea009f4279b460fb5dc4df3c00e673bb208b903e3f1d42a1ef76b580ea41b8542665786ef651f4d326b194eb91985a064eb2fb30ed1ce07eb7b354247c8ada8d80eb015b06553a7ebe53d64e62f8b1114bf5c1ec5c1ba53ef647685c849ee83f4938c30eec013ac1687745efe0a59b42904a7dbf96c3614c080c44d0761379c0ea173a01e571c31078d7c2da5741c31a13dde439f0e179156b570586da34e2b7bc2e8fba262b0af0f1cbee9f60724a64e93e56d950a31f856abfb948f51a91362931acfe063b000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0700000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e4000000000000293f000000000000012c000190a3c5ac010dab9c6e0fd86301f8c16d5f0192b29dd91aa87fe8e2e08af9303c51e64015da24bb2f8296e44a8ca2b237c03b89a9059e48fab5e5d93d37af1d6f03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000";
-	const decoded = decodeChunk(hex.decode(hexStr));
-	// console.log(decoded);
+test('block pushed transactions', () => {
+  const hexStr =
+    '0200000000000001895c00000001e60f9c30d41040200b1748a525a4923d2c86ba579ce5ab6397577cd52c76347038ca4b2e9be20e6bd50f117714cf40491d79e35d0caf2de9b07a8e594f0d75018bd67a2c416a2c555359a82e51ad0f237d8816469602b38af8d902fc0690b3760191e18f0a53204455e9b2327c863543c0bf20f696081fe5000000006700845b00e8d7fb30c98896536cb6c66cceed8d5bc3e90976cf24e0599cc3a7983a7284741e645fee317934b604f27cfa5980259c44d27578c832cd98b9a6eaaebf09806900000004007eb8786d17c2704d1e3e22b7ae0a7120424cc296ddbb3e3ce1bfcd49999c132143595832a028f8418638843413d8bfde177d6b0a2a44255050c278e4fc007aea009f4279b460fb5dc4df3c00e673bb208b903e3f1d42a1ef76b580ea41b8542665786ef651f4d326b194eb91985a064eb2fb30ed1ce07eb7b354247c8ada8d80eb015b06553a7ebe53d64e62f8b1114bf5c1ec5c1ba53ef647685c849ee83f4938c30eec013ac1687745efe0a59b42904a7dbf96c3614c080c44d0761379c0ea173a01e571c31078d7c2da5741c31a13dde439f0e179156b570586da34e2b7bc2e8fba262b0af0f1cbee9f60724a64e93e56d950a31f856abfb948f51a91362931acfe063b000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0700000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e4000000000000293f000000000000012c000190a3c5ac010dab9c6e0fd86301f8c16d5f0192b29dd91aa87fe8e2e08af9303c51e64015da24bb2f8296e44a8ca2b237c03b89a9059e48fab5e5d93d37af1d6f03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  // console.log(decoded);
 });
 
-test("block pushed with multiple tx", () => {
-	const hexStr =
-		"0200000000000000f325000000004f190600361d6daddbce4853eb83a06ec2dd4a1bf4cf5085644f8f73c8796fb49dc8776bb854c02c55be402ed610d53729dbb8033a90f5f37880a891ac15058c58d443a6fb099fbcec496d1203488aeed4ba13494b3d03661c144bbfe43c49145be6de02ea416ae9531bfc3ac398e86f9d7fa330dbf8afc200000000670eac770161e5fca4f3243eb02214dbb314cc64dd2e8877b8351da56eabeb5d1894f1e59964e6a882658529aa9a7ceff1957bf3bbabfdf26d654946966056fc5cbb0f9a8200000004008de1c54241289b6d0173aa8194264b6430b25f118b03e494e0c4ff69b3472ac9329e144f2e9e58e4e749f5113ca0559e176a05a06178c15cf99770440d81c13d018c8a136b8df6673646d8f5b5e9e16bbfc53da121dcf4de6ee719ec61880bb2cf19ed1306506426c417a5342aee9299a6ba47ba94edf236ea050c848af8ccd3750037fd07bd9722c5311540b191de527c865bb0182c21af922127cd212943bfff3706c8b7848394bd520bbc3e9ca0b9fdf4dbe3ed926c76d77a98ea3ca9b2725dbe00483c2c06a98d71513ee5594f30145f81a995d689e54e450dd3bb5fb39f3b20b867577f682aad936e2f7f8949ab26d8e9683c6c970bb2846620c9309eb151085c00550000000bffffffffffffffffffff1f00000002808000000004005d23a53723a45085f64b0f2385d95112205e5b3b0000000000000064000000000000017200008a7fac931dd8b826099e5e7ba79505c6618c50bafdf2aa49ca724863cc70a03f5e7f53deb11c751676f587ccb5c11994f420341763741517625f4a95db3d45b2030100000000021a5d23a53723a45085f64b0f2385d95112205e5b3b086d61726b6574313311636c61696d2d6c702d77696e6e696e677300000001010000000000000000000000000000000180800000000400841f9b4dd30ae02fd816cc225c59d1b00b9c3a3a00000000000012a7000000000000012c00009f5efbd298f9bdc63f3335015b0deb21e08acc201c4c42940a745078e67ebfec4801144a387ef174512bf23a47c5c7a72c7a0cea818f98f8ae8ce942ce06046303020000000000051ab4fdae98b64b9cd6c9436f3b965558966afe890b00000000000003e800000000000000000000000000000000000000000000000000000000000000000000";
-	const decoded = decodeChunk(hex.decode(hexStr));
-	if (decoded.typeId !== SignerMessageTypePrefix.BlockPushed) {
-		throw new Error("Invalid type id");
-	}
-	expect(decoded.txCount).toEqual(2);
-	// console.log(decoded);
+test('block pushed with multiple tx', () => {
+  const hexStr =
+    '0200000000000000f325000000004f190600361d6daddbce4853eb83a06ec2dd4a1bf4cf5085644f8f73c8796fb49dc8776bb854c02c55be402ed610d53729dbb8033a90f5f37880a891ac15058c58d443a6fb099fbcec496d1203488aeed4ba13494b3d03661c144bbfe43c49145be6de02ea416ae9531bfc3ac398e86f9d7fa330dbf8afc200000000670eac770161e5fca4f3243eb02214dbb314cc64dd2e8877b8351da56eabeb5d1894f1e59964e6a882658529aa9a7ceff1957bf3bbabfdf26d654946966056fc5cbb0f9a8200000004008de1c54241289b6d0173aa8194264b6430b25f118b03e494e0c4ff69b3472ac9329e144f2e9e58e4e749f5113ca0559e176a05a06178c15cf99770440d81c13d018c8a136b8df6673646d8f5b5e9e16bbfc53da121dcf4de6ee719ec61880bb2cf19ed1306506426c417a5342aee9299a6ba47ba94edf236ea050c848af8ccd3750037fd07bd9722c5311540b191de527c865bb0182c21af922127cd212943bfff3706c8b7848394bd520bbc3e9ca0b9fdf4dbe3ed926c76d77a98ea3ca9b2725dbe00483c2c06a98d71513ee5594f30145f81a995d689e54e450dd3bb5fb39f3b20b867577f682aad936e2f7f8949ab26d8e9683c6c970bb2846620c9309eb151085c00550000000bffffffffffffffffffff1f00000002808000000004005d23a53723a45085f64b0f2385d95112205e5b3b0000000000000064000000000000017200008a7fac931dd8b826099e5e7ba79505c6618c50bafdf2aa49ca724863cc70a03f5e7f53deb11c751676f587ccb5c11994f420341763741517625f4a95db3d45b2030100000000021a5d23a53723a45085f64b0f2385d95112205e5b3b086d61726b6574313311636c61696d2d6c702d77696e6e696e677300000001010000000000000000000000000000000180800000000400841f9b4dd30ae02fd816cc225c59d1b00b9c3a3a00000000000012a7000000000000012c00009f5efbd298f9bdc63f3335015b0deb21e08acc201c4c42940a745078e67ebfec4801144a387ef174512bf23a47c5c7a72c7a0cea818f98f8ae8ce942ce06046303020000000000051ab4fdae98b64b9cd6c9436f3b965558966afe890b00000000000003e800000000000000000000000000000000000000000000000000000000000000000000';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.BlockPushed) {
+    throw new Error('Invalid type id');
+  }
+  expect(decoded.txCount).toEqual(2);
+  // console.log(decoded);
 });
 
-test("mock signature", () => {
-	const hexStr =
-		"0400a5af1d1003c13583c5b3a53d69236ed9ef2d6c74bb2be6d65412db49aab52e436f7b2faa7d6daff56aa65d701746e29920a0f568cbf67a8e9b150b7fad09a03a0000000000000758dd28bed7dcfb3e61e6b484ab720dfaa96024545912d7e3142b226ffeee78909686cfe3ced246b1c9c3f497ac5a0a092d8bcbc7ca000000000000015b79737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534663837633664643761346330336436663734626165353337313634323130633530372c2072656c65617365206275696c642c206c696e7578205b7838365f36345d2945f654d60c0c30b4b400e9d0812901bc541638e2800001000165609e6c8407663463957aca91a61b0bbc8db717349ccdd3f27c2c21733eb9ba4df01616cab97c2a11d4f603354ca4241399f605bf9a85b3da82fa04fa98af5d";
-	// const decoded = decodeChunk(hex.decode(hexStr));
-	// console.log(decoded);
-	const mockSig = MockSignatureCoder.decode(hex.decode(hexStr));
-	expect(mockSig.proposal.stacksHeight).toEqual(347n);
+test('mock signature', () => {
+  const hexStr =
+    '0400a5af1d1003c13583c5b3a53d69236ed9ef2d6c74bb2be6d65412db49aab52e436f7b2faa7d6daff56aa65d701746e29920a0f568cbf67a8e9b150b7fad09a03a0000000000000758dd28bed7dcfb3e61e6b484ab720dfaa96024545912d7e3142b226ffeee78909686cfe3ced246b1c9c3f497ac5a0a092d8bcbc7ca000000000000015b79737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534663837633664643761346330336436663734626165353337313634323130633530372c2072656c65617365206275696c642c206c696e7578205b7838365f36345d2945f654d60c0c30b4b400e9d0812901bc541638e2800001000165609e6c8407663463957aca91a61b0bbc8db717349ccdd3f27c2c21733eb9ba4df01616cab97c2a11d4f603354ca4241399f605bf9a85b3da82fa04fa98af5d';
+  // const decoded = decodeChunk(hex.decode(hexStr));
+  // console.log(decoded);
+  const mockSig = MockSignatureCoder.decode(hex.decode(hexStr));
+  expect(mockSig.proposal.stacksHeight).toEqual(347n);
 });
 
-test("mock block", () => {
-	const hexStr =
-		"05000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c00000005018da3fb7b7478cea863b0d5a8c2613bd37a888879bb4dae80e8d3bd433dbaf4047b342d64968ade009678218a169315f05d7ef616385f27b1039e266928479904000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c01d09a1938fd740d8bbd00de707c3a2989a7284037c007d51073176c3810f37a627ad8c8778ed478b3e4446645333dec7f203849f9bf1646468839c8a92e5e4186000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c00fb8c9c07a3245429496360c5a2984fb470685ddf3265091e09f09cce963649dd467c1c49aa11bd5a2f49d5a4baa214a1dff63f4e293937e89c1ba7215f02d80b000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c008820998906cfe469d6b2943b5e0082b88ff10d25f2eb2e25707e1fa613da6b90363b165a9bbd35d3e1b209cbab720271c4c5a259b6d7f281ae0b3bbae70992b0000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c01b9f4ae34ef1b14f695b5e5433d6691b2ce06e13b2cc7c220b02b230f85bf7e9b1b69758f24276c9a3df2a04a6942f2b1051bf32100dc9539214dd75025a85e72000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c";
-	const decoded = decodeChunk(hex.decode(hexStr));
-	if (decoded.typeId !== SignerMessageTypePrefix.MockBlock) {
-		throw new Error("Invalid type id");
-	}
-	expect(decoded.proposal.stacksHeight).toEqual(353n);
-	// console.log(decoded.rest);
+test('mock block', () => {
+  const hexStr =
+    '05000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c00000005018da3fb7b7478cea863b0d5a8c2613bd37a888879bb4dae80e8d3bd433dbaf4047b342d64968ade009678218a169315f05d7ef616385f27b1039e266928479904000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c01d09a1938fd740d8bbd00de707c3a2989a7284037c007d51073176c3810f37a627ad8c8778ed478b3e4446645333dec7f203849f9bf1646468839c8a92e5e4186000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c00fb8c9c07a3245429496360c5a2984fb470685ddf3265091e09f09cce963649dd467c1c49aa11bd5a2f49d5a4baa214a1dff63f4e293937e89c1ba7215f02d80b000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c008820998906cfe469d6b2943b5e0082b88ff10d25f2eb2e25707e1fa613da6b90363b165a9bbd35d3e1b209cbab720271c4c5a259b6d7f281ae0b3bbae70992b0000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c01b9f4ae34ef1b14f695b5e5433d6691b2ce06e13b2cc7c220b02b230f85bf7e9b1b69758f24276c9a3df2a04a6942f2b1051bf32100dc9539214dd75025a85e72000000000000075eeb126fcc1fd3e2c1c2ec42d2b479bc7aadb9d72d2b882d7c62431878c28d90d7847aa73fff7e8a4d4a27133f5826e08e58cb691d000000000000016158737461636b732d6e6f646520332e302e302e302e302d726335202872656c656173652f332e302e302e302e302d7263353a336534616534662c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29c092c3811bdd8c15228f46029934d6111cb5df2f800001000025a8925b864a1203d4651ea60722ae78b9239ac2955656780580f72c7cbd6076597bb6cfdc16111e4ea3cff2986599e8f3eb15d3bcb2b59ce313089faa9dbf1c';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.MockBlock) {
+    throw new Error('Invalid type id');
+  }
+  expect(decoded.proposal.stacksHeight).toEqual(353n);
+  // console.log(decoded.rest);
 });
 
-test("making a serialized string", () => {
-	const coder = P.prefix(P.U32BE, P.string(null));
-	const encoded = coder.encode("Hello world");
-	// console.log(hex.encode(encoded));
+test('making a serialized string', () => {
+  const coder = P.prefix(P.U32BE, P.string(null));
+  const encoded = coder.encode('Hello world');
+  // console.log(hex.encode(encoded));
 });
 
-test("old mock signature data", () => {
-	const hexStr =
-		"0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001679eb70799056ec4040404040404040404040404040404040404040929292929292929292929292929292929292929292929292929292929292929203107c44f19cd3c005302e302e30505050505050505050505050505050505050505081490a983495afe580000000";
-	const decoded = MockSignatureOldCoder.decode(hex.decode(hexStr));
-	expect(decoded.chainId).toEqual(2147483648);
+test('old mock signature data', () => {
+  const hexStr =
+    '0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001679eb70799056ec4040404040404040404040404040404040404040929292929292929292929292929292929292929292929292929292929292929203107c44f19cd3c005302e302e30505050505050505050505050505050505050505081490a983495afe580000000';
+  const decoded = MockSignatureOldCoder.decode(hex.decode(hexStr));
+  expect(decoded.chainId).toEqual(2147483648);
 
-	const payload = decodeChunk(hex.decode(hexStr));
-	expect(payload.typeId).toEqual(SignerMessageTypePrefix.MockSignatureOld);
-	expect((payload as MockSignatureOld).isMockSignatureOld).toBeTruthy();
-	const name = chunkTypeName(hex.decode(hexStr));
-	expect(name).toEqual("Mock Signature (v0)");
+  const payload = decodeChunk(hex.decode(hexStr));
+  expect(payload.typeId).toEqual(SignerMessageTypePrefix.MockSignatureOld);
+  expect((payload as MockSignatureOld).isMockSignatureOld).toBeTruthy();
+  const name = chunkTypeName(hex.decode(hexStr));
+  expect(name).toEqual('Mock Signature (v0)');
 });
 
-test("new signer message with metadata", () => {
-	const hexStr =
-		"010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e80000000b48656c6c6f20776f726c64";
-	const decoded = decodeChunk(hex.decode(hexStr));
-	// expect(decoded.typeId).toEqual(SignerMessageTypePrefix.BlockResponse);
-	if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
-		throw new Error("Invalid type id");
-	}
-	expect(decoded.metadata).toEqual("Hello world");
+test('new signer message with metadata', () => {
+  const hexStr =
+    '010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e80000000b48656c6c6f20776f726c64';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  // expect(decoded.typeId).toEqual(SignerMessageTypePrefix.BlockResponse);
+  if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
+    throw new Error('Invalid type id');
+  }
+  expect(decoded.metadata).toEqual('Hello world');
 });
 
-test("string decoding", () => {
-	const hexStr = "0000000b48656c6c6f20776f726c64";
-	// const decoded = P.prefix(P.U8, P.string(null)).decode(hex.decode(hexStr));
-	const decoded = P.string(P.U32BE).decode(hex.decode(hexStr));
-	expect(decoded).toEqual("Hello world");
+test('string decoding', () => {
+  const hexStr = '0000000b48656c6c6f20776f726c64';
+  // const decoded = P.prefix(P.U8, P.string(null)).decode(hex.decode(hexStr));
+  const decoded = P.string(P.U32BE).decode(hex.decode(hexStr));
+  expect(decoded).toEqual('Hello world');
 });
 
-test("block", () => {
-	const hexStr =
-		"0000000000000002b16e0000005852451394a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537949a0b95cdc31680fd4442753e14675dda9cdc2c0786832892f479e7a199ec2fccf8ded1a04f034dfe599330142e7616771a7ef3afa432a9dd0310aabf110422000000006722560e01e8addb47fbb9c07795f80da976aa29c7e6de0e42839095245d1a7f0a2096b4a51cfdd4db0392313ba28eae932907ae31d645d4d7d6e6bcc1f47dec823f55d9df000000000f67000001edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f000000020000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000085000000000000000000001ed24406b185c9433bdb6fca56329d9366911728d139743a2c4c5bc9b7874aa2401bf4351e3ee17f1b420f09d8d1adb28028e5cddd75a674e051c73e39b009df01020000000007a58d678658a92f45a0f123125f10518132440b2a8e94fe3a61e52f30703a1f0c0935bfc59ae4fc94a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537000000020037e79a837b4071a1fc6c1b49208e7d2141a259050000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000086000000000000000000017855e62f11ab7cee2c64211e6fc7998b74a68286bdef001002ef886bad4db46b08bbfe439e32e036e51f740503483fd6b1ae04814c144843124813f289deb88d01020000000008000000000000000000000000000000000000000000000000000000000000000009a6e3cac3fac60839eb5f0a3b3b468ea433699f247683d1c73186fea9511475e71439999567e5e80bab7ff7a90014098aa7209152c8e35982347fb8b8e2d3d8fdbe9cca76988b02154a560424ab8fd80d00000000000d3f0a0000000000000060";
-	const decoded = decodeChunk(hex.decode(hexStr));
-	// console.log(decoded);
+test('block', () => {
+  const hexStr =
+    '0000000000000002b16e0000005852451394a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537949a0b95cdc31680fd4442753e14675dda9cdc2c0786832892f479e7a199ec2fccf8ded1a04f034dfe599330142e7616771a7ef3afa432a9dd0310aabf110422000000006722560e01e8addb47fbb9c07795f80da976aa29c7e6de0e42839095245d1a7f0a2096b4a51cfdd4db0392313ba28eae932907ae31d645d4d7d6e6bcc1f47dec823f55d9df000000000f67000001edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f000000020000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000085000000000000000000001ed24406b185c9433bdb6fca56329d9366911728d139743a2c4c5bc9b7874aa2401bf4351e3ee17f1b420f09d8d1adb28028e5cddd75a674e051c73e39b009df01020000000007a58d678658a92f45a0f123125f10518132440b2a8e94fe3a61e52f30703a1f0c0935bfc59ae4fc94a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537000000020037e79a837b4071a1fc6c1b49208e7d2141a259050000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000086000000000000000000017855e62f11ab7cee2c64211e6fc7998b74a68286bdef001002ef886bad4db46b08bbfe439e32e036e51f740503483fd6b1ae04814c144843124813f289deb88d01020000000008000000000000000000000000000000000000000000000000000000000000000009a6e3cac3fac60839eb5f0a3b3b468ea433699f247683d1c73186fea9511475e71439999567e5e80bab7ff7a90014098aa7209152c8e35982347fb8b8e2d3d8fdbe9cca76988b02154a560424ab8fd80d00000000000d3f0a0000000000000060';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  // console.log(decoded);
 });

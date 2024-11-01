@@ -1,10 +1,10 @@
-import type React from "react";
+import type React from 'react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 export const SimpleTooltip = ({
   children,

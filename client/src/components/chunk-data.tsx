@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogDescription,
@@ -6,37 +6,37 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogContent,
-} from "@/components/ui/dialog";
-import { Button } from "./ui/button";
+} from '@/components/ui/dialog';
+import { Button } from './ui/button';
 import {
   binaryString,
   decodeChunk,
   type DecodedChunk,
-} from "slot-watch-common";
-import { hex } from "@scure/base";
-import { useCopyToClipboard } from "usehooks-ts";
-import { serialize } from "superjson";
+} from 'slot-watch-common';
+import { hex } from '@scure/base';
+import { useCopyToClipboard } from 'usehooks-ts';
+import { serialize } from 'superjson';
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function valueToString(value: any) {
   let valString = value;
   if (value instanceof Uint8Array) {
     valString = hex.encode(value);
-  } else if (typeof value === "boolean") {
-    valString = value ? "true" : "false";
+  } else if (typeof value === 'boolean') {
+    valString = value ? 'true' : 'false';
   } else if (Array.isArray(value)) {
     valString = value
       .map((v) => {
         return valueToString(v);
       })
-      .join(", ");
+      .join(', ');
     valString = `[${valString}]`;
   } else if (value === null) {
-    valString = "null";
-  } else if (typeof value === "bigint") {
+    valString = 'null';
+  } else if (typeof value === 'bigint') {
     valString = value.toString();
-  } else if (typeof value === "object") {
-    if ("length" in value && "bytes" in value) {
+  } else if (typeof value === 'object') {
+    if ('length' in value && 'bytes' in value) {
       valString = binaryString(value);
     } else {
       const { json } = serialize(value);
@@ -107,7 +107,7 @@ export const ChunkData = memo(({ data }: { data: string }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
         {/* <span>{data}</span> */}
-        <Button asChild variant={"outline"} size={"sm"}>
+        <Button asChild variant={'outline'} size={'sm'}>
           <span>Show Data</span>
         </Button>
       </DialogTrigger>

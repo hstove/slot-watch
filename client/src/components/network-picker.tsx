@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -9,13 +9,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
-import { networkIdAtom, NETWORKS } from "@/store/network";
-import { useAtom, useAtomValue } from "jotai";
-import { networkAtom } from "@/store/network";
-import { useSearchParams } from "react-router-dom";
-import { useAtomCallback } from "jotai/utils";
-import { useCallback } from "react";
+} from '@/components/ui/dropdown-menu';
+import { networkIdAtom, NETWORKS } from '@/store/network';
+import { useAtom, useAtomValue } from 'jotai';
+import { networkAtom } from '@/store/network';
+import { useSearchParams } from 'react-router-dom';
+import { useAtomCallback } from 'jotai/utils';
+import { useCallback } from 'react';
 
 export const NetworkPicker = () => {
   // const [network, setNetwork] = useAtom(networkAtom);
@@ -28,13 +28,13 @@ export const NetworkPicker = () => {
         set(networkAtom, networkId);
         setSearchParams({ network: networkId });
       },
-      [setSearchParams]
-    )
+      [setSearchParams],
+    ),
   );
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"}>{network.name}</Button>
+        <Button variant={'outline'}>{network.name}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {/* {NETWORKS.map((network) => (

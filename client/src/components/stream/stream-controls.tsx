@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Switch } from "../ui/switch";
+import React, { useEffect } from 'react';
+import { Switch } from '../ui/switch';
 import {
   isStreamLiveAtom,
   isValidDateString,
@@ -9,13 +9,13 @@ import {
   streamEndInputAtom,
   streamStartAtom,
   streamStartInputAtom,
-} from "@/store/chunks-store";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useAtomCallback } from "jotai/utils";
-import { Text } from "../text";
-import { cn } from "@/lib/utils";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+} from '@/store/chunks-store';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomCallback } from 'jotai/utils';
+import { Text } from '../text';
+import { cn } from '@/lib/utils';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 export const StreamControls = () => {
   const isStreamLive = useAtomValue(isStreamLiveAtom);
@@ -31,7 +31,7 @@ export const StreamControls = () => {
   const search = useAtomCallback(
     React.useCallback((_get, set) => {
       set(searchChunksAtom);
-    }, [])
+    }, []),
   );
 
   const setFromLocation = useAtomCallback(
@@ -43,7 +43,7 @@ export const StreamControls = () => {
       const endNum = Number.parseInt(endUnix, 10);
       set(streamStartInputAtom, new Date(startNum).toLocaleString());
       set(streamEndInputAtom, new Date(endNum).toLocaleString());
-    }, [])
+    }, []),
   );
 
   const submitSearch = useAtomCallback(
@@ -55,7 +55,7 @@ export const StreamControls = () => {
       set(streamStartAtom, Date.parse(startString).toString());
       set(streamEndAtom, Date.parse(endString).toString());
       set(searchChunksAtom);
-    }, [])
+    }, []),
   );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies(hash): <explanation>
@@ -71,7 +71,7 @@ export const StreamControls = () => {
   const toggleStreamLive = useAtomCallback(
     React.useCallback((_get, set) => {
       set(isStreamLiveAtom, (prev) => !prev);
-    }, [])
+    }, []),
   );
   return (
     <div className="w-full flex gap-6 items-center sticky top-10 z-50 bg-background py-3">
@@ -79,7 +79,7 @@ export const StreamControls = () => {
         <Switch checked={isStreamLive} onCheckedChange={toggleStreamLive} />
         <Text
           variant="small"
-          className={cn(!isStreamLive && "text-muted-foreground")}
+          className={cn(!isStreamLive && 'text-muted-foreground')}
         >
           Stream Live
         </Text>

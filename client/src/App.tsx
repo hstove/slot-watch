@@ -1,14 +1,14 @@
-import { Suspense } from "react";
-import "./App.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Header } from "@/components/header";
-import { Toaster } from "@/components/ui/toaster";
-import { useSearchParams, Outlet } from "react-router-dom";
-import { useHydrateAtoms } from "jotai/utils";
-import { useAtomsDevtools } from "jotai-devtools";
-import { networkAtom } from "@/store/network";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import { useChunksWatcher } from "./hooks/use-websocket";
+import { Suspense } from 'react';
+import './App.css';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Header } from '@/components/header';
+import { Toaster } from '@/components/ui/toaster';
+import { useSearchParams, Outlet } from 'react-router-dom';
+import { useHydrateAtoms } from 'jotai/utils';
+import { useAtomsDevtools } from 'jotai-devtools';
+import { networkAtom } from '@/store/network';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { useChunksWatcher } from './hooks/use-websocket';
 
 function ChunkWatcher() {
   useChunksWatcher();
@@ -17,8 +17,8 @@ function ChunkWatcher() {
 
 function App() {
   const [searchParams] = useSearchParams();
-  const networkId = searchParams.get("network");
-  useAtomsDevtools("slotwatch");
+  const networkId = searchParams.get('network');
+  useAtomsDevtools('slotwatch');
 
   useHydrateAtoms([[networkAtom, networkId]]);
   return (

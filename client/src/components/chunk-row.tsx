@@ -6,18 +6,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { CHUNKS_EVENT, type ChunkEvent } from "slot-watch-common";
-import { useMemo, useState } from "react";
-import { hex } from "@scure/base";
-import { ChunkLabel } from "./chunk-label";
-import { ChunkBlock } from "./chunk-block";
-import { ChunkData } from "./chunk-data";
-import { useTimestamp } from "@/hooks/use-timestamp";
-import { ChunkSigner } from "./chunk-signer";
-import type { PayloadAtom } from "@/store/chunks-store";
-import { useAtomValue } from "jotai";
-import { Timestamp } from "./timestamp";
+} from '@/components/ui/table';
+import { CHUNKS_EVENT, type ChunkEvent } from 'slot-watch-common';
+import { useMemo, useState } from 'react';
+import { hex } from '@scure/base';
+import { ChunkLabel } from './chunk-label';
+import { ChunkBlock } from './chunk-block';
+import { ChunkData } from './chunk-data';
+import { useTimestamp } from '@/hooks/use-timestamp';
+import { ChunkSigner } from './chunk-signer';
+import type { PayloadAtom } from '@/store/chunks-store';
+import { useAtomValue } from 'jotai';
+import { Timestamp } from './timestamp';
 
 export const ChunkRow = ({ chunkAtom }: { chunkAtom: PayloadAtom }) => {
   const payload = useAtomValue(chunkAtom);

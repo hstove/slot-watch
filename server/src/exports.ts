@@ -1,10 +1,10 @@
-export type { SlotWatchServer } from "./app";
+export type { SlotWatchServer } from './app';
 // import type { app } from "./app";
-import { hc } from "hono/client";
-import type { SlotWatchServer } from "./app";
+import { hc } from 'hono/client';
+import type { SlotWatchServer } from './app';
 
-const apiClient = hc<SlotWatchServer>("http://localhost:3000");
+const apiClient = hc<SlotWatchServer>('http://localhost:3000');
 export type ApiClient = typeof apiClient;
 
 export const hcWithType = (...args: Parameters<typeof hc>): ApiClient =>
-	hc<SlotWatchServer>(...args);
+  hc<SlotWatchServer>(...args);

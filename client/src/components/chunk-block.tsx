@@ -7,18 +7,18 @@ import {
   makeSignerSignatureHash,
   type ChunkEvent,
   decodeChunkMaybe,
-} from "slot-watch-common";
-import { hex } from "@scure/base";
-import { useEffect, useState } from "react";
-import { colord } from "colord";
+} from 'slot-watch-common';
+import { hex } from '@scure/base';
+import { useEffect, useState } from 'react';
+import { colord } from 'colord';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useCopyToClipboard } from "usehooks-ts";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/tooltip';
+import { useCopyToClipboard } from 'usehooks-ts';
+import { useToast } from '@/hooks/use-toast';
 
 export const BlockHash = ({ hash }: { hash: Uint8Array }) => {
   const hexString = hex.encode(hash);
@@ -34,7 +34,7 @@ export const BlockHash = ({ hash }: { hash: Uint8Array }) => {
           onClick={() => {
             copy(hexString);
             toast({
-              title: "Copied to clipboard",
+              title: 'Copied to clipboard',
             });
           }}
         >

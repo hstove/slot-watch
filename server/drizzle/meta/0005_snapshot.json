@@ -134,12 +134,8 @@
           "name": "block_proposals_chunk_id_stacker_db_slots_id_fk",
           "tableFrom": "block_proposals",
           "tableTo": "stacker_db_slots",
-          "columnsFrom": [
-            "chunk_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chunk_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -277,12 +273,8 @@
           "name": "block_pushes_chunk_id_stacker_db_slots_id_fk",
           "tableFrom": "block_pushes",
           "tableTo": "stacker_db_slots",
-          "columnsFrom": [
-            "chunk_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chunk_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -420,12 +412,8 @@
           "name": "block_responses_chunk_id_stacker_db_slots_id_fk",
           "tableFrom": "block_responses",
           "tableTo": "stacker_db_slots",
-          "columnsFrom": [
-            "chunk_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chunk_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

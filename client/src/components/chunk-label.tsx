@@ -6,10 +6,10 @@ import {
   BlockResponseRejectCodes,
   BlockResponseValidationCodes,
   decodeChunkMaybe,
-} from "slot-watch-common";
-import { memo, useState } from "react";
-import { hex } from "@scure/base";
-import { SimpleTooltip } from "./simple-tooltip";
+} from 'slot-watch-common';
+import { memo, useState } from 'react';
+import { hex } from '@scure/base';
+import { SimpleTooltip } from './simple-tooltip';
 
 function RejectedLabel({ data }: { data: string }) {
   try {
@@ -22,9 +22,9 @@ function RejectedLabel({ data }: { data: string }) {
     }
     if (decoded.accepted === true) return null;
     const { reasonCode, validationCode } = decoded;
-    const hasValidationCode = typeof validationCode === "number";
+    const hasValidationCode = typeof validationCode === 'number';
     const reason = BlockResponseRejectCodes[reasonCode];
-    let validfationReason = "Unknown";
+    let validfationReason = 'Unknown';
     if (hasValidationCode) {
       validfationReason = BlockResponseValidationCodes[validationCode];
     }
@@ -33,7 +33,7 @@ function RejectedLabel({ data }: { data: string }) {
         (<ValidationError code={reasonCode} message={reason} />
         {hasValidationCode ? (
           <>
-            {" - "}
+            {' - '}
             <ValidationError
               code={validationCode}
               message={validfationReason}
@@ -44,7 +44,7 @@ function RejectedLabel({ data }: { data: string }) {
       </span>
     );
   } catch {
-    console.error("Failed to decode chunk in RejectedLabel", data);
+    console.error('Failed to decode chunk in RejectedLabel', data);
     return null;
   }
 }
@@ -60,7 +60,7 @@ function ChunkLabelOuter({ data }: { data: string }) {
     const accepted = bytes[1] === 0;
     return (
       <>
-        <span className={accepted ? "text-green-500" : "text-red-500"}>
+        <span className={accepted ? 'text-green-500' : 'text-red-500'}>
           {label}
         </span>
         <RejectedLabel data={data} />

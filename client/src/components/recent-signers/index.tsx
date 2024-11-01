@@ -1,11 +1,11 @@
-import "react";
-import { useAtomValue } from "jotai";
+import 'react';
+import { useAtomValue } from 'jotai';
 import {
   recentSignersAtom,
   totalRecentSignersAtom,
   totalUpatedSignersAtom,
-} from "@/store/signers";
-import { knownSigners } from "slot-watch-common";
+} from '@/store/signers';
+import { knownSigners } from 'slot-watch-common';
 import {
   Table,
   TableBody,
@@ -14,22 +14,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { TimeAgo } from "../time-ago";
-import { RecentSignerRow } from "./recent-signer-row";
-import { colord, extend } from "colord";
-import { differenceInSeconds, parseISO } from "date-fns";
-import mixPlugin from "colord/plugins/mix";
-import { useMemo } from "react";
-import { textVariants } from "@/lib/text-variants";
-import { networkIdAtom } from "@/store/network";
-import { DataTable } from "../ui/data-table";
-import { columns } from "./columns";
+} from '@/components/ui/table';
+import { TimeAgo } from '../time-ago';
+import { RecentSignerRow } from './recent-signer-row';
+import { colord, extend } from 'colord';
+import { differenceInSeconds, parseISO } from 'date-fns';
+import mixPlugin from 'colord/plugins/mix';
+import { useMemo } from 'react';
+import { textVariants } from '@/lib/text-variants';
+import { networkIdAtom } from '@/store/network';
+import { DataTable } from '../ui/data-table';
+import { columns } from './columns';
 
 extend([mixPlugin]);
 
-const okColor = colord("#00c221");
-const badColor = colord("#ff2600");
+const okColor = colord('#00c221');
+const badColor = colord('#ff2600');
 
 function colorForTimeAgo(timeAgo: string | null) {
   if (timeAgo === null) return badColor.toHex();
@@ -47,36 +47,36 @@ export const RecentSigners = () => {
   const totalRecents = useAtomValue(totalRecentSignersAtom);
   const totalUpdated = useAtomValue(totalUpatedSignersAtom);
   const networkId = useAtomValue(networkIdAtom);
-  const showCustom = !MAINNET_LAUNCHED && networkId === "mainnet";
+  const showCustom = !MAINNET_LAUNCHED && networkId === 'mainnet';
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex w-full py-10">
         <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: "h2" })}>
+          <h2 className={textVariants({ variant: 'h2' })}>
             {showCustom ? totalUpdated.percentStr : totalRecents.percentStr}%
           </h2>
-          <p className={textVariants({ variant: "muted" })}>
-            Percent of signer weight{" "}
-            {showCustom ? "updated" : "active in last 10 minutes"}
+          <p className={textVariants({ variant: 'muted' })}>
+            Percent of signer weight{' '}
+            {showCustom ? 'updated' : 'active in last 10 minutes'}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: "h2" })}>
+          <h2 className={textVariants({ variant: 'h2' })}>
             {showCustom ? totalUpdated.numSigners : totalRecents.numSigners}
             <span className="opacity-50 mx-2">/</span>
             {recentSigners.signers.length}
           </h2>
-          <p className={textVariants({ variant: "muted" })}>
-            Number of signers{" "}
-            {showCustom ? "updated" : "active in last 10 minutes"}
+          <p className={textVariants({ variant: 'muted' })}>
+            Number of signers{' '}
+            {showCustom ? 'updated' : 'active in last 10 minutes'}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: "h2" })}>
+          <h2 className={textVariants({ variant: 'h2' })}>
             {recentSigners.rewardCycle}
           </h2>
-          <p className={textVariants({ variant: "muted" })}>Reward Cycle</p>
+          <p className={textVariants({ variant: 'muted' })}>Reward Cycle</p>
         </div>
       </div>
       {showCustom ? null : (

@@ -1,9 +1,9 @@
-import React from "react";
-import { BURN_BLOCKS_EVENT } from "slot-watch-common";
-import { useAtomValue } from "jotai";
-import type { PayloadAtom } from "@/store/chunks-store";
-import { TableCell, TableRow } from "../ui/table";
-import { Timestamp } from "../timestamp";
+import React from 'react';
+import { BURN_BLOCKS_EVENT } from 'slot-watch-common';
+import { useAtomValue } from 'jotai';
+import type { PayloadAtom } from '@/store/chunks-store';
+import { TableCell, TableRow } from '../ui/table';
+import { Timestamp } from '../timestamp';
 
 export const BurnBlockRow = ({ payloadAtom }: { payloadAtom: PayloadAtom }) => {
   const payload = useAtomValue(payloadAtom);

@@ -1,7 +1,7 @@
-import * as React from "react";
-import type { VariantProps } from "class-variance-authority";
-import { textVariants } from "@/lib/text-variants";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import type { VariantProps } from 'class-variance-authority';
+import { textVariants } from '@/lib/text-variants';
+import { cn } from '@/lib/utils';
 
 export interface TextProps
   extends React.HTMLAttributes<HTMLSpanElement>,
@@ -16,8 +16,8 @@ const Text = React.forwardRef<HTMLSpanElement, TextProps>(
         {...props}
       />
     );
-  }
+  },
 );
-Text.displayName = "Text";
+Text.displayName = 'Text';
 
 export { Text };

@@ -7,11 +7,11 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["dist"]
+    "ignore": ["dist", ".turbo"]
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "tab"
+    "indentStyle": "space"
   },
   "organizeImports": {
     "enabled": true
@@ -24,7 +24,7 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "double"
+      "quoteStyle": "single"
     }
   }
 }

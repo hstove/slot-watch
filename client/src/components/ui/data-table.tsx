@@ -1,5 +1,5 @@
-"use client";
-import * as React from "react";
+'use client';
+import * as React from 'react';
 import {
   type ColumnDef,
   flexRender,
@@ -10,7 +10,7 @@ import {
   type SortDirection,
   type Column,
   type SortingColumn,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table';
 
 import {
   Table,
@@ -19,9 +19,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "./button";
-import { ArrowDownIcon, ArrowUpIcon } from "@radix-ui/react-icons";
+} from '@/components/ui/table';
+import { Button } from './button';
+import { ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -57,7 +57,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 );
@@ -70,7 +70,7 @@ export function DataTable<TData, TValue>({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                data-state={row.getIsSelected() && "selected"}
+                data-state={row.getIsSelected() && 'selected'}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -112,10 +112,10 @@ export const SortableHeader = <T extends ColumnGeneric>({
 }: SortableHeaderProps<T>) => {
   const sortState = column.getIsSorted();
   function sortArrow() {
-    if (sortState === "asc") {
+    if (sortState === 'asc') {
       return <ArrowUpIcon className="ml-2 h-4 w-4" />;
     }
-    if (sortState === "desc") {
+    if (sortState === 'desc') {
       return <ArrowDownIcon className="ml-2 h-4 w-4" />;
     }
     return <div className="ml-2 h-4 w-4" />;

@@ -1,22 +1,22 @@
-import { hex } from "@scure/base";
-import { memo, useMemo } from "react";
+import { hex } from '@scure/base';
+import { memo, useMemo } from 'react';
 import {
   recoverChunkPublicKey,
   type ChunkEvent,
   knownSigners,
-} from "slot-watch-common";
-import { useCopyToClipboard } from "usehooks-ts";
+} from 'slot-watch-common';
+import { useCopyToClipboard } from 'usehooks-ts';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
-import { colord, extend } from "colord";
-import harmoniesPlugin from "colord/plugins/harmonies";
-import React from "react";
-import { getEntity } from "@/lib/local-signers";
+} from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
+import { colord, extend } from 'colord';
+import harmoniesPlugin from 'colord/plugins/harmonies';
+import React from 'react';
+import { getEntity } from '@/lib/local-signers';
 
 extend([harmoniesPlugin]);
 
@@ -39,7 +39,7 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
   const background = useMemo(() => {
     const text = colord(`#${hexCode}`);
     // return text.invert().alpha(0.5).toHex();
-    return text.harmonies("rectangle")[2].lighten(0.7).toHex();
+    return text.harmonies('rectangle')[2].lighten(0.7).toHex();
   }, [hexCode]);
   const [_, copy] = useCopyToClipboard();
   return (
@@ -49,7 +49,7 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
           onClick={() => {
             copy(pubKey);
             toast({
-              title: "Copied to clipboard",
+              title: 'Copied to clipboard',
             });
           }}
         >

@@ -1,40 +1,40 @@
-import { ModeToggle } from "@/components/theme-toggle";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { useCallback, useMemo } from "react";
-import { ReadyState } from "react-use-websocket";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import { SimpleTooltip } from "./simple-tooltip";
-import { NetworkPicker } from "./network-picker";
-import { Link } from "@/components/link";
-import { textVariants } from "@/lib/text-variants";
-import { useAtomValue } from "jotai";
-import { networkIdAtom } from "@/store/network";
+import { ModeToggle } from '@/components/theme-toggle';
+import { useWebSocket } from '@/hooks/use-websocket';
+import { useCallback, useMemo } from 'react';
+import { ReadyState } from 'react-use-websocket';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+import { SimpleTooltip } from './simple-tooltip';
+import { NetworkPicker } from './network-picker';
+import { Link } from '@/components/link';
+import { textVariants } from '@/lib/text-variants';
+import { useAtomValue } from 'jotai';
+import { networkIdAtom } from '@/store/network';
 
 const connectionStatusVariants = cva(
-  "text-sm text-muted-foreground h-4 w-4 rounded-full",
+  'text-sm text-muted-foreground h-4 w-4 rounded-full',
   {
     variants: {
       readyState: {
-        [ReadyState.CONNECTING]: "text-yellow-500 bg-yellow-500",
-        [ReadyState.OPEN]: "text-green-500 bg-green-500",
-        [ReadyState.CLOSING]: "text-red-500 bg-red-500",
-        [ReadyState.CLOSED]: "text-red-500 bg-red-500",
-        [ReadyState.UNINSTANTIATED]: "text-red-500 bg-red-500",
+        [ReadyState.CONNECTING]: 'text-yellow-500 bg-yellow-500',
+        [ReadyState.OPEN]: 'text-green-500 bg-green-500',
+        [ReadyState.CLOSING]: 'text-red-500 bg-red-500',
+        [ReadyState.CLOSED]: 'text-red-500 bg-red-500',
+        [ReadyState.UNINSTANTIATED]: 'text-red-500 bg-red-500',
       },
     },
     defaultVariants: {
       readyState: ReadyState.UNINSTANTIATED,
     },
-  }
+  },
 );
 
 const connectionStatus = {
-  [ReadyState.CONNECTING]: "Connecting",
-  [ReadyState.OPEN]: "Connected",
-  [ReadyState.CLOSING]: "Closing",
-  [ReadyState.CLOSED]: "Closed",
-  [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+  [ReadyState.CONNECTING]: 'Connecting',
+  [ReadyState.OPEN]: 'Connected',
+  [ReadyState.CLOSING]: 'Closing',
+  [ReadyState.CLOSED]: 'Closed',
+  [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
 } as const;
 
 export const Header = () => {
@@ -47,19 +47,19 @@ export const Header = () => {
       </div>
       <div className="flex gap-5 items-center">
         <Link
-          to={"/"}
+          to={'/'}
           className={textVariants({
-            variant: "small",
-            className: "font-normal",
+            variant: 'small',
+            className: 'font-normal',
           })}
         >
           Stream
         </Link>
         <Link
-          to={"/recent-signers"}
+          to={'/recent-signers'}
           className={textVariants({
-            variant: "small",
-            className: "font-normal",
+            variant: 'small',
+            className: 'font-normal',
           })}
         >
           Signers
