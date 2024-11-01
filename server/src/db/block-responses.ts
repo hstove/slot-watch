@@ -41,11 +41,11 @@ export function mapSignerDataToResponses({
 	const signersArr = stackerSet.signers.map((s) => {
 		const blockSigner = blockSigners[s.signing_key] || {
 			accepted: null,
-			weightPercent: s.weight / totalWeight,
 		};
 		return {
 			...s,
 			...blockSigner,
+			weightPercent: s.weight / totalWeight,
 			entity: knownSigners[s.signing_key] ?? null,
 		};
 	});
