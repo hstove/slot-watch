@@ -1,0 +1,1 @@
+ALTER TABLE "block_proposals" ADD COLUMN "tx_count" integer;
