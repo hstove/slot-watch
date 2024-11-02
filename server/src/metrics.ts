@@ -1,5 +1,5 @@
 import { Gauge } from 'prom-client';
-import { getRecentBlocksHealth } from './health/health-checks';
+import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 
 export const acceptanceRateLastBlocks = new Gauge({

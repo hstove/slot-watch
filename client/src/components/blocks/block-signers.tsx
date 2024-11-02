@@ -16,8 +16,8 @@ import { useEntity } from '@/hooks/use-entity';
 import { TimeAgo } from '../time-ago';
 import { percentString } from 'slot-watch-common';
 
-const okColor = colord('#00c221');
-const badColor = colord('#ff2600');
+const okColor = colord('#22c55e');
+const badColor = colord('#ef4444');
 
 function DataValue({ children }: { children: React.ReactNode }) {
   return <p className={textStyles('muted')}>{children}</p>;
@@ -128,7 +128,7 @@ export function BlockSigners({
   const [blockSigners] = useAtom(blockSignersAtoms(signerSignatureHash));
 
   return (
-    <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8">
+    <div className="w-full rounded-md h-10 border border-border flex overflow-hidden">
       {blockSigners.map((s) => {
         return (
           <BlockSigner signer={s} key={s.signing_key} proposedAt={proposedAt} />

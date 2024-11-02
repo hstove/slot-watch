@@ -1,15 +1,15 @@
-import { db } from '../db/db';
+import { db } from './db';
 import { eq, desc, and, inArray, getTableColumns } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals as blockProposalsSchema,
   blockResponses as blockResponsesSchema,
   type BlockResponseDb,
-} from '../db/schema';
+} from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { hex } from '@scure/base';
 import { knownSigners, type StackerSetSigner } from 'slot-watch-common';
-import { mapSignerDataToResponses } from '../db/block-responses';
+import { mapSignerDataToResponses } from './block-responses';
 
 export async function getRecentBlocksHealth(networkKey: string) {
   const { rewardCycleId } = await getPoxInfo.get(networkKey);
@@ -21,17 +21,15 @@ export async function getRecentBlocksHealth(networkKey: string) {
       pushedAt: blockPushes.createdAt,
     })
     .from(blockProposalsSchema)
-    .where(
-      and(
-        eq(blockProposalsSchema.networkKey, networkKey),
-        eq(blockPushes.networkKey, networkKey),
-      ),
-    )
+    .where(eq(blockProposalsSchema.networkKey, networkKey))
     .leftJoin(
       blockPushes,
-      eq(
-        blockProposalsSchema.signerSignatureHash,
-        blockPushes.signerSignatureHash,
+      and(
+        eq(
+          blockProposalsSchema.signerSignatureHash,
+          blockPushes.signerSignatureHash,
+        ),
+        eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
       ),
     )
     .orderBy(desc(blockProposalsSchema.chainLength))
@@ -65,9 +63,21 @@ export async function getRecentBlocksHealth(networkKey: string) {
       stackerSet: stackerSet,
       responses,
     });
+    const weightPending =
+      responseInfo.totalWeight -
+      responseInfo.weightAccept -
+      responseInfo.weightReject;
+    const countPending =
+      responseInfo.signers.length -
+      responseInfo.countAccepted -
+      responseInfo.countRejected;
+    const pendingRatio = weightPending / responseInfo.totalWeight;
     return {
       ...b,
       ...responseInfo,
+      countPending,
+      pendingRatio,
+      weightPending,
     };
   });
 

@@ -10,7 +10,7 @@ export function BlocksList() {
   useHydrateAtoms([[fetchBlocksAtom, undefined]]);
 
   return (
-    <div className="w-full flex flex-col gap-3">
+    <div className="w-full flex flex-col gap-8">
       {blockHashes.map((hash) => (
         <Block key={hash} signerSignatureHash={hash} />
       ))}

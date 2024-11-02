@@ -106,6 +106,7 @@ export async function handleBlockProposal({
     minerPublicKey: publicKey,
     consensusHash: hex.encode(payload.consensusHash),
     chunkId,
+    txCount: payload.txCount,
   });
 }
 

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { getRecentBlocksHealth } from '../health/health-checks';
+import { getRecentBlocksHealth } from '../db/block-proposals';
 
 export const healthRoutes = new Hono().get(
   '/recent-blocks/:networkKey',

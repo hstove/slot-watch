@@ -78,6 +78,9 @@ Bun.serve({
   websocket: {
     ...websocket,
     backpressureLimit: 1024 * 1024 * 5, // 5MB
+    message(ws, message) {
+      ws.send('pong');
+    },
   },
 });
 

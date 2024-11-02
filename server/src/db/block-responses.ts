@@ -16,6 +16,8 @@ export function mapSignerDataToResponses({
   const alreadyCounted = new Set<string>();
   let weightAccept = 0;
   let weightReject = 0;
+  let countAccepted = 0;
+  let countRejected = 0;
   const { totalWeight } = stackerSet;
   for (const response of responses) {
     const signer = stackerSet.signersByKey.get(response.signerPublicKey ?? '');
@@ -34,8 +36,10 @@ export function mapSignerDataToResponses({
     alreadyCounted.add(response.signerPublicKey);
     if (response.accepted) {
       weightAccept += weight;
+      countAccepted++;
     } else {
       weightReject += weight;
+      countRejected++;
     }
   }
   const signersArr = stackerSet.signers.map((s) => {
@@ -62,5 +66,7 @@ export function mapSignerDataToResponses({
     rejectRatio,
     acceptRatio,
     accepted,
+    countAccepted,
+    countRejected,
   };
 }
