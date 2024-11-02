@@ -28,11 +28,17 @@ export const signerParticipationRate = new Gauge({
 
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
+let isRunning = false;
 
 export async function warmupMetrics() {
+  if (isRunning) {
+    return;
+  }
+  isRunning = true;
   if (Date.now() - lastRun < runEvery) {
     return;
   }
+  isRunning = true;
 
   console.log('Warming up metrics');
   const recentBlocks = await getRecentBlocksHealth('mainnet');
@@ -100,4 +106,5 @@ export async function warmupMetrics() {
   }
 
   lastRun = Date.now();
+  isRunning = false;
 }
