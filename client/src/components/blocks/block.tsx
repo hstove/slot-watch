@@ -4,7 +4,12 @@ import { blockPushesAtoms, blockSignersAtoms } from '@/store/blocks-store';
 import { BlockSigners } from './block-signers';
 import { textStyles } from '@/lib/text-variants';
 import { TimeAgo } from '../time-ago';
-import { percentString } from 'slot-watch-common';
+import {
+  getApiUrl,
+  getBtcAddress,
+  getStacksAddress,
+  percentString,
+} from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import {
   Collapsible,
@@ -12,17 +17,14 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ChevronsUpDownIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 function DataValue({ children }: { children: React.ReactNode }) {
   return <p className={textStyles('muted')}>{children}</p>;
 }
 
 function DataLabel({ children }: { children: React.ReactNode }) {
-  return <p className={textStyles('small', 'pr-4')}>{children}</p>;
-}
-
-function DataGroup({ children }: { children: React.ReactNode }) {
-  return <div className="flex gap-1 items-center">{children}</div>;
+  return <p className={textStyles('small', 'pr-4 text-nowrap')}>{children}</p>;
 }
 
 export function Block({
@@ -42,9 +44,22 @@ export function Block({
     return differenceInSeconds(blockPushes.pushedAt, blockPushes.createdAt);
   }, [blockPushes.createdAt, blockPushes.pushedAt]);
 
+  const { btcAddress, stxAddress } = React.useMemo(() => {
+    if (blockPushes.minerPublicKey) {
+      return {
+        btcAddress: getBtcAddress(blockPushes.minerPublicKey),
+        stxAddress: getStacksAddress(
+          blockPushes.minerPublicKey,
+          blockPushes.networkKey,
+        ),
+      };
+    }
+    return { btcAddress: '', stxAddress: '' };
+  }, [blockPushes.minerPublicKey, blockPushes.networkKey]);
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex w-full flex-col md:flex-row md:justify-between md:items-center">
+      <div className="flex w-full flex-col md:flex-row md:justify-between">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger>
             <div className="flex justify-between items-center space-x-4">
@@ -53,7 +68,7 @@ export function Block({
             </div>
           </CollapsibleTrigger>
           {isOpen ? null : (
-            <div className="grid gap-0 grid-cols-[minmax(150px,min-content)_1fr] items-center">
+            <div className="grid gap-0 grid-cols-[min-content_1fr] items-center">
               <DataLabel>Proposed</DataLabel>
               <DataValue>
                 <TimeAgo date={blockPushes.createdAt} />
@@ -81,14 +96,20 @@ export function Block({
                 )}
               </DataValue>
 
-              <DataLabel>Accepted</DataLabel>
-              <DataValue>{percentString(blockPushes.acceptRatio)}%</DataValue>
-
-              <DataLabel>Rejected</DataLabel>
-              <DataValue>{percentString(blockPushes.rejectRatio)}%</DataValue>
+              <DataLabel>Miner Address</DataLabel>
+              <DataValue>{btcAddress}</DataValue>
+              <DataLabel>Miner Address</DataLabel>
+              <DataValue>{stxAddress}</DataValue>
 
               <DataLabel>Consensus Hash</DataLabel>
-              <DataValue>{blockPushes.consensusHash}</DataValue>
+              <DataValue>
+                <Link
+                  to={`${getApiUrl(blockPushes.networkKey)}/v3/sortitions/consensus/${blockPushes.consensusHash}`}
+                  target="_blank"
+                >
+                  {blockPushes.consensusHash}
+                </Link>
+              </DataValue>
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -109,20 +130,20 @@ export function Block({
         proposedAt={blockPushes.createdAt}
       />
 
-      <div className="w-full flex justify-between">
-        <div className="text-center">
+      <div className="w-full flex flex-col md:flex-row md:justify-between">
+        <div className="md:text-center">
           <p className={textStyles('muted')}>
             Accepted: {blockPushes.countAccepted} (
             {percentString(blockPushes.acceptRatio)}%)
           </p>
         </div>
-        <div className="text-center">
+        <div className="md:text-center">
           <p className={textStyles('muted')}>
             Rejected: {blockPushes.countRejected} (
             {percentString(blockPushes.rejectRatio)}%)
           </p>
         </div>
-        <div className="text-center">
+        <div className="md:text-center">
           <p className={textStyles('muted')}>
             Pending: {blockPushes.countPending} (
             {percentString(blockPushes.pendingRatio)}%)

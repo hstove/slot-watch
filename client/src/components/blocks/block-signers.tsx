@@ -14,7 +14,7 @@ import { differenceInSeconds } from 'date-fns';
 import { PublicKey } from '../public-key';
 import { useEntity } from '@/hooks/use-entity';
 import { TimeAgo } from '../time-ago';
-import { percentString } from 'slot-watch-common';
+import { getBtcAddress, percentString } from 'slot-watch-common';
 
 const okColor = colord('#22c55e');
 const badColor = colord('#ef4444');
