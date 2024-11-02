@@ -32,10 +32,11 @@ let isRunning = false;
 
 export async function warmupMetrics() {
   if (isRunning) {
+    console.log('Metrics are already running');
     return;
   }
-  isRunning = true;
   if (Date.now() - lastRun < runEvery) {
+    console.log('Metrics were last run less than a minute ago');
     return;
   }
   isRunning = true;
@@ -105,6 +106,7 @@ export async function warmupMetrics() {
     }
   }
 
+  console.log('Metrics warmed up');
   lastRun = Date.now();
   isRunning = false;
 }
