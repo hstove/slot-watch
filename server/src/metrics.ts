@@ -27,9 +27,15 @@ export const signerParticipationRate = new Gauge({
 });
 
 export const signerDegradationRate = new Gauge({
-  name: 'slot_watch_signer_degradation_rate',
+  name: 'slot_watch_signer_degradation_percent',
   help: 'The percentage of blocks that a signer missed or rejected accepted blocks',
   labelNames: ['signer_key', 'last_n_blocks'],
+});
+
+export const weightDegradedLastBlocks = new Gauge({
+  name: 'slot_watch_percent_weight_degraded',
+  help: 'The percentage weight of signers that missed or rejected accepted blocks',
+  labelNames: ['last_n_blocks'],
 });
 
 let lastRun = 0;
@@ -45,6 +51,7 @@ export async function warmupMetrics() {
     console.log('Metrics were last run less than a minute ago');
     return;
   }
+  const runStart = Date.now();
   isRunning = true;
 
   console.log('Warming up metrics');
@@ -93,6 +100,8 @@ export async function warmupMetrics() {
       sumTimeToPushed / 1000 / blocksWithPush.length,
     );
 
+    let sumWeightDegraded = 0;
+
     // Now get signer participation rates
     for (const signer of stackerSet.signers) {
       let blocksSigned = 0;
@@ -107,8 +116,11 @@ export async function warmupMetrics() {
         }
         if (foundSigner.accepted === null) {
           blocksDegraded++;
+          sumWeightDegraded += signer.weight;
         } else if (foundSigner.accepted === false && block.accepted === true) {
+          // Signer rejected an accepted block
           blocksDegraded++;
+          sumWeightDegraded += signer.weight;
         }
       }
       signerParticipationRate.set(
@@ -118,12 +130,17 @@ export async function warmupMetrics() {
       const percentageDegraded = blocksDegraded / lastNBlocks.length;
       signerDegradationRate.set(
         { last_n_blocks: n, signer_key: signer.signing_key },
-        1 - percentageDegraded,
+        percentageDegraded,
       );
     }
+    weightDegradedLastBlocks.set(
+      { last_n_blocks: n },
+      sumWeightDegraded / sumWeight,
+    );
   }
 
-  console.log('Metrics warmed up');
+  const runDuration = Date.now() - runStart;
+  console.log(`Metrics warmed up in ${runDuration}ms`);
   lastRun = Date.now();
   isRunning = false;
 }
