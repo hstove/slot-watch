@@ -26,6 +26,12 @@ export const signerParticipationRate = new Gauge({
   labelNames: ['last_n_blocks', 'signer_key'],
 });
 
+export const signerDegradationRate = new Gauge({
+  name: 'slot_watch_signer_degradation_rate',
+  help: 'The percentage of blocks that a signer missed or rejected accepted blocks',
+  labelNames: ['signer_key', 'last_n_blocks'],
+});
+
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
 let isRunning = false;
@@ -48,7 +54,7 @@ export async function warmupMetrics() {
 
   // Reset so that we don't show stale signers
   signerParticipationRate.reset();
-
+  signerDegradationRate.reset();
   const lastNs = [10, 25, 50];
 
   const blocksResolved = recentBlocks.blocks.filter(
@@ -90,6 +96,7 @@ export async function warmupMetrics() {
     // Now get signer participation rates
     for (const signer of stackerSet.signers) {
       let blocksSigned = 0;
+      let blocksDegraded = 0;
       for (const block of lastNBlocks) {
         const foundSigner = block.signers.find(
           (s) => s.signing_key === signer.signing_key,
@@ -98,10 +105,20 @@ export async function warmupMetrics() {
         if (foundSigner.accepted !== null) {
           blocksSigned++;
         }
+        if (foundSigner.accepted === null) {
+          blocksDegraded++;
+        } else if (foundSigner.accepted === false && block.accepted === true) {
+          blocksDegraded++;
+        }
       }
       signerParticipationRate.set(
         { last_n_blocks: n, signer_key: signer.signing_key },
         blocksSigned / lastNBlocks.length,
+      );
+      const percentageDegraded = blocksDegraded / lastNBlocks.length;
+      signerDegradationRate.set(
+        { last_n_blocks: n, signer_key: signer.signing_key },
+        1 - percentageDegraded,
       );
     }
   }
