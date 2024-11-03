@@ -76,7 +76,7 @@ export async function warmupMetrics() {
 
   const [mostRecent] = recentBlocks.blocks;
   if (mostRecent && mostRecent.accepted === null) {
-    pendingBlockTime.set((mostRecent.createdAt.getTime() - Date.now()) / 1000);
+    pendingBlockTime.set((Date.now() - mostRecent.createdAt.getTime()) / 1000);
   } else {
     pendingBlockTime.set(0);
   }
