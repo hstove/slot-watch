@@ -40,6 +40,11 @@ export const textVariants = cva('', {
       true: '',
       false: 'text-muted-foreground',
     },
+    status: {
+      success: 'text-green-300',
+      warning: 'text-orange-300',
+      error: 'text-red-300',
+    },
   },
   defaultVariants: {
     variant: 'p',

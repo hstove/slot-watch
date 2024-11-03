@@ -8,6 +8,7 @@ import {
   type RecentSigner,
 } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
+import { getRecentSigners } from '@/lib/slots-api';
 
 // export const stackerSetAtom = atom<StackerSetSigner[]>([]);
 
@@ -26,14 +27,6 @@ export const stackerSetAtom = atom(async (get) => {
   const networkId = get(networkIdAtom);
   return getStackerSet(networkId, rewardCycle);
 });
-
-export async function getRecentSigners(networkId: string) {
-  const res = await fetch(
-    `https://slot-watch.fly.dev/signer-recency/${networkId}`,
-  );
-  const data = (await res.json()) as RecentSignersResponse;
-  return data;
-}
 
 export type RecentSignerWithPower = RecentSigner;
 

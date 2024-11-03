@@ -118,11 +118,12 @@ export const SortableHeader = <T extends ColumnGeneric>({
     if (sortState === 'desc') {
       return <ArrowDownIcon className="ml-2 h-4 w-4" />;
     }
-    return <div className="ml-2 h-4 w-4" />;
+    // return <div className="ml-2 h-4 w-4" />;
   }
   return (
     <Button
       variant="ghost"
+      size={'sm'}
       onClick={column.getToggleSortingHandler?.()}
       className={className}
     >

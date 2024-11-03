@@ -23,3 +23,10 @@ export async function getHealthBlocks(networkKey: string) {
   });
   return response.json();
 }
+
+export async function getRecentSigners(networkKey: string) {
+  const response = await apiClient['signer-recency'][':networkKey'].$get({
+    param: { networkKey },
+  });
+  return response.json();
+}

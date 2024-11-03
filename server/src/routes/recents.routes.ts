@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
 import { eq, inArray, sql } from 'drizzle-orm';
-import { PgDialect } from 'drizzle-orm/pg-core';
+import { index, PgDialect } from 'drizzle-orm/pg-core';
 import {
   blockPushes,
   blockProposals,
@@ -16,6 +16,7 @@ import {
   type RecentSignersResponse,
 } from 'slot-watch-common';
 import { hex } from '@scure/base';
+import { signerDegradationRate } from '../metrics';
 
 const getRecentsRoutes = new Hono().get(
   '/signer-recency/:networkKey',
@@ -56,6 +57,23 @@ const getRecentsRoutes = new Hono().get(
       contract_id: string;
     }>(query);
 
+    const signerDegradations = (await signerDegradationRate.get()).values;
+
+    const signerDegradationMap = new Map<string, number>();
+
+    for (const m of signerDegradations) {
+      const signerKey = m.labels.signer_key;
+      const lastNBlocks = m.labels.last_n_blocks;
+      if (
+        signerKey &&
+        lastNBlocks &&
+        typeof lastNBlocks === 'number' &&
+        typeof signerKey === 'string'
+      ) {
+        signerDegradationMap.set(`${signerKey}-${lastNBlocks}`, m.value);
+      }
+    }
+
     const signersResponse: RecentSignersResponse['signers'] = signers.map(
       (signer, index) => {
         const chunk = recentChunks.find(
@@ -67,6 +85,13 @@ const getRecentsRoutes = new Hono().get(
         const version = versionFromData(data);
         const versionShort = getVersionFromString(version);
 
+        const degradation10 =
+          signerDegradationMap.get(`${signer.signing_key}-10`) ?? 0;
+        const degradation25 =
+          signerDegradationMap.get(`${signer.signing_key}-25`) ?? 0;
+        const degradation50 =
+          signerDegradationMap.get(`${signer.signing_key}-50`) ?? 0;
+
         const common = {
           publicKey: signer.signing_key,
           slotId: index,
@@ -76,6 +101,9 @@ const getRecentsRoutes = new Hono().get(
           version,
           versionShort,
           data,
+          degradation10,
+          degradation25,
+          degradation50,
         };
         if (!chunk) {
           return {

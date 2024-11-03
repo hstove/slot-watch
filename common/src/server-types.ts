@@ -10,6 +10,9 @@ export type RecentSigner = {
   version: string;
   weightPercent: number;
   weightPercentStr: string;
+  degradation10: number;
+  degradation25: number;
+  degradation50: number;
 };
 
 export type RecentSignersResponse = {

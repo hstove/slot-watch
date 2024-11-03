@@ -5,42 +5,44 @@ import { getStackerSet, getPoxInfo } from './stacks-api';
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
   help: 'The percentage of blocks that were accepted',
-  labelNames: ['last_n_blocks'],
+  labelNames: ['last_n_blocks'] as const,
 });
 
 export const averageAcceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_average_block_acceptance_rate',
   help: 'Average weight accepted per block',
-  labelNames: ['last_n_blocks'],
+  labelNames: ['last_n_blocks'] as const,
 });
 
 export const averageTimeToPushedLastBlocks = new Gauge({
   name: 'slot_watch_average_time_to_pushed',
   help: 'Average time (seconds) between BlockProposal and BlockPushed',
-  labelNames: ['last_n_blocks'],
+  labelNames: ['last_n_blocks'] as const,
 });
 
 export const signerParticipationRate = new Gauge({
   name: 'slot_watch_signer_participation_rate',
   help: 'The percentage of blocks that a signer participated in',
-  labelNames: ['last_n_blocks', 'signer_key'],
+  labelNames: ['last_n_blocks', 'signer_key'] as const,
 });
 
 export const signerDegradationRate = new Gauge({
   name: 'slot_watch_signer_degradation_percent',
   help: 'The percentage of blocks that a signer missed or rejected accepted blocks',
-  labelNames: ['signer_key', 'last_n_blocks'],
+  labelNames: ['signer_key', 'last_n_blocks'] as const,
 });
 
 export const weightDegradedLastBlocks = new Gauge({
   name: 'slot_watch_percent_weight_degraded',
   help: 'The percentage weight of signers that missed or rejected accepted blocks',
-  labelNames: ['last_n_blocks'],
+  labelNames: ['last_n_blocks'] as const,
 });
 
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
 let isRunning = false;
+
+export const lastNs = [10, 25, 50];
 
 export async function warmupMetrics() {
   if (isRunning) {
@@ -62,7 +64,6 @@ export async function warmupMetrics() {
   // Reset so that we don't show stale signers
   signerParticipationRate.reset();
   signerDegradationRate.reset();
-  const lastNs = [10, 25, 50];
 
   const blocksResolved = recentBlocks.blocks.filter(
     (b) => typeof b.accepted === 'boolean',
