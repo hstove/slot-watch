@@ -4,6 +4,7 @@ import { useAtomValue } from 'jotai';
 import React from 'react';
 import {
   BlockResponseRejectCodes,
+  BlockResponseValidationCodes,
   decodeChunkMaybe,
   SignerMessageTypePrefix,
 } from 'slot-watch-common';
@@ -22,6 +23,11 @@ export function BlockSignerChunkDataInner({ chunkId }: { chunkId: number }) {
     return null;
   }
 
+  let validfationReason = '';
+  if (typeof decoded.validationCode === 'number') {
+    validfationReason = BlockResponseValidationCodes[decoded.validationCode];
+  }
+
   return (
     <>
       <DataLabel>Reason</DataLabel>
@@ -29,6 +35,13 @@ export function BlockSignerChunkDataInner({ chunkId }: { chunkId: number }) {
 
       <DataLabel>Reason Code</DataLabel>
       <DataValue>{decoded.reasonCode}</DataValue>
+
+      {validfationReason ? (
+        <>
+          <DataLabel>Validation Reason</DataLabel>
+          <DataValue>{validfationReason}</DataValue>
+        </>
+      ) : null}
     </>
   );
 }

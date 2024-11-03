@@ -24,3 +24,11 @@ export function getApiUrl(networkKey: string) {
       return 'https://api.hiro.so';
   }
 }
+
+export function stacksExplorerNetworkKey(networkKey: string) {
+  return isMainnet(networkKey) ? 'mainnet' : 'testnet';
+}
+
+export function getStacksExplorerUrl(path: string, networkKey: string) {
+  return `https://explorer.hiro.so${path}?chain=${stacksExplorerNetworkKey(networkKey)}`;
+}

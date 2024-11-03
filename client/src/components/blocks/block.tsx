@@ -8,6 +8,8 @@ import {
   getApiUrl,
   getBtcAddress,
   getStacksAddress,
+  getStacksExplorerUrl,
+  makeStacksBlockId,
   percentString,
 } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
@@ -18,6 +20,7 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronsUpDownIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BlockExtraInfo } from './block-extra-info';
 
 function DataValue({ children }: { children: React.ReactNode }) {
   return <p className={textStyles('muted')}>{children}</p>;
@@ -112,10 +115,34 @@ export function Block({
               </DataValue>
 
               <DataLabel>Block Hash</DataLabel>
-              <DataValue>{blockPushes.signerSignatureHash}</DataValue>
+              <DataValue>
+                <Link
+                  to={getStacksExplorerUrl(
+                    `/block/0x${blockPushes.signerSignatureHash}`,
+                    blockPushes.networkKey,
+                  )}
+                  target="_blank"
+                >
+                  {blockPushes.signerSignatureHash}
+                </Link>
+              </DataValue>
 
               <DataLabel>Transactions</DataLabel>
               <DataValue>{blockPushes.txCount}</DataValue>
+
+              <DataLabel>Block ID</DataLabel>
+              <DataValue>
+                {makeStacksBlockId(
+                  blockPushes.signerSignatureHash,
+                  blockPushes.consensusHash ?? '',
+                )}
+              </DataValue>
+
+              <React.Suspense fallback={null}>
+                <BlockExtraInfo
+                  consensusHash={blockPushes.consensusHash ?? ''}
+                />
+              </React.Suspense>
             </div>
           </CollapsibleContent>
         </Collapsible>

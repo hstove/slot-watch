@@ -8,6 +8,7 @@ import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal';
 import { networkIdAtom } from './network';
+import { ConsensusBlockResponse, getConsensusBlock } from 'slot-watch-common';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -34,3 +35,10 @@ export const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
     blocks.map((b) => b.signerSignatureHash),
   );
 });
+
+export const consensusBlockAtoms = atomFamily((consensusHash: string) =>
+  atom(async (get) => {
+    const networkKey = get(networkIdAtom);
+    return getConsensusBlock(networkKey, consensusHash);
+  }),
+);

@@ -1,13 +1,14 @@
 import * as P from 'micro-packed';
 import { sha512_256 } from '@noble/hashes/sha2';
-import type { ChunkEvent } from './types';
+import type { ChunkEvent } from '../types';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import type { StacksTransaction } from '@stacks/transactions';
 import {
   deserializeTransaction,
   serializeTransaction,
 } from '@stacks/transactions/dist/transaction';
-import type { Prettify } from './utils';
+import type { Prettify } from '../utils';
+import { hex } from '@scure/base';
 
 export type BitVec = {
   length: number;
@@ -197,8 +198,9 @@ export const BlockPushedCoder = P.struct({
   signerSignature: P.array(P.U32BE, P.bytes(65)),
   bitvec: BitVecCoder,
   // txs
-  rest: P.bytes(null),
+  // rest: P.bytes(null),
   // txs: P.array(P.U32BE, StacksTxCoder),
+  rest: P.bytes(null),
 });
 
 export const SignerSignatureHashCoder = P.struct({
@@ -407,6 +409,7 @@ export function decodeChunk(chunk: Uint8Array) {
   if (type === SignerMessageTypePrefix.BlockPushed) {
     const { rest, ...pushed } = BlockPushedCoder.decode(chunk);
     const txCount = P.U32BE.decode(rest.slice(0, 4));
+    console.log(hex.encode(rest));
     return {
       ...pushed,
       txCount,
@@ -479,4 +482,10 @@ export function recoverChunkPublicKey(
   const message = chunkAuthDigest(chunk);
   const sig = compactToSig(chunk.signature);
   return sig.recoverPublicKey(message);
+}
+
+export function makeStacksBlockId(blockHash: string, consensusHash: string) {
+  const blockHasher = sha512_256(hex.decode(blockHash + consensusHash));
+  // const consensusHasher = sha512_256(blockHasher);
+  return hex.encode(blockHasher);
 }

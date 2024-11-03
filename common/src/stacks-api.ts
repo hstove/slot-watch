@@ -37,3 +37,24 @@ export async function getPoxInfo(networkKey: string) {
   const data = (await response.json()) as CoreNodePoxResponse;
   return data;
 }
+
+export type ConsensusBlockResponse = {
+  burn_block_hash: string;
+  burn_block_height: number;
+  burn_header_timestamp: number;
+  was_sortition: boolean;
+  sortition_id: string;
+  parent_sortition_id: string;
+  stacks_parent_ch: string;
+  last_sortition_ch: string;
+};
+
+export async function getConsensusBlock(
+  networkKey: string,
+  consensusHash: string,
+) {
+  const url = `${getApiUrl(networkKey)}/v3/sortitions/consensus/${consensusHash}`;
+  const response = await fetch(url);
+  const data = (await response.json()) as ConsensusBlockResponse[];
+  return data[0];
+}
