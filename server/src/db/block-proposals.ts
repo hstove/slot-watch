@@ -32,7 +32,10 @@ export async function getRecentBlocksHealth(networkKey: string) {
         eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
       ),
     )
-    .orderBy(desc(blockProposalsSchema.chainLength))
+    .orderBy(
+      desc(blockProposalsSchema.chainLength),
+      desc(blockProposalsSchema.createdAt),
+    )
     .limit(50);
 
   const blockResponses = await db
