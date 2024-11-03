@@ -18,6 +18,7 @@ import {
 import { networkIdAtom } from './network';
 import { format } from 'date-fns';
 import { atomWithHash } from 'jotai-location';
+import { apiClient, getChunkById, getChunksByTime } from '@/lib/slots-api';
 
 export const chunksFamilyStore = atomFamily((_networkId: string) =>
   atom<WSPayload[]>([]),
@@ -128,18 +129,6 @@ export const searchInputsValidAtom = atom((get) => {
   return isValidDateString(startString) && isValidDateString(endString);
 });
 
-export async function getChunksByTime(
-  networkId: string,
-  start: string,
-  end: string,
-) {
-  const res = await fetch(
-    `https://slot-watch.fly.dev/chunks/${networkId}/${start}/${end}`,
-  );
-  const data = (await res.json()) as { chunks: ChunkEventParsed[] };
-  return data.chunks;
-}
-
 const isSearchingAtom = atom(false);
 
 export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
@@ -161,7 +150,8 @@ export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
   set(allPayloadsAtom, []);
   set(isSearchingAtom, true);
   const chunksResponse = await getChunksByTime(networkId, start, end);
-  const chunks: WSChunkEvent[] = chunksResponse.map((chunk) => {
+
+  const chunks: WSChunkEvent[] = chunksResponse.chunks.map((chunk) => {
     return {
       type: CHUNKS_EVENT,
       payload: chunk,
@@ -172,3 +162,10 @@ export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
   set(allPayloadsAtom, chunks);
   set(isSearchingAtom, false);
 });
+
+export const chunksByIdAtoms = atomFamily((id: number) =>
+  atom(async () => {
+    const chunk = await getChunkById(id);
+    return chunk;
+  }),
+);

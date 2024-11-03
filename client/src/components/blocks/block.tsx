@@ -71,7 +71,7 @@ export function Block({
             <div className="grid gap-0 grid-cols-[min-content_1fr] items-center">
               <DataLabel>Proposed</DataLabel>
               <DataValue>
-                <TimeAgo date={blockPushes.createdAt} />
+                {new Date(blockPushes.createdAt).toLocaleString()}
               </DataValue>
             </div>
           )}
@@ -79,14 +79,14 @@ export function Block({
             <div className="grid gap-0 grid-cols-[minmax(150px,min-content)_1fr] items-center">
               <DataLabel>Proposed</DataLabel>
               <DataValue>
-                <TimeAgo date={blockPushes.createdAt} />
+                {new Date(blockPushes.createdAt).toLocaleString()}
               </DataValue>
 
               <DataLabel>Pushed</DataLabel>
               <DataValue>
                 {blockPushes.pushedAt ? (
                   <>
-                    <TimeAgo date={blockPushes.pushedAt} />
+                    {new Date(blockPushes.pushedAt).toLocaleString()}
                     <span className="ml-1">
                       {secondsAgo ? `(${secondsAgo}s)` : ''}
                     </span>
@@ -110,6 +110,9 @@ export function Block({
                   {blockPushes.consensusHash}
                 </Link>
               </DataValue>
+
+              <DataLabel>Block Hash</DataLabel>
+              <DataValue>{blockPushes.signerSignatureHash}</DataValue>
 
               <DataLabel>Transactions</DataLabel>
               <DataValue>{blockPushes.txCount}</DataValue>

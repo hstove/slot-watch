@@ -30,3 +30,25 @@ export async function getRecentSigners(networkKey: string) {
   });
   return response.json();
 }
+
+export async function getChunksByTime(
+  networkId: string,
+  start: string,
+  end: string,
+) {
+  const response = await apiClient.chunks[':networkKey'][':from'][':to'].$get({
+    param: {
+      networkKey: networkId,
+      from: start,
+      to: end,
+    },
+  });
+  return response.json();
+}
+
+export async function getChunkById(id: number) {
+  const response = await apiClient.chunks.id[':id'].$get({
+    param: { id: id.toString() },
+  });
+  return response.json();
+}

@@ -46,6 +46,7 @@
     "prom-client": "^15.1.3",
     "react-use-websocket": "^4.8.1",
     "slot-watch-common": "workspace:*",
-    "vitest": "^2.1.2"
+    "vitest": "^2.1.2",
+    "zod": "^3.23.8"
   }
 }

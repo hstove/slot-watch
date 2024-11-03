@@ -15,21 +15,11 @@ import { PublicKey } from '../public-key';
 import { useEntity } from '@/hooks/use-entity';
 import { TimeAgo } from '../time-ago';
 import { getBtcAddress, percentString } from 'slot-watch-common';
+import { DataLabel, DataValue } from '../data-group';
+import { BlockSignerChunkData } from './block-signer-chunk-data';
 
 const okColor = colord('#22c55e');
 const badColor = colord('#ef4444');
-
-function DataValue({ children }: { children: React.ReactNode }) {
-  return <p className={textStyles('muted')}>{children}</p>;
-}
-
-function DataLabel({ children }: { children: React.ReactNode }) {
-  return <p className={textStyles('small', 'pr-4')}>{children}</p>;
-}
-
-function DataGroup({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 items-center">{children}</div>;
-}
 
 export function BlockSigner({
   signer,
@@ -112,6 +102,10 @@ export function BlockSigner({
                 ? 'Rejected'
                 : 'none'}
           </DataValue>
+
+          {'chunkId' in signer && signer.chunkId ? (
+            <BlockSignerChunkData chunkId={signer.chunkId} />
+          ) : null}
         </div>
       </PopoverContent>
     </Popover>

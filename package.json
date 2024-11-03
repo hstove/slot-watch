@@ -12,7 +12,7 @@
     "dev:common": "cd common && bun run dev",
     "migrate": "cd server && bun run migrate.ts",
     "typecheck": "turbo typecheck",
-    "dev": "turbo dev"
+    "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
