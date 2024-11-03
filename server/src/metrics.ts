@@ -38,6 +38,11 @@ export const weightDegradedLastBlocks = new Gauge({
   labelNames: ['last_n_blocks'] as const,
 });
 
+export const pendingBlockTime = new Gauge({
+  name: 'slot_watch_pending_block_proposal',
+  help: 'The time (seconds) since the last pending block proposal',
+});
+
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
 let isRunning = false;
@@ -68,6 +73,13 @@ export async function warmupMetrics() {
   const blocksResolved = recentBlocks.blocks.filter(
     (b) => typeof b.accepted === 'boolean',
   );
+
+  const [mostRecent] = recentBlocks.blocks;
+  if (mostRecent && mostRecent.accepted === null) {
+    pendingBlockTime.set((mostRecent.createdAt.getTime() - Date.now()) / 1000);
+  } else {
+    pendingBlockTime.set(0);
+  }
 
   for (const n of lastNs) {
     const lastNBlocks = blocksResolved.slice(0, n);
