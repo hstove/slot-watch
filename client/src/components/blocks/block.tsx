@@ -110,6 +110,9 @@ export function Block({
                   {blockPushes.consensusHash}
                 </Link>
               </DataValue>
+
+              <DataLabel>Transactions</DataLabel>
+              <DataValue>{blockPushes.txCount}</DataValue>
             </div>
           </CollapsibleContent>
         </Collapsible>
