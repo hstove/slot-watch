@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { RecentSigners } from './components/recent-signers/index.tsx';
 import { Watcher } from './components/stream/watcher.tsx';
 import { BlocksList } from './components/blocks/blocks-list.tsx';
+import { ChunkWatcher } from './components/chunk-watcher.tsx';
 
 const router = createBrowserRouter([
   {
@@ -14,7 +15,12 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Watcher />,
+        element: (
+          <>
+            <ChunkWatcher />
+            <Watcher />
+          </>
+        ),
       },
       {
         path: '/recent-signers',

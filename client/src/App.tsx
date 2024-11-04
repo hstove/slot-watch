@@ -8,12 +8,6 @@ import { useHydrateAtoms } from 'jotai/utils';
 import { useAtomsDevtools } from 'jotai-devtools';
 import { networkAtom } from '@/store/network';
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { useChunksWatcher } from './hooks/use-websocket';
-
-function ChunkWatcher() {
-  useChunksWatcher();
-  return null;
-}
 
 function App() {
   const [searchParams] = useSearchParams();
@@ -39,7 +33,7 @@ function App() {
           </Suspense>
         </main>
         <Toaster />
-        <ChunkWatcher />
+        {/* <ChunkWatcher /> */}
         {/* footer */}
         {/* <footer className="flex items-center justify-center">
 				<h1 className="text-2xl font-bold">Hello World</h1>

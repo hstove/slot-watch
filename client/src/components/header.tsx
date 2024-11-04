@@ -38,8 +38,8 @@ const connectionStatus = {
 } as const;
 
 export const Header = () => {
-  const { readyState } = useWebSocket();
-  const network = useAtomValue(networkIdAtom);
+  // const { readyState } = useWebSocket();
+  // const network = useAtomValue(networkIdAtom);
   return (
     <header className="flex items-center justify-between sticky top-0 z-50 bg-background py-3">
       <div className="flex gap-5 items-center">
@@ -83,9 +83,9 @@ export const Header = () => {
           Blocks
         </NavLink>
         <NetworkPicker />
-        <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
+        {/* <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
           <div className={cn(connectionStatusVariants({ readyState }))} />
-        </SimpleTooltip>
+        </SimpleTooltip> */}
         <ModeToggle />
       </div>
     </header>
