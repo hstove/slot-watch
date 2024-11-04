@@ -47,6 +47,16 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
   await next();
 });
 
+function publishEvent(networkKey: string, payload: WSPayload) {
+  process.nextTick(async () => {
+    try {
+      await redisClient.publish(networkKey, JSON.stringify(payload));
+    } catch (error) {
+      console.error(`Error publishing event: ${error}`);
+    }
+  });
+}
+
 const eventsRoutes = new Hono<Env>()
 
   .get('/auth-test', basicAuthMiddleware, (c) => {
@@ -79,11 +89,7 @@ const eventsRoutes = new Hono<Env>()
       payload: chunks,
       receivedAt: receivedAt.toISOString(),
     };
-    try {
-      await redisClient.publish(networkKey, JSON.stringify(manyChunksPayload));
-    } catch (error) {
-      console.error(`Error publishing many chunks: ${error}`);
-    }
+    publishEvent(networkKey, manyChunksPayload);
     process.nextTick(async () => {
       try {
         await handleStackerDBChunk(data, receivedAt, networkKey);
@@ -106,11 +112,7 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    try {
-      await redisClient.publish(networkKey, JSON.stringify(sharedPayload));
-    } catch (error) {
-      console.error(`Error publishing new block: ${error}`);
-    }
+    publishEvent(networkKey, sharedPayload);
 
     return new Response('OK', { status: 200 });
   })
@@ -128,11 +130,7 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    try {
-      await redisClient.publish(networkKey, JSON.stringify(payload));
-    } catch (error) {
-      console.error(`Error publishing new burn block: ${error}`);
-    }
+    publishEvent(networkKey, payload);
     process.nextTick(async () => {
       await warmCache(networkKey);
     });
