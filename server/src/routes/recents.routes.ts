@@ -133,26 +133,28 @@ const getRecentsRoutes = new Hono()
     const cycle = poxInfo.rewardCycleId;
     const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
 
-    const signersResponse = signers.map((s, i) => {
-      const percent = s.weight / totalWeight;
-      const percentStr = percentString(percent);
-      let label = '';
-      const name = knownSigners[s.signing_key];
-      if (name === null) {
-        label += `#${i}`;
-      } else {
-        label += name;
-      }
-      label += ` (${percentStr}%)`;
-      return {
-        publicKey: s.signing_key,
-        weight: s.weight,
-        weightPercent: percent,
-        weightPercentStr: percentStr,
-        name: knownSigners[s.signing_key] ?? null,
-        label,
-      };
-    });
+    const signersResponse = signers
+      .map((s, i) => {
+        const percent = s.weight / totalWeight;
+        const percentStr = percentString(percent);
+        let label = '';
+        const name = knownSigners[s.signing_key];
+        if (typeof name === 'undefined') {
+          label += `#${i}`;
+        } else {
+          label += name;
+        }
+        label += ` (${percentStr}%)`;
+        return {
+          publicKey: s.signing_key,
+          weight: s.weight,
+          weightPercent: percent,
+          weightPercentStr: percentStr,
+          name: knownSigners[s.signing_key] ?? null,
+          label,
+        };
+      })
+      .sort((a, b) => b.weight - a.weight);
     return c.json(signersResponse);
   });
 
