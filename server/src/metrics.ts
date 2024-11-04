@@ -83,17 +83,17 @@ export async function warmupMetrics() {
 
   for (const n of lastNs) {
     const lastNBlocks = blocksResolved.slice(0, n);
-    const accepted = lastNBlocks.filter((b) => b.accepted).length;
+    const acceptedBlocks = lastNBlocks.filter((b) => b.accepted);
     acceptanceRateLastBlocks.set(
       { last_n_blocks: n },
-      accepted / lastNBlocks.length,
+      acceptedBlocks.length / lastNBlocks.length,
     );
 
-    const sumWeightAccepted = lastNBlocks.reduce(
+    const sumWeightAccepted = acceptedBlocks.reduce(
       (acc, b) => acc + (b.accepted ? b.weightAccept : 0),
       0,
     );
-    const sumWeight = lastNBlocks.reduce((acc, b) => acc + b.totalWeight, 0);
+    const sumWeight = acceptedBlocks.reduce((acc, b) => acc + b.totalWeight, 0);
     averageAcceptanceRateLastBlocks.set(
       { last_n_blocks: n },
       sumWeightAccepted / sumWeight,

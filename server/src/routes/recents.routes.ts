@@ -13,15 +13,15 @@ import { getPoxInfo, getStackerSet } from '../stacks-api';
 import {
   getVersionFromString,
   knownSigners,
+  percentString,
   versionFromData,
   type RecentSignersResponse,
 } from 'slot-watch-common';
 import { hex } from '@scure/base';
 import { signerDegradationRate } from '../metrics';
 
-const getRecentsRoutes = new Hono().get(
-  '/signer-recency/:networkKey',
-  async (c) => {
+const getRecentsRoutes = new Hono()
+  .get('/signer-recency/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
     const poxInfo = await getPoxInfo.get(networkKey);
     const cycle = poxInfo.rewardCycleId;
@@ -80,8 +80,7 @@ const getRecentsRoutes = new Hono().get(
         const chunk = recentChunks.find(
           (c) => c.public_key === signer.signing_key,
         );
-        const percent = (signer.weight / totalWeight) * 10000;
-        const percentStr = Math.round(percent) / 100;
+        const percent = signer.weight / totalWeight;
         const data = chunk ? hex.encode(chunk.data) : null;
         const version = versionFromData(data);
         const versionShort = getVersionFromString(version);
@@ -98,8 +97,8 @@ const getRecentsRoutes = new Hono().get(
           name: knownSigners[signer.signing_key] ?? null,
           slotId: index,
           weight: signer.weight,
-          weightPercent: percent / 100,
-          weightPercentStr: percentStr.toString(),
+          weightPercent: percent,
+          weightPercentStr: percentString(percent),
           version,
           versionShort,
           data,
@@ -127,7 +126,34 @@ const getRecentsRoutes = new Hono().get(
       signers: signersResponse,
     };
     return c.json(response);
-  },
-);
+  })
+  .get('/signers/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const poxInfo = await getPoxInfo.get(networkKey);
+    const cycle = poxInfo.rewardCycleId;
+    const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+
+    const signersResponse = signers.map((s, i) => {
+      const percent = s.weight / totalWeight;
+      const percentStr = percentString(percent);
+      let label = '';
+      const name = knownSigners[s.signing_key];
+      if (name === null) {
+        label += `#${i}`;
+      } else {
+        label += name;
+      }
+      label += ` (${percentStr}%)`;
+      return {
+        publicKey: s.signing_key,
+        weight: s.weight,
+        weightPercent: percent,
+        weightPercentStr: percentStr,
+        name: knownSigners[s.signing_key] ?? null,
+        label,
+      };
+    });
+    return c.json(signersResponse);
+  });
 
 export { getRecentsRoutes };
