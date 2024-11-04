@@ -409,7 +409,7 @@ export function decodeChunk(chunk: Uint8Array) {
   if (type === SignerMessageTypePrefix.BlockPushed) {
     const { rest, ...pushed } = BlockPushedCoder.decode(chunk);
     const txCount = P.U32BE.decode(rest.slice(0, 4));
-    console.log(hex.encode(rest));
+    // console.log(hex.encode(rest));
     return {
       ...pushed,
       txCount,

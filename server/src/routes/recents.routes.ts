@@ -12,6 +12,7 @@ import { getBurnAddress } from '../constants';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import {
   getVersionFromString,
+  knownSigners,
   versionFromData,
   type RecentSignersResponse,
 } from 'slot-watch-common';
@@ -94,6 +95,7 @@ const getRecentsRoutes = new Hono().get(
 
         const common = {
           publicKey: signer.signing_key,
+          name: knownSigners[signer.signing_key] ?? null,
           slotId: index,
           weight: signer.weight,
           weightPercent: percent / 100,
