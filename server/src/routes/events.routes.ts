@@ -79,7 +79,11 @@ const eventsRoutes = new Hono<Env>()
       payload: chunks,
       receivedAt: receivedAt.toISOString(),
     };
-    await redisClient.publish(networkKey, JSON.stringify(manyChunksPayload));
+    try {
+      await redisClient.publish(networkKey, JSON.stringify(manyChunksPayload));
+    } catch (error) {
+      console.error(`Error publishing many chunks: ${error}`);
+    }
     process.nextTick(async () => {
       try {
         await handleStackerDBChunk(data, receivedAt, networkKey);
@@ -102,7 +106,12 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    await redisClient.publish(networkKey, JSON.stringify(sharedPayload));
+    try {
+      await redisClient.publish(networkKey, JSON.stringify(sharedPayload));
+    } catch (error) {
+      console.error(`Error publishing new block: ${error}`);
+    }
+
     return new Response('OK', { status: 200 });
   })
 
@@ -119,7 +128,11 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    await redisClient.publish(networkKey, JSON.stringify(payload));
+    try {
+      await redisClient.publish(networkKey, JSON.stringify(payload));
+    } catch (error) {
+      console.error(`Error publishing new burn block: ${error}`);
+    }
     process.nextTick(async () => {
       await warmCache(networkKey);
     });
