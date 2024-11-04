@@ -10,6 +10,7 @@ primary_region = 'iad'
 
 [deploy]
   release_command = "bun run migrate"
+  strategy = "bluegreen"
 
 [env]
   STACKS_NETWORK = 'testnet'

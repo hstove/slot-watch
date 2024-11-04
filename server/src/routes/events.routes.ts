@@ -19,7 +19,8 @@ import {
 import { getNetworkKey, getNetworkKeyHono } from '../auth';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import { warmCache } from '../stacks-api';
-// import { sockets } from "../sockets";
+import { redisClient } from '../redis';
+
 export const getBunServer = (c: Context): Server => {
   const server = ('server' in c.env ? c.env.server : c.env) as
     | Server
@@ -45,14 +46,6 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
   c.set('networkKey', networkKey);
   await next();
 });
-
-function logSendStatus(status: number) {
-  if (status === -1) {
-    console.debug('Failed to publish');
-  } else if (status === 0) {
-    console.debug('Backpressure');
-  }
-}
 
 const eventsRoutes = new Hono<Env>()
 
@@ -86,12 +79,7 @@ const eventsRoutes = new Hono<Env>()
       payload: chunks,
       receivedAt: receivedAt.toISOString(),
     };
-    const status = server.publish(
-      networkKey,
-      JSON.stringify(manyChunksPayload),
-      true,
-    );
-    logSendStatus(status);
+    await redisClient.publish(networkKey, JSON.stringify(manyChunksPayload));
     process.nextTick(async () => {
       try {
         await handleStackerDBChunk(data, receivedAt, networkKey);
@@ -114,12 +102,7 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    const status = server.publish(
-      networkKey,
-      JSON.stringify(sharedPayload),
-      true,
-    );
-    logSendStatus(status);
+    await redisClient.publish(networkKey, JSON.stringify(sharedPayload));
     return new Response('OK', { status: 200 });
   })
 
@@ -136,8 +119,7 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    const status = server.publish(networkKey, JSON.stringify(payload), true);
-    logSendStatus(status);
+    await redisClient.publish(networkKey, JSON.stringify(payload));
     process.nextTick(async () => {
       await warmCache(networkKey);
     });

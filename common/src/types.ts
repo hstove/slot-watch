@@ -5,6 +5,7 @@ import type {
 } from './event-stream-types';
 import type { Prettify } from './utils';
 export type { ModifiedSlot, StackerDBPayload } from './event-stream-types';
+import { z } from 'zod';
 
 export const CHUNKS_EVENT = 'chunks';
 export const MANY_CHUNKS_EVENT = 'many_chunks';
@@ -53,7 +54,28 @@ export type WSBase<Type extends string, T> = {
   payload: Prettify<T>;
 };
 
-export type WSChunkEvent = WSBase<typeof CHUNKS_EVENT, ChunkEvent>;
+const wsBaseSchema = z.object({
+  networkKey: z.string(),
+  receivedAt: z.string(),
+});
+
+// export type WSChunkEvent = WSBase<typeof CHUNKS_EVENT, ChunkEvent>;
+
+export const chunkEventSchema = z.object({
+  contractId: z.string(),
+  slotId: z.number(),
+  version: z.number(),
+  data: z.string(),
+  signature: z.string(),
+  createdAt: z.string(),
+});
+
+export const wsChunkEventSchema = wsBaseSchema.extend({
+  type: z.literal(CHUNKS_EVENT),
+  payload: chunkEventSchema,
+});
+
+export type WSChunkEvent = z.infer<typeof wsChunkEventSchema>;
 
 export type WSNewBlock = WSBase<typeof NEW_BLOCK_EVENT, CoreNodeBlockMessage>;
 

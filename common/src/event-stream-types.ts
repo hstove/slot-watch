@@ -4,6 +4,7 @@ import {
   addressToString,
 } from '@stacks/transactions';
 import { hex } from '@scure/base';
+import { z } from 'zod';
 
 export function getPayloadContractId(payload: StackerDBPayload) {
   const version =
@@ -32,7 +33,7 @@ export type StackerDBPayload = {
   modified_slots: ModifiedSlot[];
 };
 
-export interface CoreNodeBlockMessage {
+interface _CoreNodeBlockMessage {
   block_hash: string;
   block_height: number;
   burn_block_time: number;
@@ -87,7 +88,29 @@ export interface CoreNodeBlockMessage {
   signer_bitvec?: string | null;
 }
 
-export interface CoreNodeBurnBlockMessage {
+export const coreNodeBlockMessageSchema = z.object({
+  block_hash: z.string(),
+  block_height: z.number(),
+  burn_block_time: z.number(),
+  burn_block_hash: z.string(),
+  burn_block_height: z.number(),
+  miner_txid: z.string(),
+  index_block_hash: z.string(),
+  parent_index_block_hash: z.string(),
+  parent_block_hash: z.string(),
+  parent_microblock: z.string(),
+  parent_microblock_sequence: z.number(),
+  parent_burn_block_hash: z.string(),
+  parent_burn_block_height: z.number(),
+  parent_burn_block_timestamp: z.number(),
+  block_time: z.number(),
+  signer_bitvec: z.string().nullable(),
+  cycle_number: z.number().nullable(),
+});
+
+export type CoreNodeBlockMessage = z.infer<typeof coreNodeBlockMessageSchema>;
+
+interface _CoreNodeBurnBlockMessage {
   burn_block_hash: string;
   burn_block_height: number;
   /** Amount in BTC satoshis. */
@@ -107,3 +130,20 @@ export interface CoreNodeBurnBlockMessage {
    */
   reward_slot_holders: string[];
 }
+
+export const coreNodeBurnBlockMessageSchema = z.object({
+  burn_block_hash: z.string(),
+  burn_block_height: z.number(),
+  burn_amount: z.number(),
+  reward_recipients: z.array(
+    z.object({
+      recipient: z.string(),
+      amt: z.number(),
+    }),
+  ),
+  reward_slot_holders: z.array(z.string()),
+});
+
+export type CoreNodeBurnBlockMessage = z.infer<
+  typeof coreNodeBurnBlockMessageSchema
+>;

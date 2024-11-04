@@ -16,6 +16,7 @@ import { prettyJSON } from 'hono/pretty-json';
 import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
+import { redisClient } from './redis';
 
 type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 
@@ -95,7 +96,7 @@ export type SlotWatchServer = typeof app;
 // 	},
 // };
 
-Bun.serve({
+const server = Bun.serve({
   port: 1080,
   fetch: app.fetch,
   websocket: {
@@ -118,6 +119,19 @@ Bun.serve({
       } catch (error) {}
     },
   },
+});
+
+function logSendStatus(status: number) {
+  if (status === -1) {
+    console.debug('Failed to publish');
+  } else if (status === 0) {
+    console.debug('Backpressure');
+  }
+}
+
+await redisClient.pSubscribe('*', (message, channel) => {
+  const status = server.publish(channel, message);
+  logSendStatus(status);
 });
 
 console.log('Listening on http://localhost:1080');
