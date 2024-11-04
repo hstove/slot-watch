@@ -6,15 +6,26 @@ import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
 import { networkIdAtom } from '@/store/network';
 import { slotsWsUrl } from '@/lib/slots-api';
-
-const wsUrl = `${slotsWsUrl}/watch`;
+import { useAtomValue } from 'jotai';
 
 type UseWebSocketProps = {
   networkKey?: string;
 };
 
 export const useChunksWatcher = () => {
-  const { lastMessage, readyState } = useWebSocket();
+  const { lastMessage, readyState, sendMessage } = useWebSocket();
+  // const networkId = useAtomValue(networkIdAtom);
+
+  // useEffect(() => {
+  //   if (networkId) {
+  //     sendMessage(
+  //       JSON.stringify({
+  //         type: 'subscribe',
+  //         networkKey: networkId,
+  //       }),
+  //     );
+  //   }
+  // }, [networkId, sendMessage]);
 
   const handleMessage = useAtomCallback(
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -23,7 +34,12 @@ export const useChunksWatcher = () => {
       const networkId = get(networkIdAtom);
       try {
         const payload = JSON.parse(message.data) as WSPayload;
-        if (payload.networkKey !== networkId) return;
+        if (payload.networkKey !== networkId) {
+          console.warn(
+            `Websocket: Received unexpected networkKey: ${payload.networkKey}`,
+          );
+          return;
+        }
         set(allPayloadsSetterAtom, payload);
       } catch (error) {
         console.debug('Error parsing message', error);
@@ -37,7 +53,9 @@ export const useChunksWatcher = () => {
 };
 
 export const useWebSocket = () => {
-  const { lastMessage, readyState } = _useWebSocket(wsUrl, {
+  const networkId = useAtomValue(networkIdAtom);
+  const wsUrl = `${slotsWsUrl}/watch/${networkId}`;
+  const { lastMessage, readyState, sendMessage } = _useWebSocket(wsUrl, {
     heartbeat: {
       interval: 10000,
       message: 'ping',
@@ -49,5 +67,6 @@ export const useWebSocket = () => {
   return {
     readyState,
     lastMessage,
+    sendMessage,
   };
 };

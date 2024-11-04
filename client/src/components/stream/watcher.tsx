@@ -6,7 +6,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useChunksWatcher } from '@/hooks/use-websocket';
 import { WatcherRow } from './watcher-row';
 import { useInView } from 'react-intersection-observer';
 import useResizeObserver from '@react-hook/resize-observer';

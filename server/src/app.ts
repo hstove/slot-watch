@@ -17,7 +17,9 @@ import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
+type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
+
+const { upgradeWebSocket, websocket } = createBunWebSocket<AppWebSocket>();
 
 export const app = new Hono()
   .use(logger())
@@ -28,7 +30,7 @@ export const app = new Hono()
     upgradeWebSocket((c) => {
       return {
         async onOpen(e, ws) {
-          const rawWs = ws.raw as ServerWebSocket;
+          const rawWs = ws.raw as AppWebSocket;
           rawWs.subscribe(CHUNKS_EVENT);
           rawWs.subscribe(BURN_BLOCKS_EVENT);
           rawWs.subscribe(NEW_BLOCK_EVENT);
@@ -36,11 +38,32 @@ export const app = new Hono()
         },
         // async message(ws, message) {},
         async onClose(evt, ws) {
-          const rawWs = ws.raw as ServerWebSocket;
+          const rawWs = ws.raw as AppWebSocket;
           rawWs.unsubscribe(CHUNKS_EVENT);
           rawWs.unsubscribe(BURN_BLOCKS_EVENT);
           rawWs.unsubscribe(NEW_BLOCK_EVENT);
           rawWs.unsubscribe(MANY_CHUNKS_EVENT);
+        },
+      };
+    }),
+  )
+  .get(
+    '/watch/:networkKey',
+    upgradeWebSocket((c) => {
+      const networkKey = c.req.param('networkKey');
+      return {
+        async onOpen(e, ws) {
+          const rawWs = ws.raw;
+          if (!rawWs) return;
+          console.log(`Websocket: opened for ${networkKey}`);
+          rawWs.subscribe(networkKey);
+        },
+        // async message(ws, message) {},
+        async onClose(evt, ws) {
+          const rawWs = ws.raw;
+          if (!rawWs) return;
+          console.log(`Websocket: closed for ${networkKey}`);
+          rawWs.unsubscribe(networkKey);
         },
       };
     }),
@@ -79,7 +102,20 @@ Bun.serve({
     ...websocket,
     backpressureLimit: 1024 * 1024 * 5, // 5MB
     message(ws, message) {
-      ws.send('pong');
+      if (message === 'ping') {
+        ws.send('pong');
+        return;
+      }
+      if (typeof message !== 'string') return;
+      try {
+        const payload = JSON.parse(message);
+        if (payload.type === 'subscribe') {
+          const networkKey = payload.networkKey;
+          if (networkKey) {
+            ws.subscribe(networkKey);
+          }
+        }
+      } catch (error) {}
     },
   },
 });

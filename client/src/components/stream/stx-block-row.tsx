@@ -9,7 +9,7 @@ import { TableCell } from '../ui/table';
 export const StxBlockRow = ({ payloadAtom }: { payloadAtom: PayloadAtom }) => {
   const payload = useAtomValue(payloadAtom);
   if (payload.type !== NEW_BLOCK_EVENT) return null;
-  const blockId = payload.payload.burn_block_hash;
+  const blockId = payload.payload.block_hash;
   const hexCode = blockId.slice(2, 8);
 
   return (
@@ -22,7 +22,7 @@ export const StxBlockRow = ({ payloadAtom }: { payloadAtom: PayloadAtom }) => {
         <span className="mr-2" style={{ color: `#${hexCode}` }}>
           {blockId.slice(2, 10)}
         </span>
-        ({payload.payload.burn_block_height})
+        ({payload.payload.block_height})
       </TableCell>
     </TableRow>
   );

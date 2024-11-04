@@ -87,7 +87,7 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
     const status = server.publish(
-      MANY_CHUNKS_EVENT,
+      networkKey,
       JSON.stringify(manyChunksPayload),
       true,
     );
@@ -115,7 +115,7 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
     const status = server.publish(
-      NEW_BLOCK_EVENT,
+      networkKey,
       JSON.stringify(sharedPayload),
       true,
     );
@@ -136,11 +136,7 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    const status = server.publish(
-      BURN_BLOCKS_EVENT,
-      JSON.stringify(payload),
-      true,
-    );
+    const status = server.publish(networkKey, JSON.stringify(payload), true);
     logSendStatus(status);
     process.nextTick(async () => {
       await warmCache(networkKey);
