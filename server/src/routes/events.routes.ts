@@ -15,6 +15,7 @@ import {
   type WSBurnBlock,
   MANY_CHUNKS_EVENT,
   type WSManyChunks,
+  type WSPayload,
 } from 'slot-watch-common';
 import { getNetworkKey, getNetworkKeyHono } from '../auth';
 import { handleStackerDBChunk } from '../events/stackerdb';
