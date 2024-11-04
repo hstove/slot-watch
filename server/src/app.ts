@@ -16,7 +16,7 @@ import { prettyJSON } from 'hono/pretty-json';
 import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
-import { redisClient } from './redis';
+import { subClient } from './redis';
 
 type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 
@@ -129,7 +129,7 @@ function logSendStatus(status: number) {
   }
 }
 
-await redisClient.pSubscribe('*', (message, channel) => {
+await subClient.pSubscribe('*', (message, channel) => {
   const status = server.publish(channel, message);
   logSendStatus(status);
 });
