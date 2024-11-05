@@ -89,14 +89,18 @@ export async function warmupMetrics() {
       acceptedBlocks.length / lastNBlocks.length,
     );
 
+    const sumWeight = lastNBlocks.reduce((acc, b) => acc + b.totalWeight, 0);
     const sumWeightAccepted = acceptedBlocks.reduce(
       (acc, b) => acc + (b.accepted ? b.weightAccept : 0),
       0,
     );
-    const sumWeight = acceptedBlocks.reduce((acc, b) => acc + b.totalWeight, 0);
+    const sumWeightAcceptedBlocks = acceptedBlocks.reduce(
+      (acc, b) => acc + b.totalWeight,
+      0,
+    );
     averageAcceptanceRateLastBlocks.set(
       { last_n_blocks: n },
-      sumWeightAccepted / sumWeight,
+      sumWeightAccepted / sumWeightAcceptedBlocks,
     );
 
     const blocksWithPush = lastNBlocks.filter(
