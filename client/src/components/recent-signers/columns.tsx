@@ -11,6 +11,7 @@ import { PublicKey } from '../public-key';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { textVariants } from '@/lib/text-variants';
+import { useEntity } from '@/hooks/use-entity';
 
 function Degregation({
   degradation,
@@ -58,7 +59,8 @@ export const columns: ColumnDef<RecentSigner>[] = [
     header: 'Entity',
     // accessorKey: "entity",
     cell: ({ row }) => {
-      return <span>{knownSigners[row.original.publicKey]}</span>;
+      const entity = useEntity(row.original.publicKey);
+      return <span>{entity ?? ''}</span>;
     },
   },
   {
