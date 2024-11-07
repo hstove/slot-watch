@@ -18,7 +18,6 @@ export async function getRecentBlocksHealth({
 }: { networkKey: string; from?: number; to?: number }) {
   const { rewardCycleId } = await getPoxInfo.get(networkKey);
   const stackerSet = await getStackerSet(networkKey, rewardCycleId);
-  console.log({ from, to });
 
   const recentBlocks = await db
     .select({
