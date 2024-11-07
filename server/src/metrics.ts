@@ -62,7 +62,7 @@ export async function warmupMetrics() {
   isRunning = true;
 
   console.log('Warming up metrics');
-  const recentBlocks = await getRecentBlocksHealth('mainnet');
+  const recentBlocks = await getRecentBlocksHealth({ networkKey: 'mainnet' });
   const { rewardCycleId } = await getPoxInfo.get('mainnet');
   const stackerSet = await getStackerSet('mainnet', rewardCycleId);
 

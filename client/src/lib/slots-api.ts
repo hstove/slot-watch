@@ -16,10 +16,18 @@ export type HealthBlockBlock = Omit<HealthBlocksResponse[0], 'signers'>;
 
 export type HealthBlockSigner = HealthBlocksResponse[0]['signers'][0];
 
-export async function getHealthBlocks(networkKey: string) {
+export async function getHealthBlocks(
+  networkKey: string,
+  from?: string,
+  to?: string,
+) {
   console.log(`Fetching health blocks for ${networkKey}`);
   const response = await apiClient.health['recent-blocks'][':networkKey'].$get({
     param: { networkKey },
+    query: {
+      from,
+      to,
+    },
   });
   return response.json();
 }

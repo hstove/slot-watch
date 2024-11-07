@@ -1,5 +1,5 @@
 import { db } from './db';
-import { eq, desc, and, inArray, getTableColumns } from 'drizzle-orm';
+import { eq, desc, and, inArray, getTableColumns, gte, lte } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals as blockProposalsSchema,
@@ -11,9 +11,14 @@ import { hex } from '@scure/base';
 import { knownSigners, type StackerSetSigner } from 'slot-watch-common';
 import { mapSignerDataToResponses } from './block-responses';
 
-export async function getRecentBlocksHealth(networkKey: string) {
+export async function getRecentBlocksHealth({
+  networkKey,
+  from,
+  to,
+}: { networkKey: string; from?: number; to?: number }) {
   const { rewardCycleId } = await getPoxInfo.get(networkKey);
   const stackerSet = await getStackerSet(networkKey, rewardCycleId);
+  console.log({ from, to });
 
   const recentBlocks = await db
     .select({
@@ -21,7 +26,13 @@ export async function getRecentBlocksHealth(networkKey: string) {
       pushedAt: blockPushes.createdAt,
     })
     .from(blockProposalsSchema)
-    .where(eq(blockProposalsSchema.networkKey, networkKey))
+    .where(
+      and(
+        eq(blockProposalsSchema.networkKey, networkKey),
+        from ? gte(blockProposalsSchema.chainLength, from) : undefined,
+        to ? lte(blockProposalsSchema.chainLength, to) : undefined,
+      ),
+    )
     .leftJoin(
       blockPushes,
       and(

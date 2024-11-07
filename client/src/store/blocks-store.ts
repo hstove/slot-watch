@@ -7,7 +7,7 @@ import {
 import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal';
-import { networkIdAtom } from './network';
+import { locationStore, networkIdAtom } from './network';
 import { ConsensusBlockResponse, getConsensusBlock } from 'slot-watch-common';
 
 export const blockHashesAtom = atom<string[]>([]);
@@ -22,9 +22,18 @@ export const blockSignersAtoms = atomFamily(
   dequal,
 );
 
+export const fetchBlockParamsAtom = atom((get) => {
+  const loc = get(locationStore);
+  const from = loc.searchParams?.get('from') ?? undefined;
+  const to = loc.searchParams?.get('to') ?? undefined;
+  return { from, to };
+});
+
 export const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
   const networkKey = get(networkIdAtom);
-  const { blocks } = await getHealthBlocks(networkKey);
+  const { from, to } = get(fetchBlockParamsAtom);
+  const { blocks } = await getHealthBlocks(networkKey, from, to);
+
   for (const block of blocks) {
     const { signers, ...rest } = block;
     set(blockPushesAtoms(block.signerSignatureHash), rest);
