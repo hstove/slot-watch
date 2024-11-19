@@ -1,7 +1,26 @@
-import NodeCache from 'node-cache';
 import type { F, A } from 'ts-toolbelt';
+import { redisClient } from './redis';
+import { parse, stringify } from 'superjson';
 
-const cache = new NodeCache({ stdTTL: 60 * 10 });
+const CACHE_TTL = 60 * 10;
+
+const KEY_PREFIX = 'slot-watch-cache:';
+
+function cacheKey(key: string) {
+  return `${KEY_PREFIX}${key}`;
+}
+
+async function getCache<T>(key: string) {
+  const result = await redisClient.get(cacheKey(key));
+  if (result) {
+    return parse<T>(result);
+  }
+  return null;
+}
+
+async function setCache<T>(key: string, value: T) {
+  await redisClient.set(cacheKey(key), stringify(value), { EX: CACHE_TTL });
+}
 
 export function memoizeCache<Fn extends F.Function>(
   key: F.Function<F.Parameters<Fn>, string>,
@@ -13,21 +32,30 @@ export function memoizeCache<Fn extends F.Function>(
 } {
   return {
     async get(...args: F.Parameters<Fn>) {
-      const cached = cache.get<F.Return<Fn>>(key(...args));
+      console.debug('Cache: getCache', key(...args));
+      // const cached = cache.get<F.Return<Fn>>(key(...args));
+      const cached = await getCache<F.Return<Fn>>(key(...args));
       if (cached) {
+        console.debug('Cache: hit', key(...args));
         return cached;
       }
+      console.debug('Cache: miss', key(...args));
       const result = await fn(...args);
-      cache.set<F.Return<Fn>>(key(...args), result);
+      // cache.set<F.Return<Fn>>(key(...args), result);
+      await setCache(key(...args), result);
       return result;
     },
     async warm(...args: F.Parameters<Fn>) {
+      console.debug('Cache: warm', key(...args));
       const result = await fn(...args);
-      cache.set<F.Return<Fn>>(key(...args), result);
+      // cache.set<F.Return<Fn>>(key(...args), result);
+      await setCache(key(...args), result);
       return result;
     },
-    clear(...args: F.Parameters<Fn>) {
-      cache.del(key(...args));
+    async clear(...args: F.Parameters<Fn>) {
+      console.debug('Cache: clear', key(...args));
+      // cache.del(key(...args));
+      await redisClient.del(key(...args));
     },
   };
 }

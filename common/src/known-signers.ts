@@ -76,4 +76,6 @@ export const knownSigners: Record<string, string> = {
     'L2-Labs-2',
   '038cb1e945144ca7669b0f33656b8379bcb3c17795b4d8665e42dea76eb3f86d2f':
     'L2-Labs-3',
+  '022150d4ea6dc60e75e162455553a92adea0a0f3000c192cc55d0bffed22c0a8e0':
+    'Assymetric Labs',
 };
