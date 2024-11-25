@@ -29,7 +29,7 @@ primary_region = 'iad'
   grace_period = "5s"
   interval = "15s"
   method = "GET"
-  timeout = "5s"
+  timeout = "2s"
   path = "/"
 
 # [[services]]
