@@ -47,7 +47,7 @@ export const Header = () => {
       </div>
       <div className="flex gap-5 items-center">
         <NavLink
-          to={'/'}
+          to={'/stream'}
           className={({ isActive }) =>
             textVariants({
               variant: 'small',
@@ -59,7 +59,7 @@ export const Header = () => {
           Stream
         </NavLink>
         <NavLink
-          to={'/recent-signers'}
+          to={'/'}
           className={({ isActive }) =>
             textVariants({
               variant: 'small',

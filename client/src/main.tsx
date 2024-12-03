@@ -14,7 +14,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: '/',
+        path: '/stream',
         element: (
           <>
             <ChunkWatcher />
@@ -24,6 +24,10 @@ const router = createBrowserRouter([
       },
       {
         path: '/recent-signers',
+        element: <RecentSigners />,
+      },
+      {
+        path: '/',
         element: <RecentSigners />,
       },
       {
