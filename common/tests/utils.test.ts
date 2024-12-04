@@ -1,5 +1,7 @@
-import { getVersionFromString } from '../src/utils';
+import { sha256 } from '@noble/hashes/sha256';
+import { getVersionFromString, hash160 } from '../src/utils';
 import { test, expect } from 'vitest';
+import { hex } from '@scure/base';
 
 test('getVersionFromString', () => {
   expect(getVersionFromString('stacks-signer 1.0.0 (...')).toBe('1.0.0');
@@ -15,4 +17,21 @@ test('getVersionFromString', () => {
     ),
   ).toBe('0.0.1');
   expect(getVersionFromString('')).toEqual('');
+});
+
+test('hash160', () => {
+  expect(
+    hex.encode(
+      sha256(
+        hex.decode(
+          '02c35b37cd7b57fd7732b781fdec13e9318f2b6d8fdd086074fd6e5b01944da9cd',
+        ),
+      ),
+    ),
+  ).toEqual('f3050ae4a386e81f4ec0e7943dcd487b6d8d6b423de782d2156bcecaba69a4b9');
+  expect(
+    hash160(
+      '02c35b37cd7b57fd7732b781fdec13e9318f2b6d8fdd086074fd6e5b01944da9cd',
+    ),
+  ).toEqual('c8f46d0b5d3147590c968e006e23dbedf73e1263');
 });

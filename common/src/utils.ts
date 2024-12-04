@@ -9,6 +9,9 @@ import {
   AddressHashMode,
 } from '@stacks/transactions';
 import { isMainnet } from './networks';
+import { ripemd160 } from '@noble/hashes/ripemd160';
+// import { sha256 } from '@noble/hashes/sha256';
+import { sha256 } from '@noble/hashes/sha2';
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -60,4 +63,9 @@ export function getStacksAddress(publicKey: string, networkKey: string) {
 
 export function getBtcAddress(publicKey: string) {
   return p2pkh(hex.decode(publicKey)).address ?? '';
+}
+
+export function hash160(data: string | Uint8Array) {
+  const bytes = typeof data === 'string' ? hex.decode(data) : data;
+  return hex.encode(ripemd160(sha256(bytes)));
 }

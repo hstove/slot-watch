@@ -89,7 +89,7 @@ export type WSManyChunks = WSBase<typeof MANY_CHUNKS_EVENT, ChunkEvent[]>;
 export type WSPayload = WSChunkEvent | WSNewBlock | WSBurnBlock | WSManyChunks;
 
 export function getChunkId(chunk: ChunkEvent): string {
-  return `${chunk.slotId}-${chunk.version}-${chunk.contractId}`;
+  return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;
 }
 
 export function getPayloadId(payload: WSPayload): string {

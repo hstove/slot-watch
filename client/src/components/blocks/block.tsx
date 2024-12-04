@@ -21,6 +21,9 @@ import {
 import { ChevronsUpDownIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BlockExtraInfo } from './block-extra-info';
+import { ripemd160 } from '@noble/hashes/ripemd160';
+import { sha256 } from '@noble/hashes/sha256';
+import { hex } from '@scure/base';
 
 function DataValue({ children }: { children: React.ReactNode }) {
   return <p className={textStyles('muted')}>{children}</p>;
@@ -47,7 +50,7 @@ export function Block({
     return differenceInSeconds(blockPushes.pushedAt, blockPushes.createdAt);
   }, [blockPushes.createdAt, blockPushes.pushedAt]);
 
-  const { btcAddress, stxAddress } = React.useMemo(() => {
+  const { btcAddress, stxAddress, minerHash } = React.useMemo(() => {
     if (blockPushes.minerPublicKey) {
       return {
         btcAddress: getBtcAddress(blockPushes.minerPublicKey),
@@ -55,9 +58,10 @@ export function Block({
           blockPushes.minerPublicKey,
           blockPushes.networkKey,
         ),
+        minerHash: hex.encode(ripemd160(sha256(blockPushes.minerPublicKey))),
       };
     }
-    return { btcAddress: '', stxAddress: '' };
+    return { btcAddress: '', stxAddress: '', minerHash: '' };
   }, [blockPushes.minerPublicKey, blockPushes.networkKey]);
 
   return (
@@ -101,6 +105,10 @@ export function Block({
 
               <DataLabel>Miner Address</DataLabel>
               <DataValue>{btcAddress}</DataValue>
+              <DataLabel>Miner Public Key</DataLabel>
+              <DataValue>{blockPushes.minerPublicKey}</DataValue>
+              <DataLabel>Miner Hash</DataLabel>
+              <DataValue>{minerHash}</DataValue>
               <DataLabel>Miner Address</DataLabel>
               <DataValue>{stxAddress}</DataValue>
 

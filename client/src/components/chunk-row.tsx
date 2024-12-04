@@ -8,7 +8,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { CHUNKS_EVENT, type ChunkEvent } from 'slot-watch-common';
-import { useMemo, useState } from 'react';
 import { hex } from '@scure/base';
 import { ChunkLabel } from './chunk-label';
 import { ChunkBlock } from './chunk-block';
@@ -22,6 +21,7 @@ import { Timestamp } from './timestamp';
 export const ChunkRow = ({ chunkAtom }: { chunkAtom: PayloadAtom }) => {
   const payload = useAtomValue(chunkAtom);
   if (payload.type !== CHUNKS_EVENT) return null;
+
   const chunk = payload.payload;
   return (
     <TableRow>
