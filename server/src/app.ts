@@ -125,7 +125,6 @@ function logSendStatus(status: number) {
   if (status === -1) {
     console.debug('Failed to publish');
   } else if (status === 0) {
-    console.debug('Backpressure');
   }
 }
 
