@@ -149,6 +149,9 @@ export async function handleBlockResponse({
   publicKey: string;
   chunkId: number | null;
 }) {
+  const tenureExtendTimestamp = payload.data.tenureExtendTimestamp
+    ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
+    : null;
   await db.insert(blockResponses).values({
     signerSignatureHash: hex.encode(payload.signerSignatureHash),
     slotId: chunk.slot_id,
@@ -157,5 +160,6 @@ export async function handleBlockResponse({
     signerPublicKey: publicKey,
     accepted: payload.accepted,
     chunkId,
+    tenureExtendTimestamp,
   });
 }

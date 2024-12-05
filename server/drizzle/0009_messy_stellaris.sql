@@ -1,0 +1,1 @@
+ALTER TABLE "block_responses" ADD COLUMN "tenure_extend_timestamp" timestamp;

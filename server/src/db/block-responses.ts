@@ -46,12 +46,16 @@ export function mapSignerDataToResponses({
     const blockSigner = blockSigners[s.signing_key] || {
       accepted: null,
       createdAt: null,
+      tenureExtendTimestamp: null,
     };
     return {
       ...s,
       ...blockSigner,
       weightPercent: s.weight / totalWeight,
       entity: knownSigners[s.signing_key] ?? null,
+      tenureExtendTimestamp: blockSigner.tenureExtendTimestamp
+        ? blockSigner.tenureExtendTimestamp.toISOString()
+        : null,
     };
   });
   const rejectRatio = weightReject / totalWeight;

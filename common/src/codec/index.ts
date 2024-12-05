@@ -120,6 +120,43 @@ export const SignerMetadataCoder: P.CoderType<string | undefined> = P.wrap({
   },
 });
 
+export type BlockResponseData = {
+  version: number;
+  tenureExtendTimestamp: bigint | null;
+  unknownBytes: Uint8Array;
+};
+
+export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
+  encodeStream: (w: P.Writer, data: BlockResponseData) => {
+    P.U8.encodeStream(w, data.version);
+    const innerStruct = P.struct({
+      tenureExtendTimestamp: P.U64BE,
+      unknownBytes: P.bytes(null),
+    }).encode({
+      tenureExtendTimestamp: data.tenureExtendTimestamp ?? 0n,
+      unknownBytes: data.unknownBytes,
+    });
+    P.U32BE.encodeStream(w, innerStruct.length);
+    w.bytes(innerStruct);
+  },
+  decodeStream: (r: P.Reader) => {
+    let version: number;
+    try {
+      version = P.U8.decodeStream(r);
+    } catch (error) {
+      return {
+        version: 2,
+        tenureExtendTimestamp: null,
+        unknownBytes: new Uint8Array(),
+      };
+    }
+    const innerBytes = P.bytes(P.U32BE).decodeStream(r);
+    const tenureExtendTimestamp = P.U64BE.decode(innerBytes);
+    const unknownBytes = innerBytes.slice(8);
+    return { version, tenureExtendTimestamp, unknownBytes };
+  },
+});
+
 const MockProposalInnerObj = {
   burnBlockHeight: P.U64BE,
   consensusHash: P.bytes(20),
@@ -237,6 +274,7 @@ export const BlockResponseAcceptedCoder = P.struct({
   signerSignatureHash: P.bytes(32),
   signature: P.bytes(65),
   metadata: SignerMetadataCoder,
+  data: BlockResponseDataCoder,
 });
 
 export const ValidationErrorCoder: P.CoderType<{
@@ -271,6 +309,7 @@ export const BlockResponseRejectedCoder = P.struct({
   chainId: P.U32BE,
   signature: P.bytes(65),
   metadata: SignerMetadataCoder,
+  data: BlockResponseDataCoder,
 });
 
 export const MockSignatureOldCoder = P.struct({
