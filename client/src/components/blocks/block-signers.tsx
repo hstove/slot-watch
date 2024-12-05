@@ -68,7 +68,7 @@ export function BlockSigner({
           }}
         />
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="w-80">
         <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
           <DataLabel>Public Key</DataLabel>
           <DataValue>
