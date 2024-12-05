@@ -103,6 +103,13 @@ export function BlockSigner({
                 : 'none'}
           </DataValue>
 
+          <DataLabel>Tenure Extend</DataLabel>
+          <DataValue>
+            {signer.tenureExtendTimestamp
+              ? new Date(signer.tenureExtendTimestamp).toLocaleString()
+              : 'N/A'}
+          </DataValue>
+
           {'chunkId' in signer && signer.chunkId ? (
             <BlockSignerChunkData chunkId={signer.chunkId} />
           ) : null}
