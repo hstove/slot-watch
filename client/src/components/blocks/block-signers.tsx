@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { useAtom } from 'jotai';
-import { blockSignersAtoms } from '@/store/blocks-store';
+import { useAtom, useAtomValue } from 'jotai';
+import { blockPushesAtoms, blockSignersAtoms } from '@/store/blocks-store';
 import type { HealthBlockSigner } from '@/lib/slots-api';
 import { colord } from 'colord';
 import {
@@ -24,9 +24,11 @@ const badColor = colord('#ef4444');
 export function BlockSigner({
   signer,
   proposedAt,
+  totalWeight,
 }: {
   signer: HealthBlockSigner;
   proposedAt: string;
+  totalWeight: number;
 }) {
   const color = React.useMemo(() => {
     switch (signer.accepted) {
@@ -60,8 +62,7 @@ export function BlockSigner({
           type="button"
           className="h-full border-r border-background last:border-none box-border"
           style={{
-            // width: `${signer.power * 100}%`,
-            flexGrow: signer.weight,
+            flexGrow: signer.weight + totalWeight * 0.01,
             backgroundColor: color.toHex(),
             borderColor: borderColor,
           }}
@@ -127,12 +128,21 @@ export function BlockSigners({
   proposedAt: string;
 }) {
   const [blockSigners] = useAtom(blockSignersAtoms(signerSignatureHash));
+  const block = useAtomValue(blockPushesAtoms(signerSignatureHash));
+  if (!block) {
+    return null;
+  }
 
   return (
     <div className="w-full rounded-md h-10 border border-border flex overflow-hidden">
       {blockSigners.map((s) => {
         return (
-          <BlockSigner signer={s} key={s.signing_key} proposedAt={proposedAt} />
+          <BlockSigner
+            signer={s}
+            key={s.signing_key}
+            proposedAt={proposedAt}
+            totalWeight={block.totalWeight}
+          />
         );
       })}
     </div>
