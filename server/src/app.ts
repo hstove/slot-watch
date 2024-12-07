@@ -99,6 +99,7 @@ export type SlotWatchServer = typeof app;
 const server = Bun.serve({
   port: 1080,
   fetch: app.fetch,
+  idleTimeout: 60,
   websocket: {
     ...websocket,
     backpressureLimit: 1024 * 1024 * 5, // 5MB
