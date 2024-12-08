@@ -81,7 +81,10 @@ export function mapSignerDataToResponses({
 export async function getLatestResponses(networkKey: string) {
   const poxInfo = await getPoxInfo.get(networkKey);
   const cycle = poxInfo.rewardCycleId;
-  const { signers, signersByKey } = await getStackerSet(networkKey, cycle);
+  const { signers, signersByKey, totalWeight } = await getStackerSet(
+    networkKey,
+    cycle,
+  );
   const signerKeys = signers.map((s) => s.signing_key);
   const query = sql`
     with latest_responses as (
@@ -112,21 +115,28 @@ export async function getLatestResponses(networkKey: string) {
     created_at: string;
   }>(query);
 
-  logger.info(responses);
+  const responsesByKey = new Map<string, (typeof responses)[number]>();
+  for (const r of responses) {
+    responsesByKey.set(r.signer_public_key, r);
+  }
 
-  const fullResponses = responses
-    .map((r) => {
-      const signer = signersByKey.get(r.signer_public_key);
-      if (!signer) return null;
+  const fullResponses = signers
+    .map((signer) => {
+      const response = responsesByKey.get(signer.signing_key);
+      if (!response) return null;
 
       return {
         ...signer,
-        tenureExtendTimestamp: r.tenure_extend_timestamp,
-        signerPublicKey: r.signer_public_key,
-        createdAt: r.created_at,
+        tenureExtendTimestamp: response.tenure_extend_timestamp,
+        signerPublicKey: response.signer_public_key,
+        createdAt: response.created_at,
       };
     })
     .filter((s) => s !== null);
 
-  return fullResponses;
+  return {
+    responses: fullResponses,
+    totalWeight,
+    signers,
+  };
 }
