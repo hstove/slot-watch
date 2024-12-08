@@ -108,6 +108,7 @@ export async function handleBlockProposal({
     consensusHash: hex.encode(payload.consensusHash),
     chunkId,
     txCount: payload.txCount,
+    tenureChangeCause: payload.tenureChangeCause,
   });
 }
 

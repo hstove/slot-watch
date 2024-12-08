@@ -1,10 +1,16 @@
-import { coreNodeBlockMessageSchema } from 'slot-watch-common';
-import type { StacksBlockDb } from '../db/schema';
+import {
+  coreNodeBlockMessageSchema,
+  coreNodeBurnBlockMessageSchema,
+  type WSBurnBlock,
+  type WSNewBlock,
+} from 'slot-watch-common';
+import { burnBlocks, stacksBlocks, type StacksBlockDb } from '../db/schema';
 import {
   deserializeTransaction,
   PayloadType,
   type TenureChangeCause,
 } from '@stacks/transactions';
+import { db } from '../db/db';
 
 export function convertBlock(
   block: unknown,
@@ -46,4 +52,23 @@ export function convertBlock(
     txCount: parsed.transactions.length,
     ...cost,
   };
+}
+
+export async function handleStacksBlockEvent(payload: WSNewBlock) {
+  const block = convertBlock(payload.payload);
+  await db.insert(stacksBlocks).values({
+    ...block,
+    networkKey: payload.networkKey,
+    createdAt: new Date(payload.receivedAt),
+  });
+}
+
+export async function handleBurnBlockEvent(payload: WSBurnBlock) {
+  const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
+  await db.insert(burnBlocks).values({
+    burnBlockHeight: burnBlock.burn_block_height,
+    burnBlockHash: burnBlock.burn_block_hash,
+    networkKey: payload.networkKey,
+    createdAt: new Date(payload.receivedAt),
+  });
 }

@@ -22,6 +22,10 @@ import { handleStackerDBChunk } from '../events/stackerdb';
 import { warmCache } from '../stacks-api';
 import { redisClient } from '../redis';
 import { logger } from '../logger';
+import {
+  handleBurnBlockEvent,
+  handleStacksBlockEvent,
+} from '../events/block-events';
 
 export const getBunServer = (c: Context): Server => {
   const server = ('server' in c.env ? c.env.server : c.env) as
@@ -116,6 +120,14 @@ const eventsRoutes = new Hono<Env>()
     };
     publishEvent(networkKey, sharedPayload);
 
+    process.nextTick(async () => {
+      try {
+        await handleStacksBlockEvent(sharedPayload);
+      } catch (error) {
+        logger.error(`Error handling stacks block event: ${error}`);
+      }
+    });
+
     return new Response('OK', { status: 200 });
   })
 
@@ -135,7 +147,23 @@ const eventsRoutes = new Hono<Env>()
     publishEvent(networkKey, payload);
     process.nextTick(async () => {
       await warmCache(networkKey);
+      try {
+        await handleBurnBlockEvent(payload);
+      } catch (error) {
+        logger.error(`Error handling burn block event: ${error}`);
+      }
     });
+    return new Response('OK', { status: 200 });
+  })
+
+  .post('/proposal_response', basicAuthMiddleware, async (c) => {
+    const networkKey = c.get('networkKey');
+    logger.debug(
+      {
+        response: await c.req.json(),
+      },
+      `${networkKey}: Got proposal response`,
+    );
     return new Response('OK', { status: 200 });
   });
 
