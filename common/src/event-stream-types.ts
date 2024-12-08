@@ -18,6 +18,10 @@ export function getPayloadContractId(payload: StackerDBPayload) {
   return `${addressToString(address)}.${payload.contract_id.name}`;
 }
 
+export const string0x = z
+  .string()
+  .transform((s) => (s.startsWith('0x') ? s.slice(2) : s));
+
 export type ModifiedSlot = {
   slot_id: number;
   slot_version: number;
@@ -89,13 +93,13 @@ interface _CoreNodeBlockMessage {
 }
 
 export const coreNodeBlockMessageSchema = z.object({
-  block_hash: z.string(),
+  block_hash: string0x,
   block_height: z.number(),
   burn_block_time: z.number(),
-  burn_block_hash: z.string(),
+  burn_block_hash: string0x,
   burn_block_height: z.number(),
   miner_txid: z.string(),
-  index_block_hash: z.string(),
+  index_block_hash: string0x,
   parent_index_block_hash: z.string(),
   parent_block_hash: z.string(),
   parent_microblock: z.string(),
@@ -103,9 +107,22 @@ export const coreNodeBlockMessageSchema = z.object({
   parent_burn_block_hash: z.string(),
   parent_burn_block_height: z.number(),
   parent_burn_block_timestamp: z.number(),
-  block_time: z.number(),
+  block_time: z.number().optional(),
   signer_bitvec: z.string().nullable(),
   cycle_number: z.number().nullable(),
+  transactions: z.array(
+    z.object({
+      txid: string0x,
+      raw_tx: string0x,
+      execution_cost: z.object({
+        read_count: z.number(),
+        read_length: z.number(),
+        runtime: z.number(),
+        write_count: z.number(),
+        write_length: z.number(),
+      }),
+    }),
+  ),
 });
 
 export type CoreNodeBlockMessage = z.infer<typeof coreNodeBlockMessageSchema>;
@@ -132,7 +149,7 @@ interface _CoreNodeBurnBlockMessage {
 }
 
 export const coreNodeBurnBlockMessageSchema = z.object({
-  burn_block_hash: z.string(),
+  burn_block_hash: string0x,
   burn_block_height: z.number(),
   burn_amount: z.number(),
   reward_recipients: z.array(

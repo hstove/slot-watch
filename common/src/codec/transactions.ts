@@ -2,7 +2,7 @@ import * as P from 'micro-packed';
 import { sha512_256 } from '@noble/hashes/sha2';
 import type { ChunkEvent } from '../types';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import type { StacksTransaction } from '@stacks/transactions';
+import type { StacksTransactionWire } from '@stacks/transactions';
 import {
   deserializeTransaction,
   serializeTransaction,

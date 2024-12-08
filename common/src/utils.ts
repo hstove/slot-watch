@@ -54,7 +54,7 @@ export function getStacksAddress(publicKey: string, networkKey: string) {
   const publicKeys = [createStacksPublicKey(publicKey)];
   const address = addressFromPublicKeys(
     mainnet ? AddressVersion.MainnetSingleSig : AddressVersion.TestnetSingleSig,
-    AddressHashMode.SerializeP2PKH,
+    AddressHashMode.P2PKH,
     1,
     publicKeys,
   );

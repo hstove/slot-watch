@@ -27,3 +27,85 @@ INFO [1727443976.700262] [testnet/stacks-node/src/event_dispatcher.rs:1338] [rel
 INFO [1727443976.700272] [testnet/stacks-node/src/event_dispatcher.rs:1339] [relayer-http://127.0.0.1:20252] ---- stackerdb payload ----
 INFO [1727443976.700276] [testnet/stacks-node/src/event_dispatcher.rs:1340] [relayer-http://127.0.0.1:20252] "{\"contract_id\":{\"issuer\":[26,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],\"name\":\"signers-1-1\"},\"modified_slots\":[{\"data\":\"01010000004654686520626c6f636b207761732072656a65637465642064756520746f2061206d69736d61746368207769746820657870656374656420736f72746974696f6e20766965772e04fa8986504f6849bcf1c2ffaff0400243fc6ffbb9ba514ad6bdb35fe1c906256d800000000130b8cb1cf67a3236e728e425d6a8ba15f55f3b83ce00667d7146e62f3105725c03d0efcef88667e90612f483b7d52894e3294766a4b8234d5c67e8179e048bb2\",\"sig\":\"0023be10b4cf3d937661de5ffffad8c3bb1d02dd5dab53777f5557a46de10e811d6ce0905563a5c5ce250961a418bc675e092550f2270fcc120f5b4b3fb1038020\",\"slot_id\":3,\"slot_version\":3}]}"
 `;
+
+export const tenureExtendBlock = {
+  anchored_cost: {
+    read_count: 0,
+    read_length: 0,
+    runtime: 0,
+    write_count: 0,
+    write_length: 0,
+  },
+  block_hash:
+    '0x29fe138c8ec05dc379e2e0f92657512f587550dea87b1fd4b6ed46a450624773',
+  block_height: 36,
+  block_time: 1733689469,
+  burn_block_hash:
+    '0x1ad8a91ac91be6ec1904ff7c3aac638df3337519027a84cf685070d30da55da7',
+  burn_block_height: 232,
+  burn_block_time: 1733689437,
+  confirmed_microblocks_cost: {
+    read_count: 0,
+    read_length: 0,
+    runtime: 0,
+    write_count: 0,
+    write_length: 0,
+  },
+  cycle_number: null,
+  events: [],
+  index_block_hash:
+    '0x2a7ab1a3e34970a909bd852589fb9b4a1e7ea88849619ee15a22238b00949147',
+  matured_miner_rewards: [],
+  miner_signature:
+    '0x00288480e5d2cdef7b9bc880b66fb268325eb64e4e0976546441b970ea3e2ade6d1fdc02ba8293358689f0b92e79b52b32d0a7dc8f08c6f91f529a3a18e1f62554',
+  miner_txid:
+    '0xa11b945cf7a4376d4323cd7e4677a16793733edb316db584df22b6b087208f3c',
+  parent_block_hash:
+    '0x1be26a593ea750abdcfc17631ba02c83383f08f2c46a7260ee0b12f88a837977',
+  parent_burn_block_hash:
+    '0x1ad8a91ac91be6ec1904ff7c3aac638df3337519027a84cf685070d30da55da7',
+  parent_burn_block_height: 232,
+  parent_burn_block_timestamp: 1733689437,
+  parent_index_block_hash:
+    '0x1fbd4ec2a11b848923e957b7b640e6197f6c25a90396bba57ead73734b2e5d61',
+  parent_microblock:
+    '0x0000000000000000000000000000000000000000000000000000000000000000',
+  parent_microblock_sequence: 0,
+  pox_v1_unlock_height: 3,
+  pox_v2_unlock_height: 4,
+  pox_v3_unlock_height: 202,
+  reward_set: null,
+  signer_bitvec: '001e00000004ffffff3f',
+  signer_signature: [
+    '00cbf5f82e2b849ea1099d02245b274623fae2b5d18ae71f9a45475ea88d3b503821d31f5204b6cd8d556fddcdf4bf00418f7dc777bd525a2ca20ddb1874c8bad5',
+    '00c0efd1d8a3083a8449c8bc8ba17e1d56bb8a615d6bcfb00fce6e2b2fee13063469d001b7eacc6876269860df9f9c6015fa8f9c617ab160e89806d489caba2f8a',
+    '0084a5a384604fceccf2a457aafc34def210ea001cd30328a9933f8b67ad9d297232d99fd15084ab34b67177590d9e91e5a81b73649ba51406ef71505f56c64547',
+    '0028972e83944b0a44f82671706a68e240d6ef97b5b55a593c166a0bf10f56fdc46fd3ce46f64c26cf51b03f8fa6f483e98171a898f1f7886196e7b91f04d927b1',
+    '0175f575abeeb95a16fa100f7e17dc6862d72d7a160ac71b3d1af2275ba6ca716700cf178d01ff088d8bab0802d8ed8aae0afef1d98f2da321e34f2b04874dd470',
+  ],
+  signer_signature_hash:
+    '0x29fe138c8ec05dc379e2e0f92657512f587550dea87b1fd4b6ed46a450624773',
+  tenure_height: 35,
+  transactions: [
+    {
+      burnchain_op: null,
+      contract_abi: null,
+      execution_cost: {
+        read_count: 0,
+        read_length: 0,
+        runtime: 0,
+        write_count: 0,
+        write_length: 0,
+      },
+      microblock_hash: null,
+      microblock_parent_hash: null,
+      microblock_sequence: null,
+      raw_result: '0x0703',
+      raw_tx:
+        '0x808000000004008bc5147525b8f477f0bc4522a88c8339b2494db5000000000000002500000000000000000101e7b68662eb99674bb9a7fe90e913a0ee9947fc52633df8e04956ff0bb0bc2b112a5c5a530e9f87ffdb2b54ab7494da8610da6af52b4d2c34f8cd9415735b7d3101020000000007c528006de0c34c35f6e478cba07c3b196e3d2cecc528006de0c34c35f6e478cba07c3b196e3d2cecc528006de0c34c35f6e478cba07c3b196e3d2cec1fbd4ec2a11b848923e957b7b640e6197f6c25a90396bba57ead73734b2e5d6100000001016bc51b33e9f3626944eb879147e18111581f8f9b',
+      status: 'success',
+      tx_index: 0,
+      txid: '0x14855107c197ffb48f1bfea62ae8b8e105414cc67c52f3eb6be758e12f15e716',
+    },
+  ],
+};

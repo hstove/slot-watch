@@ -2,11 +2,16 @@ import * as P from 'micro-packed';
 import { sha512_256 } from '@noble/hashes/sha2';
 import type { ChunkEvent } from '../types';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import type { StacksTransaction } from '@stacks/transactions';
+import {
+  PayloadType,
+  type TenureChangeCause,
+  type StacksTransactionWire,
+} from '@stacks/transactions';
 import {
   deserializeTransaction,
   serializeTransaction,
 } from '@stacks/transactions/dist/transaction';
+import { BytesReader } from '@stacks/transactions/dist/BytesReader';
 import type { Prettify } from '../utils';
 import { hex } from '@scure/base';
 
@@ -191,10 +196,10 @@ export const MockSignatureCoder = P.struct({
   metadata: SignerMetadataCoder,
 });
 
-export const StacksTxCoder: P.CoderType<StacksTransaction> = P.wrap({
-  encodeStream: (w: P.Writer, data: StacksTransaction) => {
+export const StacksTxCoder: P.CoderType<StacksTransactionWire> = P.wrap({
+  encodeStream: (w: P.Writer, data: StacksTransactionWire) => {
     const bytes = serializeTransaction(data);
-    w.bytes(bytes);
+    w.bytes(hex.decode(bytes));
   },
   decodeStream: (r: P.Reader) => {
     const bytes = P.bytes(null).decodeStream(r);
@@ -341,6 +346,7 @@ export type BlockProposal = Prettify<
     blockHeight: bigint;
     rewardCycle: bigint;
     txCount: number;
+    tenureChangeCause: TenureChangeCause | null;
   }
 >;
 export type BlockResponseAccepted = Prettify<
@@ -438,11 +444,21 @@ export function decodeChunk(chunk: Uint8Array) {
     }).decode(withoutTxs);
     const txs = remaining.slice(0, -16);
     const txCount = P.U32BE.decode(txs.slice(0, 4));
+    const txReader = new BytesReader(txs.slice(4));
+    let tenureChangeCause: TenureChangeCause | null = null;
+    for (let i = 0; i < txCount; i++) {
+      const tx = deserializeTransaction(txReader);
+      if (tx.payload.payloadType === PayloadType.TenureChange) {
+        tenureChangeCause = tx.payload.cause;
+        break;
+      }
+    }
     return {
       ...proposal,
       blockHeight: extra.blockHeight,
       rewardCycle: extra.rewardCycle,
       txCount: txCount,
+      tenureChangeCause,
     } satisfies BlockProposal;
   }
   if (type === SignerMessageTypePrefix.BlockPushed) {

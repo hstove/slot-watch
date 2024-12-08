@@ -5,15 +5,10 @@ import { useInterval } from 'usehooks-ts';
 export interface ClockProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export const Clock = ({ className }: ClockProps) => {
-  const [ts, setTs] = React.useState(new Date().getTime());
+  const [ts, setTs] = React.useState(new Date().toLocaleTimeString());
   useInterval(() => {
-    setTs(new Date().getTime());
-  }, 500);
+    setTs(new Date().toLocaleTimeString());
+  }, 250);
 
-  const timestamp = React.useMemo(() => {
-    return new Date(ts).toLocaleTimeString();
-  }, [ts]);
-  return (
-    <span className={cn(className, 'font-mono text-sm')}>{timestamp}</span>
-  );
+  return <span className={cn(className, 'font-mono text-sm')}>{ts}</span>;
 };

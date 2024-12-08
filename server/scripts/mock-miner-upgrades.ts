@@ -87,13 +87,13 @@ for (const block of blocks) {
 for (const miner of upgradedMiners) {
   const addr = addressFromPublicKeys(
     AddressVersion.MainnetSingleSig,
-    AddressHashMode.SerializeP2PKH,
+    AddressHashMode.P2PKH,
     1,
     [createStacksPublicKey(miner)],
   );
   const btcAddr = addressFromPublicKeys(
     1 as AddressVersion,
-    AddressHashMode.SerializeP2PKH,
+    AddressHashMode.P2PKH,
     1,
     [createStacksPublicKey(miner)],
   );

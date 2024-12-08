@@ -24,7 +24,7 @@
     "@scure/base": "^1.1.9",
     "@scure/btc-signer": "^1.4.0",
     "@stacks/stacks-blockchain-api-types": "^7.14.1",
-    "@stacks/transactions": "^6.16.1",
+    "@stacks/transactions": "^7.0.2",
     "micro-packed": "^0.6.3",
     "zod": "^3.23.8"
   }

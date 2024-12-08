@@ -71,6 +71,13 @@
       "when": 1733422275584,
       "tag": "0009_messy_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1733695616039,
+      "tag": "0010_early_zuras",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@ import {
   index,
   bigint,
   boolean,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 import { sql, type InferSelectModel } from 'drizzle-orm';
 
@@ -53,6 +54,7 @@ export const blockProposals = pgTable(
     chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
     minerPublicKey: varchar('miner_public_key', { length: 66 }),
     consensusHash: varchar('consensus_hash', { length: 64 }),
+    tenureChangeCause: smallint('tenure_change_cause'),
     txCount: integer('tx_count'),
   },
   (table) => [
@@ -121,3 +123,52 @@ export const blockPushes = pgTable(
 );
 
 export type BlockPushDb = InferSelectModel<typeof blockPushes>;
+
+export const stacksBlocks = pgTable(
+  'stacks_blocks',
+  {
+    id: serial('id').primaryKey(),
+    blockHeight: integer('block_height').notNull(),
+    blockHash: varchar('block_hash', { length: 64 }).notNull(),
+    burnBlockHeight: integer('burn_block_height').notNull(),
+    burnBlockHash: varchar('burn_block_hash', { length: 64 }).notNull(),
+    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: varchar('network_key', { length: 20 }).notNull(),
+    tenureChangeCause: smallint('tenure_change_cause'),
+    blockTimestamp: timestamp('block_timestamp'),
+    burnBlockTimestamp: timestamp('burn_block_timestamp').notNull(),
+    indexBlockHash: varchar('index_block_hash', { length: 64 }),
+    txCount: smallint('tx_count').notNull(),
+    readCount: bigint('read_count', { mode: 'number' }).notNull(),
+    readLength: bigint('read_length', { mode: 'number' }).notNull(),
+    runtime: bigint('runtime', { mode: 'number' }).notNull(),
+    writeCount: bigint('write_count', { mode: 'number' }).notNull(),
+    writeLength: bigint('write_length', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('stacks_blocks_network_key_idx').on(table.networkKey),
+    index('stacks_blocks_block_height_idx').on(table.blockHeight),
+    index('stacks_blocks_created_at_idx').on(table.createdAt),
+    index('stacks_blocks_block_hash_idx').on(table.blockHash),
+    index('stacks_blocks_burn_block_hash_idx').on(table.burnBlockHash),
+  ],
+);
+
+export type StacksBlockDb = InferSelectModel<typeof stacksBlocks>;
+
+export const burnBlocks = pgTable(
+  'burn_blocks',
+  {
+    id: serial('id').primaryKey(),
+    burnBlockHeight: integer('burn_block_height').notNull(),
+    burnBlockHash: varchar('burn_block_hash', { length: 64 }).notNull(),
+    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: varchar('network_key', { length: 20 }).notNull(),
+  },
+  (table) => [
+    index('burn_blocks_network_key_idx').on(table.networkKey),
+    index('burn_blocks_burn_block_height_idx').on(table.burnBlockHeight),
+    index('burn_blocks_created_at_idx').on(table.createdAt),
+    index('burn_blocks_burn_block_hash_idx').on(table.burnBlockHash),
+  ],
+);
