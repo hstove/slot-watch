@@ -1,0 +1,2 @@
+ALTER TABLE "burn_blocks" ADD CONSTRAINT "burn_blocks_network_key_burn_block_hash_idx" UNIQUE("network_key","burn_block_hash");--> statement-breakpoint
+ALTER TABLE "stacks_blocks" ADD CONSTRAINT "stacks_blocks_network_key_block_hash_idx" UNIQUE("network_key","block_hash");

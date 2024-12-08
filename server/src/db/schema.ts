@@ -11,6 +11,7 @@ import {
   bigint,
   boolean,
   pgEnum,
+  unique,
 } from 'drizzle-orm/pg-core';
 import { sql, type InferSelectModel } from 'drizzle-orm';
 
@@ -151,6 +152,10 @@ export const stacksBlocks = pgTable(
     index('stacks_blocks_created_at_idx').on(table.createdAt),
     index('stacks_blocks_block_hash_idx').on(table.blockHash),
     index('stacks_blocks_burn_block_hash_idx').on(table.burnBlockHash),
+    unique('stacks_blocks_network_key_block_hash_idx').on(
+      table.networkKey,
+      table.blockHash,
+    ),
   ],
 );
 
@@ -170,5 +175,9 @@ export const burnBlocks = pgTable(
     index('burn_blocks_burn_block_height_idx').on(table.burnBlockHeight),
     index('burn_blocks_created_at_idx').on(table.createdAt),
     index('burn_blocks_burn_block_hash_idx').on(table.burnBlockHash),
+    unique('burn_blocks_network_key_burn_block_hash_idx').on(
+      table.networkKey,
+      table.burnBlockHash,
+    ),
   ],
 );

@@ -78,6 +78,13 @@
       "when": 1733695616039,
       "tag": "0010_early_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1733696329583,
+      "tag": "0011_fresh_black_cat",
+      "breakpoints": true
     }
   ]
 }
