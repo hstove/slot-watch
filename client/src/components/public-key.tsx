@@ -16,6 +16,7 @@ export const PublicKey = ({ publicKey }: { publicKey: string }) => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger
+          asChild
           className="cursor-pointer"
           onClick={() => {
             copy(publicKey);

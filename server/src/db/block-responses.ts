@@ -127,9 +127,11 @@ export async function getLatestResponses(networkKey: string) {
 
       return {
         ...signer,
-        tenureExtendTimestamp: response.tenure_extend_timestamp,
+        tenureExtendTimestamp: response.tenure_extend_timestamp
+          ? new Date(response.tenure_extend_timestamp).toISOString()
+          : null,
         signerPublicKey: response.signer_public_key,
-        createdAt: response.created_at,
+        createdAt: new Date(response.created_at).toISOString(),
       };
     })
     .filter((s) => s !== null);

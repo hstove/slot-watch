@@ -55,7 +55,7 @@ export const useWatchExtend = () => {
               continue;
             const ts = decoded.data.tenureExtendTimestamp;
             signer.tenureExtendTimestamp = ts
-              ? new Date(Number()).toISOString()
+              ? new Date(Number(ts * 1000n)).toISOString()
               : null;
             signer.createdAt = chunk.createdAt;
             console.log('Updated signer', signer);

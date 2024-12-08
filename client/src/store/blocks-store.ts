@@ -65,14 +65,47 @@ export type SignerLatestResponses = Awaited<
 >;
 
 export const signerLatestResponsesMapAtom = atom<
-  Map<string, SignerLatestResponses[number]>
+  Map<string, SignerLatestResponses['responses'][number]>
 >(new Map());
+
+export const sortedLatestResponsesAtom = atom((get) => {
+  const responses = get(signerLatestResponsesMapAtom);
+  // Sort by tenureExtendTimestamp, nulls last
+  return Array.from(responses.values()).sort((a, b) => {
+    if (!a.tenureExtendTimestamp) return 1;
+    if (!b.tenureExtendTimestamp) return -1;
+    return (
+      new Date(a.tenureExtendTimestamp).getTime() -
+      new Date(b.tenureExtendTimestamp).getTime()
+    );
+  });
+});
+
+export const totalWeightAtom = atom(0);
+export const thresholdAtom = atom((get) => {
+  const totalWeight = get(totalWeightAtom);
+  return Math.ceil(totalWeight * 0.7);
+});
+
+export const whenExtendAtom = atom((get) => {
+  const threshold = get(thresholdAtom);
+  const responses = get(sortedLatestResponsesAtom);
+  let sum = 0;
+  for (const r of responses) {
+    sum += r.weight;
+    if (sum >= threshold) {
+      return r.tenureExtendTimestamp;
+    }
+  }
+  return null;
+});
 
 export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
   const networkKey = get(networkIdAtom);
   const responses = await fetchRecentSignerResponses(networkKey);
   set(
     signerLatestResponsesMapAtom,
-    new Map(responses.map((r) => [r.signerPublicKey, r])),
+    new Map(responses.responses.map((r) => [r.signerPublicKey, r])),
   );
+  set(totalWeightAtom, responses.totalWeight);
 });
