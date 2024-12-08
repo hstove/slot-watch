@@ -1,4 +1,5 @@
 import type { HonoRequest } from 'hono';
+import { logger } from './logger';
 
 export type BasicAuth = { username: string; password: string };
 export function getBasicAuth(request: Request): BasicAuth | null {
@@ -61,7 +62,7 @@ export function getNetworkKeyHono(request: HonoRequest): string | null {
   }
 
   if (auth.password !== process.env.OBSERVER_TOKEN) {
-    console.log('Invalid password', auth.password, process.env.OBSERVER_TOKEN);
+    logger.warn('Invalid password', auth.password, process.env.OBSERVER_TOKEN);
     return null;
   }
 

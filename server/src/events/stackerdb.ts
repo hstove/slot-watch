@@ -21,6 +21,7 @@ import {
   stackerDbSlots,
 } from '../db/schema';
 import { hex } from '@scure/base';
+import { logger } from '../logger';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -52,7 +53,7 @@ export async function handleStackerDBChunk(
     const chunkId = newRow?.id ?? null;
     const decoded = decodeChunkMaybe(hex.decode(chunk.data));
     if (decoded === null) {
-      console.error(`Error decoding chunk: ${chunk.data}`, chunk);
+      logger.error(`Error decoding chunk: ${chunk.data}`, chunk);
       continue;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {

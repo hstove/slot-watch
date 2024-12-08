@@ -21,6 +21,7 @@ import { getNetworkKey, getNetworkKeyHono } from '../auth';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import { warmCache } from '../stacks-api';
 import { redisClient } from '../redis';
+import { logger } from '../logger';
 
 export const getBunServer = (c: Context): Server => {
   const server = ('server' in c.env ? c.env.server : c.env) as
@@ -53,7 +54,7 @@ function publishEvent(networkKey: string, payload: WSPayload) {
     try {
       await redisClient.publish(networkKey, JSON.stringify(payload));
     } catch (error) {
-      console.error(`Error publishing event: ${error}`);
+      logger.error(`Error publishing event: ${error}`);
     }
   });
 }
@@ -69,7 +70,7 @@ const eventsRoutes = new Hono<Env>()
     const networkKey = c.get('networkKey');
     const data = await c.req.json<StackerDBPayload>();
     const contractId = getPayloadContractId(data);
-    console.log(
+    logger.debug(
       `${networkKey}: Got ${data.modified_slots.length} updates for ${contractId}`,
     );
     const receivedAt = new Date();
@@ -95,7 +96,7 @@ const eventsRoutes = new Hono<Env>()
       try {
         await handleStackerDBChunk(data, receivedAt, networkKey);
       } catch (error) {
-        console.error(`Error handling stacker db chunk: ${error}`);
+        logger.error(`Error handling stacker db chunk: ${error}`);
       }
     });
     return new Response('OK', { status: 200 });
@@ -105,7 +106,7 @@ const eventsRoutes = new Hono<Env>()
     const server = getBunServer(c);
     const networkKey = c.get('networkKey');
     const data = await c.req.json<CoreNodeBlockMessage>();
-    console.log(`${networkKey}: Got new Block (${data.block_height})`);
+    logger.info(`${networkKey}: Got new Block (${data.block_height})`);
     const receivedAt = new Date();
     const sharedPayload: WSNewBlock = {
       type: NEW_BLOCK_EVENT,
@@ -122,7 +123,7 @@ const eventsRoutes = new Hono<Env>()
     const server = getBunServer(c);
     const networkKey = c.get('networkKey');
     const data = await c.req.json<CoreNodeBurnBlockMessage>();
-    console.log(
+    logger.info(
       `${networkKey}: Got new Burn Block (${data.burn_block_height})`,
     );
     const payload: WSBurnBlock = {

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { logger } from 'hono/logger';
+import { requestId } from 'hono/request-id';
+import { logger, honoLogger } from './logger';
 import eventsRoutes, { getBunServer } from './routes/events.routes';
 import { createBunWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
@@ -23,7 +24,8 @@ type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 const { upgradeWebSocket, websocket } = createBunWebSocket<AppWebSocket>();
 
 export const app = new Hono()
-  .use(logger())
+  .use('*', requestId())
+  .use(honoLogger)
   .use(prettyJSON())
   .use(cors())
   .get(
@@ -56,14 +58,14 @@ export const app = new Hono()
         async onOpen(e, ws) {
           const rawWs = ws.raw;
           if (!rawWs) return;
-          console.log(`Websocket: opened for ${networkKey}`);
+          logger.info(`Websocket: opened for ${networkKey}`);
           rawWs.subscribe(networkKey);
         },
         // async message(ws, message) {},
         async onClose(evt, ws) {
           const rawWs = ws.raw;
           if (!rawWs) return;
-          console.log(`Websocket: closed for ${networkKey}`);
+          logger.info(`Websocket: closed for ${networkKey}`);
           rawWs.unsubscribe(networkKey);
         },
       };
@@ -124,7 +126,8 @@ const server = Bun.serve({
 
 function logSendStatus(status: number) {
   if (status === -1) {
-    console.debug('Failed to publish');
+    // console.debug('Failed to publish');
+    logger.warn('Failed to publish to websocket');
   } else if (status === 0) {
   }
 }
@@ -134,4 +137,4 @@ await subClient.pSubscribe('*', (message, channel) => {
   logSendStatus(status);
 });
 
-console.log('Listening on http://localhost:1080');
+logger.info(`Listening on http://localhost:${server.port}`);

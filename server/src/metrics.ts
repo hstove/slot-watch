@@ -1,6 +1,7 @@
 import { Gauge } from 'prom-client';
 import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
+import { logger } from './logger';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -51,17 +52,17 @@ export const lastNs = [10, 25, 50];
 
 export async function warmupMetrics() {
   if (isRunning) {
-    console.log('Metrics are already running');
+    logger.debug('Metrics are already running');
     return;
   }
   if (Date.now() - lastRun < runEvery) {
-    console.log('Metrics were last run less than a minute ago');
+    logger.debug('Metrics were last run less than a minute ago');
     return;
   }
   const runStart = Date.now();
   isRunning = true;
 
-  console.log('Warming up metrics');
+  logger.info('Warming up metrics');
   const recentBlocks = await getRecentBlocksHealth({ networkKey: 'mainnet' });
   const { rewardCycleId } = await getPoxInfo.get('mainnet');
   const stackerSet = await getStackerSet('mainnet', rewardCycleId);
@@ -157,7 +158,7 @@ export async function warmupMetrics() {
   }
 
   const runDuration = Date.now() - runStart;
-  console.log(`Metrics warmed up in ${runDuration}ms`);
+  logger.info(`Metrics warmed up in ${runDuration}ms`);
   lastRun = Date.now();
   isRunning = false;
 }

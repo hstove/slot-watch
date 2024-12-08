@@ -1,6 +1,7 @@
 import type { F, A } from 'ts-toolbelt';
 import { redisClient } from './redis';
 import { parse, stringify } from 'superjson';
+import { logger } from './logger';
 
 const CACHE_TTL = 60 * 10;
 
@@ -32,28 +33,28 @@ export function memoizeCache<Fn extends F.Function>(
 } {
   return {
     async get(...args: F.Parameters<Fn>) {
-      console.debug('Cache: getCache', key(...args));
+      logger.debug('Cache: getCache', key(...args));
       // const cached = cache.get<F.Return<Fn>>(key(...args));
       const cached = await getCache<F.Return<Fn>>(key(...args));
       if (cached) {
-        console.debug('Cache: hit', key(...args));
+        logger.debug('Cache: hit', key(...args));
         return cached;
       }
-      console.debug('Cache: miss', key(...args));
+      logger.debug('Cache: miss', key(...args));
       const result = await fn(...args);
       // cache.set<F.Return<Fn>>(key(...args), result);
       await setCache(key(...args), result);
       return result;
     },
     async warm(...args: F.Parameters<Fn>) {
-      console.debug('Cache: warm', key(...args));
+      logger.debug('Cache: warm', key(...args));
       const result = await fn(...args);
       // cache.set<F.Return<Fn>>(key(...args), result);
       await setCache(key(...args), result);
       return result;
     },
     async clear(...args: F.Parameters<Fn>) {
-      console.debug('Cache: clear', key(...args));
+      logger.debug('Cache: clear', key(...args));
       // cache.del(key(...args));
       await redisClient.del(key(...args));
     },
