@@ -11,6 +11,9 @@ import * as P from 'micro-packed';
 import { serializeDbChunk } from '../utils';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { getPoxInfo } from '../stacks-api';
+import { getStackerSet } from '../stacks-api';
+import { getLatestResponses } from '../db/block-responses';
 
 const getChunksRoutes = new Hono()
 
@@ -135,6 +138,12 @@ const getChunksRoutes = new Hono()
     const chunkEvents: ChunkEventParsed[] = chunks.map(serializeDbChunk);
 
     return c.json(chunkEvents);
+  })
+
+  .get('/chunks/signer-latest/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const responses = await getLatestResponses(networkKey);
+    return c.json(responses);
   });
 
 export { getChunksRoutes };

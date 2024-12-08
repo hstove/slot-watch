@@ -3,6 +3,7 @@ import {
   type HealthBlockBlock,
   type HealthBlockSigner,
   type HealthBlocksResponse,
+  apiClient,
 } from '@/lib/slots-api';
 import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
@@ -51,3 +52,27 @@ export const consensusBlockAtoms = atomFamily((consensusHash: string) =>
     return getConsensusBlock(networkKey, consensusHash);
   }),
 );
+
+export async function fetchRecentSignerResponses(networkKey: string) {
+  const response = await apiClient.chunks['signer-latest'][':networkKey'].$get({
+    param: { networkKey },
+  });
+  return response.json();
+}
+
+export type SignerLatestResponses = Awaited<
+  ReturnType<typeof fetchRecentSignerResponses>
+>;
+
+export const signerLatestResponsesMapAtom = atom<
+  Map<string, SignerLatestResponses[number]>
+>(new Map());
+
+export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
+  const networkKey = get(networkIdAtom);
+  const responses = await fetchRecentSignerResponses(networkKey);
+  set(
+    signerLatestResponsesMapAtom,
+    new Map(responses.map((r) => [r.signerPublicKey, r])),
+  );
+});

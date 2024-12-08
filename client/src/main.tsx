@@ -7,6 +7,7 @@ import { RecentSigners } from './components/recent-signers/index.tsx';
 import { Watcher } from './components/stream/watcher.tsx';
 import { BlocksList } from './components/blocks/blocks-list.tsx';
 import { ChunkWatcher } from './components/chunk-watcher.tsx';
+import { WhenExtend } from './components/extend/when-extend.tsx';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: '/blocks',
         element: <BlocksList />,
+      },
+      {
+        path: '/extend',
+        element: <WhenExtend />,
       },
     ],
   },

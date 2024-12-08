@@ -81,6 +81,20 @@ export const app = new Hono()
   .route('/', getRecentsRoutes)
   .route('/health', healthRoutes)
   .route('/', metricsRoutes)
+  .onError((err, c) => {
+    if (err instanceof Error) {
+      logger.error({
+        err,
+        stack: err.stack,
+        message: err.message,
+      });
+    } else {
+      logger.error({
+        err,
+      });
+    }
+    return c.text('Internal Server Error', 500);
+  })
 
   .notFound((c) => {
     console.log(`${c.req.method} ${c.req.url} not found`);
