@@ -14,6 +14,7 @@ import { DataLabel, DataValue } from '../data-group';
 import { PublicKey } from '../public-key';
 import { useEntity } from '@/hooks/use-entity';
 import Countdown from 'react-countdown';
+import { Text } from '../text';
 
 function ExtendSigner({
   signer,
@@ -61,7 +62,25 @@ function ExtendSigner({
             <>
               <DataLabel>Time Remaining</DataLabel>
               <DataValue>
-                <Countdown date={signer.tenureExtendTimestamp} />
+                <Countdown
+                  date={signer.tenureExtendTimestamp}
+                  renderer={({ hours, minutes, seconds, completed }) => {
+                    if (completed) {
+                      return (
+                        <Text variant={'small'} className="text-green-500">
+                          Ready!
+                        </Text>
+                      );
+                    }
+                    return (
+                      <Text variant={'small'}>
+                        {hours.toFixed(0).padStart(2, '0')}:
+                        {minutes.toFixed(0).padStart(2, '0')}:
+                        {seconds.toFixed(0).padStart(2, '0')}
+                      </Text>
+                    );
+                  }}
+                />
               </DataValue>
             </>
           ) : null}

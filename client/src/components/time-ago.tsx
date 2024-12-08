@@ -15,7 +15,10 @@ export const TimeAgo = React.forwardRef<HTMLSpanElement, TimeAgoProps>(
     const [_, copy] = useCopyToClipboard();
     const { toast } = useToast();
     const [timeAgo, setTimeAgo] = useState(
-      formatDistanceToNow(new Date(date), { addSuffix: true }),
+      formatDistanceToNow(new Date(date), {
+        addSuffix: true,
+        includeSeconds: true,
+      }),
     );
 
     const updateTimeAgo = useCallback(() => {
