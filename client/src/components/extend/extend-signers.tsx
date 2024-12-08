@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
 import {
+  extendBoundsAtom,
   type SignerLatestResponses,
   sortedLatestResponsesAtom,
   totalWeightAtom,
@@ -13,23 +14,37 @@ import {
 import { DataLabel, DataValue } from '../data-group';
 import { PublicKey } from '../public-key';
 import { useEntity } from '@/hooks/use-entity';
-import Countdown from 'react-countdown';
+import { Countdown } from '../countdown';
 import { Text } from '../text';
+import { colord } from 'colord';
+
+const minColor = colord('#15803d');
+const maxColor = colord('#0f766e');
+const naColor = colord('#52525b');
 
 function ExtendSigner({
   signer,
 }: { signer: SignerLatestResponses['responses'][number] }) {
   const totalWeight = useAtomValue(totalWeightAtom);
   const name = useEntity(signer.signing_key);
+  const bounds = useAtomValue(extendBoundsAtom);
+  const color = React.useMemo(() => {
+    if (!signer.tenureExtendTimestamp || !bounds.min) return naColor.toHex();
+    if (!bounds.diff) return minColor.toHex();
+    const ts = new Date(signer.tenureExtendTimestamp).getTime();
+    const diff = (ts - bounds.min) / bounds.diff;
+    if (Number.isNaN(diff)) return minColor.toHex();
+    return minColor.mix(maxColor, diff).toHex();
+  }, [bounds.diff, bounds.min, signer.tenureExtendTimestamp]);
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="h-full border-r border-r-white border-background last:border-none box-border"
+          className="h-full box-border transition-colors"
           style={{
             flexGrow: signer.weight + totalWeight * 0.01,
-            // backgroundColor: color.toHex(),
+            backgroundColor: color,
             // borderColor: borderColor,
           }}
         />
@@ -62,25 +77,9 @@ function ExtendSigner({
             <>
               <DataLabel>Time Remaining</DataLabel>
               <DataValue>
-                <Countdown
-                  date={signer.tenureExtendTimestamp}
-                  renderer={({ hours, minutes, seconds, completed }) => {
-                    if (completed) {
-                      return (
-                        <Text variant={'small'} className="text-green-500">
-                          Ready!
-                        </Text>
-                      );
-                    }
-                    return (
-                      <Text variant={'small'}>
-                        {hours.toFixed(0).padStart(2, '0')}:
-                        {minutes.toFixed(0).padStart(2, '0')}:
-                        {seconds.toFixed(0).padStart(2, '0')}
-                      </Text>
-                    );
-                  }}
-                />
+                <Text variant={'small'}>
+                  <Countdown date={signer.tenureExtendTimestamp} />
+                </Text>
               </DataValue>
             </>
           ) : null}
@@ -94,7 +93,7 @@ export function ExtendSigners() {
   const responses = useAtomValue(sortedLatestResponsesAtom);
 
   return (
-    <div className="w-full rounded-md h-10 border border-border flex overflow-hidden">
+    <div className="w-full rounded-md h-10 border border-border flex overflow-hidden gap-[2px]">
       {responses.map((r) => (
         <ExtendSigner key={r.signerPublicKey} signer={r} />
       ))}

@@ -100,6 +100,23 @@ export const whenExtendAtom = atom((get) => {
   return null;
 });
 
+export const extendBoundsAtom = atom((get) => {
+  const sorted = get(sortedLatestResponsesAtom);
+  let min: number | null = null;
+  let max: number | null = null;
+  for (const r of sorted) {
+    if (!r.tenureExtendTimestamp) continue;
+    if (!min || new Date(r.tenureExtendTimestamp).getTime() < min) {
+      min = new Date(r.tenureExtendTimestamp).getTime();
+    }
+    if (!max || new Date(r.tenureExtendTimestamp).getTime() > max) {
+      max = new Date(r.tenureExtendTimestamp).getTime();
+    }
+  }
+  const diff = max && min ? max - min : null;
+  return { min, max, diff };
+});
+
 export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
   const networkKey = get(networkIdAtom);
   const responses = await fetchRecentSignerResponses(networkKey);

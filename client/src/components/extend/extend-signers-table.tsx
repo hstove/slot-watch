@@ -14,9 +14,10 @@ import {
 import { useAtomValue } from 'jotai';
 import { PublicKey } from '../public-key';
 import { percentString } from 'slot-watch-common';
-import Countdown from 'react-countdown';
+import { Countdown } from '../countdown';
 import { getEntity } from '@/lib/local-signers';
 import { TimeAgo } from '../time-ago';
+import { Timestamp } from '../timestamp';
 
 export const ExtendSignersTable = () => {
   const signers = useAtomValue(sortedLatestResponsesAtom);
@@ -54,7 +55,7 @@ export const ExtendSignersTable = () => {
               )}
             </TableCell>
             <TableCell>
-              <TimeAgo date={signer.createdAt} />
+              <Timestamp timestamp={signer.createdAt} />
             </TableCell>
           </TableRow>
         ))}
