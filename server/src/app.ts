@@ -159,6 +159,13 @@ await subClient.psubscribe('*', (error, count) => {
 });
 
 subClient.on('message', (message, channel) => {
+  logger.debug(
+    {
+      channel,
+      message,
+    },
+    'Received redis pubsub message',
+  );
   const status = server.publish(channel, message);
   logSendStatus(status);
 });

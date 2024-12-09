@@ -299,30 +299,38 @@ export function listAtomFamilyWithInit<OKey, T, K>(
     dequal,
   );
   const listAtom = atomFamily((outerKey: OKey) => {
-    return atom(async (get) => {
-      await get(initAtom(outerKey));
-      return get(listAtomFamilyInner(outerKey));
-    });
+    return atom(
+      async (get) => {
+        await get(initAtom(outerKey));
+        return get(listAtomFamilyInner(outerKey));
+      },
+      (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
+        set(initAtom(outerKey), outerKey, listOrItem);
+      },
+    );
   });
-  return [listAtom, itemAtomFamily] as const;
+  return [listAtom, itemAtomFamily, itemAtomFamilyInner] as const;
 }
 
 export const maxProcessedStacksHeightAtom = atom(0);
 
-export const [stacksBlocksForBurnBlockAtom, stacksBlocksFamily] =
-  listAtomFamilyWithInit(
-    async (burnBlockHeight: number, get) => {
-      const networkKey = get(networkIdAtom);
-      const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHeight);
-      return blocks;
-    },
-    (block) => {
-      return block.blockHash;
-    },
-    (get, set, block) => {
-      const maxProcessed = get(maxProcessedStacksHeightAtom);
-      if (block.blockHeight > maxProcessed && block.processedAt) {
-        set(maxProcessedStacksHeightAtom, block.blockHeight);
-      }
-    },
-  );
+export const [
+  stacksBlocksForBurnBlockAtom,
+  stacksBlocksFamily,
+  __stacksBlocksFamilyInner,
+] = listAtomFamilyWithInit(
+  async (burnBlockHeight: number, get) => {
+    const networkKey = get(networkIdAtom);
+    const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHeight);
+    return blocks;
+  },
+  (block) => {
+    return block.blockHash;
+  },
+  (get, set, block) => {
+    const maxProcessed = get(maxProcessedStacksHeightAtom);
+    if (block.blockHeight > maxProcessed && block.processedAt) {
+      set(maxProcessedStacksHeightAtom, block.blockHeight);
+    }
+  },
+);

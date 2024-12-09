@@ -6,11 +6,15 @@ import { atomEffect } from 'jotai-effect';
 import { networkIdAtom } from '@/store/network';
 import { BurnBlock } from './burn-block';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useWatchBlocks } from '@/hooks/use-watch-blocks';
+import { ConnectionStatus } from '../connection-status';
+import { Clock } from '../clock';
 
 export function Blocks() {
   const loaderData = Route.useLoaderData();
   const burnBlocks = useAtomValue(allBurnBlocksAtom);
   const setBurnBlocks = useSetAtom(setAllBurnBlocksAtom);
+  const { readyState } = useWatchBlocks();
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     setBurnBlocks(loaderData.burnBlocks);
@@ -24,6 +28,10 @@ export function Blocks() {
           burnBlockHeight={b.burnBlockHeight}
         />
       ))}
+      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
+        <Clock className="mr-4" />
+        <ConnectionStatus readyState={readyState} />
+      </div>
     </div>
   );
 }

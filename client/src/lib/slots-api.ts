@@ -90,7 +90,7 @@ export type ApiBlockResponseForBlock = Awaited<
 export async function getBlocksForBurnBlock(
   networkKey: string,
   burnBlockHeight: number,
-) {
+): Promise<ApiBlockForBurnBlock[]> {
   const response = await apiClient['burn-blocks'][':networkKey'][
     ':burnBlockHeight'
   ].blocks.$get({
@@ -109,14 +109,14 @@ export async function getBlocksForBurnBlock(
       burnBlockHeight: proposal.burnBlockHeight,
       networkKey: proposal.networkKey,
       proposedAt: proposal.createdAt,
-      processedAt: stacksBlock?.createdAt ?? null,
-      burnBlockHash: stacksBlock?.burnBlockHash ?? null,
-      timestamp: stacksBlock?.blockTimestamp ?? null,
-      readCount: stacksBlock?.readCount ?? null,
-      readLength: stacksBlock?.readLength ?? null,
-      runtime: stacksBlock?.runtime ?? null,
-      writeCount: stacksBlock?.writeCount ?? null,
-      writeLength: stacksBlock?.writeLength ?? null,
+      processedAt: stacksBlock?.createdAt,
+      burnBlockHash: stacksBlock?.burnBlockHash,
+      timestamp: stacksBlock?.blockTimestamp ?? undefined,
+      readCount: stacksBlock?.readCount,
+      readLength: stacksBlock?.readLength,
+      runtime: stacksBlock?.runtime,
+      writeCount: stacksBlock?.writeCount,
+      writeLength: stacksBlock?.writeLength,
     } satisfies ApiBlockForBurnBlock;
   });
 }
@@ -131,14 +131,14 @@ export type ApiBlockForBurnBlock = {
   burnBlockHeight: number | null;
   networkKey: string;
   proposedAt: string;
-  processedAt: string | null;
-  burnBlockHash: string | null;
-  timestamp: string | null;
-  readCount: number | null;
-  readLength: number | null;
-  runtime: number | null;
-  writeCount: number | null;
-  writeLength: number | null;
+  processedAt?: string;
+  burnBlockHash?: string;
+  timestamp?: string;
+  readCount?: number;
+  readLength?: number;
+  runtime?: number;
+  writeCount?: number;
+  writeLength?: number;
 };
 
 export async function getSigners(networkKey: string) {
