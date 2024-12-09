@@ -10,7 +10,7 @@ import {
   getBlockResponsesForBlock,
   type ApiBlockResponseForBlock,
 } from '@/lib/slots-api';
-import { atom, type Getter } from 'jotai';
+import { atom, type Setter, type Getter } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
@@ -254,6 +254,7 @@ type ReadOuter<Value, OKey, SetSelf = never> = (
 export function listAtomFamilyWithInit<OKey, T, K>(
   initFn: ReadOuter<Promise<T[]>, OKey, SetAtom<[OKey, T[] | T], void>>,
   keyFn: (item: T) => K,
+  onItemSet?: (get: Getter, set: Setter, item: T) => void,
 ) {
   const initAtom = atomFamily(
     (outerKey: OKey) =>
@@ -263,17 +264,19 @@ export function listAtomFamilyWithInit<OKey, T, K>(
           options.setSelf(outerKey, data);
           return data;
         },
-        (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
+        (get, set, outerKey: OKey, listOrItem: T[] | T) => {
           if (Array.isArray(listOrItem)) {
             set(listAtomFamilyInner(outerKey), listOrItem);
             for (const item of listOrItem) {
               set(itemAtomFamilyInner(keyFn(item)), item);
+              onItemSet?.(get, set, item);
             }
           } else {
             set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
             set(listAtomFamilyInner(outerKey), (list) => {
               return [listOrItem, ...list];
             });
+            onItemSet?.(get, set, listOrItem);
           }
         },
       ),
@@ -304,6 +307,8 @@ export function listAtomFamilyWithInit<OKey, T, K>(
   return [listAtom, itemAtomFamily] as const;
 }
 
+export const maxProcessedStacksHeightAtom = atom(0);
+
 export const [stacksBlocksForBurnBlockAtom, stacksBlocksFamily] =
   listAtomFamilyWithInit(
     async (burnBlockHeight: number, get) => {
@@ -313,5 +318,11 @@ export const [stacksBlocksForBurnBlockAtom, stacksBlocksFamily] =
     },
     (block) => {
       return block.blockHash;
+    },
+    (get, set, block) => {
+      const maxProcessed = get(maxProcessedStacksHeightAtom);
+      if (block.blockHeight > maxProcessed && block.processedAt) {
+        set(maxProcessedStacksHeightAtom, block.blockHeight);
+      }
     },
   );

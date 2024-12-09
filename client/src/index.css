@@ -55,6 +55,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --stacks: 15 97% 59%;
   }
 }
 
@@ -65,4 +66,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.block-list-col {
+  @apply flex flex-row gap-2 items-center min-h-[40px];
 }
