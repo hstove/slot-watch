@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import jotaiDebugLabel from 'jotai/babel/plugin-debug-label';
 import jotaiReactRefresh from 'jotai/babel/plugin-react-refresh';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 export default defineConfig({
   plugins: [
@@ -11,6 +12,7 @@ export default defineConfig({
         plugins: [jotaiDebugLabel, jotaiReactRefresh],
       },
     }),
+    TanStackRouterVite(),
   ],
   resolve: {
     alias: {

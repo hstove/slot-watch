@@ -3,18 +3,20 @@ import './App.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/toaster';
-import { useSearchParams, Outlet } from 'react-router-dom';
+// import { useSearchParams, Outlet } from 'react-router-dom';
 import { useHydrateAtoms } from 'jotai/utils';
 import { useAtomsDevtools } from 'jotai-devtools';
 import { networkAtom } from '@/store/network';
 import { ReloadIcon } from '@radix-ui/react-icons';
+import { Outlet } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { Route as RootRoute } from '@/routes/__root';
 
 function App() {
-  const [searchParams] = useSearchParams();
-  const networkId = searchParams.get('network');
+  const { network } = RootRoute.useLoaderData();
   useAtomsDevtools('slotwatch');
 
-  useHydrateAtoms([[networkAtom, networkId]]);
+  useHydrateAtoms([[networkAtom, network ?? null]]);
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="container min-h-screen flex flex-col mx-auto py-6 gap-6">
@@ -39,6 +41,7 @@ function App() {
 				<h1 className="text-2xl font-bold">Hello World</h1>
 			</footer> */}
       </div>
+      <TanStackRouterDevtools />
     </ThemeProvider>
   );
 }

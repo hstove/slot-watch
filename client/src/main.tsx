@@ -2,20 +2,34 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider as RRRouteProvider,
+} from 'react-router-dom';
 import { RecentSigners } from './components/recent-signers/index.tsx';
 import { Watcher } from './components/stream/watcher.tsx';
 import { BlocksList } from './components/blocks/blocks-list.tsx';
 import { ChunkWatcher } from './components/chunk-watcher.tsx';
 import { WhenExtend } from './components/extend/when-extend.tsx';
+import { routeTree } from './routeTree.gen.ts';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 
-const router = createBrowserRouter([
+const router = createRouter({ routeTree });
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+const rrrouter = createBrowserRouter([
   {
-    path: '/',
+    path: '/v1',
     element: <App />,
     children: [
       {
-        path: '/stream',
+        path: './stream',
         element: (
           <>
             <ChunkWatcher />
@@ -24,19 +38,19 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '/recent-signers',
+        path: './recent-signers',
         element: <RecentSigners />,
       },
       {
-        path: '/',
+        path: './',
         element: <RecentSigners />,
       },
       {
-        path: '/blocks',
+        path: './blocks',
         element: <BlocksList />,
       },
       {
-        path: '/extend',
+        path: './extend',
         element: <WhenExtend />,
       },
     ],
@@ -46,6 +60,7 @@ const router = createBrowserRouter([
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    {/* <RRRouteProvider router={rrrouter} /> */}
     <RouterProvider router={router} />
   </StrictMode>,
 );

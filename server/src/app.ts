@@ -11,13 +11,14 @@ import {
   MANY_CHUNKS_EVENT,
   NEW_BLOCK_EVENT,
 } from 'slot-watch-common';
-import { getBlockRoute } from './routes/get-block.routes';
+import { blockRoutes } from './routes/blocks.routes';
 import { getChunksRoutes } from './routes/chunks.routes';
 import { prettyJSON } from 'hono/pretty-json';
 import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
 import { subClient } from './redis';
+import { signersRoutes } from './routes/signers.routes';
 
 type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 
@@ -76,9 +77,10 @@ export const app = new Hono()
 
   .route('/', eventsRoutes)
 
-  .route('/', getBlockRoute)
+  .route('/', blockRoutes)
   .route('/', getChunksRoutes)
   .route('/', getRecentsRoutes)
+  .route('/', signersRoutes)
   .route('/health', healthRoutes)
   .route('/', metricsRoutes)
   .onError((err, c) => {

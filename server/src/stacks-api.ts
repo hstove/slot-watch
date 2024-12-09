@@ -3,12 +3,14 @@ import {
   getPoxInfo as getPoxInfoInner,
   type StackerSetSigner,
   getApiUrl,
+  percentString,
+  knownSigners,
 } from 'slot-watch-common';
 import { memoizeCache } from './cache';
 
 export const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
-    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}`,
+    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_v2`,
   getStackerSetInner,
 );
 
@@ -22,8 +24,18 @@ export async function getStackerSet(networkKey: string, rewardCycle: number) {
   }
   const totalWeight = signers.reduce((acc, signer) => acc + signer.weight, 0);
 
+  const signersExtra = signers.map((signer) => {
+    const weightPercent = signer.weight / totalWeight;
+    return {
+      ...signer,
+      weightPercent,
+      weightPercentString: percentString(weightPercent),
+      entity: knownSigners[signer.signing_key],
+    };
+  });
+
   return {
-    signers,
+    signers: signersExtra,
     signersByKey,
     totalWeight,
   };

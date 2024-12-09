@@ -1,0 +1,39 @@
+import { Hono } from 'hono';
+import { getPoxInfo, getStackerSet } from '../stacks-api';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+export const signersRequestSchema = z.object({
+  rewardCycleId: z.coerce.number(),
+  networkKey: z.string(),
+});
+
+export const signersRoutes = new Hono()
+  .get(
+    '/signers/:networkKey/:rewardCycleId',
+    zValidator('param', signersRequestSchema),
+    async (c) => {
+      const { networkKey, rewardCycleId } = c.req.valid('param');
+
+      const { signers, totalWeight } = await getStackerSet(
+        networkKey,
+        rewardCycleId,
+      );
+      return c.json({
+        signers,
+        totalWeight,
+        rewardCycleId,
+      });
+    },
+  )
+  .get('/signers/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const poxInfo = await getPoxInfo.get(networkKey);
+    const cycle = poxInfo.rewardCycleId;
+    const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+    return c.json({
+      signers,
+      totalWeight,
+      ...poxInfo,
+    });
+  });

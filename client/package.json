@@ -23,7 +23,9 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@react-hook/resize-observer": "^2.0.2",
     "@scure/base": "^1.1.9",
+    "@tanstack/react-router": "^1.87.1",
     "@tanstack/react-table": "^8.20.5",
+    "@tanstack/zod-adapter": "^1.87.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",
@@ -53,6 +55,8 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
     "@eslint/js": "^9.9.0",
+    "@tanstack/router-devtools": "^1.87.1",
+    "@tanstack/router-plugin": "^1.86.0",
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

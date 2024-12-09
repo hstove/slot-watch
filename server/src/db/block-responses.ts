@@ -142,3 +142,13 @@ export async function getLatestResponses(networkKey: string) {
     signers,
   };
 }
+
+export function serializeBlockResponse(response: BlockResponseDb) {
+  return {
+    ...response,
+    tenureExtendTimestamp: response.tenureExtendTimestamp
+      ? response.tenureExtendTimestamp.toISOString()
+      : null,
+    createdAt: response.createdAt.toISOString(),
+  };
+}

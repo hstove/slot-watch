@@ -181,3 +181,5 @@ export const burnBlocks = pgTable(
     ),
   ],
 );
+
+export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;

@@ -60,3 +60,45 @@ export async function getChunkById(id: number) {
   });
   return response.json();
 }
+
+export async function getBurnBlocks(networkKey: string) {
+  const response = await apiClient['burn-blocks'][':networkKey'].$get({
+    param: { networkKey },
+  });
+  return response.json();
+}
+
+export type ApiBurnBlock = Awaited<
+  ReturnType<typeof getBurnBlocks>
+>['burnBlocks'][0];
+
+export async function getBlockResponsesForBlock(
+  networkKey: string,
+  blockHash: string,
+) {
+  const response = await apiClient.blocks[':networkKey'][
+    ':blockId'
+  ].responses.$get({
+    param: { networkKey, blockId: blockHash },
+  });
+  return response.json();
+}
+export type ApiBlockResponsesForBlock = Awaited<
+  ReturnType<typeof getBlockResponsesForBlock>
+>['responses'][0];
+
+export async function getBlocksForBurnBlock(
+  networkKey: string,
+  burnBlockHash: string,
+) {
+  const response = await apiClient['burn-blocks'][':networkKey'][
+    ':burnBlockHash'
+  ].blocks.$get({
+    param: { networkKey, burnBlockHash },
+  });
+  return response.json();
+}
+
+export type ApiBlocksForBurnBlock = Awaited<
+  ReturnType<typeof getBlocksForBurnBlock>
+>['blocks'];

@@ -1,0 +1,108 @@
+import { Hono } from 'hono';
+import { db } from '../db/db';
+import { and, desc, eq } from 'drizzle-orm';
+import {
+  blockPushes,
+  blockProposals,
+  blockResponses,
+  burnBlocks,
+  stacksBlocks,
+} from '../db/schema';
+import { getPoxInfo, getStackerSet } from '../stacks-api';
+import {
+  mapSignerDataToResponses,
+  serializeBlockResponse,
+} from '../db/block-responses';
+import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
+
+const blockRoutes = new Hono()
+  .get('/get_block/:networkKey/:blockId', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const blockId = c.req.param('blockId');
+    const { rewardCycleId } = await getPoxInfo.get(networkKey);
+    const stackerSet = await getStackerSet(networkKey, rewardCycleId);
+
+    const [pushes] = await db
+      .select()
+      .from(blockPushes)
+      .where(
+        and(
+          eq(blockPushes.signerSignatureHash, blockId),
+          eq(blockPushes.networkKey, networkKey),
+        ),
+      )
+      .limit(1);
+    const [proposal] = await db
+      .select()
+      .from(blockProposals)
+      .where(
+        and(
+          eq(blockProposals.signerSignatureHash, blockId),
+          eq(blockProposals.networkKey, networkKey),
+        ),
+      )
+      .limit(1);
+    const responses = await db
+      .select()
+      .from(blockResponses)
+      .where(
+        and(
+          eq(blockResponses.signerSignatureHash, blockId),
+          eq(blockResponses.networkKey, networkKey),
+        ),
+      );
+
+    const responsesWithSigners = mapSignerDataToResponses({
+      stackerSet,
+      responses,
+    });
+
+    const response = {
+      proposal,
+      responses: responsesWithSigners,
+      pushes,
+    };
+    return c.json(response);
+  })
+  .get('/blocks/:networkKey/:blockId/responses', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const blockId = c.req.param('blockId');
+    const responses = await db
+      .select()
+      .from(blockResponses)
+      .where(
+        and(
+          eq(blockResponses.networkKey, networkKey),
+          eq(blockResponses.signerSignatureHash, blockId),
+        ),
+      );
+    const serializedResponses = responses.map(serializeBlockResponse);
+    return c.json({ responses: serializedResponses });
+  })
+  .get('/burn-blocks/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const btcBlocks = await db
+      .select()
+      .from(burnBlocks)
+      .where(eq(burnBlocks.networkKey, networkKey))
+      .orderBy(desc(burnBlocks.createdAt))
+      .limit(5);
+    return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
+  })
+  .get('/burn-blocks/:networkKey/:burnBlockHash/blocks', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const burnBlockHash = c.req.param('burnBlockHash');
+    const blocks = await db
+      .select()
+      .from(stacksBlocks)
+      .where(
+        and(
+          eq(stacksBlocks.burnBlockHash, burnBlockHash),
+          eq(stacksBlocks.networkKey, networkKey),
+        ),
+      )
+      .orderBy(desc(stacksBlocks.blockHeight));
+    return c.json({ blocks: blocks.map(serializeStacksBlock) });
+  });
+
+export { blockRoutes };

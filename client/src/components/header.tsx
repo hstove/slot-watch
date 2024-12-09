@@ -6,7 +6,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 import { SimpleTooltip } from './simple-tooltip';
 import { NetworkPicker } from './network-picker';
-import { Link, NavLink } from '@/components/link';
+// import { Link } from '@/components/link';
+import { Link } from '@tanstack/react-router';
 import { textVariants } from '@/lib/text-variants';
 import { useAtomValue } from 'jotai';
 import { networkIdAtom } from '@/store/network';
@@ -46,7 +47,7 @@ export const Header = () => {
         <h1 className="text-2xl font-bold">Slot watch</h1>
       </div>
       <div className="flex gap-5 items-center">
-        <NavLink
+        {/* <Link
           to={'/stream'}
           className={({ isActive }) =>
             textVariants({
@@ -57,20 +58,17 @@ export const Header = () => {
           }
         >
           Stream
-        </NavLink>
-        <NavLink
+        </Link> */}
+        <Link
           to={'/'}
-          className={({ isActive }) =>
-            textVariants({
-              variant: 'small',
-              navActive: isActive,
-              className: 'font-normal',
-            })
-          }
+          className={cn(
+            textVariants({ variant: 'small' }),
+            'font-normal [&.active]:text-muted-foreground',
+          )}
         >
           Signers
-        </NavLink>
-        <NavLink
+        </Link>
+        {/* <Link
           to={'/blocks'}
           className={({ isActive }) =>
             textVariants({
@@ -81,8 +79,8 @@ export const Header = () => {
           }
         >
           Blocks
-        </NavLink>
-        <NetworkPicker />
+        </Link> */}
+        {/* <NetworkPicker /> */}
         {/* <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
           <div className={cn(connectionStatusVariants({ readyState }))} />
         </SimpleTooltip> */}
