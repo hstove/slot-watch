@@ -1,8 +1,5 @@
 import { ModeToggle } from '@/components/theme-toggle';
-import { cn } from '@/lib/utils';
 import { NetworkPicker } from './network-picker';
-import { Link } from '@tanstack/react-router';
-import { textVariants } from '@/lib/text-variants';
 import { NavLink } from './link';
 
 export const Header = () => {
