@@ -14,6 +14,9 @@ import {
   serializeBlockResponse,
 } from '../db/block-responses';
 import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+import { serializeBlockProposal } from '../db/block-proposals';
 
 const blockRoutes = new Hono()
   .get('/get_block/:networkKey/:blockId', async (c) => {
@@ -89,20 +92,42 @@ const blockRoutes = new Hono()
       .limit(5);
     return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
   })
-  .get('/burn-blocks/:networkKey/:burnBlockHash/blocks', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const burnBlockHash = c.req.param('burnBlockHash');
-    const blocks = await db
-      .select()
-      .from(stacksBlocks)
-      .where(
-        and(
-          eq(stacksBlocks.burnBlockHash, burnBlockHash),
-          eq(stacksBlocks.networkKey, networkKey),
-        ),
-      )
-      .orderBy(desc(stacksBlocks.blockHeight));
-    return c.json({ blocks: blocks.map(serializeStacksBlock) });
-  });
+  .get(
+    '/burn-blocks/:networkKey/:burnBlockHeight/blocks',
+    zValidator(
+      'param',
+      z.object({ burnBlockHeight: z.coerce.number(), networkKey: z.string() }),
+    ),
+    async (c) => {
+      const { burnBlockHeight, networkKey } = c.req.valid('param');
+      // const networkKey = c.req.valid;
+      // const burnBlockHeight = c.req.valid;
+      const blocks = await db
+        .select()
+        .from(blockProposals)
+        .leftJoin(
+          stacksBlocks,
+          and(
+            eq(blockProposals.signerSignatureHash, stacksBlocks.blockHash),
+            eq(stacksBlocks.networkKey, networkKey),
+          ),
+        )
+        .where(
+          and(
+            eq(blockProposals.burnBlockHeight, burnBlockHeight),
+            eq(blockProposals.networkKey, networkKey),
+          ),
+        )
+        .orderBy(desc(blockProposals.chainLength));
+      return c.json({
+        blocks: blocks.map((b) => ({
+          proposal: serializeBlockProposal(b.block_proposals),
+          stacksBlock: b.stacks_blocks
+            ? serializeStacksBlock(b.stacks_blocks)
+            : null,
+        })),
+      });
+    },
+  );
 
 export { blockRoutes };

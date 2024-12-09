@@ -2,16 +2,18 @@ import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   burnBlocksAtomFamily,
-  fetchStacksBlocksForBurnBlockAtom,
   stacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
 import { Text } from '../text';
 import { atomEffect } from 'jotai-effect';
 
-export const BurnBlock = ({ burnBlockHash }: { burnBlockHash: string }) => {
+export const BurnBlock = ({
+  burnBlockHeight,
+  burnBlockHash,
+}: { burnBlockHeight: number; burnBlockHash: string }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
   const stacksBlocks = useAtomValue(
-    stacksBlocksForBurnBlockAtom(burnBlockHash),
+    stacksBlocksForBurnBlockAtom(burnBlockHeight),
   );
 
   if (!burnBlock) return null;

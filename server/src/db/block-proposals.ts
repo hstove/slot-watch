@@ -5,11 +5,19 @@ import {
   blockProposals as blockProposalsSchema,
   blockResponses as blockResponsesSchema,
   type BlockResponseDb,
+  type BlockProposalDb,
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { hex } from '@scure/base';
 import { knownSigners, type StackerSetSigner } from 'slot-watch-common';
 import { mapSignerDataToResponses } from './block-responses';
+
+export function serializeBlockProposal(block: BlockProposalDb) {
+  return {
+    ...block,
+    createdAt: block.createdAt.toISOString(),
+  };
+}
 
 export async function getRecentBlocksHealth({
   networkKey,

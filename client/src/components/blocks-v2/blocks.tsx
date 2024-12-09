@@ -18,7 +18,11 @@ export function Blocks() {
   return (
     <div className="flex flex-col gap-4 w-full">
       {burnBlocks.map((b) => (
-        <BurnBlock burnBlockHash={b.burnBlockHash} key={b.burnBlockHash} />
+        <BurnBlock
+          burnBlockHash={b.burnBlockHash}
+          key={b.burnBlockHash}
+          burnBlockHeight={b.burnBlockHeight}
+        />
       ))}
     </div>
   );

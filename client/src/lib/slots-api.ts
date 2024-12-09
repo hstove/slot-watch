@@ -89,19 +89,57 @@ export type ApiBlockResponseForBlock = Awaited<
 
 export async function getBlocksForBurnBlock(
   networkKey: string,
-  burnBlockHash: string,
+  burnBlockHeight: number,
 ) {
   const response = await apiClient['burn-blocks'][':networkKey'][
-    ':burnBlockHash'
+    ':burnBlockHeight'
   ].blocks.$get({
-    param: { networkKey, burnBlockHash },
+    param: { networkKey, burnBlockHeight: burnBlockHeight.toString() },
   });
-  return response.json();
+  const data = await response.json();
+
+  return data.blocks.map(({ proposal, stacksBlock }) => {
+    return {
+      blockHash: proposal.signerSignatureHash,
+      blockHeight: proposal.chainLength,
+      minerPublicKey: proposal.minerPublicKey,
+      txCount: proposal.txCount,
+      tenureChangeCause: proposal.tenureChangeCause,
+      consensusHash: proposal.consensusHash,
+      burnBlockHeight: proposal.burnBlockHeight,
+      networkKey: proposal.networkKey,
+      proposedAt: proposal.createdAt,
+      processedAt: stacksBlock?.createdAt ?? null,
+      burnBlockHash: stacksBlock?.burnBlockHash ?? null,
+      timestamp: stacksBlock?.blockTimestamp ?? null,
+      readCount: stacksBlock?.readCount ?? null,
+      readLength: stacksBlock?.readLength ?? null,
+      runtime: stacksBlock?.runtime ?? null,
+      writeCount: stacksBlock?.writeCount ?? null,
+      writeLength: stacksBlock?.writeLength ?? null,
+    } satisfies ApiBlockForBurnBlock;
+  });
 }
 
-export type ApiBlockForBurnBlock = Awaited<
-  ReturnType<typeof getBlocksForBurnBlock>
->['blocks'][0];
+export type ApiBlockForBurnBlock = {
+  blockHash: string;
+  blockHeight: number;
+  minerPublicKey: string | null;
+  txCount: number | null;
+  tenureChangeCause: number | null;
+  consensusHash: string | null;
+  burnBlockHeight: number | null;
+  networkKey: string;
+  proposedAt: string;
+  processedAt: string | null;
+  burnBlockHash: string | null;
+  timestamp: string | null;
+  readCount: number | null;
+  readLength: number | null;
+  runtime: number | null;
+  writeCount: number | null;
+  writeLength: number | null;
+};
 
 export async function getSigners(networkKey: string) {
   const response = await apiClient.signers[':networkKey'].$get({

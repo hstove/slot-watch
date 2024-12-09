@@ -160,45 +160,6 @@ export const insertBurnBlockAtom = atom(
   },
 );
 
-// export const stacksBlocksForBurnBlockAtom = atomFamily(
-//   (_burnBlockHash: string) => atom<ApiBlockForBurnBlock[]>([]),
-// );
-
-export const stacksBlocksAtomFamily = atomFamily((_blockHash: string) => {
-  return atom<ApiBlockForBurnBlock>();
-});
-
-export const fetchStacksBlocksForBurnBlockAtom = atomFamily(
-  (burnBlockHash: string) =>
-    atom(
-      async (get) => {
-        const networkKey = get(networkIdAtom);
-        const { blocks } = await getBlocksForBurnBlock(
-          networkKey,
-          burnBlockHash,
-        );
-        return blocks;
-      },
-      // null,
-      // async (get, set, burnBlockHash: string) => {
-      //   const networkKey = get(networkIdAtom);
-      //   const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHash);
-      //   set(stacksBlocksForBurnBlockAtom(burnBlockHash), blocks.blocks);
-      //   for (const block of blocks.blocks) {
-      //     set(stacksBlocksAtomFamily(block.blockHash), block);
-      //   }
-      // },
-    ),
-);
-
-export const stacksBlocksForBurnBlockQueryAtom = atomFamily(
-  (burnBlockHash: string) =>
-    atomWithQuery((get) => ({
-      queryKey: ['stacksBlocksForBurnBlock', get(networkIdAtom), burnBlockHash],
-      queryFn: () => getBlocksForBurnBlock(get(networkIdAtom), burnBlockHash),
-    })),
-);
-
 export const blockResponsesForBlockAtomFamily = atomFamily(
   (_arg: { signerKey: string; blockHash: string }) =>
     atom<ApiBlockResponseForBlock>(),
@@ -345,9 +306,9 @@ export function listAtomFamilyWithInit<OKey, T, K>(
 
 export const [stacksBlocksForBurnBlockAtom, stacksBlocksFamily] =
   listAtomFamilyWithInit(
-    async (burnBlockHash: string, get) => {
+    async (burnBlockHeight: number, get) => {
       const networkKey = get(networkIdAtom);
-      const { blocks } = await getBlocksForBurnBlock(networkKey, burnBlockHash);
+      const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHeight);
       return blocks;
     },
     (block) => {
