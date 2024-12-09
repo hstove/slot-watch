@@ -24,13 +24,24 @@ export async function getStackerSet(networkKey: string, rewardCycle: number) {
   }
   const totalWeight = signers.reduce((acc, signer) => acc + signer.weight, 0);
 
-  const signersExtra = signers.map((signer) => {
+  const signersExtra = signers.map((signer, i) => {
     const weightPercent = signer.weight / totalWeight;
+    const percentStr = percentString(weightPercent);
+    let label = '';
+    const name = knownSigners[signer.signing_key];
+    if (typeof name === 'undefined') {
+      label += `#${i}`;
+    } else {
+      label += name;
+    }
+    label += ` (${percentStr}%)`;
     return {
       ...signer,
+      publicKey: signer.signing_key,
       weightPercent,
-      weightPercentString: percentString(weightPercent),
-      entity: knownSigners[signer.signing_key],
+      weightPercentStr: percentStr,
+      name,
+      label,
     };
   });
 

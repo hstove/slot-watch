@@ -99,7 +99,7 @@ export const app = new Hono()
   })
 
   .notFound((c) => {
-    console.log(`${c.req.method} ${c.req.url} not found`);
+    logger.debug(`${c.req.method} ${c.req.url} not found`);
     return c.text('Not Found', 200);
   });
 
