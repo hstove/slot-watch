@@ -4,12 +4,19 @@ import {
   type HealthBlockSigner,
   type HealthBlocksResponse,
   apiClient,
+  type ApiBurnBlock,
+  type ApiBlockForBurnBlock,
+  getBlocksForBurnBlock,
+  getBlockResponsesForBlock,
+  type ApiBlockResponseForBlock,
 } from '@/lib/slots-api';
-import { atom } from 'jotai';
+import { atom, type Getter } from 'jotai';
 import { atomFamily } from 'jotai/utils';
-import { dequal } from 'dequal';
+import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
 import { ConsensusBlockResponse, getConsensusBlock } from 'slot-watch-common';
+import { atomWithQuery } from 'jotai-tanstack-query';
+import { atomEffect } from 'jotai-effect';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -126,3 +133,224 @@ export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
   );
   set(totalWeightAtom, responses.totalWeight);
 });
+
+export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
+
+export const burnBlocksAtomFamily = atomFamily((_burnBlockHash: string) =>
+  atom<ApiBurnBlock>(),
+);
+
+export const setAllBurnBlocksAtom = atom(
+  null,
+  async (_get, set, burnBlocks: ApiBurnBlock[]) => {
+    for (const burnBlock of burnBlocks) {
+      set(burnBlocksAtomFamily(burnBlock.burnBlockHash), burnBlock);
+    }
+    set(allBurnBlocksAtom, burnBlocks);
+  },
+);
+
+export const insertBurnBlockAtom = atom(
+  null,
+  async (_get, set, burnBlock: ApiBurnBlock) => {
+    set(burnBlocksAtomFamily(burnBlock.burnBlockHash), burnBlock);
+    set(allBurnBlocksAtom, (blocks) => {
+      return [burnBlock, ...blocks];
+    });
+  },
+);
+
+// export const stacksBlocksForBurnBlockAtom = atomFamily(
+//   (_burnBlockHash: string) => atom<ApiBlockForBurnBlock[]>([]),
+// );
+
+export const stacksBlocksAtomFamily = atomFamily((_blockHash: string) => {
+  return atom<ApiBlockForBurnBlock>();
+});
+
+export const fetchStacksBlocksForBurnBlockAtom = atomFamily(
+  (burnBlockHash: string) =>
+    atom(
+      async (get) => {
+        const networkKey = get(networkIdAtom);
+        const { blocks } = await getBlocksForBurnBlock(
+          networkKey,
+          burnBlockHash,
+        );
+        return blocks;
+      },
+      // null,
+      // async (get, set, burnBlockHash: string) => {
+      //   const networkKey = get(networkIdAtom);
+      //   const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHash);
+      //   set(stacksBlocksForBurnBlockAtom(burnBlockHash), blocks.blocks);
+      //   for (const block of blocks.blocks) {
+      //     set(stacksBlocksAtomFamily(block.blockHash), block);
+      //   }
+      // },
+    ),
+);
+
+export const stacksBlocksForBurnBlockQueryAtom = atomFamily(
+  (burnBlockHash: string) =>
+    atomWithQuery((get) => ({
+      queryKey: ['stacksBlocksForBurnBlock', get(networkIdAtom), burnBlockHash],
+      queryFn: () => getBlocksForBurnBlock(get(networkIdAtom), burnBlockHash),
+    })),
+);
+
+export const blockResponsesForBlockAtomFamily = atomFamily(
+  (_arg: { signerKey: string; blockHash: string }) =>
+    atom<ApiBlockResponseForBlock>(),
+  dequal,
+);
+
+export const fetchBlockResponsesForBlockAtom = atom(
+  null,
+  async (get, set, blockHash: string) => {
+    const networkKey = get(networkIdAtom);
+    const responses = await getBlockResponsesForBlock(networkKey, blockHash);
+    for (const response of responses.responses) {
+      if (!response.signerPublicKey) continue;
+      set(
+        blockResponsesForBlockAtomFamily({
+          blockHash,
+          signerKey: response.signerPublicKey,
+        }),
+        response,
+      );
+    }
+  },
+);
+
+type SetAtom<Args extends unknown[], Result> = <A extends Args>(
+  ...args: A
+) => Result;
+
+type Read<Value, SetSelf = never> = (
+  get: Getter,
+  options?: {
+    readonly signal: AbortSignal;
+    readonly setSelf: SetSelf;
+  },
+) => Value;
+
+function listAtomWithInit<T, K>(
+  // initFn: (get: Getter) => Promise<T[]>,
+  initFn: Read<Promise<T[]>, SetAtom<[T[] | T], void>>,
+  keyFn: (item: T) => K,
+) {
+  const initAtom = atom<Promise<T[]>, [T[] | T], void>(
+    async (get, options) => {
+      const data = await initFn(get, options);
+      options.setSelf(data);
+      return data;
+    },
+    (_get, set, listOrItem: T[] | T) => {
+      if (Array.isArray(listOrItem)) {
+        set(listAtomInner, listOrItem);
+        for (const item of listOrItem) {
+          set(itemAtomFamilyInner(keyFn(item)), item);
+        }
+      } else {
+        set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
+        set(listAtomInner, (list) => {
+          return [listOrItem, ...list];
+        });
+      }
+    },
+  );
+  const listAtomInner = atom<T[]>([]);
+  const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
+  const itemAtomFamily = atomFamily(
+    (params: K) =>
+      atom<T>((get) => {
+        const inner = get(itemAtomFamilyInner(params));
+        if (typeof inner === 'undefined') {
+          throw new Error('Item not found');
+        }
+        return inner;
+      }),
+    dequal,
+  );
+  const listAtom = atom(async (get) => {
+    // prefetch
+    await get(initAtom);
+    return get(listAtomInner);
+  });
+  return [listAtom, itemAtomFamily] as const;
+}
+
+type ReadOuter<Value, OKey, SetSelf = never> = (
+  outerKey: OKey,
+  get: Getter,
+  options?: {
+    readonly signal: AbortSignal;
+    readonly setSelf: SetSelf;
+  },
+) => Value;
+
+export function listAtomFamilyWithInit<OKey, T, K>(
+  initFn: ReadOuter<Promise<T[]>, OKey, SetAtom<[OKey, T[] | T], void>>,
+  keyFn: (item: T) => K,
+) {
+  const initAtom = atomFamily(
+    (outerKey: OKey) =>
+      atom<Promise<T[]>, [OKey, T[] | T], void>(
+        async (get, options) => {
+          const data = await initFn(outerKey, get, options);
+          options.setSelf(outerKey, data);
+          return data;
+        },
+        (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
+          if (Array.isArray(listOrItem)) {
+            set(listAtomFamilyInner(outerKey), listOrItem);
+            for (const item of listOrItem) {
+              set(itemAtomFamilyInner(keyFn(item)), item);
+            }
+          } else {
+            set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
+            set(listAtomFamilyInner(outerKey), (list) => {
+              return [listOrItem, ...list];
+            });
+          }
+        },
+      ),
+    dequal,
+  );
+  const listAtomFamilyInner = atomFamily(
+    (_outerKey: OKey) => atom<T[]>([]),
+    dequal,
+  );
+  const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
+  const itemAtomFamily = atomFamily(
+    (params: K) =>
+      atom<T>((get) => {
+        const inner = get(itemAtomFamilyInner(params));
+        if (typeof inner === 'undefined') {
+          throw new Error('Item not found');
+        }
+        return inner;
+      }),
+    dequal,
+  );
+  const listAtom = atomFamily((outerKey: OKey) => {
+    return atom(async (get) => {
+      await get(initAtom(outerKey));
+      return get(listAtomFamilyInner(outerKey));
+    });
+  });
+  return [listAtom, itemAtomFamily] as const;
+}
+
+export const [stacksBlocksForBurnBlockAtom, stacksBlocksFamily] =
+  listAtomFamilyWithInit(
+    async (burnBlockHash: string, get) => {
+      const networkKey = get(networkIdAtom);
+      const { blocks } = await getBlocksForBurnBlock(networkKey, burnBlockHash);
+      return blocks;
+    },
+    (block) => {
+      return block.blockHash;
+    },
+  );

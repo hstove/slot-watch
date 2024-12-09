@@ -57,6 +57,7 @@ export const blockProposals = pgTable(
     consensusHash: varchar('consensus_hash', { length: 64 }),
     tenureChangeCause: smallint('tenure_change_cause'),
     txCount: integer('tx_count'),
+    burnBlockHeight: integer('burn_block_height'),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
@@ -66,6 +67,10 @@ export const blockProposals = pgTable(
     index('block_proposals_chain_length_idx').on(table.chainLength),
     index('block_proposals_chunk_id_idx').on(table.chunkId),
     index('block_proposals_miner_public_key_idx').on(table.minerPublicKey),
+    index('block_proposals_burn_block_height_idx').on(
+      table.burnBlockHeight,
+      table.networkKey,
+    ),
   ],
 );
 

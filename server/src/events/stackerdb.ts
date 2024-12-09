@@ -109,6 +109,7 @@ export async function handleBlockProposal({
     chunkId,
     txCount: payload.txCount,
     tenureChangeCause: payload.tenureChangeCause,
+    burnBlockHeight: Number(payload.blockHeight),
   });
 }
 

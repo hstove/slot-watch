@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as WhenExtendImport } from './routes/when-extend'
 import { Route as StreamImport } from './routes/stream'
+import { Route as BlocksV2Import } from './routes/blocks-v2'
 import { Route as BlocksImport } from './routes/blocks'
 import { Route as IndexImport } from './routes/index'
 
@@ -27,6 +28,12 @@ const WhenExtendRoute = WhenExtendImport.update({
 const StreamRoute = StreamImport.update({
   id: '/stream',
   path: '/stream',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const BlocksV2Route = BlocksV2Import.update({
+  id: '/blocks-v2',
+  path: '/blocks-v2',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,6 +67,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlocksImport
       parentRoute: typeof rootRoute
     }
+    '/blocks-v2': {
+      id: '/blocks-v2'
+      path: '/blocks-v2'
+      fullPath: '/blocks-v2'
+      preLoaderRoute: typeof BlocksV2Import
+      parentRoute: typeof rootRoute
+    }
     '/stream': {
       id: '/stream'
       path: '/stream'
@@ -82,6 +96,7 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blocks': typeof BlocksRoute
+  '/blocks-v2': typeof BlocksV2Route
   '/stream': typeof StreamRoute
   '/when-extend': typeof WhenExtendRoute
 }
@@ -89,6 +104,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blocks': typeof BlocksRoute
+  '/blocks-v2': typeof BlocksV2Route
   '/stream': typeof StreamRoute
   '/when-extend': typeof WhenExtendRoute
 }
@@ -97,22 +113,24 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/blocks': typeof BlocksRoute
+  '/blocks-v2': typeof BlocksV2Route
   '/stream': typeof StreamRoute
   '/when-extend': typeof WhenExtendRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/blocks' | '/stream' | '/when-extend'
+  fullPaths: '/' | '/blocks' | '/blocks-v2' | '/stream' | '/when-extend'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blocks' | '/stream' | '/when-extend'
-  id: '__root__' | '/' | '/blocks' | '/stream' | '/when-extend'
+  to: '/' | '/blocks' | '/blocks-v2' | '/stream' | '/when-extend'
+  id: '__root__' | '/' | '/blocks' | '/blocks-v2' | '/stream' | '/when-extend'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlocksRoute: typeof BlocksRoute
+  BlocksV2Route: typeof BlocksV2Route
   StreamRoute: typeof StreamRoute
   WhenExtendRoute: typeof WhenExtendRoute
 }
@@ -120,6 +138,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlocksRoute: BlocksRoute,
+  BlocksV2Route: BlocksV2Route,
   StreamRoute: StreamRoute,
   WhenExtendRoute: WhenExtendRoute,
 }
@@ -136,6 +155,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/blocks",
+        "/blocks-v2",
         "/stream",
         "/when-extend"
       ]
@@ -145,6 +165,9 @@ export const routeTree = rootRoute
     },
     "/blocks": {
       "filePath": "blocks.tsx"
+    },
+    "/blocks-v2": {
+      "filePath": "blocks-v2.tsx"
     },
     "/stream": {
       "filePath": "stream.tsx"

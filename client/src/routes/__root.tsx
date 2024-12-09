@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
 
 const basicSearchSchema = z.object({
-  network: z.string().optional(),
+  network: z.string().optional().default('mainnet'),
 });
 
 export const Route = createRootRoute({

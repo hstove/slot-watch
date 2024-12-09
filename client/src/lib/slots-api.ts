@@ -83,7 +83,7 @@ export async function getBlockResponsesForBlock(
   });
   return response.json();
 }
-export type ApiBlockResponsesForBlock = Awaited<
+export type ApiBlockResponseForBlock = Awaited<
   ReturnType<typeof getBlockResponsesForBlock>
 >['responses'][0];
 
@@ -99,9 +99,9 @@ export async function getBlocksForBurnBlock(
   return response.json();
 }
 
-export type ApiBlocksForBurnBlock = Awaited<
+export type ApiBlockForBurnBlock = Awaited<
   ReturnType<typeof getBlocksForBurnBlock>
->['blocks'];
+>['blocks'][0];
 
 export async function getSigners(networkKey: string) {
   const response = await apiClient.signers[':networkKey'].$get({
