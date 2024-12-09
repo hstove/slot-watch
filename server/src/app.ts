@@ -148,7 +148,17 @@ function logSendStatus(status: number) {
   }
 }
 
-await subClient.pSubscribe('*', (message, channel) => {
+await subClient.psubscribe('*', (error, count) => {
+  if (error) {
+    logger.error({ err: error }, 'Failed to subscribe to redis');
+  } else {
+    logger.debug(`Subscribed to ${count} channels`);
+  }
+  // const status = server.publish(channel as string, message as string);
+  // logSendStatus(status);
+});
+
+subClient.on('message', (message, channel) => {
   const status = server.publish(channel, message);
   logSendStatus(status);
 });

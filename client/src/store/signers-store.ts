@@ -9,8 +9,7 @@ import {
 } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import { getRecentSigners } from '@/lib/slots-api';
-
-// export const stackerSetAtom = atom<StackerSetSigner[]>([]);
+import { getSigners } from '@/lib/slots-api';
 
 export const poxInfoAtom = atom(async (get) => {
   const networkId = get(networkIdAtom);

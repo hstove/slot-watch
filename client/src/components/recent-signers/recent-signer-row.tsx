@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { RecentSigner } from 'slot-watch-common';
-import type { RecentSignerWithPower } from '@/store/signers';
+import type { RecentSignerWithPower } from '@/store/signers-store';
 import { hex } from '@scure/base';
 import { SimpleTooltip } from '../simple-tooltip';
 import { useToast } from '@/hooks/use-toast';

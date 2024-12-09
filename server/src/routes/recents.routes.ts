@@ -20,9 +20,8 @@ import {
 import { hex } from '@scure/base';
 import { signerDegradationRate } from '../metrics';
 
-const getRecentsRoutes = new Hono().get(
-  '/signer-recency/:networkKey',
-  async (c) => {
+const getRecentsRoutes = new Hono()
+  .get('/signer-recency/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
     const poxInfo = await getPoxInfo.get(networkKey);
     const cycle = poxInfo.rewardCycleId;
@@ -127,37 +126,36 @@ const getRecentsRoutes = new Hono().get(
       signers: signersResponse,
     };
     return c.json(response);
-  },
-);
-// .get('/signers/:networkKey', async (c) => {
-//   const networkKey = c.req.param('networkKey');
-//   const poxInfo = await getPoxInfo.get(networkKey);
-//   const cycle = poxInfo.rewardCycleId;
-//   const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+  })
+  .get('/signers-dashboard/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const poxInfo = await getPoxInfo.get(networkKey);
+    const cycle = poxInfo.rewardCycleId;
+    const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
 
-//   const signersResponse = signers
-//     .map((s, i) => {
-//       const percent = s.weight / totalWeight;
-//       const percentStr = percentString(percent);
-//       let label = '';
-//       const name = knownSigners[s.signing_key];
-//       if (typeof name === 'undefined') {
-//         label += `#${i}`;
-//       } else {
-//         label += name;
-//       }
-//       label += ` (${percentStr}%)`;
-//       return {
-//         publicKey: s.signing_key,
-//         weight: s.weight,
-//         weightPercent: percent,
-//         weightPercentStr: percentStr,
-//         name: knownSigners[s.signing_key] ?? null,
-//         label,
-//       };
-//     })
-//     .sort((a, b) => b.weight - a.weight);
-//   return c.json(signersResponse);
-// });
+    const signersResponse = signers
+      .map((s, i) => {
+        const percent = s.weight / totalWeight;
+        const percentStr = percentString(percent);
+        let label = '';
+        const name = knownSigners[s.signing_key];
+        if (typeof name === 'undefined') {
+          label += `#${i}`;
+        } else {
+          label += name;
+        }
+        label += ` (${percentStr}%)`;
+        return {
+          publicKey: s.signing_key,
+          weight: s.weight,
+          weightPercent: percent,
+          weightPercentStr: percentStr,
+          name: knownSigners[s.signing_key] ?? null,
+          label,
+        };
+      })
+      .sort((a, b) => b.weight - a.weight);
+    return c.json(signersResponse);
+  });
 
 export { getRecentsRoutes };

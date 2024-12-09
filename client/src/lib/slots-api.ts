@@ -102,3 +102,13 @@ export async function getBlocksForBurnBlock(
 export type ApiBlocksForBurnBlock = Awaited<
   ReturnType<typeof getBlocksForBurnBlock>
 >['blocks'];
+
+export async function getSigners(networkKey: string) {
+  const response = await apiClient.signers[':networkKey'].$get({
+    param: { networkKey },
+  });
+  return response.json();
+}
+
+export type ApiSigners = Awaited<ReturnType<typeof getSigners>>;
+export type ApiSigner = ApiSigners['signers'][0];

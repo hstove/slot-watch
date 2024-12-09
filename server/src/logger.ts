@@ -7,9 +7,12 @@ import { getPath } from 'hono/utils/url';
 export let logger: Logger;
 
 if (process.env.NODE_ENV === 'production') {
-  logger = pino();
+  logger = pino({
+    level: 'debug',
+  });
 } else {
   logger = pino({
+    level: 'debug',
     transport: {
       target: 'pino-pretty',
     },

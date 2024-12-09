@@ -4,7 +4,7 @@ import {
   recentSignersAtom,
   totalRecentSignersAtom,
   totalUpatedSignersAtom,
-} from '@/store/signers';
+} from '@/store/signers-store';
 import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import mixPlugin from 'colord/plugins/mix';
