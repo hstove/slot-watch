@@ -273,9 +273,21 @@ export function listAtomFamilyWithInit<OKey, T, K>(
             }
           } else {
             set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
-            set(listAtomFamilyInner(outerKey), (list) => {
-              return [listOrItem, ...list];
-            });
+            const existingList = get(listAtomFamilyInner(outerKey));
+            const existingIndex = existingList.findIndex(
+              (item) => keyFn(item) === keyFn(listOrItem),
+            );
+            if (existingIndex !== -1) {
+              existingList.splice(existingIndex, 1, listOrItem);
+              set(listAtomFamilyInner(outerKey), existingList);
+              console.log('Updated existing', keyFn(listOrItem), outerKey);
+            } else {
+              set(listAtomFamilyInner(outerKey), (list) => {
+                return [listOrItem, ...list];
+              });
+              console.log('Added new', keyFn(listOrItem), outerKey);
+            }
+
             onItemSet?.(get, set, listOrItem);
           }
         },

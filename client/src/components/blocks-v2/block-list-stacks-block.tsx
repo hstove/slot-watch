@@ -77,7 +77,11 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
       </div>
       <div className="block-list-col">
         <Text variant="small">
-          <Timestamp timestamp={block.proposedAt} />
+          <Timestamp
+            timestamp={
+              block.proposedAt ?? block.processedAt ?? new Date().toISOString()
+            }
+          />
         </Text>
       </div>
       <div className="block-list-col">

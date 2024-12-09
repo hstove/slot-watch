@@ -68,9 +68,10 @@ export async function getBurnBlocks(networkKey: string) {
   return response.json();
 }
 
-export type ApiBurnBlock = Awaited<
-  ReturnType<typeof getBurnBlocks>
->['burnBlocks'][0];
+export type ApiBurnBlock = Omit<
+  Awaited<ReturnType<typeof getBurnBlocks>>['burnBlocks'][0],
+  'id'
+>;
 
 export async function getBlockResponsesForBlock(
   networkKey: string,
@@ -103,7 +104,7 @@ export async function getBlocksForBurnBlock(
       blockHash: proposal.signerSignatureHash,
       blockHeight: proposal.chainLength,
       minerPublicKey: proposal.minerPublicKey,
-      txCount: proposal.txCount,
+      txCount: proposal.txCount ?? 0,
       tenureChangeCause: proposal.tenureChangeCause,
       consensusHash: proposal.consensusHash,
       burnBlockHeight: proposal.burnBlockHeight,
@@ -125,12 +126,12 @@ export type ApiBlockForBurnBlock = {
   blockHash: string;
   blockHeight: number;
   minerPublicKey: string | null;
-  txCount: number | null;
+  txCount: number;
   tenureChangeCause: number | null;
   consensusHash: string | null;
   burnBlockHeight: number | null;
   networkKey: string;
-  proposedAt: string;
+  proposedAt?: string;
   processedAt?: string;
   burnBlockHash?: string;
   timestamp?: string;
