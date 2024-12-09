@@ -7,14 +7,14 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["dist", ".turbo"]
+    "ignore": ["dist", ".turbo", "routeTree.gen.ts", "server/drizzle/meta"]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space"
   },
   "organizeImports": {
-    "enabled": true
+    "enabled": false
   },
   "linter": {
     "enabled": true,
@@ -25,6 +25,11 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
+    }
+  },
+  "css": {
+    "linter": {
+      "enabled": true
     }
   }
 }

@@ -16,19 +16,20 @@ import { networkAtom } from '@/store/network';
 import { useSearchParams } from 'react-router-dom';
 import { useAtomCallback } from 'jotai/utils';
 import { useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 
 export const NetworkPicker = () => {
   // const [network, setNetwork] = useAtom(networkAtom);
   const network = useAtomValue(networkAtom);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const setNetworkParam = useAtomCallback(
     useCallback(
       (_get, set, networkId: string) => {
         set(networkAtom, networkId);
-        setSearchParams({ network: networkId });
+        navigate({ to: '.', search: { network: networkId } });
       },
-      [setSearchParams],
+      [navigate],
     ),
   );
   return (

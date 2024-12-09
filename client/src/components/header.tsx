@@ -1,89 +1,21 @@
 import { ModeToggle } from '@/components/theme-toggle';
-import { useWebSocket } from '@/hooks/use-websocket';
-import { useCallback, useMemo } from 'react';
-import { ReadyState } from 'react-use-websocket';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { SimpleTooltip } from './simple-tooltip';
 import { NetworkPicker } from './network-picker';
-// import { Link } from '@/components/link';
 import { Link } from '@tanstack/react-router';
 import { textVariants } from '@/lib/text-variants';
-import { useAtomValue } from 'jotai';
-import { networkIdAtom } from '@/store/network';
-
-const connectionStatusVariants = cva(
-  'text-sm text-muted-foreground h-4 w-4 rounded-full',
-  {
-    variants: {
-      readyState: {
-        [ReadyState.CONNECTING]: 'text-yellow-500 bg-yellow-500',
-        [ReadyState.OPEN]: 'text-green-500 bg-green-500',
-        [ReadyState.CLOSING]: 'text-red-500 bg-red-500',
-        [ReadyState.CLOSED]: 'text-red-500 bg-red-500',
-        [ReadyState.UNINSTANTIATED]: 'text-red-500 bg-red-500',
-      },
-    },
-    defaultVariants: {
-      readyState: ReadyState.UNINSTANTIATED,
-    },
-  },
-);
-
-const connectionStatus = {
-  [ReadyState.CONNECTING]: 'Connecting',
-  [ReadyState.OPEN]: 'Connected',
-  [ReadyState.CLOSING]: 'Closing',
-  [ReadyState.CLOSED]: 'Closed',
-  [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
-} as const;
+import { NavLink } from './link';
 
 export const Header = () => {
-  // const { readyState } = useWebSocket();
-  // const network = useAtomValue(networkIdAtom);
   return (
     <header className="flex items-center justify-between sticky top-0 z-50 bg-background py-3">
       <div className="flex gap-5 items-center">
         <h1 className="text-2xl font-bold">Slot watch</h1>
       </div>
       <div className="flex gap-5 items-center">
-        {/* <Link
-          to={'/stream'}
-          className={({ isActive }) =>
-            textVariants({
-              variant: 'small',
-              navActive: isActive,
-              className: 'font-normal',
-            })
-          }
-        >
-          Stream
-        </Link> */}
-        <Link
-          to={'/'}
-          className={cn(
-            textVariants({ variant: 'small' }),
-            'font-normal [&.active]:text-muted-foreground',
-          )}
-        >
-          Signers
-        </Link>
-        {/* <Link
-          to={'/blocks'}
-          className={({ isActive }) =>
-            textVariants({
-              variant: 'small',
-              navActive: isActive,
-              className: 'font-normal',
-            })
-          }
-        >
-          Blocks
-        </Link> */}
-        {/* <NetworkPicker /> */}
-        {/* <SimpleTooltip content={`${connectionStatus[readyState]} to server`}>
-          <div className={cn(connectionStatusVariants({ readyState }))} />
-        </SimpleTooltip> */}
+        <NavLink to={'/stream'}>Stream</NavLink>
+        <NavLink to={'/'}>Signers</NavLink>
+        <NavLink to={'/blocks'}>Blocks</NavLink>
+        <NetworkPicker />
         <ModeToggle />
       </div>
     </header>

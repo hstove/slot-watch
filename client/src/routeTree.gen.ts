@@ -11,9 +11,30 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as WhenExtendImport } from './routes/when-extend'
+import { Route as StreamImport } from './routes/stream'
+import { Route as BlocksImport } from './routes/blocks'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
+
+const WhenExtendRoute = WhenExtendImport.update({
+  id: '/when-extend',
+  path: '/when-extend',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const StreamRoute = StreamImport.update({
+  id: '/stream',
+  path: '/stream',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const BlocksRoute = BlocksImport.update({
+  id: '/blocks',
+  path: '/blocks',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -32,6 +53,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/blocks': {
+      id: '/blocks'
+      path: '/blocks'
+      fullPath: '/blocks'
+      preLoaderRoute: typeof BlocksImport
+      parentRoute: typeof rootRoute
+    }
+    '/stream': {
+      id: '/stream'
+      path: '/stream'
+      fullPath: '/stream'
+      preLoaderRoute: typeof StreamImport
+      parentRoute: typeof rootRoute
+    }
+    '/when-extend': {
+      id: '/when-extend'
+      path: '/when-extend'
+      fullPath: '/when-extend'
+      preLoaderRoute: typeof WhenExtendImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +81,47 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/blocks': typeof BlocksRoute
+  '/stream': typeof StreamRoute
+  '/when-extend': typeof WhenExtendRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/blocks': typeof BlocksRoute
+  '/stream': typeof StreamRoute
+  '/when-extend': typeof WhenExtendRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/blocks': typeof BlocksRoute
+  '/stream': typeof StreamRoute
+  '/when-extend': typeof WhenExtendRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/blocks' | '/stream' | '/when-extend'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/blocks' | '/stream' | '/when-extend'
+  id: '__root__' | '/' | '/blocks' | '/stream' | '/when-extend'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BlocksRoute: typeof BlocksRoute
+  StreamRoute: typeof StreamRoute
+  WhenExtendRoute: typeof WhenExtendRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BlocksRoute: BlocksRoute,
+  StreamRoute: StreamRoute,
+  WhenExtendRoute: WhenExtendRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +134,23 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/blocks",
+        "/stream",
+        "/when-extend"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/blocks": {
+      "filePath": "blocks.tsx"
+    },
+    "/stream": {
+      "filePath": "stream.tsx"
+    },
+    "/when-extend": {
+      "filePath": "when-extend.tsx"
     }
   }
 }

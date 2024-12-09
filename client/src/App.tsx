@@ -3,7 +3,6 @@ import './App.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/toaster';
-// import { useSearchParams, Outlet } from 'react-router-dom';
 import { useHydrateAtoms } from 'jotai/utils';
 import { useAtomsDevtools } from 'jotai-devtools';
 import { networkAtom } from '@/store/network';
