@@ -9,6 +9,11 @@ export let logger: Logger;
 if (process.env.NODE_ENV === 'production') {
   logger = pino({
     level: 'debug',
+    formatters: {
+      level: (label) => {
+        return { level: label };
+      },
+    },
   });
 } else {
   logger = pino({

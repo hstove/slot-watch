@@ -150,19 +150,23 @@ function logSendStatus(status: number) {
 
 await subClient.psubscribe('*', (error, count) => {
   if (error) {
-    logger.error({ err: error }, 'Failed to subscribe to redis');
+    logger.error(
+      { err: error, topic: 'redis' },
+      'Failed to subscribe to redis',
+    );
   } else {
-    logger.debug(`Subscribed to ${count} channels`);
+    logger.debug({ topic: 'redis' }, `Subscribed to ${count} channels`);
   }
   // const status = server.publish(channel as string, message as string);
   // logSendStatus(status);
 });
 
-subClient.on('message', (message, channel) => {
-  logger.debug(
+subClient.on('pmessage', (pattern, channel, message) => {
+  logger.trace(
     {
       channel,
       message,
+      topic: 'redis',
     },
     'Received redis pubsub message',
   );

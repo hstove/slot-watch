@@ -56,9 +56,13 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 function publishEvent(networkKey: string, payload: WSPayload) {
   process.nextTick(async () => {
     try {
+      logger.trace(
+        { topic: 'redis', payloadType: payload.type },
+        'Publishing event',
+      );
       await redisClient.publish(networkKey, JSON.stringify(payload));
     } catch (error) {
-      logger.error(`Error publishing event: ${error}`);
+      logger.error({ topic: 'redis' }, `Error publishing event: ${error}`);
     }
   });
 }

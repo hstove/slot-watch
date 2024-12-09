@@ -53,6 +53,7 @@ export const useChunksWatcher = () => {
 };
 
 export const useWebSocket = () => {
+  const didUnmount = React.useRef(false);
   const networkId = useAtomValue(networkIdAtom);
   const wsUrl = `${slotsWsUrl}/watch/${networkId}`;
   const { lastMessage, readyState, sendMessage } = _useWebSocket(wsUrl, {
@@ -62,7 +63,18 @@ export const useWebSocket = () => {
       timeout: 60000,
       returnMessage: 'pong',
     },
+    reconnectAttempts: 10,
+    reconnectInterval: 1000,
+    shouldReconnect: (_closeEvent) => {
+      return !didUnmount.current;
+    },
   });
+
+  React.useEffect(() => {
+    return () => {
+      didUnmount.current = true;
+    };
+  }, []);
 
   return {
     readyState,
