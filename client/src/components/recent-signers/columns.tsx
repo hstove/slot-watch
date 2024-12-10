@@ -12,18 +12,21 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { textVariants } from '@/lib/text-variants';
 import { useEntity } from '@/hooks/use-entity';
+import { Timestamp } from '../timestamp';
+import { cn } from '@/lib/utils';
 
 function Degregation({
   degradation,
   lastNBlocks,
-}: { degradation: number; lastNBlocks: number }) {
+  className,
+}: { degradation: number; lastNBlocks: number; className?: string }) {
   const status = React.useMemo(() => {
     if (degradation > 0.6) return 'error';
     if (degradation > 0.2) return 'warning';
     return 'success';
   }, [degradation]);
   return (
-    <div className="ml-4">
+    <div className={cn('ml-4', className)}>
       <SimpleTooltip content={`Last ${lastNBlocks} blocks`}>
         <span className={textVariants({ status })}>
           {percentString(1 - degradation)}%
@@ -82,47 +85,51 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
   },
   {
-    invertSorting: true,
-    sortDescFirst: false,
-    accessorKey: 'degradation10',
-    header: ({ column }) => {
-      return (
-        <SortableHeader column={column}>
-          Health (10)
-          <SimpleTooltip content="Health of the signer over the last 10 block proposals">
-            <InfoCircledIcon className="ml-2 h-3 w-3" />
-          </SimpleTooltip>
-        </SortableHeader>
-      );
-    },
+    // invertSorting: true,
+    // sortDescFirst: false,
+    // accessorKey: 'degradation10',
+    // header: ({ column }) => {
+    //   return (
+    //     <SortableHeader column={column}>
+    //       Health (10)
+    //       <SimpleTooltip content="Health of the signer over the last 10 block proposals">
+    //         <InfoCircledIcon className="ml-2 h-3 w-3" />
+    //       </SimpleTooltip>
+    //     </SortableHeader>
+    //   );
+    // },
+    header: 'Health (10)',
     cell: ({ row }) => {
       return (
         <Degregation
           degradation={row.original.degradation10}
           lastNBlocks={10}
+          className="ml-0"
         />
       );
     },
   },
   {
-    accessorKey: 'degradation25',
-    invertSorting: true,
-    sortDescFirst: false,
-    header: ({ column }) => {
-      return (
-        <SortableHeader column={column}>
-          Health (25)
-          <SimpleTooltip content="Health of the signer over the last 25 block proposals">
-            <InfoCircledIcon className="ml-2 h-3 w-3" />
-          </SimpleTooltip>
-        </SortableHeader>
-      );
-    },
+    // accessorKey: 'degradation25',
+    header: 'Health (25)',
+    // invertSorting: true,
+    // sortDescFirst: false,
+    // header: ({ column }) => {
+    //   return (
+    //     <SortableHeader column={column}>
+    //       Health (25)
+    //       <SimpleTooltip content="Health of the signer over the last 25 block proposals">
+    //         <InfoCircledIcon className="ml-2 h-3 w-3" />
+    //       </SimpleTooltip>
+    //     </SortableHeader>
+    //   );
+    // },
     cell: ({ row }) => {
       return (
         <Degregation
           degradation={row.original.degradation25}
           lastNBlocks={25}
+          className="ml-0"
         />
       );
     },
@@ -168,7 +175,8 @@ export const columns: ColumnDef<RecentSigner>[] = [
             dateStyle: 'long',
           })}
         >
-          <TimeAgo date={row.original.createdAt} className="ml-4" />
+          {/* <TimeAgo date={row.original.createdAt} className="ml-4" /> */}
+          <Timestamp timestamp={row.original.createdAt} />
         </SimpleTooltip>
       );
       // return <TimeAgo date={row.original.createdAt} className="ml-4" />;
@@ -184,9 +192,10 @@ export const columns: ColumnDef<RecentSigner>[] = [
     // },
     // accessorKey: "versionShort",
     cell: ({ row }) => {
+      console.log(row.original.versionShort);
       return (
         <SimpleTooltip content={row.original.version}>
-          {row.original.versionShort}
+          <span>{row.original.versionShort}</span>
         </SimpleTooltip>
       );
     },

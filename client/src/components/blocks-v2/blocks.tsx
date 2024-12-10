@@ -31,7 +31,7 @@ export function Blocks() {
           burnBlockHeight={b.burnBlockHeight}
         />
       ))}
-      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
+      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50 z-20">
         <Clock className="mr-4" />
         <ConnectionStatus readyState={readyState} />
       </div>

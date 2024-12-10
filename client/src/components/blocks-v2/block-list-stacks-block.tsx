@@ -150,7 +150,6 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           <ResponseOutcome blockHash={blockHash} />
           {typeof block.readCount === 'number' ? (
             <BlockCosts
-              className="gap-1"
               costs={R.pick(block, [
                 'readCount',
                 'readLength',

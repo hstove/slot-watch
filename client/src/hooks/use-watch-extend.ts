@@ -60,6 +60,14 @@ export const useWatchExtend = () => {
             if (decoded?.typeId !== SignerMessageTypePrefix.BlockResponse)
               continue;
             const ts = decoded.data.tenureExtendTimestamp;
+            const rejectStuff = decoded.accepted
+              ? {}
+              : {
+                  reason: decoded.reason,
+                  reasonCode: decoded.reasonCode,
+                  validationCode: decoded.validationCode,
+                  version: decoded.metadata,
+                };
             const base = {
               networkKey: networkId,
               signerSignatureHash: hex.encode(decoded.signerSignatureHash),
@@ -69,6 +77,7 @@ export const useWatchExtend = () => {
               tenureExtendTimestamp: ts
                 ? new Date(Number(ts * 1000n)).toISOString()
                 : null,
+              ...rejectStuff,
             } satisfies ApiBlockResponseForBlock;
 
             // response.tenureExtendTimestamp = ts

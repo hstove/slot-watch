@@ -54,7 +54,14 @@ export const useWatchBlocks = () => {
         const tenureExtendTimestamp = ts
           ? new Date(Number(ts * 1000n)).toISOString()
           : null;
-        console.log('About to add response');
+        const rejectStuff = blockResponse.accepted
+          ? {}
+          : {
+              reason: blockResponse.reason,
+              reasonCode: blockResponse.reasonCode,
+              validationCode: blockResponse.validationCode,
+              version: blockResponse.metadata,
+            };
         set(
           setResponseForBlockFamily(signerSignatureHash),
           signerSignatureHash,
@@ -65,6 +72,7 @@ export const useWatchBlocks = () => {
             createdAt: receivedAt,
             networkKey,
             tenureExtendTimestamp,
+            ...rejectStuff,
           },
         );
       },
