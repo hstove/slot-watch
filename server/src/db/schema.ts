@@ -90,6 +90,10 @@ export const blockResponses = pgTable(
     signerPublicKey: varchar('signer_public_key', { length: 66 }),
     accepted: boolean('accepted'),
     tenureExtendTimestamp: timestamp('tenure_extend_timestamp'),
+    version: varchar('version'),
+    rejectCode: smallint('reject_code'),
+    validationCode: smallint('validation_code'),
+    reason: varchar('reason'),
   },
   (table) => [
     index('block_responses_network_key_idx').on(table.networkKey),

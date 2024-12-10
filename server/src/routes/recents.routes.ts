@@ -19,44 +19,14 @@ import {
 } from 'slot-watch-common';
 import { hex } from '@scure/base';
 import { signerDegradationRate } from '../metrics';
+import { getLatestResponses } from '../db/block-responses';
 
 const getRecentsRoutes = new Hono()
   .get('/signer-recency/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
-    const poxInfo = await getPoxInfo.get(networkKey);
+    const { responses, signers, totalWeight, poxInfo } =
+      await getLatestResponses(networkKey);
     const cycle = poxInfo.rewardCycleId;
-    const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
-    const signerKeys = signers.map((s) => s.signing_key);
-
-    const query = sql`
-		with latest_chunks as (
-			select
-				max(id) as chunk_id
-				, public_key
-			from stacker_db_slots r
-			where
-				r.network_key = ${networkKey}
-				and r.public_key in ${signerKeys}
-			group by r.public_key
-		)
-		select
-			sl.id
-			, sl.public_key
-			, sl.created_at
-			, sl.data
-			, sl.contract_id
-		from stacker_db_slots sl
-		join latest_chunks lc
-			on sl.id = lc.chunk_id
-		`;
-
-    const recentChunks = await db.execute<{
-      id: number;
-      public_key: string;
-      created_at: string;
-      data: Uint8Array;
-      contract_id: string;
-    }>(query);
 
     const signerDegradations = (await signerDegradationRate.get()).values;
 
@@ -77,12 +47,12 @@ const getRecentsRoutes = new Hono()
 
     const signersResponse: RecentSignersResponse['signers'] = signers.map(
       (signer, index) => {
-        const chunk = recentChunks.find(
-          (c) => c.public_key === signer.signing_key,
+        const response = responses.find(
+          (r) => r.signerPublicKey === signer.signing_key,
         );
         const percent = signer.weight / totalWeight;
-        const data = chunk ? hex.encode(chunk.data) : null;
-        const version = versionFromData(data);
+
+        const version = response?.version ?? '';
         const versionShort = getVersionFromString(version);
 
         const degradation10 =
@@ -101,21 +71,13 @@ const getRecentsRoutes = new Hono()
           weightPercentStr: percentString(percent),
           version,
           versionShort,
-          data,
+          data: null,
           degradation10,
           degradation25,
           degradation50,
+          createdAt: response?.createdAt ?? null,
         };
-        if (!chunk) {
-          return {
-            ...common,
-            createdAt: null,
-          };
-        }
-        return {
-          ...common,
-          createdAt: new Date(chunk.created_at).toISOString(),
-        };
+        return common;
       },
     );
 

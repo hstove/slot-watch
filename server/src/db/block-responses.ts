@@ -1,12 +1,17 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { blockResponses, type BlockResponseDb } from './schema';
 import { getPoxInfo, getStackerSet, type StackerSet } from '../stacks-api';
-import { knownSigners } from 'slot-watch-common';
+import {
+  knownSigners,
+  blockResponseApiSchema,
+  type BlockResponseApi,
+} from 'slot-watch-common';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from './db';
 import { logger } from '../logger';
-
-// export type BlockResponseDb = InferSelectModel<typeof blockResponses>;
+import { redisClient } from '../redis';
+import { parse, stringify } from 'superjson';
+import type { z } from 'zod';
 
 export function mapSignerDataToResponses({
   stackerSet,
@@ -86,38 +91,40 @@ export async function getLatestResponses(networkKey: string) {
     cycle,
   );
   const signerKeys = signers.map((s) => s.signing_key);
-  const query = sql`
-    with latest_responses as (
-      select
-        max(id) as response_id
-        , signer_public_key
-      from block_responses r
-      where
-        r.network_key = ${networkKey}
-        and r.signer_public_key in ${signerKeys}
-      group by r.signer_public_key
-    )
+  const responses = await getCachedLatestBlockResponses(networkKey, signerKeys);
+  // const query = sql`
+  //   with latest_responses as (
+  //     select
+  //       max(id) as response_id
+  //       , signer_public_key
+  //     from block_responses r
+  //     where
+  //       r.network_key = ${networkKey}
+  //       and r.signer_public_key in ${signerKeys}
+  //     group by r.signer_public_key
+  //   )
 
-    select
-      r.id
-      , r.signer_public_key
-      , r.tenure_extend_timestamp
-      , r.created_at
-    from block_responses r
-    join latest_responses l
-      on l.response_id = r.id
-    `;
+  //   select
+  //     r.id
+  //     , r.signer_public_key
+  //     , r.tenure_extend_timestamp
+  //     , r.created_at
+  //   from block_responses r
+  //   join latest_responses l
+  //     on l.response_id = r.id
+  //   `;
 
-  const responses = await db.execute<{
-    id: number;
-    signer_public_key: string;
-    tenure_extend_timestamp: string | null;
-    created_at: string;
-  }>(query);
+  // const responses = await db.execute<{
+  //   id: number;
+  //   signer_public_key: string;
+  //   tenure_extend_timestamp: string | null;
+  //   created_at: string;
+  // }>(query);
 
   const responsesByKey = new Map<string, (typeof responses)[number]>();
   for (const r of responses) {
-    responsesByKey.set(r.signer_public_key, r);
+    if (!r.signerPublicKey) continue;
+    responsesByKey.set(r.signerPublicKey, r);
   }
 
   const fullResponses = signers
@@ -127,11 +134,7 @@ export async function getLatestResponses(networkKey: string) {
 
       return {
         ...signer,
-        tenureExtendTimestamp: response.tenure_extend_timestamp
-          ? new Date(response.tenure_extend_timestamp).toISOString()
-          : null,
-        signerPublicKey: response.signer_public_key,
-        createdAt: new Date(response.created_at).toISOString(),
+        ...response,
       };
     })
     .filter((s) => s !== null);
@@ -140,15 +143,99 @@ export async function getLatestResponses(networkKey: string) {
     responses: fullResponses,
     totalWeight,
     signers,
+    poxInfo,
   };
 }
 
-export function serializeBlockResponse(response: BlockResponseDb) {
+export function serializeBlockResponse(
+  response: BlockResponseDb,
+): BlockResponseApi {
   return {
     ...response,
     tenureExtendTimestamp: response.tenureExtendTimestamp
       ? response.tenureExtendTimestamp.toISOString()
       : null,
     createdAt: response.createdAt.toISOString(),
+    signerPublicKey: response.signerPublicKey ?? '',
+    accepted: response.accepted ?? true,
+    chunkId: response.chunkId ?? 0,
+    version: response.version ?? undefined,
+    reason: response.reason ?? undefined,
+    validationCode: response.validationCode ?? undefined,
+    rejectCode: response.rejectCode ?? undefined,
   };
+}
+
+export function latestBlockResponseLookupKey({
+  signerPublicKey,
+  networkKey,
+}: { signerPublicKey: string; networkKey: string }) {
+  return `latest-block-response:${signerPublicKey}-${networkKey}`;
+}
+
+function parseBlockResponse(result: string) {
+  const parseResult = blockResponseApiSchema.safeParse(parse(result));
+  if (!parseResult.success) {
+    return null;
+  }
+  return parseResult.data;
+}
+
+export async function getLatestBlockResponse(
+  signerPublicKey: string,
+  networkKey: string,
+) {
+  const key = latestBlockResponseLookupKey({ signerPublicKey, networkKey });
+  const result = await redisClient.get(key);
+  logger.debug(
+    {
+      topic: 'block-response',
+      key,
+      hasResult: result !== null,
+    },
+    'getting latest block response',
+  );
+  if (result === null) return null;
+  return parseBlockResponse(result);
+}
+
+export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
+  if (!blockResponse.signerPublicKey) return;
+  const key = latestBlockResponseLookupKey({
+    signerPublicKey: blockResponse.signerPublicKey,
+    networkKey: blockResponse.networkKey,
+  });
+  logger.debug(
+    {
+      topic: 'block-response',
+      key,
+      networkKey: blockResponse.networkKey,
+      signerPublicKey: blockResponse.signerPublicKey,
+    },
+    'setting latest block response',
+  );
+  await redisClient.set(key, stringify(blockResponse));
+}
+
+export async function getCachedLatestBlockResponses(
+  networkKey: string,
+  signerPublicKeys: string[],
+) {
+  const keys = signerPublicKeys.map((signerPublicKey) =>
+    latestBlockResponseLookupKey({ signerPublicKey, networkKey }),
+  );
+  const results = await redisClient.mget(keys);
+  logger.debug(
+    {
+      topic: 'block-response',
+      resultsLength: results.length,
+      keysLength: keys.length,
+      networkKey,
+    },
+    'getting latest block responses',
+  );
+  const blockResponses = results
+    .map((result) => (result ? parseBlockResponse(result) : null))
+    .filter((r) => r !== null);
+  return blockResponses;
 }

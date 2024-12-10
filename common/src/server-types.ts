@@ -48,3 +48,20 @@ export type TimelineResponse = {
 export const paginationSchema = z.object({
   offset: z.coerce.number().optional(),
 });
+
+export const blockResponseApiSchema = z.object({
+  signerSignatureHash: z.string(),
+  slotId: z.number(),
+  createdAt: z.string(),
+  networkKey: z.string(),
+  chunkId: z.number(),
+  signerPublicKey: z.string(),
+  accepted: z.boolean(),
+  tenureExtendTimestamp: z.union([z.null(), z.string()]),
+  version: z.string().optional(),
+  rejectCode: z.number().optional(),
+  validationCode: z.number().optional(),
+  reason: z.string().optional(),
+});
+
+export type BlockResponseApi = z.infer<typeof blockResponseApiSchema>;

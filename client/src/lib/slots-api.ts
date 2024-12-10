@@ -86,7 +86,7 @@ export async function getBlockResponsesForBlock(
   });
   const data = await response.json();
   return data.responses.map((r) => {
-    const { id, chunkId, slotId, ...rest } = r;
+    const { chunkId, slotId, ...rest } = r;
     return rest;
   });
 }

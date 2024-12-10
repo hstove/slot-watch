@@ -2,8 +2,7 @@ import {
   makeSignerSignatureHash,
   type BlockProposal,
   type BlockPushed,
-  type BlockResponseAccepted,
-  type BlockResponseRejected,
+  type BlockResponseMessage,
   type DecodedChunk,
   type ModifiedSlot,
   decodeChunk,
@@ -11,6 +10,9 @@ import {
   SignerMessageTypePrefix,
   decodeChunkMaybe,
   recoverChunkPublicKey,
+  type TypeMerge,
+  type BlockResponseAccepted,
+  type BlockResponseRejected,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -22,6 +24,10 @@ import {
 } from '../db/schema';
 import { hex } from '@scure/base';
 import { logger } from '../logger';
+import {
+  serializeBlockResponse,
+  setLatestBlockResponse,
+} from '../db/block-responses';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -137,6 +143,10 @@ export async function handleBlockPush({
   });
 }
 
+type BlockAccept = TypeMerge<BlockResponseAccepted, BlockResponseRejected>;
+
+type BlockReject = TypeMerge<BlockResponseRejected, BlockResponseAccepted>;
+
 export async function handleBlockResponse({
   chunk,
   payload,
@@ -146,7 +156,7 @@ export async function handleBlockResponse({
   chunkId,
 }: {
   chunk: ModifiedSlot;
-  payload: BlockResponseAccepted | BlockResponseRejected;
+  payload: BlockAccept | BlockReject;
   receivedAt: Date;
   networkKey: string;
   publicKey: string;
@@ -155,7 +165,7 @@ export async function handleBlockResponse({
   const tenureExtendTimestamp = payload.data.tenureExtendTimestamp
     ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
     : null;
-  await db.insert(blockResponses).values({
+  const data = {
     signerSignatureHash: hex.encode(payload.signerSignatureHash),
     slotId: chunk.slot_id,
     createdAt: receivedAt,
@@ -164,5 +174,19 @@ export async function handleBlockResponse({
     accepted: payload.accepted,
     chunkId,
     tenureExtendTimestamp,
-  });
+    reason: payload.reason ?? null,
+    rejectCode: payload.reasonCode ?? null,
+    validationCode: payload.validationCode ?? null,
+    version: payload.metadata ?? null,
+  };
+  const [newRow] = await db
+    .insert(blockResponses)
+    .values(data)
+    .returning({ id: blockResponses.id });
+  await setLatestBlockResponse(
+    serializeBlockResponse({
+      ...data,
+      id: newRow?.id ?? 0,
+    }),
+  );
 }

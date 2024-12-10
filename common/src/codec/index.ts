@@ -361,6 +361,14 @@ export type BlockResponseRejected = Prettify<
     accepted: false;
   }
 >;
+
+/**
+ * Union type of raw block response messages
+ */
+export type BlockResponseMessage =
+  | BlockResponseAccepted
+  | BlockResponseRejected;
+
 export type BlockPushed = Prettify<
   Omit<P.UnwrapCoder<typeof BlockPushedCoder>, 'rest'> & {
     txCount: number;
