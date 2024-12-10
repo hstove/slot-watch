@@ -17,6 +17,13 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
+/** Merge two types, adding undefined values for keys that are in the second type but not the first */
+export type TypeMerge<T extends object, U extends object> = Prettify<
+  T & {
+    [K in Exclude<keyof U, keyof T>]?: undefined;
+  }
+>;
+
 export function getVersionFromString(version: string) {
   // Handle `stacks-signer VERSION (...);`
   const match = version.match(/^stacks-signer ([^\s]*)/);
@@ -43,9 +50,9 @@ export function versionFromData(data: string | null): string {
   return '';
 }
 
-export function percentString(value: number) {
-  const percent = value * 10000;
-  const percentString = Math.round(percent) / 100;
+export function percentString(value: number, precision = 10000) {
+  const percent = value * precision;
+  const percentString = Math.round(percent) / (precision / 100);
   return percentString.toString();
 }
 

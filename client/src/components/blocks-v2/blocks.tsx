@@ -9,15 +9,18 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { useWatchBlocks } from '@/hooks/use-watch-blocks';
 import { ConnectionStatus } from '../connection-status';
 import { Clock } from '../clock';
+import { setSignersApiAtom } from '@/store/signers-store';
 
 export function Blocks() {
   const loaderData = Route.useLoaderData();
   const burnBlocks = useAtomValue(allBurnBlocksAtom);
   const setBurnBlocks = useSetAtom(setAllBurnBlocksAtom);
+  const setSigners = useSetAtom(setSignersApiAtom);
   const { readyState } = useWatchBlocks();
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     setBurnBlocks(loaderData.burnBlocks);
+    setSigners(loaderData.signers, loaderData.network);
   }, []);
   return (
     <div className="flex flex-col gap-4 w-full">

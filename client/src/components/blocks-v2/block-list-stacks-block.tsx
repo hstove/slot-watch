@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { Text } from '@/components/text';
 import {
   maxProcessedStacksHeightAtom,
+  responseOutcomeForBlockAtomFamily,
   stacksBlocksFamily,
 } from '@/store/blocks-store';
 import { Timestamp } from '../timestamp';
@@ -10,8 +11,11 @@ import { TenureChangeCause } from '@stacks/transactions';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { ArrowRightFromLine, BlocksIcon } from 'lucide-react';
-import { statusStyles } from '@/lib/status-variants';
+import { statusStyles, statusVariants } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
+import { BlockListResponses } from './block-list-responses';
+import { BlockCosts } from './burn-block-costs';
+import * as R from 'remeda';
 
 function TenureCauseBadge({
   tenureCause,
@@ -19,32 +23,58 @@ function TenureCauseBadge({
   if (tenureCause === null) return null;
   if (tenureCause === TenureChangeCause.Extended) {
     return (
-      <div>
-        <SimpleTooltip content="Tenure Extended">
-          <Badge theme="cyan" size="icon">
-            <ArrowRightFromLine className="w-3 h-3" />
-          </Badge>
-        </SimpleTooltip>
-      </div>
+      <SimpleTooltip content="Tenure Extended">
+        <Badge theme="cyan" size="icon">
+          <ArrowRightFromLine className="w-3 h-3" />
+        </Badge>
+      </SimpleTooltip>
     );
   }
   if (tenureCause === TenureChangeCause.BlockFound) {
     return (
-      <div>
-        <SimpleTooltip content="Tenure Change">
-          <Badge theme="teal" size="icon">
-            <BlocksIcon className="w-3 h-3" />
-          </Badge>
-        </SimpleTooltip>
-      </div>
+      <SimpleTooltip content="Tenure Change">
+        <Badge theme="teal" size="icon">
+          <BlocksIcon className="w-3 h-3" />
+        </Badge>
+      </SimpleTooltip>
     );
   }
   return null;
 }
 
+function ResponseOutcome({ blockHash }: { blockHash: string }) {
+  const responseOutcome = useAtomValue(
+    responseOutcomeForBlockAtomFamily(blockHash),
+  );
+  if (!responseOutcome) return null;
+  const status =
+    responseOutcome.accepted === false
+      ? 'error'
+      : responseOutcome.accepted
+        ? 'success'
+        : 'pending';
+  return (
+    <SimpleTooltip
+      content={
+        responseOutcome.accepted === false
+          ? `${responseOutcome.displayPercent}% Rejected`
+          : `${responseOutcome.displayPercent}% Accepted`
+      }
+    >
+      <Badge className={statusStyles(status)} size="icon">
+        {responseOutcome.displayPercent}%
+      </Badge>
+    </SimpleTooltip>
+  );
+}
+
 export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
   const block = useAtomValue(stacksBlocksFamily(blockHash));
   const maxProcessed = useAtomValue(maxProcessedStacksHeightAtom);
+  const [showResponses, setShowResponses] = React.useState(false);
+  const responseOutcome = useAtomValue(
+    responseOutcomeForBlockAtomFamily(blockHash),
+  );
   // return <div>{blocks.map((b) => <div key={b.blockHash}>{b.blockHeight}</div>)}</div>;
 
   const logBlock = React.useCallback(() => {
@@ -63,7 +93,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
 
   return (
     <>
-      <div className="[&]:gap-x-0 block-list-col sticky">
+      <div className="[&]:gap-x-0 block-list-col sticky pl-1">
         <div className="relative flex w-0 h-full mr-3 justify-center items-center">
           {/* <div className="absolute h-full w-[1px] bg-stacks block" /> */}
           <div
@@ -73,9 +103,16 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
             )}
           />
         </div>
-        <Text variant="small">{block.blockHeight}</Text>
+        <Text
+          variant="small"
+          onClick={() => {
+            setShowResponses((show) => !show);
+          }}
+        >
+          {block.blockHeight}
+        </Text>
       </div>
-      <div className="block-list-col">
+      <div className="block-list-col [&]:hidden [&]:md:flex">
         <Text variant="small">
           <Timestamp
             timestamp={
@@ -84,22 +121,40 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           />
         </Text>
       </div>
-      <div className="block-list-col">
+      <div className="block-list-col [&]:hidden [&]:md:flex">
+        {/* <div className="[&]:hidden [&]:md:flex"> */}
         <Text variant="small" className="font-mono text-xs">
-          {block.blockHash.slice(0, 70)}
+          {block.blockHash}
         </Text>
       </div>
       <div className="block-list-col">
         <TenureCauseBadge tenureCause={block.tenureChangeCause} />
         {block.txCount && (
-          <Badge size="icon" variant="outline">
-            {block.txCount} tx{block.txCount > 1 ? 's' : ''}
-          </Badge>
+          <SimpleTooltip
+            content={`${block.txCount} transaction${block.txCount > 1 ? 's' : ''}`}
+          >
+            <Badge size="icon" variant="outline" className="">
+              <span>{block.txCount}</span>
+            </Badge>
+          </SimpleTooltip>
         )}
-        {/* <Button size="sm" onClick={logBlock}>
-          Log
-        </Button> */}
+        <ResponseOutcome blockHash={blockHash} />
+        {typeof block.readCount === 'number' ? (
+          <BlockCosts
+            className="gap-1"
+            costs={R.pick(block, [
+              'readCount',
+              'readLength',
+              'writeCount',
+              'writeLength',
+              'runtime',
+            ])}
+          />
+        ) : null}
       </div>
+      {blockStatus === 'pending' || showResponses ? (
+        <BlockListResponses blockHash={blockHash} />
+      ) : null}
     </>
   );
 };

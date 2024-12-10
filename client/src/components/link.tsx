@@ -22,7 +22,7 @@ interface RouterNavLinkProps
 export const NavLinkComponent = React.forwardRef<
   HTMLAnchorElement,
   RouterNavLinkProps
->((props, ref) => {
+>(({ className, ...props }, ref) => {
   return (
     <a
       ref={ref}
@@ -30,6 +30,7 @@ export const NavLinkComponent = React.forwardRef<
       className={cn(
         textVariants({ variant: 'small' }),
         'font-normal [&:not(.active)]:text-muted-foreground',
+        className,
       )}
     />
   );

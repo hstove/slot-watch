@@ -13,5 +13,6 @@
   },
   "editor.defaultFormatter": "biomejs.biome",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "css.customData": [".vscode/tailwind.json"]
+  "css.customData": [".vscode/tailwind.json"],
+  "tailwindCSS.experimental.configFile": "./client/tailwind.config.js"
 }

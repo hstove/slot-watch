@@ -118,7 +118,10 @@ const blockRoutes = new Hono()
             eq(blockProposals.networkKey, networkKey),
           ),
         )
-        .orderBy(desc(blockProposals.chainLength));
+        .orderBy(
+          desc(blockProposals.chainLength),
+          desc(blockProposals.createdAt),
+        );
       return c.json({
         blocks: blocks.map((b) => ({
           proposal: serializeBlockProposal(b.block_proposals),

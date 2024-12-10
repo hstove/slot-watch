@@ -8,8 +8,14 @@ import {
   type RecentSigner,
 } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
-import { getRecentSigners } from '@/lib/slots-api';
+import {
+  type ApiSigner,
+  type ApiSigners,
+  getRecentSigners,
+} from '@/lib/slots-api';
 import { getSigners } from '@/lib/slots-api';
+import { atomFamily } from 'jotai/utils';
+import { dequal } from 'dequal/lite';
 
 export const poxInfoAtom = atom(async (get) => {
   const networkId = get(networkIdAtom);
@@ -25,6 +31,44 @@ export const stackerSetAtom = atom(async (get) => {
   const rewardCycle = await get(rewardCycleAtom);
   const networkId = get(networkIdAtom);
   return getStackerSet(networkId, rewardCycle);
+});
+
+export const signersAtomFamilyInner = atomFamily(
+  (_lookup: { publicKey: string; networkKey: string }) =>
+    atom<ApiSigner | null>(null),
+  dequal,
+);
+
+export const signersAtomFamily = atomFamily((publicKey: string) =>
+  atom((get) => {
+    const networkKey = get(networkIdAtom);
+    return get(signersAtomFamilyInner({ publicKey, networkKey }));
+  }),
+);
+
+export const setSignersApiAtom = atom(
+  null,
+  async (_get, set, signers: ApiSigners, networkKey: string) => {
+    for (const signer of signers.signers) {
+      set(
+        signersAtomFamilyInner({ publicKey: signer.publicKey, networkKey }),
+        signer,
+      );
+    }
+    set(signersApiAtom, signers);
+  },
+);
+
+export const signersApiAtom = atom<ApiSigners>();
+
+export const totalWeightAtom = atom((get) => {
+  const signers = get(signersApiAtom);
+  return signers?.totalWeight ?? 1;
+});
+
+export const signersAtom = atom((get) => {
+  const signers = get(signersApiAtom);
+  return signers?.signers ?? [];
 });
 
 export type RecentSignerWithPower = RecentSigner;

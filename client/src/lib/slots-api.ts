@@ -1,5 +1,7 @@
 import { hc } from 'hono/client';
 import type { SlotWatchServer } from 'slot-watch-api';
+import type { TypeMerge } from 'slot-watch-common';
+import type { O } from 'ts-toolbelt';
 
 export const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://slot-watch.fly.dev';
@@ -82,11 +84,15 @@ export async function getBlockResponsesForBlock(
   ].responses.$get({
     param: { networkKey, blockId: blockHash },
   });
-  return response.json();
+  const data = await response.json();
+  return data.responses.map((r) => {
+    const { id, chunkId, slotId, ...rest } = r;
+    return rest;
+  });
 }
 export type ApiBlockResponseForBlock = Awaited<
   ReturnType<typeof getBlockResponsesForBlock>
->['responses'][0];
+>[0];
 
 export async function getBlocksForBurnBlock(
   networkKey: string,
@@ -100,6 +106,29 @@ export async function getBlocksForBurnBlock(
   const data = await response.json();
 
   return data.blocks.map(({ proposal, stacksBlock }) => {
+    const blockTimestamp = stacksBlock?.blockTimestamp ?? proposal.createdAt;
+    if (proposal && stacksBlock) {
+      return {
+        blockHash: proposal.signerSignatureHash,
+        blockHeight: proposal.chainLength,
+        minerPublicKey: proposal.minerPublicKey,
+        txCount: proposal.txCount ?? 0,
+        tenureChangeCause: proposal.tenureChangeCause,
+        consensusHash: proposal.consensusHash,
+        burnBlockHeight:
+          proposal.burnBlockHeight ?? stacksBlock.burnBlockHeight ?? 0,
+        networkKey: proposal.networkKey,
+        proposedAt: proposal.createdAt,
+        processedAt: stacksBlock.createdAt ?? proposal.createdAt,
+        burnBlockHash: stacksBlock.burnBlockHash,
+        readCount: stacksBlock.readCount,
+        readLength: stacksBlock.readLength,
+        runtime: stacksBlock.runtime,
+        writeCount: stacksBlock.writeCount,
+        writeLength: stacksBlock.writeLength,
+        blockTimestamp,
+      } satisfies AllInfoBlock;
+    }
     return {
       blockHash: proposal.signerSignatureHash,
       blockHeight: proposal.chainLength,
@@ -107,40 +136,75 @@ export async function getBlocksForBurnBlock(
       txCount: proposal.txCount ?? 0,
       tenureChangeCause: proposal.tenureChangeCause,
       consensusHash: proposal.consensusHash,
-      burnBlockHeight: proposal.burnBlockHeight,
+      burnBlockHeight: proposal.burnBlockHeight ?? 0,
       networkKey: proposal.networkKey,
       proposedAt: proposal.createdAt,
-      processedAt: stacksBlock?.createdAt,
-      burnBlockHash: stacksBlock?.burnBlockHash,
-      timestamp: stacksBlock?.blockTimestamp ?? undefined,
-      readCount: stacksBlock?.readCount,
-      readLength: stacksBlock?.readLength,
-      runtime: stacksBlock?.runtime,
-      writeCount: stacksBlock?.writeCount,
-      writeLength: stacksBlock?.writeLength,
-    } satisfies ApiBlockForBurnBlock;
+      blockTimestamp,
+    } satisfies ProposalOnlyBlock;
   });
 }
 
-export type ApiBlockForBurnBlock = {
+type StacksBlockBase = {
+  blockTimestamp: string;
   blockHash: string;
   blockHeight: number;
-  minerPublicKey: string | null;
-  txCount: number;
   tenureChangeCause: number | null;
-  consensusHash: string | null;
-  burnBlockHeight: number | null;
+  txCount: number;
+  burnBlockHeight: number;
   networkKey: string;
-  proposedAt?: string;
-  processedAt?: string;
-  burnBlockHash?: string;
-  timestamp?: string;
-  readCount?: number;
-  readLength?: number;
-  runtime?: number;
-  writeCount?: number;
-  writeLength?: number;
 };
+
+interface _ProposalOnlyBlock extends StacksBlockBase {
+  consensusHash: string | null;
+  minerPublicKey: string | null;
+  proposedAt: string;
+}
+
+interface _ProcessedStacksBlock extends StacksBlockBase {
+  processedAt: string;
+  burnBlockHash: string;
+  readCount: number;
+  readLength: number;
+  runtime: number;
+  writeCount: number;
+  writeLength: number;
+}
+
+export type ProposalOnlyBlock = TypeMerge<
+  _ProposalOnlyBlock,
+  _ProcessedStacksBlock
+>;
+export type ProcessedStacksBlock = TypeMerge<
+  _ProcessedStacksBlock,
+  _ProposalOnlyBlock
+>;
+export type AllInfoBlock = O.Merge<ProposalOnlyBlock, ProcessedStacksBlock>;
+
+export type ApiBlockForBurnBlock =
+  | ProposalOnlyBlock
+  | ProcessedStacksBlock
+  | AllInfoBlock;
+
+// export type ApiBlockForBurnBlock = {
+//   blockHash: string;
+//   blockHeight: number;
+//   minerPublicKey: string | null;
+//   txCount: number;
+//   tenureChangeCause: number | null;
+//   consensusHash: string | null;
+//   burnBlockHeight: number | null;
+//   networkKey: string;
+//   proposedAt?: string;
+//   processedAt?: string;
+//   burnBlockHash?: string;
+//   blockTimestamp?: string;
+//   readCount?: number;
+//   readLength?: number;
+//   runtime?: number;
+//   writeCount?: number;
+//   writeLength?: number;
+//   timestamp: string;
+// };
 
 export async function getSigners(networkKey: string) {
   const response = await apiClient.signers[':networkKey'].$get({

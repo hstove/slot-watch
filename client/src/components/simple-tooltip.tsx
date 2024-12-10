@@ -10,15 +10,24 @@ export const SimpleTooltip = ({
   children,
   content,
   triggerProps = {},
+  tooltipProps = {},
+  tooltipProviderProps = {},
 }: {
   children: React.ReactNode;
   content: React.ReactNode;
   triggerProps?: React.ComponentPropsWithoutRef<typeof TooltipTrigger>;
+  tooltipProps?: React.ComponentPropsWithoutRef<typeof Tooltip>;
+  tooltipProviderProps?: Omit<
+    React.ComponentPropsWithoutRef<typeof TooltipProvider>,
+    'children'
+  >;
 }) => {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger {...triggerProps}>{children}</TooltipTrigger>
+    <TooltipProvider delayDuration={100} {...tooltipProviderProps}>
+      <Tooltip {...tooltipProps}>
+        <TooltipTrigger {...triggerProps} asChild>
+          {children}
+        </TooltipTrigger>
         <TooltipContent>{content}</TooltipContent>
       </Tooltip>
     </TooltipProvider>

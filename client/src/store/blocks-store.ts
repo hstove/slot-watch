@@ -2,21 +2,18 @@ import {
   getHealthBlocks,
   type HealthBlockBlock,
   type HealthBlockSigner,
-  type HealthBlocksResponse,
   apiClient,
   type ApiBurnBlock,
-  type ApiBlockForBurnBlock,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
-  type ApiBlockResponseForBlock,
 } from '@/lib/slots-api';
 import { atom, type Setter, type Getter } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
-import { ConsensusBlockResponse, getConsensusBlock } from 'slot-watch-common';
-import { atomWithQuery } from 'jotai-tanstack-query';
-import { atomEffect } from 'jotai-effect';
+import { getConsensusBlock, percentString } from 'slot-watch-common';
+import * as R from 'remeda';
+import { signersApiAtom } from './signers-store';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -136,6 +133,11 @@ export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
 
 export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
+export const sortedBurnBlocksAtom = atom((get) => {
+  const burnBlocks = get(allBurnBlocksAtom);
+  return burnBlocks.sort((a, b) => a.burnBlockHeight - b.burnBlockHeight);
+});
+
 export const burnBlocksAtomFamily = atomFamily((_burnBlockHash: string) =>
   atom<ApiBurnBlock>(),
 );
@@ -152,36 +154,52 @@ export const setAllBurnBlocksAtom = atom(
 
 export const insertBurnBlockAtom = atom(
   null,
-  async (_get, set, burnBlock: ApiBurnBlock) => {
-    set(burnBlocksAtomFamily(burnBlock.burnBlockHash), burnBlock);
-    set(allBurnBlocksAtom, (blocks) => {
-      return [burnBlock, ...blocks];
+  async (get, set, burnBlock: ApiBurnBlock) => {
+    const existing = get(burnBlocksAtomFamily(burnBlock.burnBlockHash));
+    set(burnBlocksAtomFamily(burnBlock.burnBlockHash), {
+      ...existing,
+      ...burnBlock,
     });
-  },
-);
-
-export const blockResponsesForBlockAtomFamily = atomFamily(
-  (_arg: { signerKey: string; blockHash: string }) =>
-    atom<ApiBlockResponseForBlock>(),
-  dequal,
-);
-
-export const fetchBlockResponsesForBlockAtom = atom(
-  null,
-  async (get, set, blockHash: string) => {
-    const networkKey = get(networkIdAtom);
-    const responses = await getBlockResponsesForBlock(networkKey, blockHash);
-    for (const response of responses.responses) {
-      if (!response.signerPublicKey) continue;
-      set(
-        blockResponsesForBlockAtomFamily({
-          blockHash,
-          signerKey: response.signerPublicKey,
-        }),
-        response,
-      );
+    const burnBlocks = get(allBurnBlocksAtom);
+    const existingIndex = burnBlocks.findIndex(
+      (b) => b.burnBlockHash === burnBlock.burnBlockHash,
+    );
+    if (existingIndex === -1) {
+      set(allBurnBlocksAtom, (blocks) => {
+        return [burnBlock, ...blocks];
+      });
+    } else {
+      burnBlocks[existingIndex] = burnBlock;
+      set(allBurnBlocksAtom, burnBlocks);
     }
   },
+);
+
+export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
+  atom(async (get) => {
+    const stacksBlocks = await get(
+      sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
+    );
+    const cost = {
+      readCount: 0,
+      readLength: 0,
+      writeCount: 0,
+      writeLength: 0,
+      runtime: 0,
+    };
+    for (const block of stacksBlocks) {
+      if (typeof block.readCount !== 'number') continue;
+      cost.readCount += block.readCount;
+      cost.readLength += block.readLength;
+      cost.writeCount += block.writeCount;
+      cost.writeLength += block.writeLength;
+      cost.runtime += block.runtime;
+      if (block.tenureChangeCause) {
+        break;
+      }
+    }
+    return cost;
+  }),
 );
 
 type SetAtom<Args extends unknown[], Result> = <A extends Args>(
@@ -260,38 +278,49 @@ export function listAtomFamilyWithInit<OKey, T, K>(
     (outerKey: OKey) =>
       atom<Promise<T[]>, [OKey, T[] | T], void>(
         async (get, options) => {
+          console.log('Initial fetch', outerKey);
           const data = await initFn(outerKey, get, options);
           options.setSelf(outerKey, data);
           return data;
         },
-        (get, set, outerKey: OKey, listOrItem: T[] | T) => {
-          if (Array.isArray(listOrItem)) {
-            set(listAtomFamilyInner(outerKey), listOrItem);
-            for (const item of listOrItem) {
-              set(itemAtomFamilyInner(keyFn(item)), item);
-              onItemSet?.(get, set, item);
-            }
-          } else {
-            set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
-            const existingList = get(listAtomFamilyInner(outerKey));
-            const existingIndex = existingList.findIndex(
-              (item) => keyFn(item) === keyFn(listOrItem),
-            );
-            if (existingIndex !== -1) {
-              existingList.splice(existingIndex, 1, listOrItem);
-              set(listAtomFamilyInner(outerKey), existingList);
-              console.log('Updated existing', keyFn(listOrItem), outerKey);
-            } else {
-              set(listAtomFamilyInner(outerKey), (list) => {
-                return [listOrItem, ...list];
-              });
-              console.log('Added new', keyFn(listOrItem), outerKey);
-            }
-
-            onItemSet?.(get, set, listOrItem);
-          }
+        (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
+          set(writerAtom(outerKey), outerKey, listOrItem);
         },
       ),
+    dequal,
+  );
+  const writerAtom = atomFamily(
+    (_outerKey: OKey) =>
+      atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
+        if (Array.isArray(listOrItem)) {
+          set(listAtomFamilyInner(outerKey), listOrItem);
+          for (const item of listOrItem) {
+            set(itemAtomFamilyInner(keyFn(item)), item);
+            onItemSet?.(get, set, item);
+          }
+        } else {
+          const key = keyFn(listOrItem);
+          set(itemAtomFamilyInner(key), listOrItem);
+          const existingList = get(listAtomFamilyInner(outerKey));
+          const existingIndex = existingList.findIndex((item) =>
+            dequal(keyFn(item), key),
+          );
+          if (existingIndex === -1) {
+            set(listAtomFamilyInner(outerKey), (list) => {
+              return [listOrItem, ...list];
+            });
+            if (R.isPlainObject(key)) {
+              console.log('Added new', key, outerKey);
+            }
+          } else {
+            existingList[existingIndex] = listOrItem;
+            set(listAtomFamilyInner(outerKey), existingList);
+            // console.log('Updated existing', keyFn(listOrItem), outerKey);
+          }
+
+          onItemSet?.(get, set, listOrItem);
+        }
+      }),
     dequal,
   );
   const listAtomFamilyInner = atomFamily(
@@ -311,17 +340,18 @@ export function listAtomFamilyWithInit<OKey, T, K>(
     dequal,
   );
   const listAtom = atomFamily((outerKey: OKey) => {
-    return atom(
-      async (get) => {
-        await get(initAtom(outerKey));
-        return get(listAtomFamilyInner(outerKey));
-      },
-      (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
-        set(initAtom(outerKey), outerKey, listOrItem);
-      },
-    );
+    return atom(async (get) => {
+      await get(initAtom(outerKey));
+      return get(listAtomFamilyInner(outerKey));
+    });
   });
-  return [listAtom, itemAtomFamily, itemAtomFamilyInner] as const;
+  return [
+    listAtom,
+    itemAtomFamily,
+    itemAtomFamilyInner,
+    listAtomFamilyInner,
+    writerAtom,
+  ] as const;
 }
 
 export const maxProcessedStacksHeightAtom = atom(0);
@@ -330,6 +360,8 @@ export const [
   stacksBlocksForBurnBlockAtom,
   stacksBlocksFamily,
   __stacksBlocksFamilyInner,
+  __stacksBlocksForBurnBlockFamilyInner,
+  setStacksBlocksForBurnBlockFamily,
 ] = listAtomFamilyWithInit(
   async (burnBlockHeight: number, get) => {
     const networkKey = get(networkIdAtom);
@@ -344,5 +376,109 @@ export const [
     if (block.blockHeight > maxProcessed && block.processedAt) {
       set(maxProcessedStacksHeightAtom, block.blockHeight);
     }
+    // we might need to insert a burn block if we missed it
+    if (block.burnBlockHash && block.burnBlockHeight) {
+      const burnBlock = get(burnBlocksAtomFamily(block.burnBlockHash));
+      if (!burnBlock) {
+        set(insertBurnBlockAtom, {
+          burnBlockHeight: block.burnBlockHeight,
+          burnBlockHash: block.burnBlockHash,
+          networkKey: get(networkIdAtom),
+          createdAt: block.processedAt ?? new Date().toISOString(),
+        });
+      }
+      const burnBlocks = get(allBurnBlocksAtom);
+      const existingIndex = burnBlocks.findIndex(
+        (b) => b.burnBlockHash === block.burnBlockHash,
+      );
+      if (existingIndex === -1) {
+        set(insertBurnBlockAtom, {
+          burnBlockHeight: block.burnBlockHeight,
+          burnBlockHash: block.burnBlockHash,
+          networkKey: get(networkIdAtom),
+          createdAt: block.processedAt ?? new Date().toISOString(),
+        });
+      }
+    }
+  },
+);
+
+export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
+  (burnBlockHeight: number) =>
+    atom(async (get) => {
+      const list = await get(stacksBlocksForBurnBlockAtom(burnBlockHeight));
+      return R.pipe(
+        list,
+        R.uniqueBy((b) => b.blockHash),
+        R.sortBy(
+          [R.prop('blockHeight'), 'desc'],
+          [(b) => new Date(b.blockTimestamp).getTime(), 'desc'],
+        ),
+      );
+    }),
+);
+
+export const responseOutcomeForBlockAtomFamily = atomFamily(
+  (blockHash: string) =>
+    atom(async (get) => {
+      const responses = get(responsesForBlockFamilyInner(blockHash));
+      const signers = get(signersApiAtom);
+      if (responses.length === 0 || !signers) {
+        return undefined;
+      }
+      let weightAccept = 0;
+      let weightReject = 0;
+      const responsesBySigner = R.pipe(
+        responses,
+        R.groupBy((r) => r.signerPublicKey ?? undefined),
+      );
+      const threshold = Math.ceil(signers.totalWeight * 0.7);
+      for (const signer of signers.signers) {
+        const response = responsesBySigner[signer.publicKey]?.[0];
+        if (!response) continue;
+        if (response.accepted) {
+          weightAccept += signer.weight;
+        } else {
+          weightReject += signer.weight;
+        }
+      }
+      const accepted =
+        weightAccept >= threshold
+          ? true
+          : weightReject >= signers.totalWeight - threshold
+            ? false
+            : null;
+      const percentAccept = weightAccept / signers.totalWeight;
+      const percentReject = weightReject / signers.totalWeight;
+      const displayPercent = accepted === false ? percentReject : percentAccept;
+      return {
+        weightAccept,
+        weightReject,
+        accepted,
+        percentAccept,
+        percentReject,
+        displayPercent: percentString(displayPercent, 100),
+      };
+    }),
+);
+
+export const [
+  responsesForBlockAtomFamily,
+  _responseForBlockFamily,
+  responseForBlockFamily,
+  responsesForBlockFamilyInner,
+  setResponseForBlockFamily,
+] = listAtomFamilyWithInit(
+  async (blockHash: string, get) => {
+    const networkKey = get(networkIdAtom);
+    console.log('Fetching responses for', blockHash);
+    const responses = await getBlockResponsesForBlock(networkKey, blockHash);
+    return responses;
+  },
+  (response) => {
+    return {
+      blockHash: response.signerSignatureHash,
+      signerPublicKey: response.signerPublicKey,
+    };
   },
 );

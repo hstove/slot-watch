@@ -13,7 +13,6 @@ import {
 import { networkIdAtom, NETWORKS } from '@/store/network';
 import { useAtom, useAtomValue } from 'jotai';
 import { networkAtom } from '@/store/network';
-import { useSearchParams } from 'react-router-dom';
 import { useAtomCallback } from 'jotai/utils';
 import { useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
