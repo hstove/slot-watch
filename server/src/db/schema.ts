@@ -99,6 +99,10 @@ export const blockResponses = pgTable(
     index('slot_id_idx').on(table.slotId),
     index('block_responses_chunk_id_idx').on(table.chunkId),
     index('block_responses_signer_public_key_idx').on(table.signerPublicKey),
+    index('block_responses_max_created_by_signer_idx').on(
+      table.signerPublicKey,
+      table.createdAt.desc(),
+    ),
   ],
 );
 

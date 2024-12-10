@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Table,
   TableBody,
@@ -9,19 +8,48 @@ import {
 } from '@/components/ui/table';
 import {
   sortedLatestResponsesAtom,
-  totalWeightAtom,
-} from '@/store/blocks-store';
+  type SortedResponses,
+} from '@/store/responses-store';
+import { totalWeightAtom } from '@/store/signers-store';
 import { useAtomValue } from 'jotai';
 import { PublicKey } from '../public-key';
 import { percentString } from 'slot-watch-common';
 import { Countdown } from '../countdown';
-import { getEntity } from '@/lib/local-signers';
-import { TimeAgo } from '../time-ago';
 import { Timestamp } from '../timestamp';
+import { useEntity } from '@/hooks/use-entity';
+
+const ExtendSignersRow = ({ response }: { response: SortedResponses }) => {
+  const totalWeight = useAtomValue(totalWeightAtom);
+  const tenureExtendTimestamp = response.tenureExtendTimestamp ?? null;
+  const name = useEntity(response.signing_key);
+  return (
+    <TableRow key={response.signing_key}>
+      <TableCell>
+        <PublicKey publicKey={response.signing_key} />
+      </TableCell>
+      <TableCell>{name}</TableCell>
+      <TableCell>{percentString(response.weight / totalWeight)}%</TableCell>
+      <TableCell>
+        {tenureExtendTimestamp
+          ? new Date(tenureExtendTimestamp).toLocaleTimeString()
+          : null}
+      </TableCell>
+      <TableCell>
+        {tenureExtendTimestamp ? (
+          <Countdown date={tenureExtendTimestamp} />
+        ) : null}
+      </TableCell>
+      <TableCell>
+        {response.createdAt ? (
+          <Timestamp timestamp={response.createdAt} />
+        ) : null}
+      </TableCell>
+    </TableRow>
+  );
+};
 
 export const ExtendSignersTable = () => {
-  const signers = useAtomValue(sortedLatestResponsesAtom);
-  const totalWeight = useAtomValue(totalWeightAtom);
+  const responses = useAtomValue(sortedLatestResponsesAtom);
   return (
     <Table>
       <TableHeader>
@@ -35,29 +63,11 @@ export const ExtendSignersTable = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {signers.map((signer) => (
-          <TableRow key={signer.signing_key}>
-            <TableCell>
-              <PublicKey publicKey={signer.signing_key} />
-            </TableCell>
-            <TableCell>{getEntity(signer.signing_key)}</TableCell>
-            <TableCell>{percentString(signer.weight / totalWeight)}%</TableCell>
-            <TableCell>
-              {signer.tenureExtendTimestamp
-                ? new Date(signer.tenureExtendTimestamp).toLocaleTimeString()
-                : 'N/A'}
-            </TableCell>
-            <TableCell>
-              {signer.tenureExtendTimestamp ? (
-                <Countdown date={signer.tenureExtendTimestamp} />
-              ) : (
-                'N/A'
-              )}
-            </TableCell>
-            <TableCell>
-              <Timestamp timestamp={signer.createdAt} />
-            </TableCell>
-          </TableRow>
+        {responses.map((response) => (
+          <ExtendSignersRow
+            key={response.signerPublicKey}
+            response={response}
+          />
         ))}
       </TableBody>
     </Table>

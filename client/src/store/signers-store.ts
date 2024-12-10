@@ -66,6 +66,11 @@ export const totalWeightAtom = atom((get) => {
   return signers?.totalWeight ?? 1;
 });
 
+export const thresholdAtom = atom((get) => {
+  const totalWeight = get(totalWeightAtom);
+  return Math.ceil(totalWeight * 0.7);
+});
+
 export const signersAtom = atom((get) => {
   const signers = get(signersApiAtom);
   return signers?.signers ?? [];

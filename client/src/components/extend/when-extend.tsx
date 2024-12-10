@@ -1,28 +1,31 @@
 import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  allSignerLatestResponsesAtom,
-  signerLatestResponsesMapAtom,
-  sortedLatestResponsesAtom,
-  whenExtendAtom,
-} from '@/store/blocks-store';
-import { networkIdAtom } from '@/store/network';
+import { whenExtendAtom } from '@/store/blocks-store';
+import { fetchSignersLatestResponsesAtom } from '@/store/responses-store';
 import { useWatchExtend } from '@/hooks/use-watch-extend';
 import { ExtendSigners } from './extend-signers';
 import { ExtendSignersTable } from './extend-signers-table';
 import { ConnectionStatus } from '../connection-status';
 import { Clock } from '../clock';
+import { Route } from '@/routes/when-extend';
+import { setSignersApiAtom } from '@/store/signers-store';
+import { loadable } from 'jotai/utils';
 
 export function WhenExtend() {
-  const init = useSetAtom(allSignerLatestResponsesAtom);
-  const networkKey = useAtomValue(networkIdAtom);
+  const loaderData = Route.useLoaderData();
+  // const init = useSetAtom(setSignerLatestResponsesAtom);
+  useAtomValue(loadable(fetchSignersLatestResponsesAtom));
   const { readyState } = useWatchExtend();
-  // biome-ignore lint/correctness/useExhaustiveDependencies(networkKey): <explanation>
+  const setSigners = useSetAtom(setSignersApiAtom);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
-    init();
-  }, [init, networkKey]);
+    setSigners(loaderData.signers, loaderData.network);
+  }, []);
+  // // biome-ignore lint/correctness/useExhaustiveDependencies(networkKey): <explanation>
+  // React.useEffect(() => {
+  //   init();
+  // }, [init, networkKey]);
 
-  const responses = useAtomValue(sortedLatestResponsesAtom);
   const whenExtend = useAtomValue(whenExtendAtom);
 
   return (

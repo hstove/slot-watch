@@ -8,8 +8,13 @@ import {
 import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
 import { networkIdAtom } from '@/store/network';
-import { signerLatestResponsesMapAtom } from '@/store/blocks-store';
+// import { signerLatestResponsesMapAtom } from '@/store/blocks-store';
+import {
+  signerLatestResponseFamilyInner,
+  setSignerLatestResponsesAtom,
+} from '@/store/responses-store';
 import { hex } from '@scure/base';
+import type { ApiBlockResponseForBlock } from '@/lib/slots-api';
 
 export const useWatchExtend = () => {
   const { lastMessage, readyState, sendMessage } = useWebSocket();
@@ -40,7 +45,7 @@ export const useWatchExtend = () => {
           return;
         }
         if (payload.type === 'many_chunks') {
-          const signerLatestResponsesMap = get(signerLatestResponsesMapAtom);
+          // const signerLatestResponsesMap = get(signerLatestResponsesMapAtom);
           for (const chunk of payload.payload) {
             const publicKey = recoverChunkPublicKey({
               signature: hex.decode(chunk.signature),
@@ -48,20 +53,33 @@ export const useWatchExtend = () => {
               slotId: chunk.slotId,
               version: chunk.version,
             }).toHex();
-            const signer = signerLatestResponsesMap.get(publicKey);
-            if (!signer) continue;
+            // const response = get(signerLatestResponseFamilyInner(publicKey));
+
+            // if (!response) continue;
             const decoded = decodeChunkMaybe(hex.decode(chunk.data));
             if (decoded?.typeId !== SignerMessageTypePrefix.BlockResponse)
               continue;
             const ts = decoded.data.tenureExtendTimestamp;
-            signer.tenureExtendTimestamp = ts
-              ? new Date(Number(ts * 1000n)).toISOString()
-              : null;
-            signer.createdAt = chunk.createdAt;
-            console.log('Updated signer', signer);
-            signerLatestResponsesMap.set(publicKey, signer);
+            const base = {
+              networkKey: networkId,
+              signerSignatureHash: hex.encode(decoded.signerSignatureHash),
+              signerPublicKey: publicKey,
+              accepted: decoded.accepted,
+              createdAt: chunk.createdAt,
+              tenureExtendTimestamp: ts
+                ? new Date(Number(ts * 1000n)).toISOString()
+                : null,
+            } satisfies ApiBlockResponseForBlock;
+
+            // response.tenureExtendTimestamp = ts
+            //   ? new Date(Number(ts * 1000n)).toISOString()
+            //   : null;
+            // response.createdAt = chunk.createdAt;
+            console.log('Updated signer', base);
+            set(setSignerLatestResponsesAtom, base);
+            // signerLatestResponsesMap.set(publicKey, response);
           }
-          set(signerLatestResponsesMapAtom, signerLatestResponsesMap);
+          // set(signerLatestResponsesMapAtom, signerLatestResponsesMap);
         }
         // set(allPayloadsSetterAtom, payload);
       } catch (error) {

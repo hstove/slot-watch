@@ -90,9 +90,12 @@ export async function getBlockResponsesForBlock(
     return rest;
   });
 }
-export type ApiBlockResponseForBlock = Awaited<
-  ReturnType<typeof getBlockResponsesForBlock>
->[0];
+export type ApiBlockResponseForBlock = Omit<
+  Awaited<ReturnType<typeof getBlockResponsesForBlock>>[0],
+  'signerPublicKey'
+> & {
+  signerPublicKey: string;
+};
 
 export async function getBlocksForBurnBlock(
   networkKey: string,

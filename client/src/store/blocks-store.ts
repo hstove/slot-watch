@@ -14,6 +14,8 @@ import { locationStore, networkIdAtom } from './network';
 import { getConsensusBlock, percentString } from 'slot-watch-common';
 import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
+import { listAtomFamilyWithInit } from './store-utils';
+import { listAtomWithInit } from './store-utils';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -68,9 +70,17 @@ export type SignerLatestResponses = Awaited<
   ReturnType<typeof fetchRecentSignerResponses>
 >;
 
+export type SignerLatestResponse = SignerLatestResponses['responses'][number];
+
 export const signerLatestResponsesMapAtom = atom<
-  Map<string, SignerLatestResponses['responses'][number]>
+  Map<string, SignerLatestResponse>
 >(new Map());
+
+export const signerLatestResponseFamily = atomFamily(
+  (_signerPublicKey: string) => atom<SignerLatestResponse>(),
+);
+
+export const signersLatestResponsesAtom = atom<SignerLatestResponse[]>([]);
 
 export const sortedLatestResponsesAtom = atom((get) => {
   const responses = get(signerLatestResponsesMapAtom);
@@ -121,15 +131,19 @@ export const extendBoundsAtom = atom((get) => {
   return { min, max, diff };
 });
 
-export const allSignerLatestResponsesAtom = atom(null, async (get, set) => {
-  const networkKey = get(networkIdAtom);
-  const responses = await fetchRecentSignerResponses(networkKey);
-  set(
-    signerLatestResponsesMapAtom,
-    new Map(responses.responses.map((r) => [r.signerPublicKey, r])),
-  );
-  set(totalWeightAtom, responses.totalWeight);
-});
+// export const setSignerLatestResponsesAtom = atom(null, async (get, set) => {
+//   const networkKey = get(networkIdAtom);
+//   const responses = await fetchRecentSignerResponses(networkKey);
+//   for (const response of responses.responses) {
+//     set(signerLatestResponseFamily(response.signerPublicKey), response);
+//   }
+//   set(signersLatestResponsesAtom, responses.responses);
+//   set(
+//     signerLatestResponsesMapAtom,
+//     new Map(responses.responses.map((r) => [r.signerPublicKey, r])),
+//   );
+//   set(totalWeightAtom, responses.totalWeight);
+// });
 
 export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
@@ -201,158 +215,6 @@ export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
     return cost;
   }),
 );
-
-type SetAtom<Args extends unknown[], Result> = <A extends Args>(
-  ...args: A
-) => Result;
-
-type Read<Value, SetSelf = never> = (
-  get: Getter,
-  options?: {
-    readonly signal: AbortSignal;
-    readonly setSelf: SetSelf;
-  },
-) => Value;
-
-function listAtomWithInit<T, K>(
-  // initFn: (get: Getter) => Promise<T[]>,
-  initFn: Read<Promise<T[]>, SetAtom<[T[] | T], void>>,
-  keyFn: (item: T) => K,
-) {
-  const initAtom = atom<Promise<T[]>, [T[] | T], void>(
-    async (get, options) => {
-      const data = await initFn(get, options);
-      options.setSelf(data);
-      return data;
-    },
-    (_get, set, listOrItem: T[] | T) => {
-      if (Array.isArray(listOrItem)) {
-        set(listAtomInner, listOrItem);
-        for (const item of listOrItem) {
-          set(itemAtomFamilyInner(keyFn(item)), item);
-        }
-      } else {
-        set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
-        set(listAtomInner, (list) => {
-          return [listOrItem, ...list];
-        });
-      }
-    },
-  );
-  const listAtomInner = atom<T[]>([]);
-  const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
-  const itemAtomFamily = atomFamily(
-    (params: K) =>
-      atom<T>((get) => {
-        const inner = get(itemAtomFamilyInner(params));
-        if (typeof inner === 'undefined') {
-          throw new Error('Item not found');
-        }
-        return inner;
-      }),
-    dequal,
-  );
-  const listAtom = atom(async (get) => {
-    // prefetch
-    await get(initAtom);
-    return get(listAtomInner);
-  });
-  return [listAtom, itemAtomFamily] as const;
-}
-
-type ReadOuter<Value, OKey, SetSelf = never> = (
-  outerKey: OKey,
-  get: Getter,
-  options?: {
-    readonly signal: AbortSignal;
-    readonly setSelf: SetSelf;
-  },
-) => Value;
-
-export function listAtomFamilyWithInit<OKey, T, K>(
-  initFn: ReadOuter<Promise<T[]>, OKey, SetAtom<[OKey, T[] | T], void>>,
-  keyFn: (item: T) => K,
-  onItemSet?: (get: Getter, set: Setter, item: T) => void,
-) {
-  const initAtom = atomFamily(
-    (outerKey: OKey) =>
-      atom<Promise<T[]>, [OKey, T[] | T], void>(
-        async (get, options) => {
-          console.log('Initial fetch', outerKey);
-          const data = await initFn(outerKey, get, options);
-          options.setSelf(outerKey, data);
-          return data;
-        },
-        (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
-          set(writerAtom(outerKey), outerKey, listOrItem);
-        },
-      ),
-    dequal,
-  );
-  const writerAtom = atomFamily(
-    (_outerKey: OKey) =>
-      atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
-        if (Array.isArray(listOrItem)) {
-          set(listAtomFamilyInner(outerKey), listOrItem);
-          for (const item of listOrItem) {
-            set(itemAtomFamilyInner(keyFn(item)), item);
-            onItemSet?.(get, set, item);
-          }
-        } else {
-          const key = keyFn(listOrItem);
-          set(itemAtomFamilyInner(key), listOrItem);
-          const existingList = get(listAtomFamilyInner(outerKey));
-          const existingIndex = existingList.findIndex((item) =>
-            dequal(keyFn(item), key),
-          );
-          if (existingIndex === -1) {
-            set(listAtomFamilyInner(outerKey), (list) => {
-              return [listOrItem, ...list];
-            });
-            if (R.isPlainObject(key)) {
-              console.log('Added new', key, outerKey);
-            }
-          } else {
-            existingList[existingIndex] = listOrItem;
-            set(listAtomFamilyInner(outerKey), existingList);
-            // console.log('Updated existing', keyFn(listOrItem), outerKey);
-          }
-
-          onItemSet?.(get, set, listOrItem);
-        }
-      }),
-    dequal,
-  );
-  const listAtomFamilyInner = atomFamily(
-    (_outerKey: OKey) => atom<T[]>([]),
-    dequal,
-  );
-  const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
-  const itemAtomFamily = atomFamily(
-    (params: K) =>
-      atom<T>((get) => {
-        const inner = get(itemAtomFamilyInner(params));
-        if (typeof inner === 'undefined') {
-          throw new Error('Item not found');
-        }
-        return inner;
-      }),
-    dequal,
-  );
-  const listAtom = atomFamily((outerKey: OKey) => {
-    return atom(async (get) => {
-      await get(initAtom(outerKey));
-      return get(listAtomFamilyInner(outerKey));
-    });
-  });
-  return [
-    listAtom,
-    itemAtomFamily,
-    itemAtomFamilyInner,
-    listAtomFamilyInner,
-    writerAtom,
-  ] as const;
-}
 
 export const maxProcessedStacksHeightAtom = atom(0);
 
