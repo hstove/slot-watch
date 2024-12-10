@@ -16,6 +16,12 @@ import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
 import { BlockCosts } from './burn-block-costs';
 import * as R from 'remeda';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { textStyles } from '@/lib/text-variants';
 
 function TenureCauseBadge({
   tenureCause,
@@ -93,64 +99,68 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
 
   return (
     <>
-      <div className="[&]:gap-x-0 block-list-col sticky pl-1">
-        <div className="relative flex w-0 h-full mr-3 justify-center items-center">
-          {/* <div className="absolute h-full w-[1px] bg-stacks block" /> */}
-          <div
-            className={statusStyles(
-              blockStatus,
-              'w-2 h-2 absolute rounded-full',
-            )}
-          />
-        </div>
-        <Text
-          variant="small"
-          onClick={() => {
-            setShowResponses((show) => !show);
-          }}
-        >
-          {block.blockHeight}
-        </Text>
-      </div>
-      <div className="block-list-col [&]:hidden [&]:md:flex">
-        <Text variant="small">
-          <Timestamp
-            timestamp={
-              block.proposedAt ?? block.processedAt ?? new Date().toISOString()
-            }
-          />
-        </Text>
-      </div>
-      <div className="block-list-col [&]:hidden [&]:md:flex">
-        {/* <div className="[&]:hidden [&]:md:flex"> */}
-        <Text variant="small" className="font-mono text-xs">
-          {block.blockHash}
-        </Text>
-      </div>
-      <div className="block-list-col">
-        <TenureCauseBadge tenureCause={block.tenureChangeCause} />
-        {block.txCount && (
-          <SimpleTooltip
-            content={`${block.txCount} transaction${block.txCount > 1 ? 's' : ''}`}
+      <div className="contents [&>div]:hover:bg-muted/50">
+        <div className="[&]:gap-x-0 block-list-col sticky pl-1">
+          <div className="relative flex w-0 h-full mr-3 justify-center items-center">
+            {/* <div className="absolute h-full w-[1px] bg-stacks block" /> */}
+            <div
+              className={statusStyles(
+                blockStatus,
+                'w-2 h-2 absolute rounded-full',
+              )}
+            />
+          </div>
+          <button
+            type="reset"
+            onClick={() => setShowResponses((show) => !show)}
+            className={textStyles('small')}
           >
-            <Badge size="icon" variant="outline" className="">
-              <span>{block.txCount}</span>
-            </Badge>
-          </SimpleTooltip>
-        )}
-        <ResponseOutcome blockHash={blockHash} />
-        {typeof block.readCount === 'number' ? (
-          <BlockCosts
-            className="gap-1"
-            costs={R.pick(block, [
-              'readCount',
-              'readLength',
-              'writeCount',
-              'writeLength',
-              'runtime',
-            ])}
-          />
-        ) : null}
+            {/* <Text variant="small">{block.blockHeight}</Text> */}
+            {block.blockHeight}
+          </button>
+        </div>
+        <div className="block-list-col [&]:hidden [&]:md:flex">
+          <Text variant="small">
+            <Timestamp
+              timestamp={
+                block.proposedAt ??
+                block.processedAt ??
+                new Date().toISOString()
+              }
+            />
+          </Text>
+        </div>
+        <div className="block-list-col [&]:hidden [&]:md:flex">
+          {/* <div className="[&]:hidden [&]:md:flex"> */}
+          <Text variant="small" className="font-mono text-xs">
+            {block.blockHash}
+          </Text>
+        </div>
+        <div className="block-list-col">
+          <TenureCauseBadge tenureCause={block.tenureChangeCause} />
+          {block.txCount && (
+            <SimpleTooltip
+              content={`${block.txCount} transaction${block.txCount > 1 ? 's' : ''}`}
+            >
+              <Badge size="icon" variant="outline" className="">
+                <span>{block.txCount}</span>
+              </Badge>
+            </SimpleTooltip>
+          )}
+          <ResponseOutcome blockHash={blockHash} />
+          {typeof block.readCount === 'number' ? (
+            <BlockCosts
+              className="gap-1"
+              costs={R.pick(block, [
+                'readCount',
+                'readLength',
+                'writeCount',
+                'writeLength',
+                'runtime',
+              ])}
+            />
+          ) : null}
+        </div>
       </div>
       {blockStatus === 'pending' || showResponses ? (
         <BlockListResponses blockHash={blockHash} />

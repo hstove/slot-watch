@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from '@/routes/blocks-v2';
+import { Route } from '@/routes/index';
 import { useHydrateAtoms } from 'jotai/utils';
 import { allBurnBlocksAtom, setAllBurnBlocksAtom } from '@/store/blocks-store';
 import { atomEffect } from 'jotai-effect';

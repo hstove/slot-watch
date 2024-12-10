@@ -12,8 +12,8 @@ export const Header = () => {
         <NavLink to={'/stream'} className="hidden md:block">
           Stream
         </NavLink>
-        <NavLink to={'/'}>Signers</NavLink>
-        <NavLink to={'/blocks'}>Blocks</NavLink>
+        <NavLink to={'/signers'}>Signers</NavLink>
+        <NavLink to={'/'}>Blocks</NavLink>
         <NetworkPicker />
         <ModeToggle />
       </div>

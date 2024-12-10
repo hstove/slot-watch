@@ -66,7 +66,7 @@ export const BurnBlockStacksBlocksInner = ({
   return (
     <>
       {stacksBlocks.length > 0 ? (
-        <div className="grid grid-cols-[1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 gap-x-2 auto-cols-max">
+        <div className="grid grid-cols-[1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 auto-cols-max">
           <div className="block-list-col">
             <Text variant="small">Height</Text>
           </div>
