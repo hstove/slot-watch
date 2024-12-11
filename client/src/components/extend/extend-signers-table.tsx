@@ -7,10 +7,11 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import {
+  signerLatestResponseFamilyInner,
   sortedLatestResponsesAtom,
   type SortedResponses,
 } from '@/store/responses-store';
-import { totalWeightAtom } from '@/store/signers-store';
+import { signersAtomFamily, totalWeightAtom } from '@/store/signers-store';
 import { useAtomValue } from 'jotai';
 import { PublicKey } from '../public-key';
 import { percentString } from 'slot-watch-common';
@@ -18,17 +19,20 @@ import { Countdown } from '../countdown';
 import { Timestamp } from '../timestamp';
 import { useEntity } from '@/hooks/use-entity';
 
-const ExtendSignersRow = ({ response }: { response: SortedResponses }) => {
+const ExtendSignersRow = ({ publicKey }: { publicKey: string }) => {
   const totalWeight = useAtomValue(totalWeightAtom);
-  const tenureExtendTimestamp = response.tenureExtendTimestamp ?? null;
-  const name = useEntity(response.signing_key);
+  const response = useAtomValue(signerLatestResponseFamilyInner(publicKey));
+  const signer = useAtomValue(signersAtomFamily(publicKey));
+  const tenureExtendTimestamp = response?.tenureExtendTimestamp ?? null;
+  const name = useEntity(publicKey);
+  if (!signer) return null;
   return (
-    <TableRow key={response.signing_key}>
+    <TableRow>
       <TableCell>
-        <PublicKey publicKey={response.signing_key} />
+        <PublicKey publicKey={publicKey} />
       </TableCell>
       <TableCell>{name}</TableCell>
-      <TableCell>{percentString(response.weight / totalWeight)}%</TableCell>
+      <TableCell>{percentString(signer.weight / totalWeight)}%</TableCell>
       <TableCell>
         {tenureExtendTimestamp
           ? new Date(tenureExtendTimestamp).toLocaleTimeString()
@@ -40,7 +44,7 @@ const ExtendSignersRow = ({ response }: { response: SortedResponses }) => {
         ) : null}
       </TableCell>
       <TableCell>
-        {response.createdAt ? (
+        {response?.createdAt ? (
           <Timestamp timestamp={response.createdAt} />
         ) : null}
       </TableCell>
@@ -65,8 +69,8 @@ export const ExtendSignersTable = () => {
       <TableBody>
         {responses.map((response) => (
           <ExtendSignersRow
-            key={response.signerPublicKey}
-            response={response}
+            key={response.publicKey}
+            publicKey={response.publicKey}
           />
         ))}
       </TableBody>

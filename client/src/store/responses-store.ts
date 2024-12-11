@@ -45,20 +45,20 @@ export type SignerWithResponse = O.Merge<
 export type SortedResponses = SignerWithResponse | SignerWithoutResponse;
 
 export const sortedLatestResponsesAtom = atom<SortedResponses[]>((get) => {
-  const responses = get(signersLatestResponsesAtomInner);
+  const responses = get(signersLatestResponsesAtom);
   const signers = get(signersApiAtom);
-  if (!signers) return [];
+  if (!signers) {
+    console.warn('Early return: no signers data');
+    return [];
+  }
   const responsesBySigner = R.groupBy(responses, R.prop('signerPublicKey'));
-  // const responsesBySigner = new Map(
-  //   R.groupBy(R.prop('signerPublicKey')),
-  // );
   const zipped = R.map(signers.signers, (signer) => {
     return {
       ...signer,
       ...(responsesBySigner[signer.publicKey]?.[0] ?? undefined),
     };
   });
-  console.log('getting sorted responses', responses);
+  // console.log('getting sorted responses', responses);
   // Sort by tenureExtendTimestamp, nulls last
   return Array.from(zipped).sort((a, b) => {
     if (!a.tenureExtendTimestamp) return 1;
@@ -74,7 +74,7 @@ export const [
   fetchSignersLatestResponsesAtom,
   signerLatestResponseFamily,
   signerLatestResponseFamilyInner,
-  signersLatestResponsesAtomInner,
+  signersLatestResponsesAtom,
   setSignerLatestResponsesAtom,
 ] = listAtomWithInit(
   async (get) => {
@@ -83,6 +83,8 @@ export const [
     return responses;
   },
   (r) => r.signerPublicKey,
+  undefined,
+  'signer-latest-responses',
 );
 
 export const whenExtendAtom = atom((get) => {

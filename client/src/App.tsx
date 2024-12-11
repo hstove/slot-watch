@@ -11,6 +11,8 @@ import { Outlet } from '@tanstack/react-router';
 // import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { Route as RootRoute } from '@/routes/__root';
 import React from 'react';
+import { useSetAtom } from 'jotai';
+
 const TanStackRouterDevtools =
   process.env.NODE_ENV === 'production'
     ? () => null // Render nothing in production
@@ -25,7 +27,12 @@ const TanStackRouterDevtools =
 
 function App() {
   const { network } = RootRoute.useLoaderData();
+  const setNetwork = useSetAtom(networkAtom);
   useAtomsDevtools('slotwatch');
+
+  React.useEffect(() => {
+    setNetwork(network ?? null);
+  }, [network, setNetwork]);
 
   useHydrateAtoms([[networkAtom, network ?? null]]);
   return (

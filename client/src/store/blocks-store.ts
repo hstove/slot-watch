@@ -13,9 +13,8 @@ import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
 import { getConsensusBlock, percentString } from 'slot-watch-common';
 import * as R from 'remeda';
-import { signersApiAtom } from './signers-store';
+import { signersApiAtom, totalWeightAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';
-import { listAtomWithInit } from './store-utils';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -71,79 +70,6 @@ export type SignerLatestResponses = Awaited<
 >;
 
 export type SignerLatestResponse = SignerLatestResponses['responses'][number];
-
-export const signerLatestResponsesMapAtom = atom<
-  Map<string, SignerLatestResponse>
->(new Map());
-
-export const signerLatestResponseFamily = atomFamily(
-  (_signerPublicKey: string) => atom<SignerLatestResponse>(),
-);
-
-export const signersLatestResponsesAtom = atom<SignerLatestResponse[]>([]);
-
-export const sortedLatestResponsesAtom = atom((get) => {
-  const responses = get(signerLatestResponsesMapAtom);
-  // Sort by tenureExtendTimestamp, nulls last
-  return Array.from(responses.values()).sort((a, b) => {
-    if (!a.tenureExtendTimestamp) return 1;
-    if (!b.tenureExtendTimestamp) return -1;
-    return (
-      new Date(a.tenureExtendTimestamp).getTime() -
-      new Date(b.tenureExtendTimestamp).getTime()
-    );
-  });
-});
-
-export const totalWeightAtom = atom(0);
-export const thresholdAtom = atom((get) => {
-  const totalWeight = get(totalWeightAtom);
-  return Math.ceil(totalWeight * 0.7);
-});
-
-export const whenExtendAtom = atom((get) => {
-  const threshold = get(thresholdAtom);
-  const responses = get(sortedLatestResponsesAtom);
-  let sum = 0;
-  for (const r of responses) {
-    sum += r.weight;
-    if (sum >= threshold) {
-      return r.tenureExtendTimestamp;
-    }
-  }
-  return null;
-});
-
-export const extendBoundsAtom = atom((get) => {
-  const sorted = get(sortedLatestResponsesAtom);
-  let min: number | null = null;
-  let max: number | null = null;
-  for (const r of sorted) {
-    if (!r.tenureExtendTimestamp) continue;
-    if (!min || new Date(r.tenureExtendTimestamp).getTime() < min) {
-      min = new Date(r.tenureExtendTimestamp).getTime();
-    }
-    if (!max || new Date(r.tenureExtendTimestamp).getTime() > max) {
-      max = new Date(r.tenureExtendTimestamp).getTime();
-    }
-  }
-  const diff = max && min ? max - min : null;
-  return { min, max, diff };
-});
-
-// export const setSignerLatestResponsesAtom = atom(null, async (get, set) => {
-//   const networkKey = get(networkIdAtom);
-//   const responses = await fetchRecentSignerResponses(networkKey);
-//   for (const response of responses.responses) {
-//     set(signerLatestResponseFamily(response.signerPublicKey), response);
-//   }
-//   set(signersLatestResponsesAtom, responses.responses);
-//   set(
-//     signerLatestResponsesMapAtom,
-//     new Map(responses.responses.map((r) => [r.signerPublicKey, r])),
-//   );
-//   set(totalWeightAtom, responses.totalWeight);
-// });
 
 export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
@@ -263,6 +189,7 @@ export const [
       }
     }
   },
+  'stacks-blocks-for-burn',
 );
 
 export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
@@ -333,7 +260,6 @@ export const [
 ] = listAtomFamilyWithInit(
   async (blockHash: string, get) => {
     const networkKey = get(networkIdAtom);
-    console.log('Fetching responses for', blockHash);
     const responses = await getBlockResponsesForBlock(networkKey, blockHash);
     return responses;
   },
@@ -343,4 +269,6 @@ export const [
       signerPublicKey: response.signerPublicKey,
     };
   },
+  undefined,
+  'responses-for-block',
 );

@@ -5,7 +5,7 @@ import { zodValidator } from '@tanstack/zod-adapter';
 import { getBurnBlocks, getSigners } from '@/lib/slots-api';
 
 const basicSearchSchema = z.object({
-  network: z.string().optional().default('mainnet'),
+  network: z.string().optional(),
 });
 
 export const Route = createFileRoute('/')({
@@ -16,8 +16,8 @@ export const Route = createFileRoute('/')({
   },
   loader: async ({ deps: { network } }) => {
     const [{ burnBlocks }, signers] = await Promise.all([
-      getBurnBlocks(network),
-      getSigners(network),
+      getBurnBlocks(network ?? 'mainnet'),
+      getSigners(network ?? 'mainnet'),
     ]);
     return { burnBlocks, network, signers };
   },

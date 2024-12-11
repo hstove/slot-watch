@@ -1,7 +1,21 @@
-import { atom, type Getter, type Setter } from 'jotai';
+import { type Atom, atom, type Getter, type Setter } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import * as R from 'remeda';
+
+export function setDebugLabel(
+  atom: Atom<unknown>,
+  label: string | undefined,
+  name: string,
+  key?: unknown,
+) {
+  if (process.env.NODE_ENV === 'production' || !label) return;
+  let debugLabel = `${label}-${name}`;
+  if (key) {
+    debugLabel = `${debugLabel}-${JSON.stringify(key)}`;
+  }
+  atom.debugLabel = debugLabel;
+}
 
 type SetAtom<Args extends unknown[], Result> = <A extends Args>(
   ...args: A
@@ -20,6 +34,7 @@ export function listAtomWithInit<T, K>(
   initFn: Read<Promise<T[]>, SetAtom<[T[] | T], void>>,
   keyFn: (item: T) => K,
   onItemSet?: (get: Getter, set: Setter, item: T) => void,
+  debugLabel?: string,
 ) {
   const initAtom = atom<Promise<T[]>, [T[] | T], void>(
     async (get, options) => {
@@ -29,19 +44,9 @@ export function listAtomWithInit<T, K>(
     },
     (_get, set, listOrItem: T[] | T) => {
       set(writerAtom, listOrItem);
-      // if (Array.isArray(listOrItem)) {
-      //   set(listAtomInner, listOrItem);
-      //   for (const item of listOrItem) {
-      //     set(itemAtomFamilyInner(keyFn(item)), item);
-      //   }
-      // } else {
-      //   set(itemAtomFamilyInner(keyFn(listOrItem)), listOrItem);
-      //   set(listAtomInner, (list) => {
-      //     return [listOrItem, ...list];
-      //   });
-      // }
     },
   );
+  setDebugLabel(initAtom, debugLabel, 'init');
   const writerAtom = atom(null, (get, set, listOrItem: T[] | T) => {
     if (R.isArray(listOrItem)) {
       set(listAtomInner, listOrItem);
@@ -49,7 +54,7 @@ export function listAtomWithInit<T, K>(
         set(itemAtomFamilyInner(keyFn(item)), item);
         onItemSet?.(get, set, item);
       }
-      console.log('Set list', listOrItem.length);
+      // console.log('Set list', listOrItem.length);
     } else {
       const key = keyFn(listOrItem);
       set(itemAtomFamilyInner(key), listOrItem);
@@ -62,35 +67,43 @@ export function listAtomWithInit<T, K>(
           return [listOrItem, ...list];
         });
         // if (R.isPlainObject(key)) {
-        console.log('Added new to list', key);
+        // console.log('Added new to list', key);
         // }
       } else {
         existingList[existingIndex] = listOrItem;
-        console.log('Updated existing in list', key, existingList.length);
-        set(listAtomInner, existingList);
+        // console.log(
+        //   'Updated existing in list',
+        //   key,
+        //   existingIndex,
+        //   existingList.length,
+        // );
+        set(listAtomInner, [...existingList]);
       }
 
       onItemSet?.(get, set, listOrItem);
     }
   });
+  setDebugLabel(writerAtom, debugLabel, 'writer');
   const listAtomInner = atom<T[]>([]);
+  setDebugLabel(listAtomInner, debugLabel, 'list-inner');
   const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
-  const itemAtomFamily = atomFamily(
-    (params: K) =>
-      atom<T>((get) => {
-        const inner = get(itemAtomFamilyInner(params));
-        if (typeof inner === 'undefined') {
-          throw new Error('Item not found');
-        }
-        return inner;
-      }),
-    dequal,
-  );
+  const itemAtomFamily = atomFamily((params: K) => {
+    const a = atom<T>((get) => {
+      const inner = get(itemAtomFamilyInner(params));
+      if (typeof inner === 'undefined') {
+        throw new Error('Item not found');
+      }
+      return inner;
+    });
+    setDebugLabel(a, debugLabel, 'item', params);
+    return a;
+  }, dequal);
   const listAtom = atom(async (get) => {
     // prefetch
     await get(initAtom);
     return get(listAtomInner);
   });
+  setDebugLabel(listAtom, debugLabel, 'list');
   return [
     listAtom,
     itemAtomFamily,
@@ -113,77 +126,85 @@ export function listAtomFamilyWithInit<OKey, T, K>(
   initFn: ReadOuter<Promise<T[]>, OKey, SetAtom<[OKey, T[] | T], void>>,
   keyFn: (item: T) => K,
   onItemSet?: (get: Getter, set: Setter, item: T) => void,
+  debugLabel?: string,
 ) {
-  const initAtom = atomFamily(
-    (outerKey: OKey) =>
-      atom<Promise<T[]>, [OKey, T[] | T], void>(
-        async (get, options) => {
-          console.log('Initial fetch', outerKey);
-          const data = await initFn(outerKey, get, options);
-          options.setSelf(outerKey, data);
-          return data;
-        },
-        (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
-          set(writerAtom(outerKey), outerKey, listOrItem);
-        },
-      ),
-    dequal,
-  );
-  const writerAtom = atomFamily(
-    (_outerKey: OKey) =>
-      atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
-        if (Array.isArray(listOrItem)) {
-          set(listAtomFamilyInner(outerKey), listOrItem);
-          for (const item of listOrItem) {
-            set(itemAtomFamilyInner(keyFn(item)), item);
-            onItemSet?.(get, set, item);
+  const initAtom = atomFamily((outerKey: OKey) => {
+    const a = atom<Promise<T[]>, [OKey, T[] | T], void>(
+      async (get, options) => {
+        // console.log('Initial fetch', outerKey);
+        const data = await initFn(outerKey, get, options);
+        options.setSelf(outerKey, data);
+        return data;
+      },
+      (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
+        set(writerAtom(outerKey), outerKey, listOrItem);
+      },
+    );
+    setDebugLabel(a, debugLabel, 'init', outerKey);
+    return a;
+  }, dequal);
+  const writerAtom = atomFamily((_outerKey: OKey) => {
+    const a = atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
+      if (Array.isArray(listOrItem)) {
+        set(listAtomFamilyInner(outerKey), listOrItem);
+        for (const item of listOrItem) {
+          set(itemAtomFamilyInner(keyFn(item)), item);
+          onItemSet?.(get, set, item);
+        }
+      } else {
+        const key = keyFn(listOrItem);
+        set(itemAtomFamilyInner(key), listOrItem);
+        const existingList = get(listAtomFamilyInner(outerKey));
+        const existingIndex = existingList.findIndex((item) =>
+          dequal(keyFn(item), key),
+        );
+        if (existingIndex === -1) {
+          set(listAtomFamilyInner(outerKey), (list) => {
+            return [listOrItem, ...list];
+          });
+          if (R.isPlainObject(key)) {
+            console.log('Added new', key, outerKey);
           }
         } else {
-          const key = keyFn(listOrItem);
-          set(itemAtomFamilyInner(key), listOrItem);
-          const existingList = get(listAtomFamilyInner(outerKey));
-          const existingIndex = existingList.findIndex((item) =>
-            dequal(keyFn(item), key),
-          );
-          if (existingIndex === -1) {
-            set(listAtomFamilyInner(outerKey), (list) => {
-              return [listOrItem, ...list];
-            });
-            if (R.isPlainObject(key)) {
-              console.log('Added new', key, outerKey);
-            }
-          } else {
-            existingList[existingIndex] = listOrItem;
-            set(listAtomFamilyInner(outerKey), existingList);
-            // console.log('Updated existing', keyFn(listOrItem), outerKey);
-          }
+          existingList[existingIndex] = listOrItem;
+          set(listAtomFamilyInner(outerKey), [...existingList]);
+          // console.log('Updated existing', keyFn(listOrItem), outerKey);
+        }
 
-          onItemSet?.(get, set, listOrItem);
-        }
-      }),
-    dequal,
-  );
-  const listAtomFamilyInner = atomFamily(
-    (_outerKey: OKey) => atom<T[]>([]),
-    dequal,
-  );
-  const itemAtomFamilyInner = atomFamily((_params: K) => atom<T>(), dequal);
-  const itemAtomFamily = atomFamily(
-    (params: K) =>
-      atom<T>((get) => {
-        const inner = get(itemAtomFamilyInner(params));
-        if (typeof inner === 'undefined') {
-          throw new Error('Item not found');
-        }
-        return inner;
-      }),
-    dequal,
-  );
+        onItemSet?.(get, set, listOrItem);
+      }
+    });
+    setDebugLabel(a, debugLabel, 'writer', _outerKey);
+    return a;
+  }, dequal);
+  const listAtomFamilyInner = atomFamily((_outerKey: OKey) => {
+    const a = atom<T[]>([]);
+    setDebugLabel(a, debugLabel, 'list-inner', _outerKey);
+    return a;
+  }, dequal);
+  const itemAtomFamilyInner = atomFamily((params: K) => {
+    const a = atom<T>();
+    setDebugLabel(a, debugLabel, 'item-inner', params);
+    return a;
+  }, dequal);
+  const itemAtomFamily = atomFamily((params: K) => {
+    const a = atom<T>((get) => {
+      const inner = get(itemAtomFamilyInner(params));
+      if (typeof inner === 'undefined') {
+        throw new Error('Item not found');
+      }
+      return inner;
+    });
+    setDebugLabel(a, debugLabel, 'item', params);
+    return a;
+  }, dequal);
   const listAtom = atomFamily((outerKey: OKey) => {
-    return atom(async (get) => {
+    const listAtom = atom(async (get) => {
       await get(initAtom(outerKey));
       return get(listAtomFamilyInner(outerKey));
     });
+    setDebugLabel(listAtom, debugLabel, 'list', outerKey);
+    return listAtom;
   });
   return [
     listAtom,

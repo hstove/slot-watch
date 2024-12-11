@@ -1,7 +1,9 @@
 import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { whenExtendAtom } from '@/store/blocks-store';
-import { fetchSignersLatestResponsesAtom } from '@/store/responses-store';
+import {
+  fetchSignersLatestResponsesAtom,
+  whenExtendAtom,
+} from '@/store/responses-store';
 import { useWatchExtend } from '@/hooks/use-watch-extend';
 import { ExtendSigners } from './extend-signers';
 import { ExtendSignersTable } from './extend-signers-table';
@@ -10,6 +12,7 @@ import { Clock } from '../clock';
 import { Route } from '@/routes/when-extend';
 import { setSignersApiAtom } from '@/store/signers-store';
 import { loadable } from 'jotai/utils';
+import { Countdown } from '../countdown';
 
 export function WhenExtend() {
   const loaderData = Route.useLoaderData();
@@ -17,10 +20,10 @@ export function WhenExtend() {
   useAtomValue(loadable(fetchSignersLatestResponsesAtom));
   const { readyState } = useWatchExtend();
   const setSigners = useSetAtom(setSignersApiAtom);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+
   React.useEffect(() => {
-    setSigners(loaderData.signers, loaderData.network);
-  }, []);
+    setSigners(loaderData.signers, loaderData.network ?? 'mainnet');
+  }, [loaderData, setSigners]);
   // // biome-ignore lint/correctness/useExhaustiveDependencies(networkKey): <explanation>
   // React.useEffect(() => {
   //   init();
@@ -34,7 +37,7 @@ export function WhenExtend() {
         <div className="w-full flex my-10 gap-3 flex-col">
           <div className="w-full text-center text-xl">Next tenure extend:</div>
           <div className="w-full max-w-72 text-center mx-auto text-5xl">
-            {whenExtend ?? 'N/A'}
+            {whenExtend ? <Countdown date={whenExtend} /> : 'N/A'}
           </div>
         </div>
         <div className="w-full flex flex-col gap-5 mb-10">

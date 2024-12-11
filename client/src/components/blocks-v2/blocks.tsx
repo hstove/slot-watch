@@ -17,11 +17,11 @@ export function Blocks() {
   const setBurnBlocks = useSetAtom(setAllBurnBlocksAtom);
   const setSigners = useSetAtom(setSignersApiAtom);
   const { readyState } = useWatchBlocks();
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+
   React.useEffect(() => {
     setBurnBlocks(loaderData.burnBlocks);
-    setSigners(loaderData.signers, loaderData.network);
-  }, []);
+    setSigners(loaderData.signers, loaderData.network ?? 'mainnet');
+  }, [loaderData, setBurnBlocks, setSigners]);
   return (
     <div className="flex flex-col gap-4 w-full">
       {burnBlocks.map((b) => (

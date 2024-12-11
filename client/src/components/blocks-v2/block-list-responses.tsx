@@ -4,7 +4,6 @@ import {
   responseForBlockFamily,
   responsesForBlockAtomFamily,
   stacksBlocksFamily,
-  totalWeightAtom,
 } from '@/store/blocks-store';
 import {
   Popover,
@@ -14,7 +13,11 @@ import {
 import { PublicKey } from '@/components/public-key';
 import { DataLabel, DataValue } from '@/components/data-group';
 import { Text } from '@/components/text';
-import { signersApiAtom, signersAtomFamily } from '@/store/signers-store';
+import {
+  signersApiAtom,
+  signersAtomFamily,
+  totalWeightAtom,
+} from '@/store/signers-store';
 import { statusStyles } from '@/lib/status-variants';
 import { Countdown } from '../countdown';
 import { loadable } from 'jotai/utils';
