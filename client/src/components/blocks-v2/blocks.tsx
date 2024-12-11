@@ -1,9 +1,6 @@
 import React from 'react';
 import { Route } from '@/routes/index';
-import { useHydrateAtoms } from 'jotai/utils';
 import { allBurnBlocksAtom, setAllBurnBlocksAtom } from '@/store/blocks-store';
-import { atomEffect } from 'jotai-effect';
-import { networkIdAtom } from '@/store/network';
 import { BurnBlock } from './burn-block';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useWatchBlocks } from '@/hooks/use-watch-blocks';

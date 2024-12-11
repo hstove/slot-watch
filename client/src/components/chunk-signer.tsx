@@ -1,10 +1,9 @@
-import React from 'react';
+
 import { hex } from '@scure/base';
 import { useMemo } from 'react';
 import {
   recoverChunkPublicKey,
   type ChunkEvent,
-  knownSigners,
 } from 'slot-watch-common';
 import { useCopyToClipboard } from 'usehooks-ts';
 import {

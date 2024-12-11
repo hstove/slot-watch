@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai';
 import {
   responseForBlockFamily,
   responsesForBlockAtomFamily,
-  stacksBlocksFamily,
 } from '@/store/blocks-store';
 import {
   Popover,
@@ -21,7 +20,7 @@ import {
 import { statusStyles } from '@/lib/status-variants';
 import { Countdown } from '../countdown';
 import { loadable } from 'jotai/utils';
-import { useSpring, animated, easings, config } from '@react-spring/web';
+import { useSpring, animated, config } from '@react-spring/web';
 
 export const BlockListResponse = ({
   blockHash,

@@ -2,7 +2,7 @@ import { WhenExtend } from '@/components/extend/when-extend';
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { getBurnBlocks, getSigners } from '@/lib/slots-api';
+import { getSigners } from '@/lib/slots-api';
 
 const basicSearchSchema = z.object({
   network: z.string().optional(),

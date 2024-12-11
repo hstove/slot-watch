@@ -3,11 +3,9 @@ import { createMiddleware } from 'hono/factory';
 import { Hono, type Context } from 'hono';
 import { getPayloadContractId } from '../utils';
 import {
-  CHUNKS_EVENT,
   BURN_BLOCKS_EVENT,
   type StackerDBPayload,
   type ChunkEvent,
-  type WSChunkEvent,
   type WSNewBlock,
   type CoreNodeBlockMessage,
   NEW_BLOCK_EVENT,
@@ -17,7 +15,7 @@ import {
   type WSManyChunks,
   type WSPayload,
 } from 'slot-watch-common';
-import { getNetworkKey, getNetworkKeyHono } from '../auth';
+import { getNetworkKeyHono } from '../auth';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import { warmCache } from '../stacks-api';
 import { redisClient } from '../redis';

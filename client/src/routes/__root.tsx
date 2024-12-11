@@ -1,11 +1,8 @@
 import App from '@/App';
 import {
   createRootRoute,
-  Link,
-  Outlet,
   retainSearchParams,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
 

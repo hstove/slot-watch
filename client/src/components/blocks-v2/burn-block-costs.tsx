@@ -4,7 +4,6 @@ import { blockTenureCostsAtom } from '@/store/blocks-store';
 import { costLimitsUsed, type MAINNET_COST_LIMITS } from '@/lib/costs';
 import {
   statusStyles,
-  statusVariants,
   type StatusVariants,
 } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';

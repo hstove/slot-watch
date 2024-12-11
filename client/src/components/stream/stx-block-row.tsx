@@ -1,6 +1,5 @@
 import type { PayloadAtom } from '@/store/chunks-store';
 import { useAtomValue } from 'jotai';
-import React from 'react';
 import { NEW_BLOCK_EVENT } from 'slot-watch-common';
 import { TableRow } from '../ui/table';
 import { Timestamp } from '../timestamp';

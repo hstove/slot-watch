@@ -9,7 +9,6 @@ import {
 import {
   signerLatestResponseFamilyInner,
   sortedLatestResponsesAtom,
-  type SortedResponses,
 } from '@/store/responses-store';
 import { signersAtomFamily, totalWeightAtom } from '@/store/signers-store';
 import { useAtomValue } from 'jotai';

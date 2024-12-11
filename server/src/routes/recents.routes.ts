@@ -1,23 +1,11 @@
 import { Hono } from 'hono';
-import { db } from '../db/db';
-import { eq, inArray, sql } from 'drizzle-orm';
-import { index, PgDialect } from 'drizzle-orm/pg-core';
-import {
-  blockPushes,
-  blockProposals,
-  blockResponses,
-  stackerDbSlots,
-} from '../db/schema';
-import { getBurnAddress } from '../constants';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import {
   getVersionFromString,
   knownSigners,
   percentString,
-  versionFromData,
   type RecentSignersResponse,
 } from 'slot-watch-common';
-import { hex } from '@scure/base';
 import { signerDegradationRate } from '../metrics';
 import { getLatestResponses } from '../db/block-responses';
 

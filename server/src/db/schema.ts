@@ -1,7 +1,6 @@
 import {
   pgTable,
   serial,
-  text,
   varchar,
   integer,
   smallint,
@@ -10,7 +9,6 @@ import {
   index,
   bigint,
   boolean,
-  pgEnum,
   unique,
 } from 'drizzle-orm/pg-core';
 import { sql, type InferSelectModel } from 'drizzle-orm';

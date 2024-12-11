@@ -8,8 +8,6 @@ import {
   getSortedRowModel,
   type SortingState,
   type SortDirection,
-  type Column,
-  type SortingColumn,
 } from '@tanstack/react-table';
 
 import {

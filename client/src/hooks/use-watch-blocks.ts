@@ -17,14 +17,12 @@ import { useAtomCallback } from 'jotai/utils';
 import { networkIdAtom } from '@/store/network';
 import {
   __stacksBlocksFamilyInner,
-  stacksBlocksForBurnBlockAtom,
   insertBurnBlockAtom,
   setResponseForBlockFamily,
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
 import { hex } from '@scure/base';
 import type {
-  ApiBlockForBurnBlock,
   ProcessedStacksBlock,
   ProposalOnlyBlock,
 } from '@/lib/slots-api';

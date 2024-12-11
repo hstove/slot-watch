@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link as RouterLink, createLink } from '@tanstack/react-router';
+import { createLink } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 import { textVariants } from '@/lib/text-variants';
 

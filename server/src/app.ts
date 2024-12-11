@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { logger, honoLogger } from './logger';
-import eventsRoutes, { getBunServer } from './routes/events.routes';
+import eventsRoutes from './routes/events.routes';
 import { createBunWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
 import type { ServerWebSocket } from 'bun';

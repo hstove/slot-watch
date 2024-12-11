@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { blockPushesAtoms, blockSignersAtoms } from '@/store/blocks-store';
 import type { HealthBlockSigner } from '@/lib/slots-api';
@@ -8,13 +8,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { textStyles, textVariants } from '@/lib/text-variants';
 import { differenceInSeconds } from 'date-fns';
 import { PublicKey } from '../public-key';
 import { useEntity } from '@/hooks/use-entity';
 import { TimeAgo } from '../time-ago';
-import { getBtcAddress, percentString } from 'slot-watch-common';
+import { percentString } from 'slot-watch-common';
 import { DataLabel, DataValue } from '../data-group';
 import { BlockSignerChunkData } from './block-signer-chunk-data';
 

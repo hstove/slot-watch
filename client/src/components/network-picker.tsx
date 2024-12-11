@@ -1,17 +1,13 @@
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { networkIdAtom, NETWORKS } from '@/store/network';
-import { useAtom, useAtomValue } from 'jotai';
+import { NETWORKS } from '@/store/network';
+import { useAtomValue } from 'jotai';
 import { networkAtom } from '@/store/network';
 import { useAtomCallback } from 'jotai/utils';
 import { useCallback } from 'react';

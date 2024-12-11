@@ -6,7 +6,6 @@ import * as fixtures from './fixtures';
 import { fixtureToJson } from './parse-fixtures';
 import {
   addressFromVersionHash,
-  addressToString,
   AddressVersion,
   TenureChangeCause,
 } from '@stacks/transactions';
@@ -27,7 +26,6 @@ import {
   makeSignerSignatureHash,
   type BlockPushed,
   binaryString,
-  type ChunkEvent,
   chunkAuthDigest,
   recoverChunkPublicKey,
   chunkTypeName,

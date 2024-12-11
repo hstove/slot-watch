@@ -1,19 +1,10 @@
 import React from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, } from 'jotai';
 import {
   burnBlocksAtomFamily,
   sortedStacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
 import { Text } from '../text';
-import { atomEffect } from 'jotai-effect';
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableCell,
-} from '@/components/ui/table';
 import { BlockListStacksBlock } from './block-list-stacks-block';
 import { BtcIcon } from '../icons/btc-icon';
 import { Timestamp } from '../timestamp';

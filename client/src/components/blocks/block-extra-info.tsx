@@ -1,7 +1,5 @@
 import { consensusBlockAtoms } from '@/store/blocks-store';
 import { useAtomValue } from 'jotai';
-import React from 'react';
-import { getConsensusBlock } from 'slot-watch-common';
 import { DataLabel, DataValue } from '../data-group';
 
 export function BlockExtraInfo({ consensusHash }: { consensusHash: string }) {

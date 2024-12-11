@@ -10,7 +10,6 @@ import { useAtomCallback } from 'jotai/utils';
 import { networkIdAtom } from '@/store/network';
 // import { signerLatestResponsesMapAtom } from '@/store/blocks-store';
 import {
-  signerLatestResponseFamilyInner,
   setSignerLatestResponsesAtom,
 } from '@/store/responses-store';
 import { hex } from '@scure/base';

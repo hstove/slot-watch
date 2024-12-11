@@ -1,24 +1,15 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { TimeAgo } from '../time-ago';
 import {
-  decodeChunkMaybe,
   getVersionFromString,
   knownSigners,
-  SignerMessageTypePrefix,
   versionFromData,
 } from 'slot-watch-common';
 import {
-  Table,
-  TableBody,
-  TableCaption,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import type { RecentSigner } from 'slot-watch-common';
-import type { RecentSignerWithPower } from '@/store/signers-store';
-import { hex } from '@scure/base';
 import { SimpleTooltip } from '../simple-tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useCopyToClipboard } from 'usehooks-ts';
@@ -28,7 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
-import { Text } from '../text';
 import { textVariants } from '@/lib/text-variants';
 
 export const RecentSignerRow = ({ signer }: { signer: RecentSigner }) => {

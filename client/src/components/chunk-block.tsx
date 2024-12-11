@@ -1,16 +1,10 @@
 import {
-  BlockPushedCoder,
-  decodeChunk,
-  type DecodedChunk,
   type NakamotoBlock,
   SignerMessageTypePrefix,
   makeSignerSignatureHash,
-  type ChunkEvent,
   decodeChunkMaybe,
 } from 'slot-watch-common';
 import { hex } from '@scure/base';
-import { useEffect, useState } from 'react';
-import { colord } from 'colord';
 import {
   Tooltip,
   TooltipContent,

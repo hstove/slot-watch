@@ -2,11 +2,7 @@ import { atom, type PrimitiveAtom } from 'jotai';
 import { atomFamily, splitAtom } from 'jotai/utils';
 import {
   BURN_BLOCKS_EVENT,
-  type ChunkEvent,
-  type ChunkEventParsed,
   CHUNKS_EVENT,
-  type CoreNodeBlockMessage,
-  type CoreNodeBurnBlockMessage,
   getPayloadId,
   MANY_CHUNKS_EVENT,
   NEW_BLOCK_EVENT,
@@ -16,9 +12,8 @@ import {
   type WSPayload,
 } from 'slot-watch-common';
 import { networkIdAtom } from './network';
-import { format } from 'date-fns';
 import { atomWithHash } from 'jotai-location';
-import { apiClient, getChunkById, getChunksByTime } from '@/lib/slots-api';
+import { getChunkById, getChunksByTime } from '@/lib/slots-api';
 
 export const chunksFamilyStore = atomFamily((_networkId: string) =>
   atom<WSPayload[]>([]),

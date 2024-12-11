@@ -11,8 +11,6 @@ import * as P from 'micro-packed';
 import { serializeDbChunk } from '../utils';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { getPoxInfo } from '../stacks-api';
-import { getStackerSet } from '../stacks-api';
 import { getLatestResponses } from '../db/block-responses';
 
 const getChunksRoutes = new Hono()

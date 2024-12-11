@@ -12,7 +12,6 @@ import useResizeObserver from '@react-hook/resize-observer';
 import { Button } from '../ui/button';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useAtomValue } from 'jotai';
-import { networkIdAtom } from '@/store/network';
 import { allPayloadsAtomsAtom } from '@/store/chunks-store';
 import { StreamControls } from './stream-controls';
 

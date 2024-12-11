@@ -9,18 +9,12 @@ import {
 import { Timestamp } from '../timestamp';
 import { TenureChangeCause } from '@stacks/transactions';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
 import { ArrowRightFromLine, BlocksIcon } from 'lucide-react';
-import { statusStyles, statusVariants } from '@/lib/status-variants';
+import { statusStyles, } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
 import { BlockCosts } from './burn-block-costs';
 import * as R from 'remeda';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { textStyles } from '@/lib/text-variants';
 
 function TenureCauseBadge({

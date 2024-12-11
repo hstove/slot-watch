@@ -1,10 +1,6 @@
 import { atom } from 'jotai';
 import { networkIdAtom } from './network';
 import {
-  getStackerSet,
-  getCoreNodeInfo,
-  getPoxInfo,
-  type RecentSignersResponse,
   type RecentSigner,
 } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
@@ -13,7 +9,6 @@ import {
   type ApiSigners,
   getRecentSigners,
 } from '@/lib/slots-api';
-import { getSigners } from '@/lib/slots-api';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { setDebugLabel } from './store-utils';

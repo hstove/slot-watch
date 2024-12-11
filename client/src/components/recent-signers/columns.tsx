@@ -1,10 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import {
-  knownSigners,
   percentString,
   type RecentSigner,
 } from 'slot-watch-common';
-import { TimeAgo } from '../time-ago';
 import { SimpleTooltip } from '../simple-tooltip';
 import { SortableHeader } from '../ui/data-table';
 import { PublicKey } from '../public-key';

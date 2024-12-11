@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BURN_BLOCKS_EVENT } from 'slot-watch-common';
 import { useAtomValue } from 'jotai';
 import type { PayloadAtom } from '@/store/chunks-store';

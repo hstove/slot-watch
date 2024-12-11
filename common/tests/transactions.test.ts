@@ -1,6 +1,6 @@
 import { hex } from '@scure/base';
 import { StacksTransactionCoder } from '../src';
-import { test, expect, describe } from 'vitest';
+import { test, } from 'vitest';
 
 test('stacks transaction', () => {
   const txHex =

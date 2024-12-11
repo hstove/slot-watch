@@ -1,18 +1,11 @@
 import {
-  Table,
-  TableBody,
-  TableCaption,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CHUNKS_EVENT, type ChunkEvent } from 'slot-watch-common';
-import { hex } from '@scure/base';
+import { CHUNKS_EVENT, } from 'slot-watch-common';
 import { ChunkLabel } from './chunk-label';
 import { ChunkBlock } from './chunk-block';
 import { ChunkData } from './chunk-data';
-import { useTimestamp } from '@/hooks/use-timestamp';
 import { ChunkSigner } from './chunk-signer';
 import type { PayloadAtom } from '@/store/chunks-store';
 import { useAtomValue } from 'jotai';

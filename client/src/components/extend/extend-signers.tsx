@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai';
 import {
   extendBoundsAtom,
   signerLatestResponseFamilyInner,
-  type SignerLatestResponses,
   sortedLatestResponsesAtom,
 } from '@/store/responses-store';
 import {
@@ -22,7 +21,6 @@ import {
   signersAtomFamily,
   totalWeightAtom,
 } from '@/store/signers-store';
-import { signerLatestResponseFamily } from '@/store/responses-store';
 
 const minColor = colord('#15803d');
 const maxColor = colord('#0f766e');

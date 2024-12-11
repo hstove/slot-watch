@@ -1,17 +1,14 @@
-import type { InferSelectModel } from 'drizzle-orm';
-import { blockResponses, type BlockResponseDb } from './schema';
+
+import { type BlockResponseDb } from './schema';
 import { getPoxInfo, getStackerSet, type StackerSet } from '../stacks-api';
 import {
   knownSigners,
   blockResponseApiSchema,
   type BlockResponseApi,
 } from 'slot-watch-common';
-import { eq, inArray, sql } from 'drizzle-orm';
-import { db } from './db';
 import { logger } from '../logger';
 import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
-import type { z } from 'zod';
 
 export function mapSignerDataToResponses({
   stackerSet,
