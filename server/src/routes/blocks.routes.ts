@@ -89,7 +89,7 @@ const blockRoutes = new Hono()
       .from(burnBlocks)
       .where(eq(burnBlocks.networkKey, networkKey))
       .orderBy(desc(burnBlocks.createdAt))
-      .limit(5);
+      .limit(3);
     return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
   })
   .get(
