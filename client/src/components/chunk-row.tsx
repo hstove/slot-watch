@@ -1,8 +1,5 @@
-import {
-  TableCell,
-  TableRow,
-} from '@/components/ui/table';
-import { CHUNKS_EVENT, } from 'slot-watch-common';
+import { TableCell, TableRow } from '@/components/ui/table';
+import { CHUNKS_EVENT } from 'slot-watch-common';
 import { ChunkLabel } from './chunk-label';
 import { ChunkBlock } from './chunk-block';
 import { ChunkData } from './chunk-data';

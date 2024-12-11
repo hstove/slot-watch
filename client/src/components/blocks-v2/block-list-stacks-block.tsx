@@ -10,7 +10,7 @@ import { Timestamp } from '../timestamp';
 import { TenureChangeCause } from '@stacks/transactions';
 import { Badge } from '../ui/badge';
 import { ArrowRightFromLine, BlocksIcon } from 'lucide-react';
-import { statusStyles, } from '@/lib/status-variants';
+import { statusStyles } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
 import { BlockCosts } from './burn-block-costs';

@@ -1,6 +1,6 @@
 import pino from 'pino';
 import type { Logger } from 'pino';
-import type { MiddlewareHandler, } from 'hono';
+import type { MiddlewareHandler } from 'hono';
 
 import { getPath } from 'hono/utils/url';
 

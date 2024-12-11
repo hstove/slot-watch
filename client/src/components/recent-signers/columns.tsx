@@ -1,8 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import {
-  percentString,
-  type RecentSigner,
-} from 'slot-watch-common';
+import { percentString, type RecentSigner } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { SortableHeader } from '../ui/data-table';
 import { PublicKey } from '../public-key';

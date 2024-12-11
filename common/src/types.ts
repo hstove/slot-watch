@@ -1,4 +1,4 @@
-import type { ChunkType, } from './codec';
+import type { ChunkType } from './codec';
 import type {
   CoreNodeBlockMessage,
   CoreNodeBurnBlockMessage,

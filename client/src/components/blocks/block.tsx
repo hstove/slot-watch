@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAtom } from 'jotai';
-import { blockPushesAtoms, } from '@/store/blocks-store';
+import { blockPushesAtoms } from '@/store/blocks-store';
 import { BlockSigners } from './block-signers';
 import { textStyles } from '@/lib/text-variants';
 import {

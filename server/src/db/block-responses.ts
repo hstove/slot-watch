@@ -1,5 +1,4 @@
-
-import { type BlockResponseDb } from './schema';
+import type { BlockResponseDb } from './schema';
 import { getPoxInfo, getStackerSet, type StackerSet } from '../stacks-api';
 import {
   knownSigners,

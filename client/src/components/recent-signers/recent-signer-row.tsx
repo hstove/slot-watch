@@ -5,10 +5,7 @@ import {
   knownSigners,
   versionFromData,
 } from 'slot-watch-common';
-import {
-  TableCell,
-  TableRow,
-} from '@/components/ui/table';
+import { TableCell, TableRow } from '@/components/ui/table';
 import type { RecentSigner } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { useToast } from '@/hooks/use-toast';

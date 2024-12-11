@@ -1,10 +1,6 @@
-
 import { hex } from '@scure/base';
 import { useMemo } from 'react';
-import {
-  recoverChunkPublicKey,
-  type ChunkEvent,
-} from 'slot-watch-common';
+import { recoverChunkPublicKey, type ChunkEvent } from 'slot-watch-common';
 import { useCopyToClipboard } from 'usehooks-ts';
 import {
   Tooltip,

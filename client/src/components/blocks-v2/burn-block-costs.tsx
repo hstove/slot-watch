@@ -2,10 +2,7 @@ import React from 'react';
 import { useAtomValue } from 'jotai';
 import { blockTenureCostsAtom } from '@/store/blocks-store';
 import { costLimitsUsed, type MAINNET_COST_LIMITS } from '@/lib/costs';
-import {
-  statusStyles,
-  type StatusVariants,
-} from '@/lib/status-variants';
+import { statusStyles, type StatusVariants } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { percentString } from 'slot-watch-common';
 import { cn } from '@/lib/utils';

@@ -1,8 +1,5 @@
 import App from '@/App';
-import {
-  createRootRoute,
-  retainSearchParams,
-} from '@tanstack/react-router';
+import { createRootRoute, retainSearchParams } from '@tanstack/react-router';
 import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
 

@@ -1,8 +1,6 @@
 import { atom } from 'jotai';
 import { networkIdAtom } from './network';
-import {
-  type RecentSigner,
-} from 'slot-watch-common';
+import type { RecentSigner } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import {
   type ApiSigner,

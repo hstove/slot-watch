@@ -5,7 +5,7 @@ import {
   BlockResponseValidationCodes,
   decodeChunkMaybe,
 } from 'slot-watch-common';
-import { memo, } from 'react';
+import { memo } from 'react';
 import { hex } from '@scure/base';
 import { SimpleTooltip } from './simple-tooltip';
 

@@ -9,9 +9,7 @@ import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
 import { networkIdAtom } from '@/store/network';
 // import { signerLatestResponsesMapAtom } from '@/store/blocks-store';
-import {
-  setSignerLatestResponsesAtom,
-} from '@/store/responses-store';
+import { setSignerLatestResponsesAtom } from '@/store/responses-store';
 import { hex } from '@scure/base';
 import type { ApiBlockResponseForBlock } from '@/lib/slots-api';
 

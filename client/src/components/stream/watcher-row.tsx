@@ -1,4 +1,3 @@
-
 import { ChunkRow } from '../chunk-row';
 import type { PayloadAtom } from '@/store/chunks-store';
 import { StxBlockRow } from './stx-block-row';

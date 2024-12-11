@@ -22,10 +22,7 @@ import {
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
 import { hex } from '@scure/base';
-import type {
-  ProcessedStacksBlock,
-  ProposalOnlyBlock,
-} from '@/lib/slots-api';
+import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
 import {
   deserializeTransaction,
   PayloadType,

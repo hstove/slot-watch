@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAtomValue, } from 'jotai';
+import { useAtomValue } from 'jotai';
 import {
   burnBlocksAtomFamily,
   sortedStacksBlocksForBurnBlockAtom,
