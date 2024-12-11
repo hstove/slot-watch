@@ -11,7 +11,7 @@ import {
   boolean,
   unique,
 } from 'drizzle-orm/pg-core';
-import { sql, type InferSelectModel } from 'drizzle-orm';
+import { isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
   dataType() {
@@ -167,6 +167,9 @@ export const stacksBlocks = pgTable(
       table.networkKey,
       table.blockHash,
     ),
+    index('stacks_blocks_tenure_change_recent_idx')
+      .on(table.tenureChangeCause, table.createdAt.desc(), table.networkKey)
+      .where(isNotNull(table.tenureChangeCause)),
   ],
 );
 

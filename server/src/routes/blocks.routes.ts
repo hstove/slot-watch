@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -130,6 +130,33 @@ const blockRoutes = new Hono()
             : null,
         })),
       });
+    },
+  )
+  .get(
+    '/tenure-changes/:networkKey',
+    zValidator(
+      'query',
+      z.object({
+        cause: z.coerce.number().optional(),
+      }),
+    ),
+    async (c) => {
+      const networkKey = c.req.param('networkKey');
+      const { cause } = c.req.valid('query');
+      const tenureChanges = await db
+        .select()
+        .from(stacksBlocks)
+        .where(
+          and(
+            eq(stacksBlocks.networkKey, networkKey),
+            typeof cause === 'number'
+              ? eq(stacksBlocks.tenureChangeCause, cause)
+              : isNotNull(stacksBlocks.tenureChangeCause),
+          ),
+        )
+        .orderBy(desc(stacksBlocks.createdAt))
+        .limit(5);
+      return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     },
   );
 

@@ -51,7 +51,7 @@ export const BlockListResponse = ({
             'h-full box-border transition-colors duration-500',
           )}
           style={{
-            flexGrow: signer.weight + totalWeight * 0.1,
+            flexGrow: signer.weight + totalWeight * 0.01,
             // backgroundColor: color,
             // borderColor: borderColor,
           }}
