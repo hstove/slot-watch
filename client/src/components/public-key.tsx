@@ -28,7 +28,7 @@ export const PublicKey = ({ publicKey }: { publicKey: string }) => {
           <code
             className={cn(
               textVariants({ variant: 'code' }),
-              'max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip',
+              'max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip text-xs',
             )}
           >
             {publicKey}

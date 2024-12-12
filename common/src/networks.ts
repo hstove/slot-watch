@@ -19,7 +19,8 @@ export function getApiUrl(networkKey: string) {
     case 'testnet':
       return 'https://api.testnet.hiro.so';
     case 'naka-testnet':
-      return 'https://api.nakamoto.testnet.hiro.so';
+      // return 'https://api.nakamoto.testnet.hiro.so';
+      return 'https://naka.heynky.dev';
     default:
       return 'https://api.hiro.so';
   }

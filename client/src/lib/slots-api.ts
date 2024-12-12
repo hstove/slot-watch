@@ -218,3 +218,10 @@ export async function getSigners(networkKey: string) {
 
 export type ApiSigners = Awaited<ReturnType<typeof getSigners>>;
 export type ApiSigner = ApiSigners['signers'][0];
+
+// export async function getTenureChanges(networkKey: string) {
+//   const response = await apiClient[':networkKey'].$get({
+//     param: { networkKey },
+//   });
+//   return response.json();
+// }
