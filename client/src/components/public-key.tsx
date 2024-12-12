@@ -9,7 +9,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-export const PublicKey = ({ publicKey }: { publicKey: string }) => {
+export const PublicKey = ({
+  publicKey,
+  className,
+}: {
+  publicKey: string;
+  className?: string;
+}) => {
   const { toast } = useToast();
   const [_, copy] = useCopyToClipboard();
   return (
@@ -29,6 +35,7 @@ export const PublicKey = ({ publicKey }: { publicKey: string }) => {
             className={cn(
               textVariants({ variant: 'code' }),
               'max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip text-xs',
+              className,
             )}
           >
             {publicKey}

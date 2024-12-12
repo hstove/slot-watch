@@ -7,6 +7,7 @@ import { useWatchBlocks } from '@/hooks/use-watch-blocks';
 import { ConnectionStatus } from '../connection-status';
 import { Clock } from '../clock';
 import { setSignersApiAtom } from '@/store/signers-store';
+import { BlockModal } from '../block/block-modal';
 
 export function Blocks() {
   const loaderData = Route.useLoaderData();
@@ -32,6 +33,7 @@ export function Blocks() {
         <Clock className="mr-4" />
         <ConnectionStatus readyState={readyState} />
       </div>
+      <BlockModal />
     </div>
   );
 }

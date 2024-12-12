@@ -2,6 +2,7 @@ import React from 'react';
 import { useAtomValue } from 'jotai';
 import {
   burnBlocksAtomFamily,
+  maxBurnBlockHeightAtom,
   sortedStacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
 import { Text } from '../text';
@@ -9,6 +10,9 @@ import { BlockListStacksBlock } from './block-list-stacks-block';
 import { BtcIcon } from '../icons/btc-icon';
 import { Timestamp } from '../timestamp';
 import { BurnBlockCosts } from './burn-block-costs';
+import { PublicKey } from '../public-key';
+import { Button } from '../ui/button';
+import { textStyles, textVariants } from '@/lib/text-variants';
 
 export const BurnBlock = ({
   burnBlockHeight,
@@ -24,17 +28,10 @@ export const BurnBlock = ({
         <div className="flex items-center gap-3">
           <BtcIcon />
           <Text variant="small">{burnBlock.burnBlockHeight}</Text>
-          <Text
-            variant="small"
-            className="text-muted-foreground font-mono hidden md:block"
-          >
-            {burnBlock.burnBlockHash.slice(0, 6)}...
-            {burnBlock.burnBlockHash.slice(-6)}
-          </Text>
-          <Text
-            variant="small"
-            className="text-muted-foreground font-mono hidden md:block"
-          >
+          <div className="hidden md:block">
+            <PublicKey publicKey={burnBlock.burnBlockHash} />
+          </div>
+          <Text variant="small" className="text-muted-foreground">
             <Timestamp timestamp={burnBlock.createdAt} />
           </Text>
         </div>
@@ -42,7 +39,6 @@ export const BurnBlock = ({
           <BurnBlockCosts burnBlockHeight={burnBlockHeight} />
         </React.Suspense>
       </div>
-
       <BurnBlockStacksBlocks burnBlockHeight={burnBlockHeight} />
     </div>
   );
@@ -54,40 +50,70 @@ export const BurnBlockStacksBlocksInner = ({
   const stacksBlocks = useAtomValue(
     sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
   );
+  const maxBurnBlockHeight = useAtomValue(maxBurnBlockHeightAtom);
+  const [viewBlocks, setViewBlocks] = React.useState(false);
+
+  if (stacksBlocks.length === 0)
+    return (
+      <div className="flex items-center mt-4">
+        <Text variant="small" className="text-muted-foreground font-normal">
+          No Stacks blocks
+        </Text>
+      </div>
+    );
+
+  if (burnBlockHeight !== maxBurnBlockHeight && !viewBlocks) {
+    return (
+      <div className="flex items-center mt-4">
+        <Text variant="small" className="text-muted-foreground font-normal">
+          Not showing {stacksBlocks.length} Stacks blocks.{' '}
+          <button
+            type="reset"
+            className="text-primary"
+            onClick={() => setViewBlocks(true)}
+          >
+            View
+          </button>
+        </Text>
+      </div>
+    );
+  }
+
   return (
     <>
-      {stacksBlocks.length > 0 ? (
-        <div className="grid grid-cols-[1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 auto-cols-max">
-          <div className="block-list-col">
-            <Text variant="small">Height</Text>
-          </div>
-          <div className="block-list-col [&]:hidden [&]:md:flex">
-            <Text variant="small" className="">
-              Timestamp
-            </Text>
-          </div>
-          <div className="block-list-col [&]:hidden [&]:md:flex">
-            <Text variant="small" className="">
-              Block Hash
-            </Text>
-          </div>
-          <div className="block-list-col">
-            <Text variant="small">Info</Text>
-          </div>
-          {stacksBlocks.map((block) => (
-            <BlockListStacksBlock
-              key={block.blockHash}
-              blockHash={block.blockHash}
-            />
-          ))}
+      <div className="grid grid-cols-[1fr_1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 auto-cols-max">
+        <div className="block-list-col">
+          <Text variant="small">Height</Text>
         </div>
-      ) : (
-        <div className="flex items-center mt-4">
-          <Text variant="small" className="text-muted-foreground font-normal">
-            No Stacks blocks
+        <div className="block-list-col">
+          <Text variant="small" className="">
+            Timestamp
           </Text>
         </div>
-      )}
+        <div className="block-list-col [&]:hidden [&]:md:flex">
+          <Text variant="small" className="">
+            Block Hash
+          </Text>
+        </div>
+        <div className="block-list-col">
+          <Text variant="small">Info</Text>
+        </div>
+        {stacksBlocks.map((block) => (
+          <BlockListStacksBlock
+            key={block.blockHash}
+            blockHash={block.blockHash}
+          />
+        ))}
+        {burnBlockHeight !== maxBurnBlockHeight && (
+          <div className="flex items-center gap-2 mt-2">
+            <Text variant="small" className="text-muted-foreground font-normal">
+              <button type="reset" onClick={() => setViewBlocks(false)}>
+                Hide {stacksBlocks.length} Stacks blocks
+              </button>
+            </Text>
+          </div>
+        )}
+      </div>
     </>
   );
 };

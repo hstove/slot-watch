@@ -26,7 +26,10 @@ const minColor = colord('#15803d');
 const maxColor = colord('#0f766e');
 const naColor = colord('#52525b');
 
-function ExtendSigner({ signerPublicKey }: { signerPublicKey: string }) {
+function ExtendSigner({
+  signerPublicKey,
+  threshold: _threshold,
+}: { signerPublicKey: string; threshold: boolean }) {
   const totalWeight = useAtomValue(totalWeightAtom);
   const name = useEntity(signerPublicKey);
   const bounds = useAtomValue(extendBoundsAtom);
@@ -84,6 +87,9 @@ function ExtendSigner({ signerPublicKey }: { signerPublicKey: string }) {
                 : 'N/A'}
           </DataValue>
 
+          {/* <DataLabel>Threshold</DataLabel>
+          <DataValue>{_threshold ? 'Yes' : 'No'}</DataValue> */}
+
           {response?.tenureExtendTimestamp ? (
             <>
               <DataLabel>Time Remaining</DataLabel>
@@ -102,13 +108,50 @@ function ExtendSigner({ signerPublicKey }: { signerPublicKey: string }) {
 
 export function ExtendSigners() {
   const responses = useAtomValue(sortedLatestResponsesAtom);
-  const signers = useAtomValue(signersApiAtom);
+  const totalWeight = useAtomValue(totalWeightAtom);
+
+  let foundThreshold = false;
 
   return (
-    <div className="w-full rounded-md h-10 border border-border flex overflow-hidden gap-[2px]">
-      {responses.map((r) => (
-        <ExtendSigner key={r.signing_key} signerPublicKey={r.signing_key} />
-      ))}
-    </div>
+    <>
+      <div className="w-full rounded-md h-3 flex overflow-hidden gap-[2px]">
+        {responses.map((r) => {
+          const found = !foundThreshold && r.extend;
+          if (found) foundThreshold = true;
+          return (
+            <React.Fragment key={r.signing_key}>
+              <div
+                className="h-full"
+                style={{
+                  flexGrow: r.weight + totalWeight * 0.01,
+                }}
+              />
+              {found ? (
+                <div className="relative">
+                  <div
+                    className="absolute w-0 h-0"
+                    style={{
+                      borderLeft: '10px solid transparent',
+                      borderRight: '10px solid transparent',
+                      borderTop: '10px solid rgb(20 184 166)',
+                      borderBottom: '10px solid transparent',
+                    }}
+                  />
+                </div>
+              ) : null}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div className="w-full rounded-md h-10 border border-border flex overflow-hidden gap-[2px]">
+        {responses.map((r) => (
+          <ExtendSigner
+            key={r.signing_key}
+            signerPublicKey={r.signing_key}
+            threshold={r.extend}
+          />
+        ))}
+      </div>
+    </>
   );
 }

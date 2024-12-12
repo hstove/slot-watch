@@ -21,6 +21,7 @@ import { statusStyles } from '@/lib/status-variants';
 import { Countdown } from '../countdown';
 import { loadable } from 'jotai/utils';
 import { useSpring, animated, config } from '@react-spring/web';
+import { useEntity } from '@/hooks/use-entity';
 
 export const BlockListResponse = ({
   blockHash,
@@ -28,6 +29,7 @@ export const BlockListResponse = ({
 }: { blockHash: string; signerPublicKey: string }) => {
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const totalWeight = useAtomValue(totalWeightAtom);
+  const entity = useEntity(signerPublicKey);
   const response = useAtomValue(
     responseForBlockFamily({
       blockHash,
@@ -59,10 +61,10 @@ export const BlockListResponse = ({
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
-          {signer.name ? (
+          {entity ? (
             <>
               <DataLabel>Entity</DataLabel>
-              <DataValue>{signer.name}</DataValue>
+              <DataValue>{entity}</DataValue>
             </>
           ) : null}
 
@@ -72,7 +74,7 @@ export const BlockListResponse = ({
           </DataValue>
 
           <DataLabel>Weight</DataLabel>
-          <DataValue>{signer.weight}</DataValue>
+          <DataValue>{signer.weightPercentStr}%</DataValue>
 
           <DataLabel>Tenure Extend</DataLabel>
           <DataValue>
@@ -89,6 +91,26 @@ export const BlockListResponse = ({
                   <Countdown date={response.tenureExtendTimestamp} />
                 </Text>
               </DataValue>
+            </>
+          ) : null}
+
+          {typeof response?.rejectCode === 'number' ? (
+            <>
+              <DataLabel>Reject Code</DataLabel>
+              <DataValue>{response.rejectCode}</DataValue>
+            </>
+          ) : null}
+          {typeof response?.validationCode === 'number' ? (
+            <>
+              <DataLabel>Validation Code</DataLabel>
+              <DataValue>{response.validationCode}</DataValue>
+            </>
+          ) : null}
+
+          {response?.reason ? (
+            <>
+              <DataLabel>Reason</DataLabel>
+              <DataValue>{response.reason}</DataValue>
             </>
           ) : null}
         </div>
@@ -147,7 +169,7 @@ export const BlockListResponsesInner = ({
 
 export const BlockListResponses = ({ blockHash }: { blockHash: string }) => {
   return (
-    <React.Suspense fallback={<div className="h-7 col-span-2 md:col-span-4" />}>
+    <React.Suspense fallback={<div className="h-7 col-span-3 md:col-span-4" />}>
       <BlockListResponsesInner blockHash={blockHash} />
     </React.Suspense>
   );

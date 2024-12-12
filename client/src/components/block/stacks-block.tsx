@@ -1,0 +1,95 @@
+import React from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { activeBlockHashAtom } from '@/store/blocks-store';
+import { activeBlockAtom } from '@/store/blocks-store';
+import { textStyles } from '@/lib/text-variants';
+import { DataLabel, DataValue } from '../data-group';
+import { Timestamp } from '../timestamp';
+import { sha256 } from '@noble/hashes/sha256';
+import { ripemd160 } from '@noble/hashes/ripemd160';
+import { hex } from '@scure/base';
+import { BlockListResponses } from '../blocks-v2/block-list-responses';
+
+export function StacksBlock() {
+  const block = useAtomValue(activeBlockAtom);
+
+  const minerPkHash = React.useMemo(() => {
+    if (!block?.minerPublicKey) return null;
+    return hex.encode(ripemd160(sha256(hex.decode(block.minerPublicKey))));
+  }, [block?.minerPublicKey]);
+
+  if (!block || !minerPkHash) return null;
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className={textStyles('h2', 'pb-0 mb-0')}>
+        Stacks block #{block.blockHeight.toLocaleString()}
+      </h2>
+      <BlockListResponses blockHash={block.blockHash} />
+      <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
+        <DataLabel>Block hash</DataLabel>
+        <DataValue>{block.blockHash}</DataValue>
+        <DataLabel>Block height</DataLabel>
+        <DataValue>{block.blockHeight.toLocaleString()}</DataValue>
+        <DataLabel>Block timestamp</DataLabel>
+        <DataValue>
+          <Timestamp timestamp={block.blockTimestamp} />
+        </DataValue>
+        {block.proposedAt && (
+          <>
+            <DataLabel>Proposed at</DataLabel>
+            <DataValue>
+              <Timestamp timestamp={block.proposedAt} />
+            </DataValue>
+          </>
+        )}
+        {block.processedAt && (
+          <>
+            <DataLabel>Processed at</DataLabel>
+            <DataValue>
+              <Timestamp timestamp={block.processedAt} />
+            </DataValue>
+          </>
+        )}
+
+        <DataLabel>Miner public key</DataLabel>
+        <DataValue>{block.minerPublicKey}</DataValue>
+        <DataLabel>Miner public key hash</DataLabel>
+        <DataValue>{minerPkHash}</DataValue>
+
+        <DataLabel>Burn block height</DataLabel>
+        <DataValue>{block.burnBlockHeight.toLocaleString()}</DataValue>
+        {block.burnBlockHash && (
+          <>
+            <DataLabel>Burn block hash</DataLabel>
+            <DataValue>{block.burnBlockHash}</DataValue>
+          </>
+        )}
+        {block.consensusHash && (
+          <>
+            <DataLabel>Consensus hash</DataLabel>
+            <DataValue>{block.consensusHash}</DataValue>
+          </>
+        )}
+
+        <DataLabel>Transactions</DataLabel>
+        <DataValue>{block.txCount.toLocaleString()}</DataValue>
+
+        {block.tenureChangeCause !== null && (
+          <>
+            <DataLabel>Tenure Change Cause</DataLabel>
+            <DataValue>
+              {block.tenureChangeCause ? 'Extended' : 'Block found'}
+            </DataValue>
+          </>
+        )}
+      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <code>
+          <pre>{JSON.stringify(block, null, 2)}</pre>
+        </code>
+      )}
+
+      <div className="h-[1000px] w-full" />
+    </div>
+  );
+}

@@ -7,25 +7,37 @@ interface TimestampProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Timestamp = ({ timestamp, className }: TimestampProps) => {
-  const { timestamp: formattedTimestamp } = useTimestamp(timestamp);
-  const [textColor, setTextColor] = React.useState<string>('text-foreground');
+  const { timestamp: formattedTimestamp, timestampWithoutMillis } =
+    useTimestamp(timestamp);
+  const [textColor, setTextColor] = React.useState<string | undefined>();
   const [hasRendered, setHasRendered] = React.useState(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     if (hasRendered) {
       setTextColor('text-green-500');
       const timer = setTimeout(() => {
-        setTextColor('text-foreground');
+        setTextColor(undefined);
       }, 1000);
       return () => clearTimeout(timer);
     }
     setHasRendered(true);
   }, [formattedTimestamp, setTextColor, setHasRendered]);
   return (
-    <span
-      className={cn(className, 'transition-colors duration-500', textColor)}
-    >
-      {formattedTimestamp}
-    </span>
+    <>
+      <span
+        className={cn(className, 'md:hidden transition-colors duration-500')}
+      >
+        {timestampWithoutMillis}
+      </span>
+      <span
+        className={cn(
+          className,
+          'transition-colors duration-500 hidden md:block',
+          textColor,
+        )}
+      >
+        {formattedTimestamp}
+      </span>
+    </>
   );
 };

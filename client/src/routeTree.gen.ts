@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as WhenExtendImport } from './routes/when-extend'
+import { Route as UiTestImport } from './routes/ui-test'
 import { Route as StreamImport } from './routes/stream'
 import { Route as SignersImport } from './routes/signers'
 import { Route as BlocksV1Import } from './routes/blocks-v1'
@@ -23,6 +24,12 @@ import { Route as IndexImport } from './routes/index'
 const WhenExtendRoute = WhenExtendImport.update({
   id: '/when-extend',
   path: '/when-extend',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const UiTestRoute = UiTestImport.update({
+  id: '/ui-test',
+  path: '/ui-test',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StreamImport
       parentRoute: typeof rootRoute
     }
+    '/ui-test': {
+      id: '/ui-test'
+      path: '/ui-test'
+      fullPath: '/ui-test'
+      preLoaderRoute: typeof UiTestImport
+      parentRoute: typeof rootRoute
+    }
     '/when-extend': {
       id: '/when-extend'
       path: '/when-extend'
@@ -113,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/blocks-v1': typeof BlocksV1Route
   '/signers': typeof SignersRoute
   '/stream': typeof StreamRoute
+  '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
 }
 
@@ -122,6 +137,7 @@ export interface FileRoutesByTo {
   '/blocks-v1': typeof BlocksV1Route
   '/signers': typeof SignersRoute
   '/stream': typeof StreamRoute
+  '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
 }
 
@@ -132,6 +148,7 @@ export interface FileRoutesById {
   '/blocks-v1': typeof BlocksV1Route
   '/signers': typeof SignersRoute
   '/stream': typeof StreamRoute
+  '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
 }
 
@@ -143,9 +160,17 @@ export interface FileRouteTypes {
     | '/blocks-v1'
     | '/signers'
     | '/stream'
+    | '/ui-test'
     | '/when-extend'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blocks' | '/blocks-v1' | '/signers' | '/stream' | '/when-extend'
+  to:
+    | '/'
+    | '/blocks'
+    | '/blocks-v1'
+    | '/signers'
+    | '/stream'
+    | '/ui-test'
+    | '/when-extend'
   id:
     | '__root__'
     | '/'
@@ -153,6 +178,7 @@ export interface FileRouteTypes {
     | '/blocks-v1'
     | '/signers'
     | '/stream'
+    | '/ui-test'
     | '/when-extend'
   fileRoutesById: FileRoutesById
 }
@@ -163,6 +189,7 @@ export interface RootRouteChildren {
   BlocksV1Route: typeof BlocksV1Route
   SignersRoute: typeof SignersRoute
   StreamRoute: typeof StreamRoute
+  UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
 }
 
@@ -172,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlocksV1Route: BlocksV1Route,
   SignersRoute: SignersRoute,
   StreamRoute: StreamRoute,
+  UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
 }
 
@@ -190,6 +218,7 @@ export const routeTree = rootRoute
         "/blocks-v1",
         "/signers",
         "/stream",
+        "/ui-test",
         "/when-extend"
       ]
     },
@@ -207,6 +236,9 @@ export const routeTree = rootRoute
     },
     "/stream": {
       "filePath": "stream.tsx"
+    },
+    "/ui-test": {
+      "filePath": "ui-test.tsx"
     },
     "/when-extend": {
       "filePath": "when-extend.tsx"

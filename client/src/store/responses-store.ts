@@ -41,11 +41,14 @@ export type SignerWithResponse = O.Merge<
   SignerLatestResponse
 >;
 
-export type SortedResponses = SignerWithResponse | SignerWithoutResponse;
+export type SortedResponses = (SignerWithResponse | SignerWithoutResponse) & {
+  extend: boolean;
+};
 
 export const sortedLatestResponsesAtom = atom<SortedResponses[]>((get) => {
   const responses = get(signersLatestResponsesAtom);
   const signers = get(signersApiAtom);
+  const threshold = get(thresholdAtom);
   if (!signers) {
     console.warn('Early return: no signers data');
     return [];
@@ -57,15 +60,23 @@ export const sortedLatestResponsesAtom = atom<SortedResponses[]>((get) => {
       ...(responsesBySigner[signer.publicKey]?.[0] ?? undefined),
     };
   });
-  // console.log('getting sorted responses', responses);
   // Sort by tenureExtendTimestamp, nulls last
-  return Array.from(zipped).sort((a, b) => {
+  const sorted = Array.from(zipped).sort((a, b) => {
     if (!a.tenureExtendTimestamp) return 1;
     if (!b.tenureExtendTimestamp) return -1;
     return (
       new Date(a.tenureExtendTimestamp).getTime() -
       new Date(b.tenureExtendTimestamp).getTime()
     );
+  });
+  let sum = 0;
+
+  return sorted.map((r) => {
+    sum += r.weight ?? 0;
+    return {
+      ...r,
+      extend: sum >= threshold,
+    };
   });
 });
 

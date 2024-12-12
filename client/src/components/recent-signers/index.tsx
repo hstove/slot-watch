@@ -67,16 +67,16 @@ export const RecentSigners = () => {
         </div>
       </div>
       {showCustom ? null : (
-        <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8">
+        <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8 gap-[2px]">
           {recentSigners.signers.map((s) => {
             const color = colorForTimeAgo(s.createdAt);
             return (
               <div
                 key={s.publicKey}
-                className="h-full border-r border-background last:border-none box-border"
+                className="h-full"
                 style={{
                   // width: `${s.power * 100}%`,
-                  flexGrow: s.weight,
+                  flexGrow: s.weight + recentSigners.total * 0.01,
                   backgroundColor: color,
                 }}
               />

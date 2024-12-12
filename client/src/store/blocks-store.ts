@@ -73,6 +73,11 @@ export type SignerLatestResponse = SignerLatestResponses['responses'][number];
 
 export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
+export const maxBurnBlockHeightAtom = atom((get) => {
+  const all = get(allBurnBlocksAtom);
+  return all.reduce((max, b) => Math.max(max, b.burnBlockHeight), 0);
+});
+
 export const sortedBurnBlocksAtom = atom((get) => {
   const burnBlocks = get(allBurnBlocksAtom);
   return burnBlocks.sort((a, b) => a.burnBlockHeight - b.burnBlockHeight);
@@ -272,3 +277,11 @@ export const [
   undefined,
   'responses-for-block',
 );
+
+export const activeBlockHashAtom = atom<string>();
+
+export const activeBlockAtom = atom((get) => {
+  const activeHash = get(activeBlockHashAtom);
+  if (!activeHash) return null;
+  return get(stacksBlocksFamily(activeHash));
+});

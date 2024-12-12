@@ -1,7 +1,8 @@
 import React from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { Text } from '@/components/text';
 import {
+  activeBlockHashAtom,
   maxProcessedStacksHeightAtom,
   responseOutcomeForBlockAtomFamily,
   stacksBlocksFamily,
@@ -9,13 +10,22 @@ import {
 import { Timestamp } from '../timestamp';
 import { TenureChangeCause } from '@stacks/transactions';
 import { Badge } from '../ui/badge';
-import { ArrowRightFromLine, BlocksIcon } from 'lucide-react';
+import {
+  ArrowRightFromLine,
+  BlocksIcon,
+  ExternalLinkIcon,
+  SearchIcon,
+} from 'lucide-react';
 import { statusStyles } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
 import { BlockCosts } from './burn-block-costs';
 import * as R from 'remeda';
 import { textStyles } from '@/lib/text-variants';
+import { PublicKey } from '../public-key';
+import { Button } from '../ui/button';
+import { Link } from '@tanstack/react-router';
+import { getStacksExplorerUrl } from 'slot-watch-common';
 
 function TenureCauseBadge({
   tenureCause,
@@ -70,6 +80,7 @@ function ResponseOutcome({ blockHash }: { blockHash: string }) {
 
 export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
   const block = useAtomValue(stacksBlocksFamily(blockHash));
+  const setActiveBlockHash = useSetAtom(activeBlockHashAtom);
   const maxProcessed = useAtomValue(maxProcessedStacksHeightAtom);
   const [showResponses, setShowResponses] = React.useState(false);
   const responseOutcome = useAtomValue(
@@ -104,31 +115,52 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
               )}
             />
           </div>
-          <button
-            type="reset"
-            onClick={() => setShowResponses((show) => !show)}
-            className={textStyles('small')}
-          >
-            {/* <Text variant="small">{block.blockHeight}</Text> */}
-            {block.blockHeight}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="reset"
+              onClick={() => {
+                setActiveBlockHash(blockHash);
+              }}
+              className={textStyles('small')}
+            >
+              {/* <Text variant="small">{block.blockHeight}</Text> */}
+              {block.blockHeight}
+            </button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setActiveBlockHash(blockHash);
+                }}
+              >
+                <SearchIcon className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link
+                  to={getStacksExplorerUrl(
+                    `/block/${blockHash}`,
+                    block.networkKey,
+                  )}
+                  target="_blank"
+                >
+                  <ExternalLinkIcon className="w-3 h-3" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="block-list-col [&]:hidden [&]:md:flex">
+        <div className="block-list-col">
           <Text variant="small">
-            <Timestamp
-              timestamp={
-                block.proposedAt ??
-                block.processedAt ??
-                new Date().toISOString()
-              }
-            />
+            <Timestamp timestamp={block.blockTimestamp} />
           </Text>
         </div>
         <div className="block-list-col [&]:hidden [&]:md:flex">
           {/* <div className="[&]:hidden [&]:md:flex"> */}
-          <Text variant="small" className="font-mono text-xs">
+          {/* <Text variant="small" className="font-mono text-xs">
             {block.blockHash}
-          </Text>
+          </Text> */}
+          <PublicKey publicKey={block.blockHash} className="max-w-[200px]" />
         </div>
         <div className="block-list-col">
           <TenureCauseBadge tenureCause={block.tenureChangeCause} />
@@ -141,7 +173,8 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
               </Badge>
             </SimpleTooltip>
           )}
-          <ResponseOutcome blockHash={blockHash} />
+          {!block.processedAt && <ResponseOutcome blockHash={blockHash} />}
+          {/* <ResponseOutcome blockHash={blockHash} /> */}
           {typeof block.readCount === 'number' ? (
             <BlockCosts
               costs={R.pick(block, [
@@ -155,7 +188,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           ) : null}
         </div>
       </div>
-      {blockStatus === 'pending' || showResponses ? (
+      {blockStatus === 'pending' ? (
         <BlockListResponses blockHash={blockHash} />
       ) : null}
     </>
