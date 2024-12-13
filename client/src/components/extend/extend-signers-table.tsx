@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import {
+  mostRecentTenureChangeAtom,
   signerLatestResponseFamilyInner,
   sortedLatestResponsesAtom,
 } from '@/store/responses-store';
@@ -22,8 +24,19 @@ const ExtendSignersRow = ({ publicKey }: { publicKey: string }) => {
   const totalWeight = useAtomValue(totalWeightAtom);
   const response = useAtomValue(signerLatestResponseFamilyInner(publicKey));
   const signer = useAtomValue(signersAtomFamily(publicKey));
-  const tenureExtendTimestamp = response?.tenureExtendTimestamp ?? null;
   const name = useEntity(publicKey);
+  const mostRecentTenureChange = useAtomValue(mostRecentTenureChangeAtom);
+  const tenureExtendTimestamp = React.useMemo(() => {
+    const ts = response?.tenureExtendTimestamp ?? null;
+    if (
+      mostRecentTenureChange &&
+      ts &&
+      new Date(ts).getTime() < mostRecentTenureChange
+    ) {
+      return null;
+    }
+    return ts;
+  }, [response?.tenureExtendTimestamp, mostRecentTenureChange]);
   if (!signer) return null;
   return (
     <TableRow>

@@ -180,8 +180,7 @@ export const useWatchBlocks = () => {
             const existing = get(__stacksBlocksFamilyInner(block.block_hash));
             const blockTimestamp = block.block_time
               ? new Date(block.block_time * 1000).toISOString()
-              : new Date().toISOString();
-            const timestamp = blockTimestamp ?? payload.receivedAt;
+              : payload.receivedAt;
             const base = {
               blockHash: block.block_hash,
               burnBlockHeight: block.burn_block_height,
@@ -192,6 +191,10 @@ export const useWatchBlocks = () => {
               networkKey: payload.networkKey,
               processedAt: payload.receivedAt,
               burnBlockHash: block.burn_block_hash,
+              indexBlockHash: block.index_block_hash,
+              burnBlockTimestamp: new Date(
+                block.burn_block_time * 1000,
+              ).toISOString(),
               blockTimestamp,
               ...cost,
             } satisfies ProcessedStacksBlock;

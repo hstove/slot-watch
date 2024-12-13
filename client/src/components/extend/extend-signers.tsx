@@ -2,6 +2,7 @@ import React from 'react';
 import { useAtomValue } from 'jotai';
 import {
   extendBoundsAtom,
+  mostRecentTenureChangeAtom,
   signerLatestResponseFamilyInner,
   sortedLatestResponsesAtom,
 } from '@/store/responses-store';
@@ -36,16 +37,28 @@ function ExtendSigner({
   const response = useAtomValue(
     signerLatestResponseFamilyInner(signerPublicKey),
   );
+  const mostRecentTenureChange = useAtomValue(mostRecentTenureChangeAtom);
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const color = React.useMemo(() => {
     const ts = response?.tenureExtendTimestamp ?? undefined;
     if (typeof ts === 'undefined') return naColor.toHex();
     if (!ts || !bounds.min) return naColor.toHex();
     if (!bounds.diff) return minColor.toHex();
+    if (
+      mostRecentTenureChange &&
+      new Date(ts).getTime() < mostRecentTenureChange
+    ) {
+      return naColor.toHex();
+    }
     const diff = (new Date(ts).getTime() - bounds.min) / bounds.diff;
     if (Number.isNaN(diff)) return minColor.toHex();
     return minColor.mix(maxColor, diff).toHex();
-  }, [bounds.diff, bounds.min, response?.tenureExtendTimestamp]);
+  }, [
+    bounds.diff,
+    bounds.min,
+    response?.tenureExtendTimestamp,
+    mostRecentTenureChange,
+  ]);
 
   if (!signer) return null;
   return (

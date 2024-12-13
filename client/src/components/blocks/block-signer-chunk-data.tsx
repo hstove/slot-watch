@@ -25,7 +25,8 @@ export function BlockSignerChunkDataInner({ chunkId }: { chunkId: number }) {
 
   let validfationReason = '';
   if (typeof decoded.validationCode === 'number') {
-    validfationReason = BlockResponseValidationCodes[decoded.validationCode];
+    validfationReason =
+      BlockResponseValidationCodes[decoded.validationCode] ?? '';
   }
 
   return (

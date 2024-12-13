@@ -7,11 +7,12 @@ export function serializeBurnBlock(block: BurnBlockDb) {
   };
 }
 
-export function serializeStacksBlock(block: StacksBlockDb) {
+export function serializeStacksBlock(block: Omit<StacksBlockDb, 'id'>) {
   return {
     ...block,
     createdAt: block.createdAt.toISOString(),
     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
     blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+    processedAt: block.createdAt.toISOString(),
   };
 }

@@ -21,10 +21,10 @@ function RejectedLabel({ data }: { data: string }) {
     if (decoded.accepted === true) return null;
     const { reasonCode, validationCode } = decoded;
     const hasValidationCode = typeof validationCode === 'number';
-    const reason = BlockResponseRejectCodes[reasonCode];
+    const reason = BlockResponseRejectCodes[reasonCode] ?? '';
     let validfationReason = 'Unknown';
     if (hasValidationCode) {
-      validfationReason = BlockResponseValidationCodes[validationCode];
+      validfationReason = BlockResponseValidationCodes[validationCode] ?? '';
     }
     return (
       <span className="ml-2">

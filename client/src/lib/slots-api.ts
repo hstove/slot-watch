@@ -118,11 +118,10 @@ export async function getBlocksForBurnBlock(
         txCount: proposal.txCount ?? 0,
         tenureChangeCause: proposal.tenureChangeCause,
         consensusHash: proposal.consensusHash,
-        burnBlockHeight:
-          proposal.burnBlockHeight ?? stacksBlock.burnBlockHeight ?? 0,
+        burnBlockHeight: stacksBlock.burnBlockHeight,
         networkKey: proposal.networkKey,
         proposedAt: proposal.createdAt,
-        processedAt: stacksBlock.createdAt ?? proposal.createdAt,
+        processedAt: stacksBlock.createdAt,
         burnBlockHash: stacksBlock.burnBlockHash,
         readCount: stacksBlock.readCount,
         readLength: stacksBlock.readLength,
@@ -130,6 +129,8 @@ export async function getBlocksForBurnBlock(
         writeCount: stacksBlock.writeCount,
         writeLength: stacksBlock.writeLength,
         blockTimestamp,
+        indexBlockHash: stacksBlock.indexBlockHash,
+        burnBlockTimestamp: stacksBlock.burnBlockTimestamp,
       } satisfies AllInfoBlock;
     }
     return {
@@ -171,6 +172,8 @@ interface _ProcessedStacksBlock extends StacksBlockBase {
   runtime: number;
   writeCount: number;
   writeLength: number;
+  indexBlockHash: string | null;
+  burnBlockTimestamp: string;
 }
 
 export type ProposalOnlyBlock = TypeMerge<
@@ -219,9 +222,19 @@ export async function getSigners(networkKey: string) {
 export type ApiSigners = Awaited<ReturnType<typeof getSigners>>;
 export type ApiSigner = ApiSigners['signers'][0];
 
-// export async function getTenureChanges(networkKey: string) {
-//   const response = await apiClient[':networkKey'].$get({
-//     param: { networkKey },
-//   });
-//   return response.json();
-// }
+export async function getTenureChanges(networkKey: string) {
+  const response = await apiClient['tenure-changes'][':networkKey'].$get({
+    param: { networkKey },
+    query: {
+      cause: undefined,
+    },
+  });
+  const { tenureChanges } = await response.json();
+  return tenureChanges.map((stacksBlock) => {
+    return {
+      ...stacksBlock,
+      processedAt: stacksBlock.createdAt,
+      blockTimestamp: stacksBlock.blockTimestamp ?? stacksBlock.createdAt,
+    } satisfies ProcessedStacksBlock;
+  });
+}

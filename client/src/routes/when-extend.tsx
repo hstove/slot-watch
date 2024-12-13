@@ -2,7 +2,7 @@ import { WhenExtend } from '@/components/extend/when-extend';
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { getSigners } from '@/lib/slots-api';
+import { getSigners, getTenureChanges } from '@/lib/slots-api';
 
 const basicSearchSchema = z.object({
   network: z.string().optional(),
@@ -15,7 +15,10 @@ export const Route = createFileRoute('/when-extend')({
     return { network };
   },
   loader: async ({ deps: { network } }) => {
-    const [signers] = await Promise.all([getSigners(network ?? 'mainnet')]);
-    return { network, signers };
+    const [signers, tenureChanges] = await Promise.all([
+      getSigners(network ?? 'mainnet'),
+      getTenureChanges(network ?? 'mainnet'),
+    ]);
+    return { network, signers, tenureChanges };
   },
 });

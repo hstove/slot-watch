@@ -7,7 +7,7 @@ export type Network = {
   name: string;
 };
 
-export const NETWORKS: Network[] = [
+export const NETWORKS = [
   {
     id: 'testnet',
     name: 'Testnet',
@@ -22,7 +22,10 @@ export const NETWORKS: Network[] = [
   },
 ];
 
-export const DEFAULT_NETWORK = NETWORKS[2];
+export const DEFAULT_NETWORK = {
+  id: 'mainnet',
+  name: 'Mainnet',
+};
 
 export function getNetwork(networkId: string | null) {
   if (typeof networkId !== 'string') {

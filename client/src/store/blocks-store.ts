@@ -15,6 +15,10 @@ import { getConsensusBlock, percentString } from 'slot-watch-common';
 import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';
+import {
+  setSignerLatestResponsesAtom,
+  tenureChangesWriterAtom,
+} from './responses-store';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -169,6 +173,12 @@ export const [
     if (block.blockHeight > maxProcessed && block.processedAt) {
       set(maxProcessedStacksHeightAtom, block.blockHeight);
     }
+    if (
+      block.tenureChangeCause !== null &&
+      typeof block.consensusHash === 'undefined'
+    ) {
+      set(tenureChangesWriterAtom, block);
+    }
     // we might need to insert a burn block if we missed it
     if (block.burnBlockHash && block.burnBlockHeight) {
       const burnBlock = get(burnBlocksAtomFamily(block.burnBlockHash));
@@ -274,7 +284,9 @@ export const [
       signerPublicKey: response.signerPublicKey,
     };
   },
-  undefined,
+  (_get, set, response) => {
+    set(setSignerLatestResponsesAtom, response);
+  },
   'responses-for-block',
 );
 

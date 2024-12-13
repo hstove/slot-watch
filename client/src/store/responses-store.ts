@@ -3,6 +3,8 @@ import {
   type ApiBlockResponseForBlock,
   apiClient,
   type ApiSigner,
+  getTenureChanges,
+  type ProcessedStacksBlock,
 } from '@/lib/slots-api';
 import { listAtomWithInit } from './store-utils';
 import { networkIdAtom } from './network';
@@ -41,25 +43,43 @@ export type SignerWithResponse = O.Merge<
   SignerLatestResponse
 >;
 
-export type SortedResponses = (SignerWithResponse | SignerWithoutResponse) & {
-  extend: boolean;
-};
+export type SortedResponse = SignerWithoutResponse | SignerWithResponse;
 
-export const sortedLatestResponsesAtom = atom<SortedResponses[]>((get) => {
+export const sortedLatestResponsesAtom = atom((get) => {
   const responses = get(signersLatestResponsesAtom);
   const signers = get(signersApiAtom);
   const threshold = get(thresholdAtom);
+  const mostRecentTenureChange = get(mostRecentTenureChangeAtom);
+  const recentTenureChange = mostRecentTenureChange
+    ? new Date(mostRecentTenureChange).getTime()
+    : null;
   if (!signers) {
     console.warn('Early return: no signers data');
     return [];
   }
   const responsesBySigner = R.groupBy(responses, R.prop('signerPublicKey'));
   const zipped = R.map(signers.signers, (signer) => {
-    return {
-      ...signer,
-      ...(responsesBySigner[signer.publicKey]?.[0] ?? undefined),
-    };
-  });
+    const [response] = responsesBySigner[signer.publicKey] ?? [];
+    if (response) {
+      if (response.tenureExtendTimestamp && recentTenureChange) {
+        if (
+          new Date(response.tenureExtendTimestamp).getTime() <
+          recentTenureChange
+        ) {
+          return {
+            ...signer,
+            ...response,
+            tenureExtendTimestamp: null,
+          };
+        }
+      }
+      return {
+        ...signer,
+        ...response,
+      };
+    }
+    return signer;
+  }) as SortedResponse[];
   // Sort by tenureExtendTimestamp, nulls last
   const sorted = Array.from(zipped).sort((a, b) => {
     if (!a.tenureExtendTimestamp) return 1;
@@ -76,7 +96,7 @@ export const sortedLatestResponsesAtom = atom<SortedResponses[]>((get) => {
     return {
       ...r,
       extend: sum >= threshold,
-    };
+    } satisfies SortedResponse & { extend: boolean };
   });
 });
 
@@ -101,10 +121,19 @@ export const whenExtendAtom = atom((get) => {
   const threshold = get(thresholdAtom);
   const responses = get(sortedLatestResponsesAtom);
   const signers = get(signersApiAtom);
+  const mostRecentTenureChange = get(mostRecentTenureChangeAtom);
   if (!signers) return null;
   // const signerMap = new Map(signers.signers.map((s) => [s.publicKey, s]));
   let sum = 0;
   for (const r of responses) {
+    if (r.tenureExtendTimestamp && mostRecentTenureChange) {
+      if (
+        new Date(r.tenureExtendTimestamp).getTime() <
+        new Date(mostRecentTenureChange).getTime()
+      ) {
+        continue;
+      }
+    }
     sum += r.weight ?? 0;
     if (sum >= threshold) {
       return r.tenureExtendTimestamp ?? null;
@@ -128,4 +157,36 @@ export const extendBoundsAtom = atom((get) => {
   }
   const diff = max && min ? max - min : null;
   return { min, max, diff };
+});
+
+export const [
+  tenureChangesAtom,
+  _tenureChangesFamily,
+  _tenureChangesFamilyInner,
+  _tenureChangesAtomInner,
+  tenureChangesWriterAtom,
+] = listAtomWithInit<ProcessedStacksBlock, string>(
+  async (get) => {
+    const networkKey = get(networkIdAtom);
+    const changes = await getTenureChanges(networkKey);
+    return changes;
+    // return changes.tenureChanges.map((stacksBlock) => {
+    //   return {
+    //     ...stacksBlock,
+    //     processedAt: stacksBlock.createdAt,
+    //     blockTimestamp: stacksBlock.blockTimestamp ?? stacksBlock.createdAt,
+    //   } satisfies ProcessedStacksBlock;
+    // });
+  },
+  (r) => r.blockHash,
+  undefined,
+  'tenure-changes',
+);
+
+export const mostRecentTenureChangeAtom = atom((get) => {
+  const [tenureChange] = get(_tenureChangesAtomInner);
+  if (tenureChange) {
+    return new Date(tenureChange.blockTimestamp).getTime();
+  }
+  return null;
 });

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
-import { and, desc, eq, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -143,8 +143,9 @@ const blockRoutes = new Hono()
     async (c) => {
       const networkKey = c.req.param('networkKey');
       const { cause } = c.req.valid('query');
+      const { id, ...tableColumns } = getTableColumns(stacksBlocks);
       const tenureChanges = await db
-        .select()
+        .select(tableColumns)
         .from(stacksBlocks)
         .where(
           and(

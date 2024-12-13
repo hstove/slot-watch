@@ -4,9 +4,14 @@ import { cn } from '@/lib/utils';
 
 interface TimestampProps extends React.HTMLAttributes<HTMLDivElement> {
   timestamp: string;
+  showMillis?: boolean;
 }
 
-export const Timestamp = ({ timestamp, className }: TimestampProps) => {
+export const Timestamp = ({
+  timestamp,
+  className,
+  showMillis = true,
+}: TimestampProps) => {
   const { timestamp: formattedTimestamp, timestampWithoutMillis } =
     useTimestamp(timestamp);
   const [textColor, setTextColor] = React.useState<string | undefined>();
@@ -36,7 +41,7 @@ export const Timestamp = ({ timestamp, className }: TimestampProps) => {
           textColor,
         )}
       >
-        {formattedTimestamp}
+        {showMillis ? formattedTimestamp : timestampWithoutMillis}
       </span>
     </>
   );

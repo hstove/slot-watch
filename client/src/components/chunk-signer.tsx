@@ -32,8 +32,7 @@ export const ChunkSigner = ({ chunk }: { chunk: ChunkEvent }) => {
   const hexCode = pubKey.slice(0, 6);
   const background = useMemo(() => {
     const text = colord(`#${hexCode}`);
-    // return text.invert().alpha(0.5).toHex();
-    return text.harmonies('rectangle')[2].lighten(0.7).toHex();
+    return text.harmonies('rectangle')[2]?.lighten(0.7).toHex() ?? '';
   }, [hexCode]);
   const [_, copy] = useCopyToClipboard();
   return (
