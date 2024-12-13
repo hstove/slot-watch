@@ -1,6 +1,10 @@
 import React from 'react';
 import { Route } from '@/routes/index';
-import { allBurnBlocksAtom, setAllBurnBlocksAtom } from '@/store/blocks-store';
+import {
+  allBurnBlocksAtom,
+  setAllBurnBlocksAtom,
+  sortedBurnBlocksAtom,
+} from '@/store/blocks-store';
 import { BurnBlock } from './burn-block';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useWatchBlocks } from '@/hooks/use-watch-blocks';
@@ -11,7 +15,7 @@ import { BlockModal } from '../block/block-modal';
 
 export function Blocks() {
   const loaderData = Route.useLoaderData();
-  const burnBlocks = useAtomValue(allBurnBlocksAtom);
+  const burnBlocks = useAtomValue(sortedBurnBlocksAtom);
   const setBurnBlocks = useSetAtom(setAllBurnBlocksAtom);
   const setSigners = useSetAtom(setSignersApiAtom);
   const { readyState } = useWatchBlocks();

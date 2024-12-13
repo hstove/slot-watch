@@ -80,7 +80,7 @@ export const maxBurnBlockHeightAtom = atom((get) => {
 
 export const sortedBurnBlocksAtom = atom((get) => {
   const burnBlocks = get(allBurnBlocksAtom);
-  return burnBlocks.sort((a, b) => a.burnBlockHeight - b.burnBlockHeight);
+  return burnBlocks.sort((a, b) => b.burnBlockHeight - a.burnBlockHeight);
 });
 
 export const burnBlocksAtomFamily = atomFamily((_burnBlockHash: string) =>
