@@ -22,6 +22,7 @@ import { Countdown } from '../countdown';
 import { loadable } from 'jotai/utils';
 import { useSpring, animated, config } from '@react-spring/web';
 import { useEntity } from '@/hooks/use-entity';
+import { getVersionFromString } from 'slot-watch-common';
 
 export const BlockListResponse = ({
   blockHash,
@@ -111,6 +112,13 @@ export const BlockListResponse = ({
             <>
               <DataLabel>Reason</DataLabel>
               <DataValue>{response.reason}</DataValue>
+            </>
+          ) : null}
+
+          {response?.version ? (
+            <>
+              <DataLabel>Version</DataLabel>
+              <DataValue>{getVersionFromString(response.version)}</DataValue>
             </>
           ) : null}
         </div>
