@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { networkIdAtom } from './network';
 import type { RecentSigner } from 'slot-watch-common';
+import { getSortableVersion } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import {
   type ApiSigner,
@@ -59,6 +60,12 @@ export const recentSignersAtom = atom(async (get) => {
   const total = signers.signers.reduce((acc, signer) => acc + signer.weight, 0);
   return {
     ...signers,
+    signers: signers.signers.map((signer) => {
+      return {
+        ...signer,
+        versionCmp: getSortableVersion(signer.version),
+      };
+    }),
     total,
   };
 });

@@ -1,5 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { percentString, type RecentSigner } from 'slot-watch-common';
+import type { Version } from 'slot-watch-common';
+import {
+  percentString,
+  versionSort,
+  type RecentSigner,
+} from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { SortableHeader } from '../ui/data-table';
 import { PublicKey } from '../public-key';
@@ -31,7 +36,7 @@ function Degregation({
   );
 }
 
-export const columns: ColumnDef<RecentSigner>[] = [
+export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
   {
     // header: "#",
     accessorKey: 'slotId',
@@ -52,7 +57,10 @@ export const columns: ColumnDef<RecentSigner>[] = [
     cell: ({ row }) => {
       return (
         <div className="text-xs">
-          <PublicKey publicKey={row.original.publicKey} />
+          <PublicKey
+            publicKey={row.original.publicKey}
+            className="max-w-[70px]"
+          />
         </div>
       );
     },
@@ -134,7 +142,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
         <Degregation
           degradation={row.original.degradation25}
           lastNBlocks={25}
-          className="ml-0"
+          className="ml-0 text-xs"
         />
       );
     },
@@ -158,6 +166,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
         <Degregation
           degradation={row.original.degradation50}
           lastNBlocks={50}
+          className="ml-2 text-xs"
         />
       );
     },
@@ -191,16 +200,19 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
   },
   {
-    header: 'Version',
-    // sortingFn: (a, b) => {
-    //   return a.original.version.localeCompare(b.original.version);
-    // },
-    // accessorKey: "versionShort",
+    header: ({ column }) => {
+      return <SortableHeader column={column}>Version</SortableHeader>;
+    },
+    sortingFn: (a, b) => {
+      // return a.original.version.localeCompare(b.original.version);
+      return versionSort(a.original.versionCmp, b.original.versionCmp);
+    },
+    accessorKey: 'versionShort',
     cell: ({ row }) => {
       console.log(row.original.versionShort);
       return (
         <SimpleTooltip content={row.original.version}>
-          <Text variant="small" className="text-xs">
+          <Text variant="small" className="text-xs ml-3">
             {row.original.versionShort}
           </Text>
         </SimpleTooltip>

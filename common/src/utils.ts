@@ -12,6 +12,7 @@ import { isMainnet } from './networks';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 // import { sha256 } from '@noble/hashes/sha256';
 import { sha256 } from '@noble/hashes/sha2';
+import * as R from 'remeda';
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -23,6 +24,8 @@ export type TypeMerge<T extends object, U extends object> = Prettify<
     [K in Exclude<keyof U, keyof T>]?: undefined;
   }
 >;
+
+export type Version = [number, number, number, number, number, number];
 
 export function getVersionFromString(version: string) {
   // Handle `stacks-signer VERSION (...);`
@@ -48,6 +51,34 @@ export function versionFromData(data: string | null): string {
     return decoded.version ?? '';
   }
   return '';
+}
+
+function getVersionPart(version: string | undefined): number {
+  if (!version) return 0;
+  const n = Number.parseInt(version);
+  if (Number.isNaN(n)) return 0;
+  return n;
+}
+
+export function getSortableVersion(version: string): Version {
+  const [a, b, c, d, e, f] = version.split('.');
+  return [
+    getVersionPart(a),
+    getVersionPart(b),
+    getVersionPart(c),
+    getVersionPart(d),
+    getVersionPart(e),
+    getVersionPart(f),
+  ];
+}
+
+export function versionSort(a: Version, b: Version) {
+  if (a[0] !== b[0]) return a[0] - b[0];
+  if (a[1] !== b[1]) return a[1] - b[1];
+  if (a[2] !== b[2]) return a[2] - b[2];
+  if (a[3] !== b[3]) return a[3] - b[3];
+  if (a[4] !== b[4]) return a[4] - b[4];
+  return a[5] - b[5];
 }
 
 export function percentString(value: number, precision = 10000) {
