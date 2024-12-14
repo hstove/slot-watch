@@ -41,7 +41,7 @@ export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
     // header: "#",
     accessorKey: 'slotId',
     cell: ({ row }) => {
-      return <div className="font-mono ml-4">{row.original.slotId}</div>;
+      return <div className="font-mono ml-2">{row.original.slotId}</div>;
     },
     header: ({ column }) => {
       return (
@@ -81,7 +81,7 @@ export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
     // header: "Signing Power",
     cell: ({ row }) => {
       return (
-        <div className="font-mono ml-4 text-xs">
+        <div className="font-mono ml-2 text-xs">
           {row.original.weightPercentStr}%
         </div>
       );
@@ -190,7 +190,10 @@ export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
           })}
         >
           {/* <TimeAgo date={row.original.createdAt} className="ml-4" /> */}
-          <Timestamp timestamp={row.original.createdAt} className="text-xs" />
+          <Timestamp
+            timestamp={row.original.createdAt}
+            className="text-xs ml-2"
+          />
         </SimpleTooltip>
       );
       // return <TimeAgo date={row.original.createdAt} className="ml-4" />;
