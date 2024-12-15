@@ -54,7 +54,7 @@ export function versionFromData(data: string | null): string {
 }
 
 function getVersionPart(version: string | undefined): number {
-  if (!version) return 0;
+  if (typeof version === 'undefined') return 0;
   const n = Number.parseInt(version);
   if (Number.isNaN(n)) return 0;
   return n;

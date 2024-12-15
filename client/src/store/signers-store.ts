@@ -11,6 +11,12 @@ import {
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { setDebugLabel } from './store-utils';
+import * as R from 'remeda';
+import type { ChartConfig } from '@/components/ui/chart';
+import { colord, extend } from 'colord';
+import mixPlugin from 'colord/plugins/mix';
+
+extend([mixPlugin]);
 
 export const signersAtomFamilyInner = atomFamily(
   (_lookup: { publicKey: string; networkKey: string }) =>
@@ -63,7 +69,7 @@ export const recentSignersAtom = atom(async (get) => {
     signers: signers.signers.map((signer) => {
       return {
         ...signer,
-        versionCmp: getSortableVersion(signer.version),
+        versionCmp: getSortableVersion(signer.versionShort),
       };
     }),
     total,
@@ -109,5 +115,52 @@ export const totalUpatedSignersAtom = atom(async (get) => {
     weight: total,
     total: recentSigners.totalWeight,
     numSigners,
+  };
+});
+
+export const signerVersionsAtom = atom(async (get) => {
+  const recentSigners = await get(recentSignersAtom);
+  const versions = R.groupBy(recentSigners.signers, (s) => {
+    return s.versionCmp.join('.');
+    // return s.versionShort;
+  });
+
+  return Object.entries(versions).map(([version, signers]) => {
+    return {
+      version,
+      signers: signers.length,
+    };
+  });
+});
+
+export const signerVersionsChartAtom = atom(async (get) => {
+  const versions = await get(signerVersionsAtom);
+  const baseColor = colord('hsl(240 2% 26%)');
+  const tints = baseColor.tints(versions.length);
+  const chartConfig: ChartConfig = {
+    version: {
+      label: 'Version',
+    },
+  };
+  let i = 0;
+  for (const version of versions) {
+    chartConfig[version.version] = {
+      label: version.version,
+      // color: `hsl(var(--chart-${i}))`,
+      color: tints[i]?.toHex() ?? 'white',
+    };
+    i++;
+  }
+  const chartData = versions.map((v, i) => {
+    return {
+      version: v.version,
+      signers: v.signers,
+      // fill: `var(--color-${v.version})`,
+      fill: tints[i]?.toHex() ?? 'white',
+    };
+  });
+  return {
+    chartConfig,
+    chartData,
   };
 });

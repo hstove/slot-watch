@@ -12,6 +12,8 @@ import { textVariants } from '@/lib/text-variants';
 import { networkIdAtom } from '@/store/network';
 import { DataTable } from '../ui/data-table';
 import { columns } from './columns';
+import { VersionsChart } from './versions-chart';
+import { Card, CardContent, CardHeader } from '../ui/card';
 
 extend([mixPlugin]);
 
@@ -38,33 +40,48 @@ export const RecentSigners = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex w-full py-10">
-        <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: 'h2' })}>
-            {showCustom ? totalUpdated.percentStr : totalRecents.percentStr}%
-          </h2>
-          <p className={textVariants({ variant: 'muted' })}>
-            Percent of signer weight{' '}
-            {showCustom ? 'updated' : 'active in last 10 minutes'}
-          </p>
-        </div>
-        <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: 'h2' })}>
-            {showCustom ? totalUpdated.numSigners : totalRecents.numSigners}
-            <span className="opacity-50 mx-2">/</span>
-            {recentSigners.signers.length}
-          </h2>
-          <p className={textVariants({ variant: 'muted' })}>
-            Number of signers{' '}
-            {showCustom ? 'updated' : 'active in last 10 minutes'}
-          </p>
-        </div>
-        <div className="flex-1 flex flex-col gap-0">
-          <h2 className={textVariants({ variant: 'h2' })}>
-            {recentSigners.rewardCycle}
-          </h2>
-          <p className={textVariants({ variant: 'muted' })}>Reward Cycle</p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 auto-cols-fr gap-3">
+        <Card className="flex flex-col items-center pt-5">
+          {/* <CardHeader /> */}
+          <CardContent className="w-full flex flex-col items-center flex-1">
+            <div className="flex-1 items-center" />
+
+            <h2 className={textVariants({ variant: 'h2' })}>
+              {totalRecents.percentStr}%
+            </h2>
+            <div className="flex-1 items-center" />
+            <p className={textVariants({ variant: 'muted' })}>
+              Percent of signer weight active in last 10 minutes
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="flex flex-col items-center pt-5">
+          {/* <CardHeader /> */}
+          <CardContent className="w-full flex flex-col items-center flex-1">
+            <div className="flex-1 items-center" />
+            <h2 className={textVariants({ variant: 'h2' })}>
+              {totalRecents.numSigners}
+              <span className="opacity-50 mx-2">/</span>
+              {recentSigners.signers.length}
+            </h2>
+            <div className="flex-1 items-center" />
+
+            <p className={textVariants({ variant: 'muted' })}>
+              Number of signers active in last 10 minutes
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="flex flex-col items-center pt-5">
+          {/* <CardHeader /> */}
+          <CardContent className="w-full flex flex-col items-center">
+            {/* <div className="flex-1"> */}
+            <VersionsChart />
+            {/* </div> */}
+            <p className={textVariants({ variant: 'muted' })}>
+              Signer versions
+            </p>
+          </CardContent>
+        </Card>
       </div>
       {showCustom ? null : (
         <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8 gap-[2px]">

@@ -1,5 +1,9 @@
 import { sha256 } from '@noble/hashes/sha256';
-import { getVersionFromString, hash160 } from '../src/utils';
+import {
+  getSortableVersion,
+  getVersionFromString,
+  hash160,
+} from '../src/utils';
 import { test, expect } from 'vitest';
 import { hex } from '@scure/base';
 
@@ -34,4 +38,8 @@ test('hash160', () => {
       '02c35b37cd7b57fd7732b781fdec13e9318f2b6d8fdd086074fd6e5b01944da9cd',
     ),
   ).toEqual('c8f46d0b5d3147590c968e006e23dbedf73e1263');
+});
+
+test('getSortableVersion', () => {
+  expect(getSortableVersion('3.1.0.0.1.0')).toEqual([3, 1, 0, 0, 1, 0]);
 });

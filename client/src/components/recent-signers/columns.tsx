@@ -212,7 +212,6 @@ export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
     },
     accessorKey: 'versionShort',
     cell: ({ row }) => {
-      console.log(row.original.versionShort);
       return (
         <SimpleTooltip content={row.original.version}>
           <Text variant="small" className="text-xs ml-3">
