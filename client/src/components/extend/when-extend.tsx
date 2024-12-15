@@ -40,7 +40,7 @@ export function WhenExtend() {
 
   return (
     <div className="w-full flex flex-col gap-0 min-h-screen">
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col gap-7">
         <div className="grid grid-cols-2 auto-rows-fr">
           <div className="flex flex-col gap-2">
             <div className="text-3xl">
@@ -77,7 +77,7 @@ export function WhenExtend() {
             {whenExtend ? <Countdown date={whenExtend} /> : 'N/A'}
           </div>
         </div> */}
-        <div className="w-full flex flex-col gap-5 mb-10">
+        <div className="w-full flex flex-col gap-7 mb-10">
           <ExtendSigners />
           <ExtendSignersTable />
         </div>

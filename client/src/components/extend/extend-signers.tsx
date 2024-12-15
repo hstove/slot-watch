@@ -126,7 +126,7 @@ export function ExtendSigners() {
   let foundThreshold = false;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <div className="w-full rounded-md h-3 flex overflow-hidden gap-[2px]">
         {responses.map((r) => {
           const found = !foundThreshold && r.extend;
@@ -165,6 +165,6 @@ export function ExtendSigners() {
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }
