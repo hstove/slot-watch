@@ -25,6 +25,7 @@
     "@scure/btc-signer": "^1.4.0",
     "@stacks/stacks-blockchain-api-types": "^7.14.1",
     "@stacks/transactions": "^7.0.2",
+    "bignumber.js": "^9.1.2",
     "micro-packed": "^0.6.3",
     "remeda": "^2.17.4",
     "zod": "^3.23.8"

@@ -13,6 +13,7 @@ import { ripemd160 } from '@noble/hashes/ripemd160';
 // import { sha256 } from '@noble/hashes/sha256';
 import { sha256 } from '@noble/hashes/sha2';
 import * as R from 'remeda';
+import BigNumber from 'bignumber.js';
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -106,4 +107,23 @@ export function getBtcAddress(publicKey: string) {
 export function hash160(data: string | Uint8Array) {
   const bytes = typeof data === 'string' ? hex.decode(data) : data;
   return hex.encode(ripemd160(sha256(bytes)));
+}
+
+export type IntegerType = number | string | bigint;
+
+export function intToBn(value: IntegerType) {
+  if (typeof value === 'bigint') {
+    return BigNumber(value.toString());
+  }
+  return BigNumber(value);
+}
+
+export function microStxToStx(microStx: IntegerType) {
+  const bn = intToBn(microStx);
+  return bn.decimalPlaces(6).shiftedBy(-6);
+}
+
+export function stxToMicroStx(stx: IntegerType) {
+  const bn = intToBn(stx);
+  return bn.decimalPlaces(6).shiftedBy(6).decimalPlaces(0);
 }

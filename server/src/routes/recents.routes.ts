@@ -5,6 +5,7 @@ import {
   knownSigners,
   percentString,
   type RecentSignersResponse,
+  microStxToStx,
 } from 'slot-watch-common';
 import { signerDegradationRate } from '../metrics';
 import { getLatestResponses } from '../db/block-responses';
@@ -95,12 +96,16 @@ const getRecentsRoutes = new Hono()
           label += name;
         }
         label += ` (${percentStr}%)`;
+        const stx = microStxToStx(s.stacked_amt);
+
         return {
           publicKey: s.signing_key,
           weight: s.weight,
           weightPercent: percent,
           weightPercentStr: percentStr,
           name: knownSigners[s.signing_key] ?? null,
+          stackedAmount: s.stacked_amt,
+          stackedAmountStx: stx.toNumber(),
           label,
         };
       })
