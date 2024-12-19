@@ -9,16 +9,12 @@ export type Network = {
 
 export const NETWORKS = [
   {
-    id: 'testnet',
-    name: 'Testnet',
-  },
-  {
-    id: 'naka-testnet',
-    name: 'Nakamoto Testnet',
-  },
-  {
     id: 'mainnet',
     name: 'Mainnet',
+  },
+  {
+    id: 'testnet',
+    name: 'Testnet',
   },
 ];
 
