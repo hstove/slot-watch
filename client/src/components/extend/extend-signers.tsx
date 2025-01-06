@@ -89,7 +89,7 @@ function ExtendSigner({
           </DataValue>
 
           <DataLabel>Weight</DataLabel>
-          <DataValue>{signer.weight}</DataValue>
+          <DataValue>{signer.weightPercentStr}%</DataValue>
 
           <DataLabel>Tenure Extend</DataLabel>
           <DataValue>

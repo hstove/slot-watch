@@ -157,7 +157,7 @@ export const BlockListResponsesInner = ({
   return (
     <animated.div
       style={{ ...styles, overflow: 'hidden' }}
-      className="col-span-2 md:col-span-4"
+      className="col-span-3 md:col-span-4"
     >
       <div
         className="w-full rounded-md h-7 border border-border flex overflow-hidden gap-[1px]"
@@ -177,7 +177,7 @@ export const BlockListResponsesInner = ({
 
 export const BlockListResponses = ({ blockHash }: { blockHash: string }) => {
   return (
-    <React.Suspense fallback={<div className="h-7 col-span-3 md:col-span-4" />}>
+    <React.Suspense fallback={<div className="h-7 col-span-2 md:col-span-4" />}>
       <BlockListResponsesInner blockHash={blockHash} />
     </React.Suspense>
   );
