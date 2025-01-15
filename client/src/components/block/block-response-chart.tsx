@@ -5,7 +5,14 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '../ui/chart';
-import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis } from 'recharts';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { blockResponsesChartDataAtom } from '@/store/blocks-store';
 import { useAtomValue } from 'jotai';
 
@@ -31,8 +38,8 @@ export const BlockResponseChart = ({ blockHash }: { blockHash: string }) => {
         accessibilityLayer
         data={chartData}
         margin={{
-          left: 12,
-          right: 12,
+          // left: 12,
+          right: 24,
         }}
       >
         <CartesianGrid vertical={false} />
@@ -46,6 +53,11 @@ export const BlockResponseChart = ({ blockHash }: { blockHash: string }) => {
           type="number"
           scale="time"
           domain={['dataMin', 'dataMax']}
+        />
+        <YAxis
+          domain={[0, 1]}
+          tickMargin={8}
+          tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
         />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <Line
