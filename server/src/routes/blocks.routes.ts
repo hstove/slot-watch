@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
-import { and, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNotNull, or } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -91,6 +91,29 @@ const blockRoutes = new Hono()
       .orderBy(desc(burnBlocks.createdAt))
       .limit(3);
     return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
+  })
+  .get('/burn-blocks/:networkKey/:heightOrHash', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const heightOrHash = c.req.param('heightOrHash');
+    let heightMaybe: number | null = null;
+    try {
+      const heightBn = BigInt(heightOrHash);
+      heightMaybe = Number(heightBn);
+    } catch (error) {}
+    const [btcBlock] = await db
+      .select()
+      .from(burnBlocks)
+      .where(
+        and(
+          typeof heightMaybe === 'number'
+            ? eq(burnBlocks.burnBlockHeight, heightMaybe)
+            : eq(burnBlocks.burnBlockHash, heightOrHash),
+          eq(burnBlocks.networkKey, networkKey),
+        ),
+      )
+      .orderBy(desc(burnBlocks.createdAt))
+      .limit(1);
+    return c.json({ btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null });
   })
   .get(
     '/burn-blocks/:networkKey/:burnBlockHeight/blocks',
