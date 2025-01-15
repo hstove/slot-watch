@@ -1,6 +1,9 @@
 import React from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { activeBlockHashAtom } from '@/store/blocks-store';
+import {
+  activeBlockHashAtom,
+  responseOutcomeForBlockAtomFamily,
+} from '@/store/blocks-store';
 import { activeBlockAtom } from '@/store/blocks-store';
 import { textStyles } from '@/lib/text-variants';
 import { DataLabel, DataValue } from '../data-group';
@@ -9,16 +12,20 @@ import { sha256 } from '@noble/hashes/sha256';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 import { hex } from '@scure/base';
 import { BlockListResponses } from '../blocks-v2/block-list-responses';
+import { Text } from '../text';
 
 export function StacksBlock() {
   const block = useAtomValue(activeBlockAtom);
+  const responseOutcome = useAtomValue(
+    responseOutcomeForBlockAtomFamily(block?.blockHash ?? ''),
+  );
 
   const minerPkHash = React.useMemo(() => {
     if (!block?.minerPublicKey) return null;
     return hex.encode(ripemd160(sha256(hex.decode(block.minerPublicKey))));
   }, [block?.minerPublicKey]);
 
-  if (!block || !minerPkHash) return null;
+  if (!block || !minerPkHash || !responseOutcome) return null;
   return (
     <div className="flex flex-col gap-4">
       <h2 className={textStyles('h2', 'pb-0 mb-0')}>
@@ -30,6 +37,18 @@ export function StacksBlock() {
         <DataValue>{block.blockHash}</DataValue>
         <DataLabel>Block height</DataLabel>
         <DataValue>{block.blockHeight.toLocaleString()}</DataValue>
+        <DataLabel>Percent Accepted</DataLabel>
+        <DataValue>
+          <span className={'text-green-500'}>
+            {responseOutcome.acceptPercentString}%
+          </span>
+        </DataValue>
+        <DataLabel>Percent Rejected</DataLabel>
+        <DataValue>
+          <span className={'text-red-500'}>
+            {responseOutcome.rejectPercentString}%
+          </span>
+        </DataValue>
         <DataLabel>Block timestamp</DataLabel>
         <DataValue>
           <Timestamp timestamp={block.blockTimestamp} />

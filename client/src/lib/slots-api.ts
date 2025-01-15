@@ -75,6 +75,15 @@ export type ApiBurnBlock = Omit<
   'id'
 >;
 
+export async function getBtcBlock(networkKey: string, heightOrHash: string) {
+  const response = await apiClient['burn-blocks'][':networkKey'][
+    ':heightOrHash'
+  ].$get({
+    param: { networkKey, heightOrHash },
+  });
+  return response.json();
+}
+
 export async function getBlockResponsesForBlock(
   networkKey: string,
   blockHash: string,

@@ -42,7 +42,7 @@
     "drizzle-orm": "^0.36.0",
     "hono": "^4.6.9",
     "hono-pino-logger": "^1.0.0",
-    "ioredis": "^5.4.1",
+    "ioredis": "^5.4.2",
     "memory-cache": "^0.2.0",
     "micro-packed": "^0.6.3",
     "node-cache": "^5.1.2",

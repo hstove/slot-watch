@@ -13,6 +13,7 @@ import { BurnBlockCosts } from './burn-block-costs';
 import { PublicKey } from '../public-key';
 import { Button } from '../ui/button';
 import { textStyles, textVariants } from '@/lib/text-variants';
+import { Link } from '@tanstack/react-router';
 
 export const BurnBlock = ({
   burnBlockHeight,
@@ -27,7 +28,13 @@ export const BurnBlock = ({
       <div className="flex justify-between items-center sticky top-[60px] bg-background py-4 z-10 w-full">
         <div className="flex items-center gap-3">
           <BtcIcon />
-          <Text variant="small">{burnBlock.burnBlockHeight}</Text>
+          <Link
+            to={'/btc-blocks/$heightOrHash'}
+            params={{ heightOrHash: burnBlock.burnBlockHeight.toString() }}
+          >
+            <Text variant="small">{burnBlock.burnBlockHeight}</Text>
+          </Link>
+
           <div className="hidden md:block">
             <PublicKey publicKey={burnBlock.burnBlockHash} />
           </div>

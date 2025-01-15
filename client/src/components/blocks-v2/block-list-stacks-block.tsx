@@ -63,6 +63,26 @@ function ResponseOutcome({ blockHash }: { blockHash: string }) {
       : responseOutcome.accepted
         ? 'success'
         : 'pending';
+  if (status === 'pending') {
+    return (
+      <>
+        <SimpleTooltip
+          content={`${responseOutcome.rejectPercentString}% Rejected`}
+        >
+          <Badge className={statusStyles('warning')} size="icon">
+            {responseOutcome.rejectPercentString}%
+          </Badge>
+        </SimpleTooltip>
+        <SimpleTooltip
+          content={`${responseOutcome.acceptPercentString}% Accepted`}
+        >
+          <Badge className={statusStyles('success')} size="icon">
+            {responseOutcome.acceptPercentString}%
+          </Badge>
+        </SimpleTooltip>
+      </>
+    );
+  }
   return (
     <SimpleTooltip
       content={
@@ -82,15 +102,6 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
   const block = useAtomValue(stacksBlocksFamily(blockHash));
   const setActiveBlockHash = useSetAtom(activeBlockHashAtom);
   const maxProcessed = useAtomValue(maxProcessedStacksHeightAtom);
-  const [showResponses, setShowResponses] = React.useState(false);
-  const responseOutcome = useAtomValue(
-    responseOutcomeForBlockAtomFamily(blockHash),
-  );
-  // return <div>{blocks.map((b) => <div key={b.blockHash}>{b.blockHeight}</div>)}</div>;
-
-  const logBlock = React.useCallback(() => {
-    console.log(block);
-  }, [block]);
 
   const blockStatus = React.useMemo(() => {
     if (block.processedAt) {
