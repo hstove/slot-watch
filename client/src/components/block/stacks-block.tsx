@@ -3,6 +3,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   activeBlockHashAtom,
   responseOutcomeForBlockAtomFamily,
+  responsesForBlockAtomFamily,
 } from '@/store/blocks-store';
 import { activeBlockAtom } from '@/store/blocks-store';
 import { textStyles } from '@/lib/text-variants';
@@ -16,6 +17,7 @@ import { Text } from '../text';
 
 export function StacksBlock() {
   const block = useAtomValue(activeBlockAtom);
+  useAtomValue(responsesForBlockAtomFamily(block?.blockHash ?? ''));
   const responseOutcome = useAtomValue(
     responseOutcomeForBlockAtomFamily(block?.blockHash ?? ''),
   );

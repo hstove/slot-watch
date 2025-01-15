@@ -88,6 +88,7 @@ export async function getBlockResponsesForBlock(
   networkKey: string,
   blockHash: string,
 ) {
+  if (!blockHash) return [];
   const response = await apiClient.blocks[':networkKey'][
     ':blockId'
   ].responses.$get({

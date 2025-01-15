@@ -30,28 +30,6 @@ export const app = new Hono()
   .use(prettyJSON())
   .use(cors())
   .get(
-    '/watch',
-    upgradeWebSocket((c) => {
-      return {
-        async onOpen(e, ws) {
-          const rawWs = ws.raw as AppWebSocket;
-          rawWs.subscribe(CHUNKS_EVENT);
-          rawWs.subscribe(BURN_BLOCKS_EVENT);
-          rawWs.subscribe(NEW_BLOCK_EVENT);
-          rawWs.subscribe(MANY_CHUNKS_EVENT);
-        },
-        // async message(ws, message) {},
-        async onClose(evt, ws) {
-          const rawWs = ws.raw as AppWebSocket;
-          rawWs.unsubscribe(CHUNKS_EVENT);
-          rawWs.unsubscribe(BURN_BLOCKS_EVENT);
-          rawWs.unsubscribe(NEW_BLOCK_EVENT);
-          rawWs.unsubscribe(MANY_CHUNKS_EVENT);
-        },
-      };
-    }),
-  )
-  .get(
     '/watch/:networkKey',
     upgradeWebSocket((c) => {
       const networkKey = c.req.param('networkKey');
