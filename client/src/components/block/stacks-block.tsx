@@ -14,6 +14,7 @@ import { ripemd160 } from '@noble/hashes/ripemd160';
 import { hex } from '@scure/base';
 import { BlockListResponses } from '../blocks-v2/block-list-responses';
 import { Text } from '../text';
+import { BlockResponseChart } from './block-response-chart';
 
 export function StacksBlock() {
   const block = useAtomValue(activeBlockAtom);
@@ -34,6 +35,9 @@ export function StacksBlock() {
         Stacks block #{block.blockHeight.toLocaleString()}
       </h2>
       <BlockListResponses blockHash={block.blockHash} />
+      <React.Suspense>
+        <BlockResponseChart blockHash={block.blockHash} />
+      </React.Suspense>
       <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
         <DataLabel>Block hash</DataLabel>
         <DataValue>{block.blockHash}</DataValue>

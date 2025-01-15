@@ -6,6 +6,8 @@ import {
   type ApiBurnBlock,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
+  type ApiBlockResponseForBlock,
+  type ApiSigners,
 } from '@/lib/slots-api';
 import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
@@ -298,4 +300,64 @@ export const activeBlockAtom = atom((get) => {
   const activeHash = get(activeBlockHashAtom);
   if (!activeHash) return null;
   return get(stacksBlocksFamily(activeHash));
+});
+
+function accumulateResponses(
+  responses: ApiBlockResponseForBlock[],
+  signers: ApiSigners,
+) {
+  const sorted = R.sortBy(responses, [
+    (r) => new Date(r.createdAt).getTime(),
+    'asc',
+  ]);
+  const signersByPk = R.groupBy(signers.signers, (s) => s.publicKey);
+  let accumWeight = 0;
+  const accumulated = sorted.map((r) => {
+    const signer = signersByPk[r.signerPublicKey]?.[0];
+    if (!signer) throw new Error('Signer not found');
+    accumWeight += signer.weightPercent;
+    return {
+      value: accumWeight,
+      createdAt: new Date(r.createdAt).getTime(),
+    };
+  });
+  return accumulated;
+}
+
+export const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
+  return atom(async (get) => {
+    const responses = await get(responsesForBlockAtomFamily(blockHash));
+    const signers = get(signersApiAtom);
+    if (!signers) return null;
+    const sorted = R.sortBy(responses, [
+      (r) => new Date(r.createdAt).getTime(),
+      'asc',
+    ]);
+    const signersByPk = R.groupBy(signers.signers, (s) => s.publicKey);
+    let accumAccepted = 0;
+    let accumRejected = 0;
+    const data = sorted.map((r) => {
+      const signer = signersByPk[r.signerPublicKey]?.[0];
+      if (!signer) throw new Error('Signer not found');
+      if (r.accepted) {
+        accumAccepted += signer.weightPercent;
+      } else {
+        accumRejected += signer.weightPercent;
+      }
+      return {
+        accepted: accumAccepted,
+        rejected: accumRejected,
+        // createdAt: new Date(r.createdAt).toLocaleTimeString(),
+        createdAt: new Date(r.createdAt).getTime(),
+      };
+    });
+    return data;
+    // const byAccepted = R.groupBy(responses, (r) =>
+    //   r.accepted ? 'accepted' : 'rejected',
+    // );
+    // return {
+    //   accepted: accumulateResponses(byAccepted.accepted ?? [], signers),
+    //   rejected: accumulateResponses(byAccepted.rejected ?? [], signers),
+    // };
+  });
 });

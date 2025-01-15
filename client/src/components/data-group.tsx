@@ -2,9 +2,11 @@ import { textStyles } from '@/lib/text-variants';
 import type React from 'react';
 
 export function DataValue({ children }: { children: React.ReactNode }) {
-  return <p className={textStyles('muted')}>{children}</p>;
+  return <div className={textStyles('muted')}>{children}</div>;
 }
 
 export function DataLabel({ children }: { children: React.ReactNode }) {
-  return <p className={textStyles('small', 'pr-4 text-nowrap')}>{children}</p>;
+  return (
+    <div className={textStyles('small', 'pr-4 text-nowrap')}>{children}</div>
+  );
 }

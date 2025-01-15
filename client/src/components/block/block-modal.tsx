@@ -12,6 +12,7 @@ import { textStyles } from '@/lib/text-variants';
 import { DataLabel, DataValue } from '../data-group';
 import { Timestamp } from '../timestamp';
 import { StacksBlock } from './stacks-block';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 export const BlockModal = () => {
   const block = useAtomValue(activeBlockAtom);
@@ -26,6 +27,7 @@ export const BlockModal = () => {
         <div className="hidden" />
       </DialogTrigger>
       <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-scroll">
+        <DialogTitle className="sr-only">Block details</DialogTitle>
         <StacksBlock />
       </DialogContent>
     </Dialog>
