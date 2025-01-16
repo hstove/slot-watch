@@ -41,6 +41,8 @@ export async function getRecentSigners(networkKey: string) {
   return response.json();
 }
 
+export type ApiRecentSigners = Awaited<ReturnType<typeof getRecentSigners>>;
+
 export async function getChunksByTime(
   networkId: string,
   start: string,

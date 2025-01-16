@@ -1,9 +1,10 @@
-import 'react';
-import { useAtomValue } from 'jotai';
+import React from 'react';
+import { useAtom, useAtomValue } from 'jotai';
 import {
   recentSignersAtom,
   totalRecentSignersAtom,
   totalUpatedSignersAtom,
+  useSignerVersionsWeightedAtom,
 } from '@/store/signers-store';
 import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
@@ -14,11 +15,13 @@ import { DataTable } from '../ui/data-table';
 import { columns } from './columns';
 import { VersionsChart } from './versions-chart';
 import { Card, CardContent, CardHeader } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Route } from '../../routes/signers';
 
 extend([mixPlugin]);
 
-const okColor = colord('#00c221');
-const badColor = colord('#ff2600');
+const okColor = colord('#15803d');
+const badColor = colord('#b91c1c');
 
 function colorForTimeAgo(timeAgo: string | null) {
   if (timeAgo === null) return badColor.toHex();
@@ -32,11 +35,17 @@ function colorForTimeAgo(timeAgo: string | null) {
 const MAINNET_LAUNCHED = true;
 
 export const RecentSigners = () => {
-  const recentSigners = useAtomValue(recentSignersAtom);
   const totalRecents = useAtomValue(totalRecentSignersAtom);
-  const totalUpdated = useAtomValue(totalUpatedSignersAtom);
   const networkId = useAtomValue(networkIdAtom);
+  const loaderData = Route.useLoaderData();
+  const [recentSigners, setRecentSigners] = useAtom(recentSignersAtom);
+  const [useWeighted, setUseWeighted] = useAtom(useSignerVersionsWeightedAtom);
   const showCustom = !MAINNET_LAUNCHED && networkId === 'mainnet';
+  React.useEffect(() => {
+    setRecentSigners(loaderData.signers);
+  }, [loaderData, setRecentSigners]);
+
+  if (!recentSigners) return null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -72,14 +81,25 @@ export const RecentSigners = () => {
           </CardContent>
         </Card>
         <Card className="flex flex-col items-center pt-5">
-          {/* <CardHeader /> */}
           <CardContent className="w-full flex flex-col items-center">
-            {/* <div className="flex-1"> */}
-            <VersionsChart />
-            {/* </div> */}
-            <p className={textVariants({ variant: 'muted' })}>
-              Signer versions
-            </p>
+            <React.Suspense>
+              <VersionsChart />
+            </React.Suspense>
+            <div className="flex gap-2">
+              <p className={textVariants({ variant: 'muted' })}>
+                Signer versions
+              </p>
+              <Badge
+                size={'icon'}
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => {
+                  setUseWeighted((cur) => !cur);
+                }}
+              >
+                {useWeighted ? 'Weighted' : 'Raw'}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -92,8 +112,7 @@ export const RecentSigners = () => {
                 key={s.publicKey}
                 className="h-full"
                 style={{
-                  // width: `${s.power * 100}%`,
-                  flexGrow: s.weight + recentSigners.total * 0.01,
+                  flexGrow: s.weight + recentSigners.totalWeight * 0.01,
                   backgroundColor: color,
                 }}
               />
@@ -102,23 +121,6 @@ export const RecentSigners = () => {
         </div>
       )}
       <DataTable columns={columns} data={recentSigners.signers} />
-      {/* <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>#</TableHead>
-            <TableHead>Public Key</TableHead>
-            <TableHead>Entity</TableHead>
-            <TableHead>Signing Power</TableHead>
-            <TableHead>Last Seen</TableHead>
-            <TableHead>Version</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {recentSigners.signers.map((signer) => {
-            return <RecentSignerRow key={signer.publicKey} signer={signer} />;
-          })}
-        </TableBody>
-      </Table> */}
     </div>
   );
 };

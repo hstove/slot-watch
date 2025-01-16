@@ -4,6 +4,7 @@ import type { RecentSigner } from 'slot-watch-common';
 import { getSortableVersion } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import {
+  type ApiRecentSigners,
   type ApiSigner,
   type ApiSigners,
   getRecentSigners,
@@ -60,24 +61,15 @@ export const thresholdAtom = atom((get) => {
 
 export type RecentSignerWithPower = RecentSigner;
 
-export const recentSignersAtom = atom(async (get) => {
-  const networkId = get(networkIdAtom);
-  const signers = await getRecentSigners(networkId);
-  const total = signers.signers.reduce((acc, signer) => acc + signer.weight, 0);
-  return {
-    ...signers,
-    signers: signers.signers.map((signer) => {
-      return {
-        ...signer,
-        versionCmp: getSortableVersion(signer.versionShort),
-      };
-    }),
-    total,
-  };
+export const recentSignersAtom = atom<ApiRecentSigners>({
+  networkKey: '',
+  rewardCycle: 0,
+  totalWeight: 0,
+  signers: [],
 });
 
-export const totalRecentSignersAtom = atom(async (get) => {
-  const recentSigners = await get(recentSignersAtom);
+export const totalRecentSignersAtom = atom((get) => {
+  const recentSigners = get(recentSignersAtom);
   let total = 0;
   let numSigners = 0;
   for (const signer of recentSigners.signers) {
@@ -98,8 +90,8 @@ export const totalRecentSignersAtom = atom(async (get) => {
   };
 });
 
-export const totalUpatedSignersAtom = atom(async (get) => {
-  const recentSigners = await get(recentSignersAtom);
+export const totalUpatedSignersAtom = atom((get) => {
+  const recentSigners = get(recentSignersAtom);
   let total = 0;
   let numSigners = 0;
   for (const signer of recentSigners.signers) {
@@ -118,14 +110,27 @@ export const totalUpatedSignersAtom = atom(async (get) => {
   };
 });
 
-export const signerVersionsAtom = atom(async (get) => {
-  const recentSigners = await get(recentSignersAtom);
+export const useSignerVersionsWeightedAtom = atom(false);
+
+export const signerVersionsAtom = atom((get) => {
+  const recentSigners = get(recentSignersAtom);
   const versions = R.groupBy(recentSigners.signers, (s) => {
-    return s.versionCmp.join('.');
+    return getSortableVersion(s.versionShort).join('.');
     // return s.versionShort;
   });
+  const useWeighted = get(useSignerVersionsWeightedAtom);
 
   return Object.entries(versions).map(([version, signers]) => {
+    if (useWeighted) {
+      const totalWeight = signers.reduce(
+        (acc, s) => acc + s.weightPercent * 100,
+        0,
+      );
+      return {
+        version,
+        signers: Number.parseFloat(totalWeight.toFixed(1)),
+      };
+    }
     return {
       version,
       signers: signers.length,
@@ -133,8 +138,8 @@ export const signerVersionsAtom = atom(async (get) => {
   });
 });
 
-export const signerVersionsChartAtom = atom(async (get) => {
-  const versions = await get(signerVersionsAtom);
+export const signerVersionsChartAtom = atom((get) => {
+  const versions = get(signerVersionsAtom);
   const baseColor = colord('hsl(240 2% 26%)');
   const tints = baseColor.tints(versions.length);
   const chartConfig: ChartConfig = {

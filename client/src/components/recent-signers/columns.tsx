@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Version } from 'slot-watch-common';
 import {
+  getSortableVersion,
   percentString,
   versionSort,
   type RecentSigner,
@@ -36,7 +37,7 @@ function Degregation({
   );
 }
 
-export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
+export const columns: ColumnDef<RecentSigner>[] = [
   {
     // header: "#",
     accessorKey: 'slotId',
@@ -207,10 +208,14 @@ export const columns: ColumnDef<RecentSigner & { versionCmp: Version }>[] = [
       return <SortableHeader column={column}>Version</SortableHeader>;
     },
     sortingFn: (a, b) => {
-      // return a.original.version.localeCompare(b.original.version);
-      return versionSort(a.original.versionCmp, b.original.versionCmp);
+      const aVersion = getSortableVersion(a.original.versionShort);
+      const bVersion = getSortableVersion(b.original.versionShort);
+      return versionSort(aVersion, bVersion);
     },
-    accessorKey: 'versionShort',
+    id: 'versionCmp',
+    accessorFn: (row) => {
+      return getSortableVersion(row.versionShort);
+    },
     cell: ({ row }) => {
       return (
         <SimpleTooltip content={row.original.version}>

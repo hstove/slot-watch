@@ -18,6 +18,8 @@ import { networkIdAtom } from '@/store/network';
 import {
   __stacksBlocksFamilyInner,
   insertBurnBlockAtom,
+  removeResponsesForBlock,
+  responseOutcomeForBlockAtomFamily,
   setResponseForBlockFamily,
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
@@ -119,7 +121,7 @@ export const useWatchBlocks = () => {
 
   const handleMessage = useAtomCallback(
     React.useCallback(
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      // biome-ignore lint/suspicious/noExplicitAny: This is a websocket message event
       (get, set, message: MessageEvent<any> | null) => {
         if (message === null) return;
         const networkId = get(networkIdAtom);
@@ -132,7 +134,6 @@ export const useWatchBlocks = () => {
             return;
           }
           if (payload.type === 'many_chunks') {
-            // const signerLatestResponsesMap = get(signerLatestResponsesMapAtom);
             for (const chunk of payload.payload) {
               const publicKey = recoverChunkPublicKey({
                 signature: hex.decode(chunk.signature),
@@ -184,7 +185,6 @@ export const useWatchBlocks = () => {
             const base = {
               blockHash: block.block_hash,
               burnBlockHeight: block.burn_block_height,
-              // minerPublicKey: existing?.minerPublicKey ?? null,
               txCount: block.transactions.length,
               tenureChangeCause,
               blockHeight: block.block_height,
@@ -206,6 +206,12 @@ export const useWatchBlocks = () => {
                 ...base,
               },
             );
+
+            // Once a block is "finalized" (arrives in new_block),
+            // we no longer need the per-block signer responses in memory.
+            // Remove them via the family remove method.
+            removeResponsesForBlock(block.block_hash);
+            responseOutcomeForBlockAtomFamily.remove(block.block_hash);
           } else if (payload.type === 'burn_blocks') {
             console.log(
               'Received burn block',

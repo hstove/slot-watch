@@ -270,12 +270,14 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
     }),
 );
 
+// The listAtomFamilyWithInit returns the following pattern:
+// [listAtom, itemAtomFamily, itemAtomFamilyInner, listAtomFamilyInner, writerAtom]
 export const [
-  responsesForBlockAtomFamily,
-  _responseForBlockFamily,
-  responseForBlockFamily,
-  responsesForBlockFamilyInner,
-  setResponseForBlockFamily,
+  responsesForBlockAtomFamily, // This is the "listAtom" (an atomFamily)
+  _responseForBlockFamily, // itemAtomFamily (unused externally)
+  responseForBlockFamily, // itemAtomFamilyInner
+  responsesForBlockFamilyInner, // listAtomFamilyInner
+  setResponseForBlockFamily, // writerAtom
 ] = listAtomFamilyWithInit(
   async (blockHash: string, get) => {
     const networkKey = get(networkIdAtom);
@@ -294,6 +296,11 @@ export const [
   'responses-for-block',
 );
 
+// Helper for removing all responses for a given blockHash from the family
+export function removeResponsesForBlock(blockHash: string) {
+  responsesForBlockAtomFamily.remove(blockHash);
+}
+
 export const activeBlockHashAtom = atom<string>();
 
 export const activeBlockAtom = atom((get) => {
@@ -301,28 +308,6 @@ export const activeBlockAtom = atom((get) => {
   if (!activeHash) return null;
   return get(stacksBlocksFamily(activeHash));
 });
-
-function accumulateResponses(
-  responses: ApiBlockResponseForBlock[],
-  signers: ApiSigners,
-) {
-  const sorted = R.sortBy(responses, [
-    (r) => new Date(r.createdAt).getTime(),
-    'asc',
-  ]);
-  const signersByPk = R.groupBy(signers.signers, (s) => s.publicKey);
-  let accumWeight = 0;
-  const accumulated = sorted.map((r) => {
-    const signer = signersByPk[r.signerPublicKey]?.[0];
-    if (!signer) throw new Error('Signer not found');
-    accumWeight += signer.weightPercent;
-    return {
-      value: accumWeight,
-      createdAt: new Date(r.createdAt).getTime(),
-    };
-  });
-  return accumulated;
-}
 
 export const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
   return atom(async (get) => {
@@ -347,17 +332,9 @@ export const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
       return {
         accepted: accumAccepted,
         rejected: accumRejected,
-        // createdAt: new Date(r.createdAt).toLocaleTimeString(),
         createdAt: new Date(r.createdAt).getTime(),
       };
     });
     return data;
-    // const byAccepted = R.groupBy(responses, (r) =>
-    //   r.accepted ? 'accepted' : 'rejected',
-    // );
-    // return {
-    //   accepted: accumulateResponses(byAccepted.accepted ?? [], signers),
-    //   rejected: accumulateResponses(byAccepted.rejected ?? [], signers),
-    // };
   });
 });
