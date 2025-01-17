@@ -1,16 +1,11 @@
 import { Blocks } from '@/components/blocks-v2/blocks';
 import { createFileRoute } from '@tanstack/react-router';
-import { z } from 'zod';
-import { zodValidator } from '@tanstack/zod-adapter';
 import { getBurnBlocks, getSigners } from '@/lib/slots-api';
-
-const basicSearchSchema = z.object({
-  network: z.string().optional(),
-});
+import { validateSearch } from '@/lib/search-schema';
 
 export const Route = createFileRoute('/')({
   component: () => <Blocks />,
-  validateSearch: zodValidator(basicSearchSchema),
+  validateSearch,
   loaderDeps: ({ search: { network } }) => {
     return { network };
   },

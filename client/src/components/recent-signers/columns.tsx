@@ -99,20 +99,8 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
   },
   {
-    // invertSorting: true,
-    // sortDescFirst: false,
-    // accessorKey: 'degradation10',
-    // header: ({ column }) => {
-    //   return (
-    //     <SortableHeader column={column}>
-    //       Health (10)
-    //       <SimpleTooltip content="Health of the signer over the last 10 block proposals">
-    //         <InfoCircledIcon className="ml-2 h-3 w-3" />
-    //       </SimpleTooltip>
-    //     </SortableHeader>
-    //   );
-    // },
     header: 'Health (10)',
+    id: 'degradation10',
     cell: ({ row }) => {
       return (
         <Degregation
@@ -124,20 +112,8 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
   },
   {
-    // accessorKey: 'degradation25',
     header: 'Health (25)',
-    // invertSorting: true,
-    // sortDescFirst: false,
-    // header: ({ column }) => {
-    //   return (
-    //     <SortableHeader column={column}>
-    //       Health (25)
-    //       <SimpleTooltip content="Health of the signer over the last 25 block proposals">
-    //         <InfoCircledIcon className="ml-2 h-3 w-3" />
-    //       </SimpleTooltip>
-    //     </SortableHeader>
-    //   );
-    // },
+    id: 'degradation25',
     cell: ({ row }) => {
       return (
         <Degregation

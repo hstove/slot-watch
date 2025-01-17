@@ -1,24 +1,19 @@
-import { Blocks } from '@/components/blocks-v2/blocks'
-import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
-import { zodValidator } from '@tanstack/zod-adapter'
-import { getBurnBlocks, getSigners } from '@/lib/slots-api'
-
-const basicSearchSchema = z.object({
-  network: z.string().optional().default('mainnet'),
-})
+import { Blocks } from '@/components/blocks-v2/blocks';
+import { createFileRoute } from '@tanstack/react-router';
+import { getBurnBlocks, getSigners } from '@/lib/slots-api';
+import { validateSearch } from '@/lib/search-schema';
 
 export const Route = createFileRoute('/blocks/')({
   component: () => <Blocks />,
-  validateSearch: zodValidator(basicSearchSchema),
+  validateSearch,
   loaderDeps: ({ search: { network } }) => {
-    return { network }
+    return { network };
   },
   loader: async ({ deps: { network } }) => {
     const [{ burnBlocks }, signers] = await Promise.all([
-      getBurnBlocks(network),
-      getSigners(network),
-    ])
-    return { burnBlocks, network, signers }
+      getBurnBlocks(network ?? 'mainnet'),
+      getSigners(network ?? 'mainnet'),
+    ]);
+    return { burnBlocks, network, signers };
   },
-})
+});

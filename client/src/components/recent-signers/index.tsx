@@ -45,6 +45,17 @@ export const RecentSigners = () => {
     setRecentSigners(loaderData.signers);
   }, [loaderData, setRecentSigners]);
 
+  const columnVisibility = React.useMemo(() => {
+    if (networkId !== 'mainnet') {
+      return {
+        degradation10: false,
+        degradation25: false,
+        degradation50: false,
+      };
+    }
+    return undefined;
+  }, [networkId]);
+
   if (!recentSigners) return null;
 
   return (
@@ -120,7 +131,11 @@ export const RecentSigners = () => {
           })}
         </div>
       )}
-      <DataTable columns={columns} data={recentSigners.signers} />
+      <DataTable
+        columns={columns}
+        data={recentSigners.signers}
+        columnVisibility={columnVisibility}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
   getSortedRowModel,
   type SortingState,
   type SortDirection,
+  type VisibilityState,
 } from '@tanstack/react-table';
 
 import {
@@ -24,11 +25,13 @@ import { ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  columnVisibility?: VisibilityState;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  columnVisibility,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
@@ -39,6 +42,7 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      columnVisibility,
     },
   });
 

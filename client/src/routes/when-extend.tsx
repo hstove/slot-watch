@@ -1,16 +1,11 @@
 import { WhenExtend } from '@/components/extend/when-extend';
 import { createFileRoute } from '@tanstack/react-router';
-import { z } from 'zod';
-import { zodValidator } from '@tanstack/zod-adapter';
 import { getSigners, getTenureChanges } from '@/lib/slots-api';
-
-const basicSearchSchema = z.object({
-  network: z.string().optional(),
-});
+import { validateSearch } from '@/lib/search-schema';
 
 export const Route = createFileRoute('/when-extend')({
   component: () => <WhenExtend />,
-  validateSearch: zodValidator(basicSearchSchema),
+  validateSearch,
   loaderDeps: ({ search: { network } }) => {
     return { network };
   },

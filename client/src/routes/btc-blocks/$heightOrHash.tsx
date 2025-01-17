@@ -3,14 +3,11 @@ import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { zodValidator } from '@tanstack/zod-adapter';
 import { BtcBlock } from '@/components/btc-block/btc-block';
-
-const basicSearchSchema = z.object({
-  network: z.string().optional().default('mainnet'),
-});
+import { validateSearch } from '@/lib/search-schema';
 
 export const Route = createFileRoute('/btc-blocks/$heightOrHash')({
   component: BtcBlock,
-  validateSearch: zodValidator(basicSearchSchema),
+  validateSearch,
   loaderDeps: ({ search: { network } }) => {
     return { network };
   },
