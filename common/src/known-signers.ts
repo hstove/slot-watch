@@ -82,4 +82,5 @@ export const knownSigners: Record<string, string> = {
     'Nansen',
   '02778d476704afa540ac01438f62c371dc38741b00f35fb895e5cd48d070ebab41':
     'Degen Labs',
+  '03161dd42571db5ca2599ef32774ec0c6c9ef125cbb8f826a63fe527489bb91400': 'Jovan',
 };
