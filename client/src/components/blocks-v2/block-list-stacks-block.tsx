@@ -26,6 +26,13 @@ import { PublicKey } from '../public-key';
 import { Button } from '../ui/button';
 import { Link } from '@tanstack/react-router';
 import { getStacksExplorerUrl } from 'slot-watch-common';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { DataLabel, DataValue } from '../data-group';
 
 function TenureCauseBadge({
   tenureCause,
@@ -162,15 +169,41 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           </div>
         </div>
         <div className="block-list-col">
-          <Text variant="small">
-            <Timestamp timestamp={block.blockTimestamp} />
-          </Text>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Text variant="small">
+                  <Timestamp timestamp={block.blockTimestamp} />
+                </Text>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
+                  <DataLabel>Block timestamp</DataLabel>
+                  <DataValue>
+                    <Timestamp timestamp={block.blockTimestamp} />
+                  </DataValue>
+                  {block.proposedAt ? (
+                    <>
+                      <DataLabel>Proposed at</DataLabel>
+                      <DataValue>
+                        <Timestamp timestamp={block.proposedAt} />
+                      </DataValue>
+                    </>
+                  ) : null}
+                  {block.processedAt ? (
+                    <>
+                      <DataLabel>Processed at</DataLabel>
+                      <DataValue>
+                        <Timestamp timestamp={block.processedAt} />
+                      </DataValue>
+                    </>
+                  ) : null}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="block-list-col [&]:hidden [&]:md:flex">
-          {/* <div className="[&]:hidden [&]:md:flex"> */}
-          {/* <Text variant="small" className="font-mono text-xs">
-            {block.blockHash}
-          </Text> */}
           <PublicKey publicKey={block.blockHash} className="max-w-[200px]" />
         </div>
         <div className="block-list-col">
