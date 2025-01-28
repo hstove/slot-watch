@@ -21,16 +21,18 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
 
 # Install node modules
-COPY bun.lockb package.json ./
+COPY bun.lockb package.json turbo.json ./
 COPY common/package.json ./common/
 COPY client/package.json ./client/
 COPY server/package.json ./server/
 RUN bun install --frozen-lockfile
 
 # Copy application code
-COPY . .
+COPY common ./common
 
 RUN bunx turbo build --filter=slot-watch-common
+
+COPY . .
 
 # COPY common/dist ./common/dist
 
