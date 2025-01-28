@@ -24,6 +24,7 @@ import {
   handleBurnBlockEvent,
   handleStacksBlockEvent,
 } from '../events/block-events';
+import { workerQueue } from '../worker/queue';
 
 export const getBunServer = (c: Context): Server => {
   const server = ('server' in c.env ? c.env.server : c.env) as
@@ -98,13 +99,19 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
     publishEvent(networkKey, manyChunksPayload);
-    process.nextTick(async () => {
-      try {
-        await handleStackerDBChunk(data, receivedAt, networkKey);
-      } catch (error) {
-        logger.error(`Error handling stacker db chunk: ${error}`);
-      }
+    workerQueue.add(MANY_CHUNKS_EVENT, {
+      networkKey,
+      payload: data,
+      receivedAt: receivedAt.toISOString(),
+      type: MANY_CHUNKS_EVENT,
     });
+    // process.nextTick(async () => {
+    //   try {
+    //     await handleStackerDBChunk(data, receivedAt, networkKey);
+    //   } catch (error) {
+    //     logger.error(`Error handling stacker db chunk: ${error}`);
+    //   }
+    // });
     return new Response('OK', { status: 200 });
   })
 
@@ -121,14 +128,19 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
     publishEvent(networkKey, sharedPayload);
-
-    process.nextTick(async () => {
-      try {
-        await handleStacksBlockEvent(sharedPayload);
-      } catch (error) {
-        logger.error(`Error handling stacks block event: ${error}`);
-      }
+    workerQueue.add(NEW_BLOCK_EVENT, {
+      networkKey,
+      payload: data,
+      receivedAt: receivedAt.toISOString(),
+      type: NEW_BLOCK_EVENT,
     });
+    // process.nextTick(async () => {
+    //   try {
+    //     await handleStacksBlockEvent(sharedPayload);
+    //   } catch (error) {
+    //     logger.error(`Error handling stacks block event: ${error}`);
+    //   }
+    // });
 
     return new Response('OK', { status: 200 });
   })
@@ -147,14 +159,20 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
     };
     publishEvent(networkKey, payload);
-    process.nextTick(async () => {
-      await warmCache(networkKey);
-      try {
-        await handleBurnBlockEvent(payload);
-      } catch (error) {
-        logger.error(`Error handling burn block event: ${error}`);
-      }
+    workerQueue.add(BURN_BLOCKS_EVENT, {
+      networkKey,
+      payload: data,
+      receivedAt: new Date().toISOString(),
+      type: BURN_BLOCKS_EVENT,
     });
+    // process.nextTick(async () => {
+    //   await warmCache(networkKey);
+    //   try {
+    //     await handleBurnBlockEvent(payload);
+    //   } catch (error) {
+    //     logger.error(`Error handling burn block event: ${error}`);
+    //   }
+    // });
     return new Response('OK', { status: 200 });
   })
 

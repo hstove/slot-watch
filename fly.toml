@@ -8,6 +8,10 @@ primary_region = 'iad'
 
 [build]
 
+[processes]
+  app = ''
+  worker = 'bun run dev:worker'
+
 [deploy]
   release_command = "bun run migrate"
   strategy = "bluegreen"

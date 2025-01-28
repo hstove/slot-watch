@@ -10,6 +10,7 @@
     "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run dev:watch",
     "dev:common": "cd common && bun run dev",
+    "dev:worker": "cd server && bun run worker",
     "migrate": "cd server && bun run migrate.ts",
     "typecheck": "turbo typecheck",
     "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui"

@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 } else {
   logger = pino({
-    level: 'debug',
+    level: 'trace',
     transport: {
       target: 'pino-pretty',
     },

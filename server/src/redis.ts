@@ -6,7 +6,9 @@ import Redis from 'ioredis';
 
 const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
-export const redisClient = new Redis(redisURL);
+export const redisClient = new Redis(redisURL, {
+  maxRetriesPerRequest: null,
+});
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
 export const subClient = redisClient.duplicate();
