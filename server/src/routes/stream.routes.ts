@@ -16,7 +16,7 @@ export const streamRoutes = new Hono().get('/stream/:networkKey', (c) => {
         logger.debug(`Sending message to stream for ${networkKey}`);
         try {
           stream.writeSSE({
-            event: networkKey,
+            event: 'message',
             data: message,
           });
         } catch (error) {

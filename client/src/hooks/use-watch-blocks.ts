@@ -32,7 +32,7 @@ import {
 } from '@stacks/transactions';
 
 export const useWatchBlocks = () => {
-  const { lastMessage, readyState, sendMessage } = useWebSocket();
+  const { lastMessage, readyState } = useWebSocket();
 
   const handleBlockResponse = useAtomCallback(
     React.useCallback(

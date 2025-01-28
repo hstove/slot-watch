@@ -14,7 +14,7 @@ import { hex } from '@scure/base';
 import type { ApiBlockResponseForBlock } from '@/lib/slots-api';
 
 export const useWatchExtend = () => {
-  const { lastMessage, readyState, sendMessage } = useWebSocket();
+  const { lastMessage, readyState } = useWebSocket();
   // const networkId = useAtomValue(networkIdAtom);
 
   // useEffect(() => {

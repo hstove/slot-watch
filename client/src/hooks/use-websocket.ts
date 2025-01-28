@@ -1,11 +1,12 @@
 import type { WSPayload } from 'slot-watch-common';
 import { useEffect } from 'react';
 import _useWebSocket from 'react-use-websocket';
+import { useEventSource } from 'react-use-websocket';
 import { allPayloadsSetterAtom } from '@/store/chunks-store';
 import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
 import { networkIdAtom } from '@/store/network';
-import { slotsWsUrl } from '@/lib/slots-api';
+import { slotsApiUrl, slotsWsUrl } from '@/lib/slots-api';
 import { useAtomValue } from 'jotai';
 
 type UseWebSocketProps = {
@@ -13,7 +14,7 @@ type UseWebSocketProps = {
 };
 
 export const useChunksWatcher = () => {
-  const { lastMessage, readyState, sendMessage } = useWebSocket();
+  const { lastMessage } = useWebSocket();
   // const networkId = useAtomValue(networkIdAtom);
 
   // useEffect(() => {
@@ -55,20 +56,33 @@ export const useChunksWatcher = () => {
 export const useWebSocket = () => {
   const didUnmount = React.useRef(false);
   const networkId = useAtomValue(networkIdAtom);
-  const wsUrl = `${slotsWsUrl}/watch/${networkId}`;
-  const { lastMessage, readyState, sendMessage } = _useWebSocket(wsUrl, {
-    heartbeat: {
-      interval: 10000,
-      message: 'ping',
-      timeout: 60000,
-      returnMessage: 'pong',
-    },
+  // const wsUrl = `${slotsWsUrl}/watch/${networkId}`;
+  const wsUrl = `${slotsApiUrl}/stream/${networkId}`;
+  const { lastEvent: lastMessage, readyState } = useEventSource(wsUrl, {
     reconnectAttempts: 10,
     reconnectInterval: 1000,
     shouldReconnect: (_closeEvent) => {
       return !didUnmount.current;
     },
+    // events: {
+    //   message: (event) => {
+    //     console.log('useWebSocket: Received message', event);
+    //   },
+    // },
   });
+  // const { lastMessage, readyState, sendMessage } = _useWebSocket(wsUrl, {
+  //   heartbeat: {
+  //     interval: 10000,
+  //     message: 'ping',
+  //     timeout: 60000,
+  //     returnMessage: 'pong',
+  //   },
+  //   reconnectAttempts: 10,
+  //   reconnectInterval: 1000,
+  //   shouldReconnect: (_closeEvent) => {
+  //     return !didUnmount.current;
+  //   },
+  // });
 
   React.useEffect(() => {
     return () => {
@@ -79,6 +93,6 @@ export const useWebSocket = () => {
   return {
     readyState,
     lastMessage,
-    sendMessage,
+    // sendMessage,
   };
 };
