@@ -17,6 +17,7 @@ import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { serializeBlockProposal } from '../db/block-proposals';
+import { logger } from '../logger';
 
 const blockRoutes = new Hono()
   .get('/get_block/:networkKey/:blockId', async (c) => {
@@ -84,12 +85,26 @@ const blockRoutes = new Hono()
   })
   .get('/burn-blocks/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
+    logger.debug(
+      {
+        route: c.req.path,
+        networkKey,
+      },
+      `Fetching burn blocks for ${networkKey}`,
+    );
     const btcBlocks = await db
       .select()
       .from(burnBlocks)
       .where(eq(burnBlocks.networkKey, networkKey))
       .orderBy(desc(burnBlocks.createdAt))
       .limit(3);
+    logger.debug(
+      {
+        route: c.req.path,
+        networkKey,
+      },
+      `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`,
+    );
     return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
   })
   .get('/burn-blocks/:networkKey/:heightOrHash', async (c) => {

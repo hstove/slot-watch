@@ -50,6 +50,7 @@ export function convertBlock(
     indexBlockHash: parsed.index_block_hash,
     tenureChangeCause,
     txCount: parsed.transactions.length,
+    consensusHash: parsed.consensus_hash,
     ...cost,
   };
 }
@@ -69,6 +70,7 @@ export async function handleBurnBlockEvent(payload: WSBurnBlock) {
     burnBlockHeight: burnBlock.burn_block_height,
     burnBlockHash: burnBlock.burn_block_hash,
     networkKey: payload.networkKey,
+    consensusHash: burnBlock.consensus_hash,
     createdAt: new Date(payload.receivedAt),
   });
 }

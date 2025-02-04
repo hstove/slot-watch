@@ -110,6 +110,7 @@ export const coreNodeBlockMessageSchema = z.object({
   block_time: z.number().optional(),
   signer_bitvec: z.string().nullable(),
   cycle_number: z.number().nullable(),
+  consensus_hash: string0x,
   transactions: z.array(
     z.object({
       txid: string0x,
@@ -159,6 +160,7 @@ export const coreNodeBurnBlockMessageSchema = z.object({
     }),
   ),
   reward_slot_holders: z.array(z.string()),
+  consensus_hash: string0x,
 });
 
 export type CoreNodeBurnBlockMessage = z.infer<

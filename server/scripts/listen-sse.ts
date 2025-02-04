@@ -2,11 +2,11 @@ import { EventSource } from 'eventsource';
 import { createEventSource } from 'eventsource-client';
 
 const eventSource = createEventSource({
-  url: 'https://slot-watch.fly.dev/stream/mainnet',
+  url: 'https://slot-watch.fly.dev/stream/testnet',
 });
 
 for await (const { data, event, id } of eventSource) {
-  console.log({ data, event, id });
+  console.log(JSON.parse(data));
 }
 
 process.on('SIGINT', () => {

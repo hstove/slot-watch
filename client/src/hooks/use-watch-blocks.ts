@@ -196,6 +196,7 @@ export const useWatchBlocks = () => {
                 block.burn_block_time * 1000,
               ).toISOString(),
               blockTimestamp,
+              consensusHash: block.consensus_hash,
               ...cost,
             } satisfies ProcessedStacksBlock;
             set(
@@ -225,6 +226,7 @@ export const useWatchBlocks = () => {
               burnBlockHash: burnBlock.burn_block_hash,
               burnBlockHeight: burnBlock.burn_block_height,
               networkKey: payload.networkKey,
+              consensusHash: burnBlock.consensus_hash,
             });
           }
         } catch (error) {

@@ -127,6 +127,13 @@
       "when": 1733882787019,
       "tag": "0017_sour_glorian",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1738692039870,
+      "tag": "0018_sticky_bill_hollister",
+      "breakpoints": true
     }
   ]
 }

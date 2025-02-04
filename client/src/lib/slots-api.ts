@@ -186,6 +186,7 @@ interface _ProcessedStacksBlock extends StacksBlockBase {
   writeLength: number;
   indexBlockHash: string | null;
   burnBlockTimestamp: string;
+  consensusHash: string | null;
 }
 
 export type ProposalOnlyBlock = TypeMerge<

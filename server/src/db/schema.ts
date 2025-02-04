@@ -69,6 +69,10 @@ export const blockProposals = pgTable(
       table.burnBlockHeight,
       table.networkKey,
     ),
+    index('block_proposals_consensus_hash_network_key_idx').on(
+      table.consensusHash,
+      table.networkKey,
+    ),
   ],
 );
 
@@ -156,6 +160,7 @@ export const stacksBlocks = pgTable(
     runtime: bigint('runtime', { mode: 'number' }).notNull(),
     writeCount: bigint('write_count', { mode: 'number' }).notNull(),
     writeLength: bigint('write_length', { mode: 'number' }).notNull(),
+    consensusHash: varchar('consensus_hash', { length: 64 }),
   },
   (table) => [
     index('stacks_blocks_network_key_idx').on(table.networkKey),
@@ -170,6 +175,10 @@ export const stacksBlocks = pgTable(
     index('stacks_blocks_tenure_change_recent_idx')
       .on(table.tenureChangeCause, table.createdAt.desc(), table.networkKey)
       .where(isNotNull(table.tenureChangeCause)),
+    index('stacks_blocks_consensus_hash_network_key_idx').on(
+      table.consensusHash,
+      table.networkKey,
+    ),
   ],
 );
 
@@ -183,6 +192,7 @@ export const burnBlocks = pgTable(
     burnBlockHash: varchar('burn_block_hash', { length: 64 }).notNull(),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: varchar('network_key', { length: 20 }).notNull(),
+    consensusHash: varchar('consensus_hash', { length: 64 }),
   },
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),
@@ -192,6 +202,10 @@ export const burnBlocks = pgTable(
     unique('burn_blocks_network_key_burn_block_hash_idx').on(
       table.networkKey,
       table.burnBlockHash,
+    ),
+    index('burn_blocks_consensus_hash_network_key_idx').on(
+      table.consensusHash,
+      table.networkKey,
     ),
   ],
 );

@@ -177,7 +177,7 @@ export const [
     }
     if (
       block.tenureChangeCause !== null &&
-      typeof block.consensusHash === 'undefined'
+      typeof block.proposedAt !== 'string'
     ) {
       set(tenureChangesWriterAtom, block);
     }
@@ -190,6 +190,7 @@ export const [
           burnBlockHash: block.burnBlockHash,
           networkKey: get(networkIdAtom),
           createdAt: block.processedAt ?? new Date().toISOString(),
+          consensusHash: block.consensusHash,
         });
       }
       const burnBlocks = get(allBurnBlocksAtom);
@@ -202,6 +203,7 @@ export const [
           burnBlockHash: block.burnBlockHash,
           networkKey: get(networkIdAtom),
           createdAt: block.processedAt ?? new Date().toISOString(),
+          consensusHash: block.consensusHash,
         });
       }
     }
