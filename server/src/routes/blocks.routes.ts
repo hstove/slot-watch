@@ -238,6 +238,13 @@ const blockRoutes = new Hono()
         .where(eq(burnBlocks.networkKey, 'mainnet'))
         .limit(1);
       const poolStatus = getPoolStatus();
+      logger.debug(
+        {
+          ...poolStatus,
+          module: 'db-health',
+        },
+        'DB health check',
+      );
       await Promise.race([dbPromise, timeoutPromise]);
       return c.json({ status: 'healthy', pool: poolStatus });
     } catch (error) {
