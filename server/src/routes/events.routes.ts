@@ -75,6 +75,9 @@ const eventsRoutes = new Hono<Env>()
   .post('/stackerdb_chunks', basicAuthMiddleware, async (c) => {
     const server = getBunServer(c);
     const networkKey = c.get('networkKey');
+    if (networkKey.startsWith('fnd-') || networkKey.startsWith('hiro-')) {
+      return new Response('OK', { status: 200 });
+    }
     const data = await c.req.json<StackerDBPayload>();
     const contractId = getPayloadContractId(data);
     logger.debug(
@@ -116,8 +119,10 @@ const eventsRoutes = new Hono<Env>()
   })
 
   .post('/new_block', basicAuthMiddleware, async (c) => {
-    const server = getBunServer(c);
     const networkKey = c.get('networkKey');
+    if (networkKey.startsWith('fnd-') || networkKey.startsWith('hiro-')) {
+      return new Response('OK', { status: 200 });
+    }
     const data = await c.req.json<CoreNodeBlockMessage>();
     logger.info(`${networkKey}: Got new Block (${data.block_height})`);
     const receivedAt = new Date();
@@ -148,6 +153,9 @@ const eventsRoutes = new Hono<Env>()
   .post('/new_burn_block', basicAuthMiddleware, async (c) => {
     const server = getBunServer(c);
     const networkKey = c.get('networkKey');
+    if (networkKey.startsWith('fnd-') || networkKey.startsWith('hiro-')) {
+      return new Response('OK', { status: 200 });
+    }
     const data = await c.req.json<CoreNodeBurnBlockMessage>();
     logger.info(
       `${networkKey}: Got new Burn Block (${data.burn_block_height})`,
