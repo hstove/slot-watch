@@ -1,6 +1,7 @@
 import type { BurnBlockDb, StacksBlockDb } from './schema';
+import type { ApiBurnBlock } from 'slot-watch-common';
 
-export function serializeBurnBlock(block: BurnBlockDb) {
+export function serializeBurnBlock(block: BurnBlockDb): ApiBurnBlock {
   return {
     ...block,
     createdAt: block.createdAt.toISOString(),

@@ -18,6 +18,8 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { serializeBlockProposal } from '../db/block-proposals';
 import { logger } from '../logger';
+import { getPoolStatus } from '../db/db';
+import { sql } from 'drizzle-orm';
 
 const blockRoutes = new Hono()
   .get('/get_block/:networkKey/:blockId', async (c) => {
@@ -92,20 +94,48 @@ const blockRoutes = new Hono()
       },
       `Fetching burn blocks for ${networkKey}`,
     );
-    const btcBlocks = await db
-      .select()
-      .from(burnBlocks)
-      .where(eq(burnBlocks.networkKey, networkKey))
-      .orderBy(desc(burnBlocks.createdAt))
-      .limit(3);
-    logger.debug(
-      {
-        route: c.req.path,
-        networkKey,
-      },
-      `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`,
-    );
-    return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
+
+    try {
+      const queryPromise = db
+        .select()
+        .from(burnBlocks)
+        .where(eq(burnBlocks.networkKey, networkKey))
+        .orderBy(desc(burnBlocks.createdAt))
+        .limit(3);
+
+      // Add timeout to the query
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout after 5000ms')), 5000);
+      });
+
+      const btcBlocks = await Promise.race([queryPromise, timeoutPromise]);
+      if (btcBlocks === undefined) {
+        return c.json({ error: 'Database query timed out' }, 500);
+      }
+
+      logger.debug(
+        {
+          route: c.req.path,
+          networkKey,
+          count: btcBlocks.length,
+        },
+        `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`,
+      );
+
+      return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
+    } catch (error) {
+      logger.error(
+        {
+          route: c.req.path,
+          networkKey,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+        'Error fetching burn blocks',
+      );
+
+      return c.json({ error: 'Database query failed' }, 500);
+    }
   })
   .get('/burn-blocks/:networkKey/:heightOrHash', async (c) => {
     const networkKey = c.req.param('networkKey');
@@ -197,6 +227,19 @@ const blockRoutes = new Hono()
         .limit(5);
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     },
-  );
+  )
+  .get('/db-health', async (c) => {
+    try {
+      await db
+        .select()
+        .from(burnBlocks)
+        .where(eq(burnBlocks.networkKey, 'mainnet'))
+        .limit(1);
+      const poolStatus = getPoolStatus();
+      return c.json({ status: 'healthy', pool: poolStatus });
+    } catch (error) {
+      return c.json({ status: 'unhealthy', error: String(error) }, 500);
+    }
+  });
 
 export { blockRoutes };

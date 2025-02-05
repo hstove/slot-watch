@@ -65,3 +65,14 @@ export const blockResponseApiSchema = z.object({
 });
 
 export type BlockResponseApi = z.infer<typeof blockResponseApiSchema>;
+
+export const apiBurnBlockSchema = z.object({
+  // id: z.number(),
+  networkKey: z.string(),
+  burnBlockHeight: z.number(),
+  burnBlockHash: z.string(),
+  createdAt: z.string(),
+  consensusHash: z.union([z.null(), z.string()]),
+});
+
+export type ApiBurnBlock = z.infer<typeof apiBurnBlockSchema>;

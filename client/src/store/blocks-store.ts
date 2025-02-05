@@ -3,7 +3,6 @@ import {
   type HealthBlockBlock,
   type HealthBlockSigner,
   apiClient,
-  type ApiBurnBlock,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
   type ApiBlockResponseForBlock,
@@ -13,7 +12,11 @@ import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
-import { getConsensusBlock, percentString } from 'slot-watch-common';
+import {
+  getConsensusBlock,
+  type ApiBurnBlock,
+  percentString,
+} from 'slot-watch-common';
 import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';

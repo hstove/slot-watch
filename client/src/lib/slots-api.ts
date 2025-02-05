@@ -69,13 +69,11 @@ export async function getBurnBlocks(networkKey: string) {
   const response = await apiClient['burn-blocks'][':networkKey'].$get({
     param: { networkKey },
   });
-  return response.json();
+  if (response.ok) {
+    return response.json();
+  }
+  throw new Error('Failed to fetch burn blocks');
 }
-
-export type ApiBurnBlock = Omit<
-  Awaited<ReturnType<typeof getBurnBlocks>>['burnBlocks'][0],
-  'id'
->;
 
 export async function getBtcBlock(networkKey: string, heightOrHash: string) {
   const response = await apiClient['burn-blocks'][':networkKey'][

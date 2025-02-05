@@ -2,6 +2,7 @@
 import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
 // import { Client, Pool } from "pg";
 import postgres from 'postgres';
+import { logger } from '../logger';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -24,7 +25,41 @@ const dbUrl =
 
 const sql = postgres(dbUrl, {
   connect_timeout: 10,
+  idle_timeout: 20, // Terminate idle connections after 20 seconds
   max: 20,
+  debug: (connection_id, query, params) => {
+    logger.debug(
+      {
+        module: 'db',
+        connection_id,
+        query: query
+          .split('\n')
+          .map((s) => s.trim())
+          .join(' '),
+        params,
+      },
+      'Postgres debug',
+    );
+  },
+  onnotice: (notice) => {
+    logger.debug(
+      {
+        module: 'db',
+        notice,
+      },
+      'Postgres Notice',
+    );
+  },
+  onparameter: (key, value) => {
+    logger.debug(
+      {
+        module: 'db',
+        key,
+        value,
+      },
+      'Postgres Parameter',
+    );
+  },
 });
 
 // try {
@@ -38,3 +73,14 @@ const sql = postgres(dbUrl, {
 
 // export const db = drizzle(client);
 export const db = drizzlePg(sql);
+
+// Add this function to check pool status
+export const getPoolStatus = () => {
+  // @ts-ignore - accessing internal properties
+  const pool = sql.pool;
+  return {
+    total: pool?.total ?? 0,
+    idle: pool?.idle ?? 0,
+    waiting: pool?.waiting ?? 0,
+  };
+};
