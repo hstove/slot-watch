@@ -20,8 +20,10 @@ import { serializeBlockProposal } from '../db/block-proposals';
 import { logger } from '../logger';
 import { getPoolStatus } from '../db/db';
 import { sql } from 'drizzle-orm';
+import { timeout } from 'hono/timeout';
 
 const blockRoutes = new Hono()
+  .use('*', timeout(5000))
   .get('/get_block/:networkKey/:blockId', async (c) => {
     const networkKey = c.req.param('networkKey');
     const blockId = c.req.param('blockId');
@@ -96,21 +98,12 @@ const blockRoutes = new Hono()
     );
 
     try {
-      const queryPromise = db
+      const btcBlocks = await db
         .select()
         .from(burnBlocks)
         .where(eq(burnBlocks.networkKey, networkKey))
         .orderBy(desc(burnBlocks.createdAt))
         .limit(3);
-
-      const timeoutPromise = new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout after 5000ms')), 5000);
-      });
-
-      const btcBlocks = await Promise.race([queryPromise, timeoutPromise]);
-      if (btcBlocks === undefined) {
-        return c.json({ error: 'Database query timed out' }, 500);
-      }
 
       logger.debug(
         {
