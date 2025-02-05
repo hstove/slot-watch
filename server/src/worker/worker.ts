@@ -35,7 +35,7 @@ export const workerQueue = new Worker<WorkerJob>(
   },
   {
     connection: redisClient,
-    concurrency: 5,
+    concurrency: 15,
   },
 );
 

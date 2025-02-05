@@ -20,6 +20,7 @@ import { metricsRoutes } from './routes/metrics.routes';
 import { subClient } from './redis';
 import { signersRoutes } from './routes/signers.routes';
 import { streamRoutes } from './routes/stream.routes';
+import workerRoutes from './routes/worker.routes';
 
 type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 
@@ -63,6 +64,7 @@ export const app = new Hono()
   .route('/health', healthRoutes)
   .route('/', metricsRoutes)
   .route('/', streamRoutes)
+  .route('/', workerRoutes)
   .onError((err, c) => {
     if (err instanceof Error) {
       logger.error({

@@ -6,5 +6,6 @@ export const workerQueue = new Queue<WorkerJob>(QUEUE_NAME, {
   connection: redisClient,
   defaultJobOptions: {
     removeOnComplete: true,
+    removeOnFail: true,
   },
 });
