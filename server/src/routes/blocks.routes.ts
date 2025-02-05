@@ -103,7 +103,6 @@ const blockRoutes = new Hono()
         .orderBy(desc(burnBlocks.createdAt))
         .limit(3);
 
-      // Add timeout to the query
       const timeoutPromise = new Promise<void>((_, reject) => {
         setTimeout(() => reject(new Error('Query timeout after 5000ms')), 5000);
       });
@@ -230,14 +229,22 @@ const blockRoutes = new Hono()
   )
   .get('/db-health', async (c) => {
     try {
-      await db
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout after 5000ms')), 5000);
+      });
+      const dbPromise = db
         .select()
         .from(burnBlocks)
         .where(eq(burnBlocks.networkKey, 'mainnet'))
         .limit(1);
       const poolStatus = getPoolStatus();
+      await Promise.race([dbPromise, timeoutPromise]);
       return c.json({ status: 'healthy', pool: poolStatus });
     } catch (error) {
+      logger.error({ error: String(error) }, 'Error fetching db health');
+      process.nextTick(() => {
+        process.exit(1);
+      });
       return c.json({ status: 'unhealthy', error: String(error) }, 500);
     }
   });

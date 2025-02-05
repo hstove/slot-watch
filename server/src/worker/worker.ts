@@ -39,6 +39,10 @@ export const workerQueue = new Worker<WorkerJob>(
   },
 );
 
+workerQueue.on('ready', () => {
+  logger.info('Worker ready');
+});
+
 workerQueue.on('completed', (job) => {
   logger.debug(`Job ${job.name} completed (${job.data.networkKey})`);
 });
