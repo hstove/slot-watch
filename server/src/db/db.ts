@@ -22,7 +22,10 @@ const dbUrl =
 // 	// ssl: false,
 // });
 
-const sql = postgres(dbUrl, {});
+const sql = postgres(dbUrl, {
+  connect_timeout: 10,
+  max: 20,
+});
 
 // try {
 // 	await client.connect();
