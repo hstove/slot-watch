@@ -19,7 +19,7 @@ import {
 import { statusStyles } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
-import { BlockCosts } from './burn-block-costs';
+import { BlockCosts, CumulativeBlockCosts } from './burn-block-costs';
 import * as R from 'remeda';
 import { textStyles } from '@/lib/text-variants';
 import { PublicKey } from '../public-key';
@@ -218,18 +218,11 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
             </SimpleTooltip>
           )}
           {!block.processedAt && <ResponseOutcome blockHash={blockHash} />}
-          {/* <ResponseOutcome blockHash={blockHash} /> */}
-          {typeof block.readCount === 'number' ? (
-            <BlockCosts
-              costs={R.pick(block, [
-                'readCount',
-                'readLength',
-                'writeCount',
-                'writeLength',
-                'runtime',
-              ])}
-            />
-          ) : null}
+
+          <CumulativeBlockCosts
+            blockHash={block.blockHash}
+            burnBlockHeight={block.burnBlockHeight}
+          />
         </div>
       </div>
       {blockStatus === 'pending' ? (

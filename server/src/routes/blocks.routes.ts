@@ -223,7 +223,7 @@ const blockRoutes = new Hono()
   .get('/db-health', async (c) => {
     try {
       const timeoutPromise = new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout after 5000ms')), 5000);
+        setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
       });
       const dbPromise = db
         .select()

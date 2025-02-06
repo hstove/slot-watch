@@ -6,7 +6,17 @@ export const MAINNET_COST_LIMITS = {
   runtime: 5_000_000_000,
 };
 
-export function costLimitsUsed(cost: typeof MAINNET_COST_LIMITS) {
+export type BlockCost = typeof MAINNET_COST_LIMITS;
+
+export const ZERO_COST: BlockCost = {
+  writeLength: 0,
+  writeCount: 0,
+  readLength: 0,
+  readCount: 0,
+  runtime: 0,
+} as const;
+
+export function costLimitsUsed(cost: BlockCost) {
   return {
     writeLength: cost.writeLength / MAINNET_COST_LIMITS.writeLength,
     writeCount: cost.writeCount / MAINNET_COST_LIMITS.writeCount,

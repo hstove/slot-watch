@@ -8,8 +8,8 @@ import {
   type ApiBlockResponseForBlock,
   type ApiSigners,
 } from '@/lib/slots-api';
-import { atom } from 'jotai';
-import { atomFamily } from 'jotai/utils';
+import { type Atom, atom } from 'jotai';
+import { atomFamily, loadable } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { locationStore, networkIdAtom } from './network';
 import {
@@ -24,6 +24,7 @@ import {
   setSignerLatestResponsesAtom,
   tenureChangesWriterAtom,
 } from './responses-store';
+import { ZERO_COST, type BlockCost } from '@/lib/costs';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -155,6 +156,67 @@ export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
     return cost;
   }),
 );
+
+export const cumulativeBlockCostsAtom = atomFamily<
+  number,
+  Atom<
+    Map<
+      string,
+      {
+        new: BlockCost;
+        cumulative: BlockCost;
+      }
+    >
+  >
+>((burnBlockHeight: number) => {
+  return atom((get) => {
+    const stacksBlocks = get(
+      loadable(sortedStacksBlocksForBurnBlockAtom(burnBlockHeight)),
+    );
+    if (stacksBlocks.state !== 'hasData') return new Map();
+    const blocks = R.reverse(stacksBlocks.data);
+    let cumCost: BlockCost = {
+      ...ZERO_COST,
+    };
+    const blockCost = new Map<
+      string,
+      {
+        new: BlockCost;
+        cumulative: BlockCost;
+      }
+    >();
+    for (const block of blocks) {
+      let newCost: BlockCost = { ...ZERO_COST };
+      if (typeof block.readCount === 'number') {
+        cumCost.readCount += block.readCount;
+        cumCost.readLength += block.readLength;
+        cumCost.writeCount += block.writeCount;
+        cumCost.writeLength += block.writeLength;
+        cumCost.runtime += block.runtime;
+        newCost = {
+          runtime: block.runtime,
+          readCount: block.readCount,
+          readLength: block.readLength,
+          writeCount: block.writeCount,
+          writeLength: block.writeLength,
+        };
+      }
+      if (block.tenureChangeCause !== null) {
+        cumCost = {
+          ...ZERO_COST,
+        };
+      }
+      blockCost.set(block.blockHash, {
+        new: newCost,
+        cumulative: {
+          ...cumCost,
+        },
+      });
+    }
+
+    return blockCost;
+  });
+});
 
 export const maxProcessedStacksHeightAtom = atom(0);
 

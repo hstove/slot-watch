@@ -1,7 +1,14 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
-import { blockTenureCostsAtom } from '@/store/blocks-store';
-import { costLimitsUsed, type MAINNET_COST_LIMITS } from '@/lib/costs';
+import {
+  blockTenureCostsAtom,
+  cumulativeBlockCostsAtom,
+} from '@/store/blocks-store';
+import {
+  costLimitsUsed,
+  type MAINNET_COST_LIMITS,
+  ZERO_COST,
+} from '@/lib/costs';
 import { statusStyles, type StatusVariants } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { percentString } from 'slot-watch-common';
@@ -53,12 +60,6 @@ export const CostUsedBar = ({
   }, [used]);
   const usedPercent = React.useMemo(() => {
     return percentString(used);
-  }, [used]);
-
-  const color = React.useMemo(() => {
-    if (used < 0.5) return 'hsl(var(--success))';
-    if (used < 0.9) return 'hsl(var(--warning))';
-    return 'hsl(var(--error))';
   }, [used]);
 
   return (
@@ -113,4 +114,16 @@ export const BlockCosts = ({ costs, className }: BlockCostsProps) => {
       )}
     </div>
   );
+};
+
+export const CumulativeBlockCosts = ({
+  blockHash,
+  burnBlockHeight,
+}: { blockHash: string; burnBlockHeight: number }) => {
+  const cost = useAtomValue(cumulativeBlockCostsAtom(burnBlockHeight));
+  const blockCost = cost.get(blockHash);
+  if (blockCost === undefined) {
+    return null;
+  }
+  return <BlockCosts costs={blockCost.cumulative} />;
 };
