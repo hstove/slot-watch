@@ -43,6 +43,10 @@ primary_region = 'iad'
   timeout = "2s"
   path = "/db-health"
 
+[[restart]]
+  policy = "always"
+  processes = ["app", "worker"]
+
 # [[services]]
 #   internal_port = 1080
 #   protocol = "tcp"

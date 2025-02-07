@@ -225,6 +225,7 @@ const blockRoutes = new Hono()
       const timeoutPromise = new Promise<void>((_, reject) => {
         setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
       });
+      logger.debug({ module: 'db-health' }, 'Starting DB health check');
       const dbPromise = db
         .select()
         .from(burnBlocks)
@@ -239,9 +240,16 @@ const blockRoutes = new Hono()
         'DB health check',
       );
       await Promise.race([dbPromise, timeoutPromise]);
+      logger.info({ module: 'db-health' }, 'DB health check complete');
       return c.json({ status: 'healthy', pool: poolStatus });
     } catch (error) {
-      logger.error({ error: String(error) }, 'Error fetching db health');
+      logger.error(
+        {
+          error: String(error),
+          module: 'db-health',
+        },
+        'Error fetching db health',
+      );
       process.nextTick(() => {
         process.exit(1);
       });
