@@ -1,12 +1,16 @@
 // import { drizzle } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
 // import { Client, Pool } from "pg";
 import postgres from 'postgres';
 import { logger } from '../logger';
+import { SQL } from 'bun';
 
 const dbUrl =
   process.env.DATABASE_URL ||
   'postgresql://hankstoever@localhost:5432/slot_watch';
+
+const sql = new SQL(dbUrl);
 
 // const client = new Pool({
 // 	connectionString: dbUrl,
@@ -23,44 +27,50 @@ const dbUrl =
 // 	// ssl: false,
 // });
 
-const sql = postgres(dbUrl, {
-  connect_timeout: 10,
-  idle_timeout: 20, // Terminate idle connections after 20 seconds
-  max: 20,
-  debug: (connection_id, query, params) => {
-    logger.debug(
-      {
-        module: 'db',
-        connection_id,
-        query: query
-          .split('\n')
-          .map((s) => s.trim())
-          .join(' '),
-        params,
-      },
-      'Postgres debug',
-    );
-  },
-  onnotice: (notice) => {
-    logger.debug(
-      {
-        module: 'db',
-        notice,
-      },
-      'Postgres Notice',
-    );
-  },
-  onparameter: (key, value) => {
-    logger.debug(
-      {
-        module: 'db',
-        key,
-        value,
-      },
-      'Postgres Parameter',
-    );
-  },
-});
+let port: number | undefined;
+if (process.env.FLY_PROCESS_GROUP === 'app') {
+  port = 5433;
+}
+
+// const sql = postgres(dbUrl, {
+//   connect_timeout: 10,
+//   idle_timeout: 20, // Terminate idle connections after 20 seconds
+//   max: 20,
+//   port,
+//   debug: (connection_id, query, params) => {
+//     logger.debug(
+//       {
+//         module: 'db',
+//         connection_id,
+//         query: query
+//           .split('\n')
+//           .map((s) => s.trim())
+//           .join(' '),
+//         params,
+//       },
+//       'Postgres debug',
+//     );
+//   },
+//   onnotice: (notice) => {
+//     logger.debug(
+//       {
+//         module: 'db',
+//         notice,
+//       },
+//       'Postgres Notice',
+//     );
+//   },
+//   onparameter: (key, value) => {
+//     logger.debug(
+//       {
+//         module: 'db',
+//         key,
+//         value,
+//       },
+//       'Postgres Parameter',
+//     );
+//   },
+// });
 
 // try {
 // 	await client.connect();
@@ -72,7 +82,8 @@ const sql = postgres(dbUrl, {
 // }
 
 // export const db = drizzle(client);
-export const db = drizzlePg(sql);
+// export const db = drizzlePg(sql);
+export const db = drizzleBun(sql);
 
 // Add this function to check pool status
 export const getPoolStatus = () => {

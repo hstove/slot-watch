@@ -16,14 +16,9 @@ import {
   type WSPayload,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
-import { handleStackerDBChunk } from '../events/stackerdb';
 import { warmCache } from '../stacks-api';
 import { redisClient } from '../redis';
 import { logger } from '../logger';
-import {
-  handleBurnBlockEvent,
-  handleStacksBlockEvent,
-} from '../events/block-events';
 import { workerQueue } from '../worker/queue';
 
 export const getBunServer = (c: Context): Server => {
