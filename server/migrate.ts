@@ -1,5 +1,6 @@
 // import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
+// import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { migrate } from 'drizzle-orm/bun-sql/migrator';
 import { db } from './src/db/db';
 
 console.log('Migrating...');
