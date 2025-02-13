@@ -14,6 +14,11 @@ if (process.env.NODE_ENV === 'production') {
         return { level: label };
       },
     },
+    mixin() {
+      return {
+        fly_process_group: process.env.FLY_PROCESS_GROUP,
+      };
+    },
   });
 } else {
   logger = pino({

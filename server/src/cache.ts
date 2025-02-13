@@ -1,8 +1,12 @@
 import type { F, A } from 'ts-toolbelt';
 import { redisClient } from './redis';
 import { parse, stringify } from 'superjson';
-import { logger } from './logger';
+import { logger as _logger } from './logger';
 import { Mutex } from 'redis-semaphore';
+
+const logger = _logger.child({
+  module: 'cache',
+});
 
 const CACHE_TTL = 60 * 10;
 const REFRESH_TTL = 60 * 5;
@@ -18,13 +22,34 @@ function mutexKey(key: string) {
 }
 
 async function getCache<T>(key: string) {
-  const [result, ttl] = await Promise.all([
-    redisClient.get(cacheKey(key)),
-    redisClient.ttl(cacheKey(key)),
-  ]);
+  const pipeline = redisClient.pipeline();
+  pipeline.get(cacheKey(key));
+  pipeline.ttl(cacheKey(key));
+  const outcome = await pipeline.exec();
+  if (outcome === null) {
+    throw new Error('Cache error');
+  }
+  const [valueResult, ttlResult] = outcome;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  const [valueError, valueStr] = valueResult!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  const [ttlError, ttl] = ttlResult!;
+  if (valueError) {
+    throw new Error(`Cache error: ${valueError.message}`);
+  }
+  if (ttlError) {
+    throw new Error(`Cache error: ${ttlError.message}`);
+  }
+  if (typeof ttl !== 'number') {
+    throw new Error('Cache error: TTL is not a number');
+  }
+  // const [result, ttl] = await Promise.all([
+  //   redisClient.get(cacheKey(key)),
+  //   redisClient.ttl(cacheKey(key)),
+  // ]);
   let value: T | null = null;
-  if (result) {
-    value = parse<T>(result);
+  if (typeof valueStr === 'string') {
+    value = parse<T>(valueStr);
   }
   return { value, ttl };
 }

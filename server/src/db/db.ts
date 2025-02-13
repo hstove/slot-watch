@@ -10,7 +10,17 @@ const dbUrl =
   process.env.DATABASE_URL ||
   'postgresql://hankstoever@localhost:5432/slot_watch';
 
-const sql = new SQL(dbUrl);
+let port: number | undefined;
+if (process.env.FLY_PROCESS_GROUP === 'app') {
+  port = 5433;
+}
+
+const sqlUrl = new URL(dbUrl);
+if (port) {
+  sqlUrl.port = port.toString();
+}
+
+const sql = new SQL(sqlUrl.toString());
 
 // const client = new Pool({
 // 	connectionString: dbUrl,
@@ -26,11 +36,6 @@ const sql = new SQL(dbUrl);
 // 	// },
 // 	// ssl: false,
 // });
-
-let port: number | undefined;
-if (process.env.FLY_PROCESS_GROUP === 'app') {
-  port = 5433;
-}
 
 // const sql = postgres(dbUrl, {
 //   connect_timeout: 10,
