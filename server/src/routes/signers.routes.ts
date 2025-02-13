@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { timeout } from 'hono/timeout';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
@@ -9,6 +10,7 @@ export const signersRequestSchema = z.object({
 });
 
 export const signersRoutes = new Hono()
+  .use('*', timeout(5000))
   .get(
     '/signers/:networkKey/:rewardCycleId',
     zValidator('param', signersRequestSchema),
