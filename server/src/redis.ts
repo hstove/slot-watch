@@ -5,6 +5,9 @@ const logger = _logger.child({
   module: 'redis',
 });
 
+const processGroup = process.env.FLY_PROCESS_GROUP;
+const isWorker = processGroup === 'worker';
+
 // export const redisClient = createClient({
 //   url: process.env.REDIS_URL,
 // });
@@ -12,7 +15,7 @@ const logger = _logger.child({
 const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
 export const redisClient = new Redis(redisURL, {
-  // maxRetriesPerRequest: null,
+  maxRetriesPerRequest: isWorker ? null : undefined,
   commandTimeout: 10000,
 });
 redisClient.on('error', (err) =>
