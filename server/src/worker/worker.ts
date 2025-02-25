@@ -48,5 +48,11 @@ workerQueue.on('completed', (job) => {
 });
 
 workerQueue.on('failed', (job, err) => {
-  logger.error(`Job ${job?.name} failed (${job?.data.networkKey}): ${err}`);
+  logger.error(
+    {
+      backtrace: err?.stack,
+      err,
+    },
+    `Job ${job?.name} failed (${job?.data.networkKey}): ${err}`,
+  );
 });
