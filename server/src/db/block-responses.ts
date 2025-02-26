@@ -159,6 +159,7 @@ export function serializeBlockResponse(
     reason: response.reason ?? undefined,
     validationCode: response.validationCode ?? undefined,
     rejectCode: response.rejectCode ?? undefined,
+    rejectReason: response.rejectReason ?? undefined,
   };
 }
 

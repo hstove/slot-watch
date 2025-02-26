@@ -175,6 +175,7 @@ export async function handleBlockResponse({
     rejectCode: payload.reasonCode ?? null,
     validationCode: payload.validationCode ?? null,
     version: payload.metadata ?? null,
+    rejectReason: payload.data.rejectReason ?? null,
   };
   const [newRow] = await db
     .insert(blockResponses)

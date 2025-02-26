@@ -22,7 +22,11 @@ import { Countdown } from '../countdown';
 import { loadable } from 'jotai/utils';
 import { useSpring, animated, config } from '@react-spring/web';
 import { useEntity } from '@/hooks/use-entity';
-import { getVersionFromString } from 'slot-watch-common';
+import {
+  BlockResponseRejectReasons,
+  getVersionFromString,
+  type RejectReasonPrefix,
+} from 'slot-watch-common';
 
 export const BlockListResponse = ({
   blockHash,
@@ -105,6 +109,20 @@ export const BlockListResponse = ({
             <>
               <DataLabel>Validation Code</DataLabel>
               <DataValue>{response.validationCode}</DataValue>
+            </>
+          ) : null}
+
+          {response?.accepted === false && response.rejectReason ? (
+            <>
+              <DataLabel>Reject Reason</DataLabel>
+              <DataValue>
+                <Text variant={'code'}>{response.rejectCode}</Text>
+                {
+                  BlockResponseRejectReasons[
+                    response.rejectReason as RejectReasonPrefix
+                  ]?.description
+                }
+              </DataValue>
             </>
           ) : null}
 

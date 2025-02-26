@@ -47,6 +47,97 @@ export const BlockResponseValidationCodes = [
   'No Such Tenure',
 ] as const;
 
+export const BlockResponseRejectReasons = {
+  /// The block was rejected due to validation issues
+  0: {
+    label: 'ValidationFailed',
+    description: 'The block was rejected due to validation issues',
+  },
+  /// The block was rejected due to connectivity issues with the signer
+  1: {
+    label: 'ConnectivityIssues',
+    description:
+      'The block was rejected due to connectivity issues with the signer',
+  },
+  /// The block was rejected in a prior round
+  2: {
+    label: 'RejectedInPriorRound',
+    description: 'The block was rejected in a prior round',
+  },
+  /// The block was rejected due to no sortition view
+  3: {
+    label: 'NoSortitionView',
+    description: 'The block was rejected due to no sortition view',
+  },
+  /// The block was rejected due to a mismatch with expected sortition view
+  4: {
+    label: 'SortitionViewMismatch',
+    description:
+      'The block was rejected due to a mismatch with expected sortition view',
+  },
+  /// The block was rejected due to a testing directive
+  5: {
+    label: 'TestingDirective',
+    description: 'The block was rejected due to a testing directive',
+  },
+  /// The block attempted to reorg the previous tenure but was not allowed
+  6: {
+    label: 'ReorgNotAllowed',
+    description:
+      'The block attempted to reorg the previous tenure but was not allowed',
+  },
+  /// The bitvec field does not match what is expected
+  7: {
+    label: 'InvalidBitvec',
+    description: 'The bitvec field does not match what is expected',
+  },
+  /// The miner's pubkey hash does not match the winning pubkey hash
+  8: {
+    label: 'PubkeyHashMismatch',
+    description:
+      "The miner's pubkey hash does not match the winning pubkey hash",
+  },
+  /// The miner has been marked as invalid
+  9: {
+    label: 'InvalidMiner',
+    description: 'The miner has been marked as invalid',
+  },
+  /// Miner is last sortition winner, when the current sortition winner is
+  /// still valid
+  10: { label: 'NotLatestSortitionWinner', description: 'still valid' },
+  /// The block does not confirm the expected parent block
+  11: {
+    label: 'InvalidParentBlock',
+    description: 'The block does not confirm the expected parent block',
+  },
+  /// The block contains a block found tenure change, but we've already seen
+  /// a block found
+  12: {
+    label: 'DuplicateBlockFound',
+    description:
+      'The block contains a block found tenure change, but we have already seen a block found',
+  },
+  /// The block attempted a tenure extend but the burn view has not changed
+  /// and not enough time has passed for a time-based tenure extend
+  13: {
+    label: 'InvalidTenureExtend',
+    description:
+      'The block attempted a tenure extend but the burn view has not changed and not enough time has passed for a time-based tenure extend',
+  },
+  /// Unknown reject code, for forward compatibility
+  254: {
+    label: 'Unknown',
+    description: 'Unknown reject code, for forward compatibility',
+  },
+  /// The block was approved, no rejection details needed
+  255: {
+    label: 'NotRejected',
+    description: 'The block was approved, no rejection details needed',
+  },
+} as const;
+
+export type RejectReasonPrefix = keyof typeof BlockResponseRejectReasons;
+
 export type WSBase<Type extends string, T> = {
   networkKey: string;
   type: Type;

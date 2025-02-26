@@ -129,6 +129,7 @@ export type BlockResponseData = {
   tenureExtendTimestamp: bigint | null;
   rejectReason: number;
   unknownBytes: Uint8Array;
+  validationCode: number | null;
 };
 
 const InnerBlockResponseDataCoder = P.struct({
@@ -137,19 +138,35 @@ const InnerBlockResponseDataCoder = P.struct({
   unknownBytes: P.bytes(null),
 });
 
+const U8OrNothingCoder = P.wrap({
+  encodeStream: (w: P.Writer, data: number | null) => {
+    if (typeof data === 'number') {
+      P.U8.encodeStream(w, data);
+    }
+  },
+  decodeStream: (r: P.Reader) => {
+    try {
+      return P.U8.decodeStream(r);
+    } catch (error) {
+      return null;
+    }
+  },
+});
+
 export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
   encodeStream: (w: P.Writer, data: BlockResponseData) => {
     P.U8.encodeStream(w, data.version);
     const innerStruct = P.struct({
       tenureExtendTimestamp: P.U64BE,
       rejectReason: P.U8,
+      validationCode: U8OrNothingCoder,
       unknownBytes: P.bytes(null),
     }).encode({
       tenureExtendTimestamp: data.tenureExtendTimestamp ?? 0n,
       rejectReason: data.rejectReason ?? 254,
+      validationCode: data.validationCode,
       unknownBytes: data.unknownBytes,
     });
-    P.U32BE.encodeStream(w, innerStruct.length);
     w.bytes(innerStruct);
   },
   decodeStream: (r: P.Reader) => {
@@ -162,7 +179,8 @@ export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
         tenureExtendTimestamp: null,
         rejectReason: 254,
         unknownBytes: new Uint8Array(),
-      };
+        validationCode: null,
+      } as BlockResponseData;
     }
     const innerBytes = P.bytes(P.U32BE).decodeStream(r);
     const tenureExtendTimestamp = P.U64BE.decode(innerBytes.slice(0, 8));
@@ -170,8 +188,19 @@ export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
     if (innerBytes.length > 8) {
       rejectReason = innerBytes[8];
     }
-    const unknownBytes = innerBytes.slice(9);
-    return { version, tenureExtendTimestamp, rejectReason, unknownBytes };
+    let validationCode: number | null = null;
+    let unknownBytes = innerBytes.slice(9);
+    if (rejectReason === 0) {
+      validationCode = innerBytes[9];
+      unknownBytes = innerBytes.slice(10);
+    }
+    return {
+      version,
+      tenureExtendTimestamp,
+      rejectReason,
+      unknownBytes,
+      validationCode,
+    };
   },
 });
 

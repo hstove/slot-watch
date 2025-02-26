@@ -381,5 +381,20 @@ test('new blockaccepted with reject reason', () => {
   }
   const blockResponse = decoded as BlockResponseAccepted;
   expect(blockResponse.data.rejectReason).toEqual(255);
+  expect(blockResponse.data.unknownBytes.length).toEqual(0);
+  // console.log(decoded);
+});
+
+test('block response with validation reject reason', () => {
+  const hexStr =
+    '010011717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19001c694f8134c5c90f2f2bcd330e9f423204884f001b5df0050f36a2c4ff79dd93522bb2ae395ea87de4964886447507c18374b7a46ee2e371e9bf332f0706a3e800000061737461636b732d7369676e657220332e312e302e302e352e302028666561742f686f742d72656c6f61642d6d696e65722d7370656e643a383831653231353232392b2c206465627567206275696c642c206d61636f73205b616172636836345d29030000000affffffffffffffff0001';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.BlockResponse) {
+    throw new Error('Invalid type');
+  }
+  const blockResponse = decoded as BlockResponseAccepted;
+  expect(blockResponse.data.rejectReason).toEqual(0);
+  expect(blockResponse.data.validationCode).toEqual(1);
+  expect(blockResponse.data.unknownBytes.length).toEqual(0);
   // console.log(decoded);
 });
