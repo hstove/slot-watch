@@ -75,15 +75,15 @@ export async function handleStacksBlockEvent(payload: WSNewBlock) {
     blockTimestamp: block.blockTimestamp?.toISOString() ?? payload.receivedAt,
     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
   } satisfies ApiStacksBlock;
-  await redisClient.publish(
-    payload.networkKey,
-    JSON.stringify({
-      type: NEW_BLOCK_V2_EVENT,
-      networkKey: payload.networkKey,
-      receivedAt: payload.receivedAt,
-      payload: wsPayload,
-    } satisfies WSNewBlockV2),
-  );
+  // await redisClient.publish(
+  //   payload.networkKey,
+  //   JSON.stringify({
+  //     type: NEW_BLOCK_V2_EVENT,
+  //     networkKey: payload.networkKey,
+  //     receivedAt: payload.receivedAt,
+  //     payload: wsPayload,
+  //   } satisfies WSNewBlockV2),
+  // );
 }
 
 export async function handleBurnBlockEvent(payload: WSBurnBlock) {
