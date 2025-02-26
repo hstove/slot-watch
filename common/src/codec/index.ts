@@ -127,17 +127,26 @@ export const SignerMetadataCoder: P.CoderType<string | undefined> = P.wrap({
 export type BlockResponseData = {
   version: number;
   tenureExtendTimestamp: bigint | null;
+  rejectReason: number;
   unknownBytes: Uint8Array;
 };
+
+const InnerBlockResponseDataCoder = P.struct({
+  tenureExtendTimestamp: P.U64BE,
+  rejectReason: P.U8,
+  unknownBytes: P.bytes(null),
+});
 
 export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
   encodeStream: (w: P.Writer, data: BlockResponseData) => {
     P.U8.encodeStream(w, data.version);
     const innerStruct = P.struct({
       tenureExtendTimestamp: P.U64BE,
+      rejectReason: P.U8,
       unknownBytes: P.bytes(null),
     }).encode({
       tenureExtendTimestamp: data.tenureExtendTimestamp ?? 0n,
+      rejectReason: data.rejectReason ?? 254,
       unknownBytes: data.unknownBytes,
     });
     P.U32BE.encodeStream(w, innerStruct.length);
@@ -151,13 +160,18 @@ export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
       return {
         version: 2,
         tenureExtendTimestamp: null,
+        rejectReason: 254,
         unknownBytes: new Uint8Array(),
       };
     }
     const innerBytes = P.bytes(P.U32BE).decodeStream(r);
-    const tenureExtendTimestamp = P.U64BE.decode(innerBytes);
-    const unknownBytes = innerBytes.slice(8);
-    return { version, tenureExtendTimestamp, unknownBytes };
+    const tenureExtendTimestamp = P.U64BE.decode(innerBytes.slice(0, 8));
+    let rejectReason = 254;
+    if (innerBytes.length > 8) {
+      rejectReason = innerBytes[8];
+    }
+    const unknownBytes = innerBytes.slice(9);
+    return { version, tenureExtendTimestamp, rejectReason, unknownBytes };
   },
 });
 

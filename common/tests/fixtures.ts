@@ -86,6 +86,7 @@ export const tenureExtendBlock = {
   signer_signature_hash:
     '0x29fe138c8ec05dc379e2e0f92657512f587550dea87b1fd4b6ed46a450624773',
   tenure_height: 35,
+  consensus_hash: '0xasdf',
   transactions: [
     {
       burnchain_op: null,
