@@ -22,6 +22,7 @@ import { warmCache } from '../stacks-api';
 import { redisClient } from '../redis';
 import { logger } from '../logger';
 import { workerQueue } from '../worker/queue';
+import { convertBlock } from '../events/block-events';
 
 export const getBunServer = (c: Context): Server => {
   const server = ('server' in c.env ? c.env.server : c.env) as
@@ -132,17 +133,14 @@ const eventsRoutes = new Hono<Env>()
     publishEvent(networkKey, sharedPayload);
     workerQueue.add(NEW_BLOCK_EVENT, {
       networkKey,
-      payload: data,
+      payload: {
+        ...convertBlock(data),
+        networkKey,
+        receivedAt: receivedAt.toISOString(),
+      },
       receivedAt: receivedAt.toISOString(),
       type: NEW_BLOCK_EVENT,
     });
-    // process.nextTick(async () => {
-    //   try {
-    //     await handleStacksBlockEvent(sharedPayload);
-    //   } catch (error) {
-    //     logger.error(`Error handling stacks block event: ${error}`);
-    //   }
-    // });
 
     return new Response('OK', { status: 200 });
   })

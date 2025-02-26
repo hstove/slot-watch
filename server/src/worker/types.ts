@@ -12,6 +12,7 @@ import type {
   WSPayload,
   CHUNKS_EVENT,
 } from 'slot-watch-common';
+import type { StacksBlockDb } from '../db/schema';
 
 export const QUEUE_NAME = 'worker';
 
@@ -34,7 +35,10 @@ export type BurnBlockJob = WorkerJobBase<
 
 export type NewBlockJob = WorkerJobBase<
   typeof NEW_BLOCK_EVENT,
-  CoreNodeBlockMessage
+  {
+    networkKey: string;
+    receivedAt: string;
+  } & Omit<StacksBlockDb, 'id' | 'networkKey'>
 >;
 
 export type WorkerJob = StackerDbChunkJob | BurnBlockJob | NewBlockJob;

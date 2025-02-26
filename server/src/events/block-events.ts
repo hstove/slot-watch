@@ -15,6 +15,7 @@ import {
 } from '@stacks/transactions';
 import { db } from '../db/db';
 import { redisClient } from '../redis';
+import type { NewBlockJob } from '../worker/types';
 
 export function convertBlock(
   block: unknown,
@@ -59,20 +60,22 @@ export function convertBlock(
   };
 }
 
-export async function handleStacksBlockEvent(payload: WSNewBlock) {
-  const block = convertBlock(payload.payload);
+export async function handleStacksBlockEvent(job: NewBlockJob) {
+  const block = job.payload;
+  // const _block = convertBlock(payload.payload);
   await db.insert(stacksBlocks).values({
     ...block,
-    networkKey: payload.networkKey,
-    createdAt: new Date(payload.receivedAt),
+    // createdAt: new Date(block.receivedAt),
+    // networkKey: payload.networkKey,
+    // createdAt: new Date(payload.receivedAt),
   });
   const wsPayload = {
     ...block,
-    processedAt: new Date(payload.receivedAt).toISOString(),
+    processedAt: new Date(block.receivedAt).toISOString(),
     consensusHash: block.consensusHash ?? '',
     indexBlockHash: block.indexBlockHash ?? '',
-    networkKey: payload.networkKey,
-    blockTimestamp: block.blockTimestamp?.toISOString() ?? payload.receivedAt,
+    networkKey: block.networkKey,
+    blockTimestamp: block.blockTimestamp?.toISOString() ?? block.receivedAt,
     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
   } satisfies ApiStacksBlock;
   // await redisClient.publish(
