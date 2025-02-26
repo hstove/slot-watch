@@ -77,3 +77,25 @@ export const apiBurnBlockSchema = z.object({
 });
 
 export type ApiBurnBlock = z.infer<typeof apiBurnBlockSchema>;
+
+export const apiStacksBlockSchema = z.object({
+  blockTimestamp: z.string(),
+  blockHash: z.string(),
+  blockHeight: z.number(),
+  tenureChangeCause: z.number().nullable(),
+  txCount: z.number(),
+  burnBlockHeight: z.number(),
+  networkKey: z.string(),
+  processedAt: z.string(),
+  burnBlockHash: z.string(),
+  readCount: z.number(),
+  readLength: z.number(),
+  runtime: z.number(),
+  writeCount: z.number(),
+  writeLength: z.number(),
+  indexBlockHash: z.string(),
+  burnBlockTimestamp: z.string(),
+  consensusHash: z.string(),
+});
+
+export type ApiStacksBlock = z.infer<typeof apiStacksBlockSchema>;

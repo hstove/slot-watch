@@ -1,8 +1,11 @@
 import {
   coreNodeBlockMessageSchema,
   coreNodeBurnBlockMessageSchema,
+  NEW_BLOCK_V2_EVENT,
+  type ApiStacksBlock,
   type WSBurnBlock,
   type WSNewBlock,
+  type WSNewBlockV2,
 } from 'slot-watch-common';
 import { burnBlocks, stacksBlocks, type StacksBlockDb } from '../db/schema';
 import {
@@ -11,6 +14,7 @@ import {
   type TenureChangeCause,
 } from '@stacks/transactions';
 import { db } from '../db/db';
+import { redisClient } from '../redis';
 
 export function convertBlock(
   block: unknown,
@@ -62,6 +66,24 @@ export async function handleStacksBlockEvent(payload: WSNewBlock) {
     networkKey: payload.networkKey,
     createdAt: new Date(payload.receivedAt),
   });
+  const wsPayload = {
+    ...block,
+    processedAt: new Date(payload.receivedAt).toISOString(),
+    consensusHash: block.consensusHash ?? '',
+    indexBlockHash: block.indexBlockHash ?? '',
+    networkKey: payload.networkKey,
+    blockTimestamp: block.blockTimestamp?.toISOString() ?? payload.receivedAt,
+    burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+  } satisfies ApiStacksBlock;
+  await redisClient.publish(
+    payload.networkKey,
+    JSON.stringify({
+      type: NEW_BLOCK_V2_EVENT,
+      networkKey: payload.networkKey,
+      receivedAt: payload.receivedAt,
+      payload: wsPayload,
+    } satisfies WSNewBlockV2),
+  );
 }
 
 export async function handleBurnBlockEvent(payload: WSBurnBlock) {

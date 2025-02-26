@@ -1,5 +1,5 @@
 import type { BurnBlockDb, StacksBlockDb } from './schema';
-import type { ApiBurnBlock } from 'slot-watch-common';
+import type { ApiBurnBlock, ApiStacksBlock } from 'slot-watch-common';
 
 export function serializeBurnBlock(block: BurnBlockDb): ApiBurnBlock {
   return {
@@ -8,12 +8,16 @@ export function serializeBurnBlock(block: BurnBlockDb): ApiBurnBlock {
   };
 }
 
-export function serializeStacksBlock(block: Omit<StacksBlockDb, 'id'>) {
+export function serializeStacksBlock(
+  block: Omit<StacksBlockDb, 'id'>,
+): ApiStacksBlock {
   return {
     ...block,
-    createdAt: block.createdAt.toISOString(),
+    // createdAt: block.createdAt.toISOString(),
     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-    blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+    blockTimestamp: (block.blockTimestamp ?? new Date()).toISOString(),
     processedAt: block.createdAt.toISOString(),
+    consensusHash: block.consensusHash ?? '',
+    indexBlockHash: block.indexBlockHash ?? '',
   };
 }

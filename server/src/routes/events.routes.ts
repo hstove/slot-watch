@@ -9,11 +9,13 @@ import {
   type WSNewBlock,
   type CoreNodeBlockMessage,
   NEW_BLOCK_EVENT,
+  NEW_BLOCK_V2_EVENT,
   type CoreNodeBurnBlockMessage,
   type WSBurnBlock,
   MANY_CHUNKS_EVENT,
   type WSManyChunks,
   type WSPayload,
+  type ApiStacksBlock,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
 import { warmCache } from '../stacks-api';

@@ -131,7 +131,7 @@ export async function getBlocksForBurnBlock(
         burnBlockHeight: stacksBlock.burnBlockHeight,
         networkKey: proposal.networkKey,
         proposedAt: proposal.createdAt,
-        processedAt: stacksBlock.createdAt,
+        processedAt: stacksBlock.processedAt,
         burnBlockHash: stacksBlock.burnBlockHash,
         readCount: stacksBlock.readCount,
         readLength: stacksBlock.readLength,
@@ -166,10 +166,10 @@ type StacksBlockBase = {
   txCount: number;
   burnBlockHeight: number;
   networkKey: string;
+  consensusHash: string | null;
 };
 
 interface _ProposalOnlyBlock extends StacksBlockBase {
-  consensusHash: string | null;
   minerPublicKey: string | null;
   proposedAt: string;
 }
@@ -184,7 +184,6 @@ interface _ProcessedStacksBlock extends StacksBlockBase {
   writeLength: number;
   indexBlockHash: string | null;
   burnBlockTimestamp: string;
-  consensusHash: string | null;
 }
 
 export type ProposalOnlyBlock = TypeMerge<
@@ -244,8 +243,8 @@ export async function getTenureChanges(networkKey: string) {
   return tenureChanges.map((stacksBlock) => {
     return {
       ...stacksBlock,
-      processedAt: stacksBlock.createdAt,
-      blockTimestamp: stacksBlock.blockTimestamp ?? stacksBlock.createdAt,
+      processedAt: stacksBlock.processedAt,
+      blockTimestamp: stacksBlock.blockTimestamp,
     } satisfies ProcessedStacksBlock;
   });
 }
