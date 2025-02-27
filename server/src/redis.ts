@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import { logger as _logger } from './logger';
+import type { WSPayload } from 'slot-watch-common';
 
 const logger = _logger.child({
   module: 'redis',
@@ -36,3 +37,18 @@ subClient.on('error', (err) =>
     'Redis sub client error',
   ),
 );
+
+export async function publishWsEvent(payload: WSPayload) {
+  try {
+    logger.trace(
+      { topic: 'redis', payloadType: payload.type },
+      'Publishing event',
+    );
+    await redisClient.publish(payload.networkKey, JSON.stringify(payload));
+  } catch (error) {
+    logger.error(
+      { topic: 'redis', payloadType: payload.type, err: error },
+      `Error publishing event: ${error}`,
+    );
+  }
+}

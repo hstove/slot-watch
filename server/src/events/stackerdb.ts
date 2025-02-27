@@ -10,6 +10,10 @@ import {
   type TypeMerge,
   type BlockResponseAccepted,
   type BlockResponseRejected,
+  type WSBlockProposal,
+  BLOCK_PROPOSAL_EVENT,
+  type WSBlockResponse,
+  BLOCK_RESPONSE_EVENT,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -25,6 +29,7 @@ import {
   serializeBlockResponse,
   setLatestBlockResponse,
 } from '../db/block-responses';
+import { publishWsEvent } from '../redis';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -102,7 +107,7 @@ export async function handleBlockProposal({
   chunkId: number | null;
 }) {
   const signerSignatureHash = makeSignerSignatureHash(payload);
-  await db.insert(blockProposals).values({
+  const dbBlockProposal = {
     signerSignatureHash: hex.encode(signerSignatureHash),
     chainLength: Number(payload.chainLength),
     createdAt: receivedAt,
@@ -113,7 +118,17 @@ export async function handleBlockProposal({
     txCount: payload.txCount,
     tenureChangeCause: payload.tenureChangeCause,
     burnBlockHeight: Number(payload.blockHeight),
-  });
+  };
+  await db.insert(blockProposals).values(dbBlockProposal);
+  await publishWsEvent({
+    type: BLOCK_PROPOSAL_EVENT,
+    networkKey,
+    receivedAt: receivedAt.toISOString(),
+    payload: {
+      ...dbBlockProposal,
+      createdAt: dbBlockProposal.createdAt.toISOString(),
+    },
+  } satisfies WSBlockProposal);
 }
 
 export async function handleBlockPush({
@@ -187,4 +202,15 @@ export async function handleBlockResponse({
       id: newRow?.id ?? 0,
     }),
   );
+  await publishWsEvent({
+    type: BLOCK_RESPONSE_EVENT,
+    networkKey,
+    receivedAt: receivedAt.toISOString(),
+    payload: {
+      ...serializeBlockResponse({
+        ...data,
+        id: newRow?.id ?? 0,
+      }),
+    },
+  } satisfies WSBlockResponse);
 }

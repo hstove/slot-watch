@@ -99,3 +99,18 @@ export const apiStacksBlockSchema = z.object({
 });
 
 export type ApiStacksBlock = z.infer<typeof apiStacksBlockSchema>;
+
+export const apiBlockProposalSchema = z.object({
+  signerSignatureHash: z.string(),
+  chainLength: z.number(),
+  createdAt: z.string(),
+  networkKey: z.string(),
+  // chunkId: z.number(),
+  minerPublicKey: z.string(),
+  consensusHash: z.string(),
+  tenureChangeCause: z.number().nullable(),
+  txCount: z.number(),
+  burnBlockHeight: z.number(),
+});
+
+export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;

@@ -1,9 +1,11 @@
 import {
+  BURN_BLOCK_V2_EVENT,
   coreNodeBlockMessageSchema,
   coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
   type ApiStacksBlock,
   type WSBurnBlock,
+  type WSBurnBlockV2,
   type WSNewBlock,
   type WSNewBlockV2,
 } from 'slot-watch-common';
@@ -14,7 +16,7 @@ import {
   type TenureChangeCause,
 } from '@stacks/transactions';
 import { db } from '../db/db';
-import { redisClient } from '../redis';
+import { publishWsEvent, redisClient } from '../redis';
 import type { NewBlockJob } from '../worker/types';
 
 export function convertBlock(
@@ -62,45 +64,50 @@ export function convertBlock(
 
 export async function handleStacksBlockEvent(job: NewBlockJob) {
   const block = job.payload;
-  // const dbBlock = ;
-  // const _block = convertBlock(payload.payload);
-  await db.insert(stacksBlocks).values({
+  const dbBlock = {
     ...block,
     createdAt: new Date(block.receivedAt),
     blockTimestamp: block.blockTimestamp
       ? new Date(block.blockTimestamp)
-      : null,
+      : new Date(),
     burnBlockTimestamp: block.burnBlockTimestamp
       ? new Date(block.burnBlockTimestamp)
       : new Date(),
-  });
-  // const wsPayload = {
-  //   ...block,
-  //   processedAt: new Date(block.receivedAt).toISOString(),
-  //   consensusHash: block.consensusHash ?? '',
-  //   indexBlockHash: block.indexBlockHash ?? '',
-  //   networkKey: block.networkKey,
-  //   blockTimestamp: block.blockTimestamp?.toISOString() ?? block.receivedAt,
-  //   burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-  // } satisfies ApiStacksBlock;
-  // await redisClient.publish(
-  //   payload.networkKey,
-  //   JSON.stringify({
-  //     type: NEW_BLOCK_V2_EVENT,
-  //     networkKey: payload.networkKey,
-  //     receivedAt: payload.receivedAt,
-  //     payload: wsPayload,
-  //   } satisfies WSNewBlockV2),
-  // );
+    consensusHash: block.consensusHash ?? '',
+    indexBlockHash: block.indexBlockHash ?? '',
+  };
+  // const _block = convertBlock(payload.payload);
+  await db.insert(stacksBlocks).values(dbBlock);
+  await publishWsEvent({
+    type: NEW_BLOCK_V2_EVENT,
+    networkKey: block.networkKey,
+    receivedAt: block.receivedAt,
+    payload: {
+      ...dbBlock,
+      processedAt: block.receivedAt,
+      blockTimestamp: dbBlock.blockTimestamp.toISOString(),
+      burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
+    },
+  } satisfies WSNewBlockV2);
 }
 
 export async function handleBurnBlockEvent(payload: WSBurnBlock) {
   const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
-  await db.insert(burnBlocks).values({
+  const dbBurnBlock = {
     burnBlockHeight: burnBlock.burn_block_height,
     burnBlockHash: burnBlock.burn_block_hash,
     networkKey: payload.networkKey,
     consensusHash: burnBlock.consensus_hash,
     createdAt: new Date(payload.receivedAt),
-  });
+  };
+  await db.insert(burnBlocks).values(dbBurnBlock);
+  await publishWsEvent({
+    type: BURN_BLOCK_V2_EVENT,
+    networkKey: payload.networkKey,
+    receivedAt: payload.receivedAt,
+    payload: {
+      ...dbBurnBlock,
+      createdAt: dbBurnBlock.createdAt.toISOString(),
+    },
+  } satisfies WSBurnBlockV2);
 }

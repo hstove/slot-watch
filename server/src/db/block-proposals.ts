@@ -9,11 +9,18 @@ import {
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
+import type { ApiBlockProposal } from 'slot-watch-common';
 
-export function serializeBlockProposal(block: BlockProposalDb) {
+export function serializeBlockProposal(
+  block: BlockProposalDb,
+): ApiBlockProposal {
   return {
     ...block,
     createdAt: block.createdAt.toISOString(),
+    burnBlockHeight: block.burnBlockHeight ?? 0,
+    consensusHash: block.consensusHash ?? '',
+    minerPublicKey: block.minerPublicKey ?? '',
+    txCount: block.txCount ?? 0,
   };
 }
 

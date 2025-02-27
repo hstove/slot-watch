@@ -3,7 +3,12 @@ import type {
   CoreNodeBlockMessage,
   CoreNodeBurnBlockMessage,
 } from './event-stream-types';
-import type { ApiStacksBlock, BlockResponseApi } from './server-types';
+import type {
+  ApiBlockProposal,
+  ApiBurnBlock,
+  ApiStacksBlock,
+  BlockResponseApi,
+} from './server-types';
 import type { Prettify } from './utils';
 export type { ModifiedSlot, StackerDBPayload } from './event-stream-types';
 import { z } from 'zod';
@@ -15,6 +20,7 @@ export const NEW_BLOCK_EVENT = 'new_block';
 export const BLOCK_RESPONSE_EVENT = 'block_response';
 export const NEW_BLOCK_V2_EVENT = 'new_block_v2';
 export const BURN_BLOCK_V2_EVENT = 'burn_block_v2';
+export const BLOCK_PROPOSAL_EVENT = 'block_proposal';
 
 export type ChunkEvent = {
   contractId: string;
@@ -188,7 +194,22 @@ export type WSBlockResponse = WSBase<
 
 export type WSNewBlockV2 = WSBase<typeof NEW_BLOCK_V2_EVENT, ApiStacksBlock>;
 
-export type WSPayload = WSChunkEvent | WSNewBlock | WSBurnBlock | WSManyChunks;
+export type WSBurnBlockV2 = WSBase<typeof BURN_BLOCK_V2_EVENT, ApiBurnBlock>;
+
+export type WSBlockProposal = WSBase<
+  typeof BLOCK_PROPOSAL_EVENT,
+  ApiBlockProposal
+>;
+
+export type WSPayload =
+  | WSChunkEvent
+  | WSNewBlock
+  | WSBurnBlock
+  | WSManyChunks
+  | WSBlockProposal
+  | WSBlockResponse
+  | WSNewBlockV2
+  | WSBurnBlockV2;
 
 export function getChunkId(chunk: ChunkEvent): string {
   return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;
