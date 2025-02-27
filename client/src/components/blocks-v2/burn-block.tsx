@@ -106,10 +106,9 @@ export const BurnBlockStacksBlocksInner = ({
           <Text variant="small">Info</Text>
         </div>
         {stacksBlocks.map((block) => (
-          <BlockListStacksBlock
-            key={block.blockHash}
-            blockHash={block.blockHash}
-          />
+          <React.Suspense key={block.blockHash}>
+            <BlockListStacksBlock blockHash={block.blockHash} />
+          </React.Suspense>
         ))}
         {burnBlockHeight !== maxBurnBlockHeight && (
           <div className="flex items-center gap-2 mt-2">

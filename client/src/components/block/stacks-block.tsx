@@ -116,8 +116,6 @@ export function StacksBlock() {
           <pre>{JSON.stringify(block, null, 2)}</pre>
         </code>
       )}
-
-      <div className="h-[1000px] w-full" />
     </div>
   );
 }

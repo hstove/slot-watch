@@ -278,10 +278,11 @@ export const [
 
 export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
   (burnBlockHeight: number) =>
-    atom(async (get) => {
-      const list = await get(stacksBlocksForBurnBlockAtom(burnBlockHeight));
+    atom((get) => {
+      const list = get(loadable(stacksBlocksForBurnBlockAtom(burnBlockHeight)));
+      if (list.state !== 'hasData') return [];
       return R.pipe(
-        list,
+        list.data,
         R.uniqueBy((b) => b.blockHash),
         R.sortBy(
           [R.prop('blockHeight'), 'desc'],
@@ -293,7 +294,7 @@ export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
 
 export const responseOutcomeForBlockAtomFamily = atomFamily(
   (blockHash: string) =>
-    atom(async (get) => {
+    atom((get) => {
       const responses = get(responsesForBlockFamilyInner(blockHash));
       const signers = get(signersApiAtom);
       if (responses.length === 0 || !signers) {
