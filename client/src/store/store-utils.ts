@@ -162,9 +162,6 @@ export function listAtomFamilyWithInit<OKey, T, K>(
           set(listAtomFamilyInner(outerKey), (list) => {
             return [listOrItem, ...list];
           });
-          if (R.isPlainObject(key)) {
-            console.log('Added new', key, outerKey);
-          }
         } else {
           existingList[existingIndex] = listOrItem;
           set(listAtomFamilyInner(outerKey), [...existingList]);
