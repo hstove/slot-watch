@@ -15,6 +15,7 @@ import {
   type WSBlockResponse,
   BLOCK_RESPONSE_EVENT,
   getVersionFromString,
+  type ApiBlockProposal,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -31,6 +32,7 @@ import {
   setLatestBlockResponse,
 } from '../db/block-responses';
 import { publishWsEvent } from '../redis';
+import { setLatestBlockProposal } from '../db/block-proposals';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -131,17 +133,19 @@ export async function handleBlockProposal({
     'Inserting block proposal',
   );
   await db.insert(blockProposals).values(dbBlockProposal);
+  const blockProposal: ApiBlockProposal = {
+    ...dbBlockProposal,
+    createdAt: dbBlockProposal.createdAt.toISOString(),
+    blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
+    serverVersionShort: getVersionFromString(dbBlockProposal.serverVersion),
+  };
   await publishWsEvent({
     type: BLOCK_PROPOSAL_EVENT,
     networkKey,
     receivedAt: receivedAt.toISOString(),
-    payload: {
-      ...dbBlockProposal,
-      createdAt: dbBlockProposal.createdAt.toISOString(),
-      blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
-      serverVersionShort: getVersionFromString(dbBlockProposal.serverVersion),
-    },
+    payload: blockProposal,
   } satisfies WSBlockProposal);
+  await setLatestBlockProposal(blockProposal);
 }
 
 export async function handleBlockPush({
