@@ -119,6 +119,14 @@ export async function handleBlockProposal({
     tenureChangeCause: payload.tenureChangeCause,
     burnBlockHeight: Number(payload.blockHeight),
   };
+  logger.debug(
+    {
+      ...dbBlockProposal,
+      topic: 'stackerdb-events',
+      table: 'block_proposals',
+    },
+    'Inserting block proposal',
+  );
   await db.insert(blockProposals).values(dbBlockProposal);
   await publishWsEvent({
     type: BLOCK_PROPOSAL_EVENT,
@@ -192,6 +200,14 @@ export async function handleBlockResponse({
     version: payload.metadata ?? null,
     rejectReason: payload.data.rejectReason ?? null,
   };
+  logger.debug(
+    {
+      ...data,
+      topic: 'stackerdb-events',
+      table: 'block_responses',
+    },
+    'Inserting block response',
+  );
   const [newRow] = await db
     .insert(blockResponses)
     .values(data)

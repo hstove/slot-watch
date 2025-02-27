@@ -132,12 +132,6 @@ export type BlockResponseData = {
   validationCode: number | null;
 };
 
-const InnerBlockResponseDataCoder = P.struct({
-  tenureExtendTimestamp: P.U64BE,
-  rejectReason: P.U8,
-  unknownBytes: P.bytes(null),
-});
-
 const U8OrNothingCoder = P.wrap({
   encodeStream: (w: P.Writer, data: number | null) => {
     if (typeof data === 'number') {
@@ -246,6 +240,48 @@ export const StacksTxCoder: P.CoderType<StacksTransactionWire> = P.wrap({
   decodeStream: (r: P.Reader) => {
     const bytes = P.bytes(null).decodeStream(r);
     return deserializeTransaction(bytes);
+  },
+});
+
+export interface BlockProposalData {
+  version: number;
+  serverVersion: string;
+  unknownBytes: Uint8Array;
+}
+
+export const BlockProposalDataCoder = P.wrap({
+  encodeStream: (w: P.Writer, data: BlockProposalData) => {
+    const innerStruct = P.struct({
+      version: P.U8,
+      serverVersion: P.string(P.U32BE),
+      unknownBytes: P.bytes(null),
+    }).encode({
+      version: data.version,
+      serverVersion: data.serverVersion,
+      unknownBytes: data.unknownBytes,
+    });
+    w.bytes(innerStruct);
+  },
+  decodeStream: (r: P.Reader) => {
+    let version: number;
+    try {
+      version = P.U8.decodeStream(r);
+    } catch (error) {
+      return {
+        version: 2,
+        serverVersion: '',
+        unknownBytes: new Uint8Array(),
+      } as BlockProposalData;
+    }
+    const innerBytes = P.bytes(P.U32BE).decodeStream(r);
+    const serverVersion = P.string(P.U32BE).decode(innerBytes);
+    const encodedVersionLen = P.string(P.U32BE).encode(serverVersion).length;
+    const unknownBytes = innerBytes.slice(encodedVersionLen);
+    return {
+      version,
+      serverVersion,
+      unknownBytes,
+    };
   },
 });
 
@@ -389,6 +425,7 @@ export type BlockProposal = Prettify<
     rewardCycle: bigint;
     txCount: number;
     tenureChangeCause: TenureChangeCause | null;
+    serverVersion: string;
   }
 >;
 export type BlockResponseAccepted = Prettify<
@@ -487,12 +524,7 @@ export function decodeChunk(chunk: Uint8Array) {
   }
   if (type === SignerMessageTypePrefix.BlockProposal) {
     const { rest: remaining, ...proposal } = BlockProposalCoder.decode(chunk);
-    const withoutTxs = remaining.slice(-16);
-    const extra = P.struct({
-      blockHeight: P.U64BE,
-      rewardCycle: P.U64BE,
-    }).decode(withoutTxs);
-    const txs = remaining.slice(0, -16);
+    const txs = remaining.slice(0);
     const txCount = P.U32BE.decode(txs.slice(0, 4));
     const txReader = new BytesReader(txs.slice(4));
     let tenureChangeCause: TenureChangeCause | null = null;
@@ -500,13 +532,19 @@ export function decodeChunk(chunk: Uint8Array) {
       const tx = deserializeTransaction(txReader);
       if (tx.payload.payloadType === PayloadType.TenureChange) {
         tenureChangeCause = tx.payload.cause;
-        break;
       }
     }
+    const extraBytes = txs.slice(4 + txReader.consumed);
+    const extras = P.struct({
+      blockHeight: P.U64BE,
+      rewardCycle: P.U64BE,
+      blockResponseData: BlockProposalDataCoder,
+    }).decode(extraBytes);
     return {
       ...proposal,
-      blockHeight: extra.blockHeight,
-      rewardCycle: extra.rewardCycle,
+      blockHeight: extras.blockHeight,
+      rewardCycle: extras.rewardCycle,
+      serverVersion: extras.blockResponseData.serverVersion,
       txCount: txCount,
       tenureChangeCause,
     } satisfies BlockProposal;
