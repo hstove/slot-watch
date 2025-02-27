@@ -119,7 +119,8 @@ export async function getBlocksForBurnBlock(
   const data = await response.json();
 
   return data.blocks.map(({ proposal, stacksBlock }) => {
-    const blockTimestamp = stacksBlock?.blockTimestamp ?? proposal.createdAt;
+    const blockTimestamp =
+      stacksBlock?.blockTimestamp ?? proposal.blockTimestamp;
     if (proposal && stacksBlock) {
       return {
         blockHash: proposal.signerSignatureHash,
