@@ -16,7 +16,10 @@ import {
 import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { serializeBlockProposal } from '../db/block-proposals';
+import {
+  getAllLatestBlockProposals,
+  serializeBlockProposal,
+} from '../db/block-proposals';
 import { logger } from '../logger';
 import { getPoolStatus } from '../db/db';
 import { sql } from 'drizzle-orm';
@@ -255,6 +258,13 @@ const blockRoutes = new Hono()
       });
       return c.json({ status: 'unhealthy', error: String(error) }, 500);
     }
+  })
+  .get('/:networkKey/miners', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
+    return c.json({
+      latestBlockProposals,
+    });
   });
 
 export { blockRoutes };

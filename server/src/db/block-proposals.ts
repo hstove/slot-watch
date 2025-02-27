@@ -38,13 +38,15 @@ export function latestBlockProposalLookupKey({
   minerPublicKey,
   networkKey,
 }: { minerPublicKey: string; networkKey: string }) {
-  return `${LAST_BLOCK_PROPOSAL_KEY}:${minerPublicKey}-${networkKey}`;
+  return `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:${minerPublicKey}`;
 }
 
-export async function getAllLatestBlockProposals(): Promise<
-  ApiBlockProposal[]
-> {
-  const keys = await redisClient.keys(`${LAST_BLOCK_PROPOSAL_KEY}:*`);
+export async function getAllLatestBlockProposals(
+  networkKey: string,
+): Promise<ApiBlockProposal[]> {
+  const keys = await redisClient.keys(
+    `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:*`,
+  );
   const results = await redisClient.mget(keys);
   return results
     .filter((result): result is string => result !== null)
