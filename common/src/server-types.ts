@@ -111,6 +111,9 @@ export const apiBlockProposalSchema = z.object({
   tenureChangeCause: z.number().nullable(),
   txCount: z.number(),
   burnBlockHeight: z.number(),
+  serverVersion: z.string().nullable(),
+  blockTimestamp: z.string(),
+  serverVersionShort: z.string().nullable(),
 });
 
 export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;

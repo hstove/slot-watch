@@ -56,6 +56,8 @@ export const blockProposals = pgTable(
     tenureChangeCause: smallint('tenure_change_cause'),
     txCount: integer('tx_count'),
     burnBlockHeight: integer('burn_block_height'),
+    serverVersion: varchar('server_version'),
+    blockTimestamp: timestamp('block_timestamp'),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),

@@ -14,6 +14,7 @@ import {
   BLOCK_PROPOSAL_EVENT,
   type WSBlockResponse,
   BLOCK_RESPONSE_EVENT,
+  getVersionFromString,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -118,6 +119,8 @@ export async function handleBlockProposal({
     txCount: payload.txCount,
     tenureChangeCause: payload.tenureChangeCause,
     burnBlockHeight: Number(payload.blockHeight),
+    serverVersion: payload.serverVersion,
+    blockTimestamp: new Date(Number(payload.timestamp) * 1000),
   };
   logger.debug(
     {
@@ -135,6 +138,8 @@ export async function handleBlockProposal({
     payload: {
       ...dbBlockProposal,
       createdAt: dbBlockProposal.createdAt.toISOString(),
+      blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
+      serverVersionShort: getVersionFromString(dbBlockProposal.serverVersion),
     },
   } satisfies WSBlockProposal);
 }

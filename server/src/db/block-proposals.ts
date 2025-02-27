@@ -9,7 +9,7 @@ import {
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
-import type { ApiBlockProposal } from 'slot-watch-common';
+import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
 
 export function serializeBlockProposal(
   block: BlockProposalDb,
@@ -21,6 +21,11 @@ export function serializeBlockProposal(
     consensusHash: block.consensusHash ?? '',
     minerPublicKey: block.minerPublicKey ?? '',
     txCount: block.txCount ?? 0,
+    serverVersionShort: block.serverVersion
+      ? getVersionFromString(block.serverVersion)
+      : null,
+    serverVersion: block.serverVersion ?? null,
+    blockTimestamp: (block.blockTimestamp || block.createdAt).toISOString(),
   };
 }
 
