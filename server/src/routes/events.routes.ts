@@ -65,6 +65,14 @@ function publishEvent(networkKey: string, payload: WSPayload) {
 }
 
 const eventsRoutes = new Hono<Env>()
+  .onError((err, c) => {
+    logger.error(
+      { topic: 'event-routes', err, path: c.req.path },
+      `Error: ${err}`,
+    );
+
+    return c.text('Internal Server Error', 200);
+  })
 
   .get('/auth-test', basicAuthMiddleware, (c) => {
     return c.text(`Hello ${c.get('networkKey')}`, 200);

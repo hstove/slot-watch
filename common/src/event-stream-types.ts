@@ -107,7 +107,7 @@ export const coreNodeBlockMessageSchema = z.object({
   parent_burn_block_hash: z.string(),
   parent_burn_block_height: z.number(),
   parent_burn_block_timestamp: z.number(),
-  block_time: z.number().optional(),
+  block_time: z.number().nullable(),
   signer_bitvec: z.string().nullable(),
   cycle_number: z.number().nullable(),
   consensus_hash: string0x,
