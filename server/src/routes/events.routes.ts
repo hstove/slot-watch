@@ -139,12 +139,15 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
     publishEvent(networkKey, sharedPayload);
+    const block = convertBlock(data);
     workerQueue.add(NEW_BLOCK_EVENT, {
       networkKey,
       payload: {
-        ...convertBlock(data),
+        ...block,
         networkKey,
         receivedAt: receivedAt.toISOString(),
+        blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+        burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
       },
       receivedAt: receivedAt.toISOString(),
       type: NEW_BLOCK_EVENT,

@@ -38,7 +38,12 @@ export type NewBlockJob = WorkerJobBase<
   {
     networkKey: string;
     receivedAt: string;
-  } & Omit<StacksBlockDb, 'id' | 'networkKey'>
+    blockTimestamp: string | null;
+    burnBlockTimestamp: string | null;
+  } & Omit<
+    StacksBlockDb,
+    'id' | 'networkKey' | 'blockTimestamp' | 'burnBlockTimestamp'
+  >
 >;
 
 export type WorkerJob = StackerDbChunkJob | BurnBlockJob | NewBlockJob;
