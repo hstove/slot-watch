@@ -1,5 +1,6 @@
 import { useWebSocket } from './use-websocket';
 import {
+  BLOCK_RESPONSE_EVENT,
   decodeChunkMaybe,
   recoverChunkPublicKey,
   SignerMessageTypePrefix,
@@ -41,51 +42,11 @@ export const useWatchExtend = () => {
           );
           return;
         }
-        if (payload.type === 'many_chunks') {
-          // const signerLatestResponsesMap = get(signerLatestResponsesMapAtom);
-          for (const chunk of payload.payload) {
-            const publicKey = recoverChunkPublicKey({
-              signature: hex.decode(chunk.signature),
-              data: hex.decode(chunk.data),
-              slotId: chunk.slotId,
-              version: chunk.version,
-            }).toHex();
-            // const response = get(signerLatestResponseFamilyInner(publicKey));
-
-            // if (!response) continue;
-            const decoded = decodeChunkMaybe(hex.decode(chunk.data));
-            if (decoded?.typeId !== SignerMessageTypePrefix.BlockResponse)
-              continue;
-            const ts = decoded.data.tenureExtendTimestamp;
-            const rejectStuff = decoded.accepted
-              ? {}
-              : {
-                  reason: decoded.reason,
-                  reasonCode: decoded.reasonCode,
-                  validationCode: decoded.validationCode,
-                  version: decoded.metadata,
-                };
-            const base = {
-              networkKey: networkId,
-              signerSignatureHash: hex.encode(decoded.signerSignatureHash),
-              signerPublicKey: publicKey,
-              accepted: decoded.accepted,
-              createdAt: chunk.createdAt,
-              tenureExtendTimestamp: ts
-                ? new Date(Number(ts * 1000n)).toISOString()
-                : null,
-              ...rejectStuff,
-            } satisfies ApiBlockResponseForBlock;
-
-            // response.tenureExtendTimestamp = ts
-            //   ? new Date(Number(ts * 1000n)).toISOString()
-            //   : null;
-            // response.createdAt = chunk.createdAt;
-            console.log('Updated signer', base);
-            set(setSignerLatestResponsesAtom, base);
-            // signerLatestResponsesMap.set(publicKey, response);
-          }
-          // set(signerLatestResponsesMapAtom, signerLatestResponsesMap);
+        if (payload.type === BLOCK_RESPONSE_EVENT) {
+          const response = payload.payload;
+          set(setSignerLatestResponsesAtom, {
+            ...response,
+          });
         }
         // set(allPayloadsSetterAtom, payload);
       } catch (error) {
