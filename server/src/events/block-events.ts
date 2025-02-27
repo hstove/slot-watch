@@ -65,8 +65,8 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
   // const _block = convertBlock(payload.payload);
   await db.insert(stacksBlocks).values({
     ...block,
-    // createdAt: new Date(block.receivedAt),
-    // networkKey: payload.networkKey,
+    createdAt: new Date(block.receivedAt),
+    networkKey: block.networkKey,
     // createdAt: new Date(payload.receivedAt),
   });
   const wsPayload = {
