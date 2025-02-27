@@ -141,6 +141,8 @@ export async function getBlocksForBurnBlock(
         blockTimestamp,
         indexBlockHash: stacksBlock.indexBlockHash,
         burnBlockTimestamp: stacksBlock.burnBlockTimestamp,
+        serverVersion: proposal.serverVersion,
+        serverVersionShort: proposal.serverVersionShort,
       } satisfies AllInfoBlock;
     }
     return {
@@ -154,6 +156,8 @@ export async function getBlocksForBurnBlock(
       networkKey: proposal.networkKey,
       proposedAt: proposal.createdAt,
       blockTimestamp,
+      serverVersion: proposal.serverVersion,
+      serverVersionShort: proposal.serverVersionShort,
     } satisfies ProposalOnlyBlock;
   });
 }
@@ -172,6 +176,8 @@ type StacksBlockBase = {
 interface _ProposalOnlyBlock extends StacksBlockBase {
   minerPublicKey: string | null;
   proposedAt: string;
+  serverVersion: string | null;
+  serverVersionShort: string | null;
 }
 
 interface _ProcessedStacksBlock extends StacksBlockBase {
@@ -245,6 +251,8 @@ export async function getTenureChanges(networkKey: string) {
       ...stacksBlock,
       processedAt: stacksBlock.processedAt,
       blockTimestamp: stacksBlock.blockTimestamp,
+      // serverVersion: stacksBlock.serverVersion,
+      // serverVersionShort: getVersionFromString(stacksBlock.serverVersion),
     } satisfies ProcessedStacksBlock;
   });
 }

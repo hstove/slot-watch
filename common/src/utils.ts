@@ -30,9 +30,9 @@ export type Version = [number, number, number, number, number, number];
 
 export function getVersionFromString(version: string) {
   // Handle `stacks-signer VERSION (...);`
-  const match = version.match(/^stacks-signer ([^\s]*)/);
+  const match = version.match(/^stacks-[\w]+ ([^\s]*)/);
   if (match) {
-    return match[1].replace('signer-', '');
+    return match[1];
   }
   return '';
 }

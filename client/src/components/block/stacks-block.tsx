@@ -35,9 +35,9 @@ export function StacksBlock() {
         Stacks block #{block.blockHeight.toLocaleString()}
       </h2>
       <BlockListResponses blockHash={block.blockHash} />
-      <React.Suspense>
+      {/* <React.Suspense>
         <BlockResponseChart blockHash={block.blockHash} />
-      </React.Suspense>
+      </React.Suspense> */}
       <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
         <DataLabel>Block hash</DataLabel>
         <DataValue>{block.blockHash}</DataValue>
@@ -107,6 +107,11 @@ export function StacksBlock() {
             </DataValue>
           </>
         )}
+
+        <DataLabel>Server version</DataLabel>
+        <DataValue>{block.serverVersion ?? 'Unknown'}</DataValue>
+        <DataLabel>Server version short</DataLabel>
+        <DataValue>{block.serverVersionShort ?? 'Unknown'}</DataValue>
       </div>
       {process.env.NODE_ENV === 'development' && (
         <code>

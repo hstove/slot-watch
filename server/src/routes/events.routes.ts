@@ -107,7 +107,7 @@ const eventsRoutes = new Hono<Env>()
       payload: chunks,
       receivedAt: receivedAt.toISOString(),
     };
-    publishEvent(networkKey, manyChunksPayload);
+    // publishEvent(networkKey, manyChunksPayload);
     workerQueue.add(MANY_CHUNKS_EVENT, {
       networkKey,
       payload: data,
@@ -138,7 +138,7 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    publishEvent(networkKey, sharedPayload);
+    // publishEvent(networkKey, sharedPayload);
     const block = convertBlock(data);
     workerQueue.add(NEW_BLOCK_EVENT, {
       networkKey,
@@ -172,7 +172,7 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    publishEvent(networkKey, payload);
+    // publishEvent(networkKey, payload);
     workerQueue.add(BURN_BLOCKS_EVENT, {
       networkKey,
       payload: data,

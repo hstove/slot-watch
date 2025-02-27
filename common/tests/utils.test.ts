@@ -20,6 +20,11 @@ test('getVersionFromString', () => {
       'stacks-signer 0.0.1 (:release build, linux [x86_64])',
     ),
   ).toBe('0.0.1');
+  expect(
+    getVersionFromString(
+      'stacks-node 3.1.0.0.5 (:release build, linux [x86_64])',
+    ),
+  ).toBe('3.1.0.0.5');
   expect(getVersionFromString('')).toEqual('');
 });
 
