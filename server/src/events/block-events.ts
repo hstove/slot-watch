@@ -62,22 +62,26 @@ export function convertBlock(
 
 export async function handleStacksBlockEvent(job: NewBlockJob) {
   const block = job.payload;
+  // const dbBlock = ;
   // const _block = convertBlock(payload.payload);
   await db.insert(stacksBlocks).values({
     ...block,
-    createdAt: new Date(block.receivedAt),
-    networkKey: block.networkKey,
-    // createdAt: new Date(payload.receivedAt),
+    blockTimestamp: block.blockTimestamp
+      ? new Date(block.blockTimestamp)
+      : null,
+    burnBlockTimestamp: block.burnBlockTimestamp
+      ? new Date(block.burnBlockTimestamp)
+      : new Date(),
   });
-  const wsPayload = {
-    ...block,
-    processedAt: new Date(block.receivedAt).toISOString(),
-    consensusHash: block.consensusHash ?? '',
-    indexBlockHash: block.indexBlockHash ?? '',
-    networkKey: block.networkKey,
-    blockTimestamp: block.blockTimestamp?.toISOString() ?? block.receivedAt,
-    burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-  } satisfies ApiStacksBlock;
+  // const wsPayload = {
+  //   ...block,
+  //   processedAt: new Date(block.receivedAt).toISOString(),
+  //   consensusHash: block.consensusHash ?? '',
+  //   indexBlockHash: block.indexBlockHash ?? '',
+  //   networkKey: block.networkKey,
+  //   blockTimestamp: block.blockTimestamp?.toISOString() ?? block.receivedAt,
+  //   burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+  // } satisfies ApiStacksBlock;
   // await redisClient.publish(
   //   payload.networkKey,
   //   JSON.stringify({
