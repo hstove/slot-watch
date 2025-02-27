@@ -75,12 +75,6 @@ export const useWatchBlocks = () => {
         blockProposal.signerSignatureHash,
       );
       const networkKey = get(networkIdAtom);
-      // const signerSignatureHash = hex.encode(
-      //   makeSignerSignatureHash(blockProposal),
-      // );
-      // const blockTimestamp = new Date(
-      //   Number(blockProposal.timestamp * 1000n),
-      // ).toISOString();
       const base = {
         blockHash: blockProposal.signerSignatureHash,
         burnBlockHeight: blockProposal.burnBlockHeight,
@@ -89,9 +83,11 @@ export const useWatchBlocks = () => {
         tenureChangeCause: blockProposal.tenureChangeCause,
         consensusHash: blockProposal.consensusHash,
         blockHeight: blockProposal.chainLength,
-        blockTimestamp: blockProposal.createdAt,
+        blockTimestamp: blockProposal.blockTimestamp,
         networkKey,
         proposedAt: blockProposal.createdAt,
+        serverVersion: blockProposal.serverVersion,
+        serverVersionShort: blockProposal.serverVersionShort,
       } satisfies ProposalOnlyBlock;
       const existing = get(
         __stacksBlocksFamilyInner(blockProposal.signerSignatureHash),
