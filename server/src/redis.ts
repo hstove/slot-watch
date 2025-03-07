@@ -18,6 +18,15 @@ const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 export const redisClient = new Redis(redisURL, {
   maxRetriesPerRequest: isWorker ? null : undefined,
   commandTimeout: 10000,
+  reconnectOnError: (err) => {
+    logger.error(
+      {
+        err,
+      },
+      'Redis client error - reconnectOnError',
+    );
+    return true;
+  },
 });
 redisClient.on('error', (err) =>
   logger.error(
