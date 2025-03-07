@@ -23,7 +23,7 @@ export const redisClient = new Redis(redisURL, {
       {
         err,
       },
-      'Redis client error - reconnectOnError',
+      'Redis client error: reconnectOnError',
     );
     return true;
   },
