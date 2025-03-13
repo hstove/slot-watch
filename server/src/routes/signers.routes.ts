@@ -3,6 +3,7 @@ import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { timeout } from 'hono/timeout';
+import { logger } from '../logger';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
@@ -38,4 +39,29 @@ export const signersRoutes = new Hono()
       totalWeight,
       ...poxInfo,
     });
+  })
+  .get('/signers-health-check', async (c) => {
+    const networkKey = 'mainnet';
+    try {
+      const poxInfo = await getPoxInfo.get(networkKey);
+      const cycle = poxInfo.rewardCycleId;
+      const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+      return c.json({
+        signers,
+        totalWeight,
+        ...poxInfo,
+      });
+    } catch (error) {
+      logger.error(
+        {
+          error: String(error),
+          module: 'signers-health-check',
+        },
+        'Error fetching signers health check',
+      );
+      process.nextTick(() => {
+        process.exit(1);
+      });
+      return c.json({ status: 'unhealthy', error: String(error) }, 500);
+    }
   });
