@@ -11,7 +11,8 @@ export const streamRoutes = new Hono().get('/stream/:networkKey', (c) => {
   const networkKey = c.req.param('networkKey');
   return streamSSE(c, async (stream) => {
     logger.debug(`Starting stream for ${networkKey}`);
-    function handler(pattern: string, channel: string, message: string) {
+    // function handler(pattern: string, channel: string, message: string) {
+    function handler(message: string, channel: string) {
       if (channel === networkKey) {
         logger.debug(`Sending message to stream for ${networkKey}`);
         try {
@@ -29,11 +30,12 @@ export const streamRoutes = new Hono().get('/stream/:networkKey', (c) => {
         }
       }
     }
-    return new Promise((resolve) => {
-      subClient.on('pmessage', handler);
-      stream.onAbort(() => {
+    // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
+    return new Promise(async (resolve) => {
+      await subClient.pSubscribe('*', handler);
+      stream.onAbort(async () => {
         logger.debug(`Aborting stream for ${networkKey}`);
-        subClient.off('pmessage', handler);
+        await subClient.pUnsubscribe('*', handler);
         resolve();
       });
     });
