@@ -32,6 +32,7 @@ export const ioredisClient = new Redis(redisURL, {
 export const redisClient = createClient({
   url: redisURL,
 });
+await redisClient.connect();
 
 redisClient.on('error', (err) =>
   logger.error(
@@ -55,6 +56,8 @@ subClient.on('error', (err) =>
     'Redis sub client error',
   ),
 );
+
+await subClient.connect();
 
 export async function publishWsEvent(payload: WSPayload) {
   try {
