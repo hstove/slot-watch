@@ -47,7 +47,7 @@ export async function getAllLatestBlockProposals(
   const keys = await redisClient.keys(
     `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:*`,
   );
-  const results = await redisClient.mget(keys);
+  const results = await redisClient.mGet(keys);
   return results
     .filter((result): result is string => result !== null)
     .map(parseBlockProposal)
@@ -110,7 +110,7 @@ export async function getCachedLatestBlockProposals(
   const keys = minerPublicKeys.map((minerPublicKey) =>
     latestBlockProposalLookupKey({ minerPublicKey, networkKey }),
   );
-  const results = await redisClient.mget(keys);
+  const results = await redisClient.mGet(keys);
   logger.debug(
     {
       topic: 'block-proposal',

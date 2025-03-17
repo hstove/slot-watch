@@ -221,7 +221,7 @@ export async function getCachedLatestBlockResponses(
   const keys = signerPublicKeys.map((signerPublicKey) =>
     latestBlockResponseLookupKey({ signerPublicKey, networkKey }),
   );
-  const results = await redisClient.mget(keys);
+  const results = await redisClient.mGet(keys);
   logger.debug(
     {
       topic: 'block-response',

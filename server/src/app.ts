@@ -130,20 +130,20 @@ function logSendStatus(status: number) {
   }
 }
 
-await subClient.psubscribe('*', (error, count) => {
-  if (error) {
-    logger.error(
-      { err: error, topic: 'redis' },
-      'Failed to subscribe to redis',
-    );
-  } else {
-    logger.debug({ topic: 'redis' }, `Subscribed to ${count} channels`);
-  }
-  // const status = server.publish(channel as string, message as string);
-  // logSendStatus(status);
-});
+// await subClient.pSubscribe('*', (error, count) => {
+//   if (error) {
+//     logger.error(
+//       { err: error, topic: 'redis' },
+//       'Failed to subscribe to redis',
+//     );
+//   } else {
+//     logger.debug({ topic: 'redis' }, `Subscribed to ${count} channels`);
+//   }
+//   // const status = server.publish(channel as string, message as string);
+//   // logSendStatus(status);
+// });
 
-subClient.on('pmessage', (pattern, channel, message) => {
+await subClient.pSubscribe('*', (message, channel) => {
   logger.trace(
     {
       channel,
@@ -155,5 +155,18 @@ subClient.on('pmessage', (pattern, channel, message) => {
   const status = server.publish(channel, message);
   logSendStatus(status);
 });
+
+// subClient.on('pmessage', (pattern, channel, message) => {
+//   logger.trace(
+//     {
+//       channel,
+//       message,
+//       topic: 'redis',
+//     },
+//     'Received redis pubsub message',
+//   );
+//   const status = server.publish(channel, message);
+//   logSendStatus(status);
+// });
 
 logger.info(`Listening on http://localhost:${server.port}`);
