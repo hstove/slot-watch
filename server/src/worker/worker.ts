@@ -1,10 +1,9 @@
-import { redisClient } from '../redis';
+import { redisClient, redisURL } from '../redis';
 import { Worker } from 'bullmq';
 import { QUEUE_NAME, type WorkerJob } from './types';
 import { logger as _logger } from '../logger';
 import {
   BURN_BLOCKS_EVENT,
-  CHUNKS_EVENT,
   MANY_CHUNKS_EVENT,
   NEW_BLOCK_EVENT,
 } from 'slot-watch-common';
@@ -34,7 +33,9 @@ export const workerQueue = new Worker<WorkerJob>(
     }
   },
   {
-    connection: redisClient,
+    connection: {
+      url: redisURL,
+    },
     concurrency: 15,
   },
 );

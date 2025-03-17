@@ -45,11 +45,12 @@ export const signersRoutes = new Hono()
     try {
       const poxInfo = await getPoxInfo.get(networkKey);
       const cycle = poxInfo.rewardCycleId;
-      const { signers, totalWeight } = await getStackerSet(networkKey, cycle);
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
+      });
+      await Promise.race([timeoutPromise, getStackerSet(networkKey, cycle)]);
       return c.json({
-        signers,
-        totalWeight,
-        ...poxInfo,
+        status: 'healthy',
       });
     } catch (error) {
       logger.error(

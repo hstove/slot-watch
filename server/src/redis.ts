@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { createClient } from 'redis';
 import { logger as _logger } from './logger';
 import type { WSPayload } from 'slot-watch-common';
 
@@ -13,9 +14,9 @@ const isWorker = processGroup === 'worker';
 //   url: process.env.REDIS_URL,
 // });
 
-const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
+export const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
-export const redisClient = new Redis(redisURL, {
+export const ioredisClient = new Redis(redisURL, {
   maxRetriesPerRequest: isWorker ? null : undefined,
   commandTimeout: 20000,
   reconnectOnError: (err) => {
@@ -28,6 +29,10 @@ export const redisClient = new Redis(redisURL, {
     return true;
   },
 });
+export const redisClient = createClient({
+  url: redisURL,
+});
+
 redisClient.on('error', (err) =>
   logger.error(
     {
@@ -36,6 +41,10 @@ redisClient.on('error', (err) =>
     'Redis client error',
   ),
 );
+
+redisClient.on('reconnecting', () => {
+  logger.info('Redis client reconnecting');
+});
 
 export const subClient = redisClient.duplicate();
 subClient.on('error', (err) =>
