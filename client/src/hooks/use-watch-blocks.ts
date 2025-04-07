@@ -1,21 +1,10 @@
 import { useWebSocket } from './use-websocket';
 import {
-  type BlockProposal,
-  type BlockResponseAccepted,
-  type BlockResponseRejected,
-  chunkTypeName,
-  coreNodeBlockMessageSchema,
-  coreNodeBurnBlockMessageSchema,
-  decodeChunkMaybe,
-  makeSignerSignatureHash,
-  recoverChunkPublicKey,
-  SignerMessageTypePrefix,
   BURN_BLOCK_V2_EVENT,
   NEW_BLOCK_V2_EVENT,
   BLOCK_PROPOSAL_EVENT,
   type WSPayload,
   type ApiBlockProposal,
-  apiBlockProposalSchema,
   BLOCK_RESPONSE_EVENT,
   type BlockResponseApi,
 } from 'slot-watch-common';
@@ -30,13 +19,7 @@ import {
   setResponseForBlockFamily,
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
-import { hex } from '@scure/base';
 import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
-import {
-  deserializeTransaction,
-  PayloadType,
-  type TenureChangeCause,
-} from '@stacks/transactions';
 
 export const useWatchBlocks = () => {
   const { lastMessage, readyState } = useWebSocket();

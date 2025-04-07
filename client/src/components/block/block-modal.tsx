@@ -1,19 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { activeBlockHashAtom } from '@/store/blocks-store';
 import { activeBlockAtom } from '@/store/blocks-store';
-import { textStyles } from '@/lib/text-variants';
-import { DataLabel, DataValue } from '../data-group';
-import { Timestamp } from '../timestamp';
 import { StacksBlock } from './stacks-block';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 export const BlockModal = () => {
   const block = useAtomValue(activeBlockAtom);

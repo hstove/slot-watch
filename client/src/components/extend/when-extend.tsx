@@ -6,7 +6,6 @@ import {
   tenureChangesWriterAtom,
   whenExtendAtom,
 } from '@/store/responses-store';
-import { useWatchExtend } from '@/hooks/use-watch-extend';
 import { ExtendSigners } from './extend-signers';
 import { ExtendSignersTable } from './extend-signers-table';
 import { ConnectionStatus } from '../connection-status';

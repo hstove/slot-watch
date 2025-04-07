@@ -1,7 +1,6 @@
 import React from 'react';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import {
-  activeBlockHashAtom,
   responseOutcomeForBlockAtomFamily,
   responsesForBlockAtomFamily,
 } from '@/store/blocks-store';
@@ -13,8 +12,6 @@ import { sha256 } from '@noble/hashes/sha256';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 import { hex } from '@scure/base';
 import { BlockListResponses } from '../blocks-v2/block-list-responses';
-import { Text } from '../text';
-import { BlockResponseChart } from './block-response-chart';
 
 export function StacksBlock() {
   const block = useAtomValue(activeBlockAtom);

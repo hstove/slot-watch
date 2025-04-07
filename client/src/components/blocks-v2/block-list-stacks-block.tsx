@@ -19,8 +19,7 @@ import {
 import { statusStyles } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { BlockListResponses } from './block-list-responses';
-import { BlockCosts, CumulativeBlockCosts } from './burn-block-costs';
-import * as R from 'remeda';
+import { CumulativeBlockCosts } from './burn-block-costs';
 import { textStyles } from '@/lib/text-variants';
 import { PublicKey } from '../public-key';
 import { Button } from '../ui/button';

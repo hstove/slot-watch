@@ -1,9 +1,4 @@
-// import { drizzle } from "drizzle-orm/node-postgres";
-import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
 import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
-// import { Client, Pool } from "pg";
-import postgres from 'postgres';
-import { logger } from '../logger';
 import { SQL } from 'bun';
 
 const dbUrl =

@@ -1,10 +1,5 @@
-import {
-  recentSignersAtom,
-  signerVersionsAtom,
-  signerVersionsChartAtom,
-} from '@/store/signers-store';
+import { signerVersionsChartAtom } from '@/store/signers-store';
 import { useAtomValue } from 'jotai';
-import React from 'react';
 import { Pie, PieChart } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 

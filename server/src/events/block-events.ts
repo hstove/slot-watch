@@ -3,10 +3,8 @@ import {
   coreNodeBlockMessageSchema,
   coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
-  type ApiStacksBlock,
   type WSBurnBlock,
   type WSBurnBlockV2,
-  type WSNewBlock,
   type WSNewBlockV2,
 } from 'slot-watch-common';
 import { burnBlocks, stacksBlocks, type StacksBlockDb } from '../db/schema';
@@ -16,7 +14,7 @@ import {
   type TenureChangeCause,
 } from '@stacks/transactions';
 import { db } from '../db/db';
-import { publishWsEvent, redisClient } from '../redis';
+import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
 
 export function convertBlock(

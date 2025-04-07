@@ -12,7 +12,6 @@ import { isMainnet } from './networks';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 // import { sha256 } from '@noble/hashes/sha256';
 import { sha256 } from '@noble/hashes/sha2';
-import * as R from 'remeda';
 import BigNumber from 'bignumber.js';
 
 export type Prettify<T> = {

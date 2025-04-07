@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
-import { and, desc, eq, getTableColumns, isNotNull, or } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -22,7 +22,6 @@ import {
 } from '../db/block-proposals';
 import { logger } from '../logger';
 import { getPoolStatus } from '../db/db';
-import { sql } from 'drizzle-orm';
 import { timeout } from 'hono/timeout';
 
 const blockRoutes = new Hono()

@@ -5,8 +5,6 @@ import {
   apiClient,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
-  type ApiBlockResponseForBlock,
-  type ApiSigners,
 } from '@/lib/slots-api';
 import { type Atom, atom } from 'jotai';
 import { atomFamily, loadable } from 'jotai/utils';
