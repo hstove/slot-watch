@@ -1,11 +1,23 @@
 import { db } from './db';
-import { eq, desc, and, inArray, getTableColumns, gte, lte } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  and,
+  inArray,
+  getTableColumns,
+  gte,
+  lte,
+  sql,
+} from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals as blockProposalsSchema,
   blockResponses as blockResponsesSchema,
   type BlockResponseDb,
   type BlockProposalDb,
+  blockProposals,
+  burnBlocks,
+  stacksBlocks,
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
@@ -13,6 +25,7 @@ import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
 import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
 import { logger } from '../logger';
+import { memoizeCache } from '../cache';
 
 export function serializeBlockProposal(
   block: BlockProposalDb,
@@ -213,3 +226,99 @@ export async function getRecentBlocksHealth({
     blocks: blocksWithInfo,
   };
 }
+
+export async function _fetchRecentMinerBlocks(networkKey: string) {
+  const recentBlocks = await db
+    .selectDistinctOn([blockProposals.burnBlockHeight], {
+      chainLength: blockProposals.chainLength,
+      minerPublicKey: blockProposals.minerPublicKey,
+      serverVersion: blockProposals.serverVersion,
+      burnBlockHeight: burnBlocks.burnBlockHeight,
+    })
+    .from(blockProposals)
+    .innerJoin(
+      burnBlocks,
+      and(
+        eq(blockProposals.consensusHash, burnBlocks.consensusHash),
+        eq(burnBlocks.networkKey, networkKey),
+      ),
+    )
+    .innerJoin(
+      stacksBlocks,
+      and(
+        eq(blockProposals.consensusHash, stacksBlocks.consensusHash),
+        eq(stacksBlocks.networkKey, networkKey),
+      ),
+    )
+    .where(eq(blockProposals.networkKey, networkKey))
+    .orderBy(
+      desc(blockProposals.burnBlockHeight),
+      desc(blockProposals.chainLength),
+    )
+    .limit(1000);
+
+  // const recentBlocks = await db.execute<{
+  //   consensus_hash: string;
+  //   burn_block_height: number;
+  //   chain_length: number;
+  //   signer_signature_hash: string;
+  //   miner_public_key: string;
+  //   server_version: string;
+  // }>(sql`
+  //   select
+  //     distinct on (bb.burn_block_height) bb.consensus_hash
+  //     , bp.chain_length
+  //     , bp.signer_signature_hash
+  //     , bb.burn_block_height
+  //     , bp.miner_public_key
+  //     , bp.server_version
+  //   from block_proposals bp
+  //   join burn_blocks bb on bb.consensus_hash = bp.consensus_hash and bb.network_key = ${networkKey}
+  //   join stacks_blocks sb on sb.consensus_hash = bp.consensus_hash and sb.network_key = ${networkKey}
+  //   order by bb.burn_block_height desc, bp.chain_length desc
+  //   limit 1000;
+  //   `);
+  return recentBlocks;
+}
+
+const fetchRecentMinerBlocks = memoizeCache(
+  (networkKey: string) => `recent-miner-blocks-v2:${networkKey}`,
+  async (networkKey: string) => {
+    return _fetchRecentMinerBlocks(networkKey);
+  },
+);
+
+export const fetchRecentMinerStats = async (networkKey: string) => {
+  const recentBlocks = await fetchRecentMinerBlocks.get(networkKey);
+
+  const miners: Record<
+    string,
+    {
+      version: string;
+      count: number;
+      latestBlock: number;
+      publicKey: string;
+    }
+  > = {};
+
+  for (const block of recentBlocks) {
+    const minerPublicKey = block.minerPublicKey ?? '';
+    const serverVersion = block.serverVersion ?? '';
+    const miner = miners[minerPublicKey] ?? {
+      version: serverVersion,
+      shortVersion: getVersionFromString(serverVersion),
+      count: 0,
+      latestBlock: block.burnBlockHeight,
+      publicKey: minerPublicKey,
+    };
+    miners[minerPublicKey] = {
+      ...miner,
+      count: miner.count + 1,
+    };
+  }
+
+  return {
+    miners: Object.values(miners),
+    // recentBlocks,
+  };
+};

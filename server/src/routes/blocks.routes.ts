@@ -17,6 +17,7 @@ import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import {
+  fetchRecentMinerStats,
   getAllLatestBlockProposals,
   serializeBlockProposal,
 } from '../db/block-proposals';
@@ -260,9 +261,11 @@ const blockRoutes = new Hono()
   })
   .get('/:networkKey/miners', async (c) => {
     const networkKey = c.req.param('networkKey');
-    const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
+    // const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
+    const minerStats = await fetchRecentMinerStats(networkKey);
     return c.json({
-      latestBlockProposals,
+      // latestBlockProposals,
+      minerStats,
     });
   });
 
