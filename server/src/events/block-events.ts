@@ -9,6 +9,7 @@ import {
 } from 'slot-watch-common';
 import { burnBlocks, stacksBlocks, type StacksBlockDb } from '../db/schema';
 import {
+  AuthType,
   deserializeTransaction,
   PayloadType,
   type TenureChangeCause,
@@ -29,6 +30,7 @@ export function convertBlock(
     writeLength: 0,
   };
   let tenureChangeCause: TenureChangeCause | null = null;
+  let txFees = 0n;
   for (const tx of parsed.transactions) {
     cost.readCount += tx.execution_cost.read_count;
     cost.readLength += tx.execution_cost.read_length;
@@ -39,6 +41,11 @@ export function convertBlock(
       const txFull = deserializeTransaction(tx.raw_tx);
       if (txFull.payload.payloadType === PayloadType.TenureChange) {
         tenureChangeCause = txFull.payload.cause;
+      }
+      if (txFull.auth.authType === AuthType.Standard) {
+        txFees += txFull.auth.spendingCondition.fee;
+      } else {
+        txFees += txFull.auth.sponsorSpendingCondition.fee;
       }
     }
   }
@@ -56,6 +63,7 @@ export function convertBlock(
     tenureChangeCause,
     txCount: parsed.transactions.length,
     consensusHash: parsed.consensus_hash,
+    txFees: Number(txFees),
     ...cost,
   };
 }

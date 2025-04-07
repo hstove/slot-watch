@@ -58,6 +58,7 @@ export const blockProposals = pgTable(
     burnBlockHeight: integer('burn_block_height'),
     serverVersion: varchar('server_version'),
     blockTimestamp: timestamp('block_timestamp'),
+    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
@@ -158,6 +159,7 @@ export const stacksBlocks = pgTable(
     burnBlockTimestamp: timestamp('burn_block_timestamp').notNull(),
     indexBlockHash: varchar('index_block_hash', { length: 64 }),
     txCount: smallint('tx_count').notNull(),
+    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
     readCount: bigint('read_count', { mode: 'number' }).notNull(),
     readLength: bigint('read_length', { mode: 'number' }).notNull(),
     runtime: bigint('runtime', { mode: 'number' }).notNull(),

@@ -123,6 +123,7 @@ export async function handleBlockProposal({
     burnBlockHeight: Number(payload.blockHeight),
     serverVersion: payload.serverVersion,
     blockTimestamp: new Date(Number(payload.timestamp) * 1000),
+    txFees: Number(payload.txFees),
   };
   logger.debug(
     {

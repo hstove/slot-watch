@@ -5,6 +5,7 @@ import {
   PayloadType,
   type TenureChangeCause,
   type StacksTransactionWire,
+  AuthType,
 } from '@stacks/transactions';
 import {
   deserializeTransaction,
@@ -426,6 +427,7 @@ export type BlockProposal = Prettify<
     txCount: number;
     tenureChangeCause: TenureChangeCause | null;
     serverVersion: string;
+    txFees: bigint;
   }
 >;
 export type BlockResponseAccepted = Prettify<
@@ -528,10 +530,16 @@ export function decodeChunk(chunk: Uint8Array) {
     const txCount = P.U32BE.decode(txs.slice(0, 4));
     const txReader = new BytesReader(txs.slice(4));
     let tenureChangeCause: TenureChangeCause | null = null;
+    let txFees = 0n;
     for (let i = 0; i < txCount; i++) {
       const tx = deserializeTransaction(txReader);
       if (tx.payload.payloadType === PayloadType.TenureChange) {
         tenureChangeCause = tx.payload.cause;
+      }
+      if (tx.auth.authType === AuthType.Standard) {
+        txFees += tx.auth.spendingCondition.fee;
+      } else {
+        txFees += tx.auth.sponsorSpendingCondition.fee;
       }
     }
     const extraBytes = txs.slice(4 + txReader.consumed);
@@ -547,6 +555,7 @@ export function decodeChunk(chunk: Uint8Array) {
       serverVersion: extras.blockResponseData.serverVersion,
       txCount: txCount,
       tenureChangeCause,
+      txFees,
     } satisfies BlockProposal;
   }
   if (type === SignerMessageTypePrefix.BlockPushed) {

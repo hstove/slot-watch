@@ -63,6 +63,7 @@ export const useWebSocket = () => {
     shouldReconnect: (_closeEvent) => {
       return !didUnmount.current;
     },
+    retryOnError: true,
     // events: {
     //   message: (event) => {
     //     console.log('useWebSocket: Received message', event);
