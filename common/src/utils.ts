@@ -127,3 +127,7 @@ export function stxToMicroStx(stx: IntegerType) {
   const bn = intToBn(stx);
   return bn.decimalPlaces(6).shiftedBy(6).decimalPlaces(0);
 }
+
+export function prefix0x(value: string) {
+  return value.startsWith('0x') ? value : `0x${value}`;
+}
