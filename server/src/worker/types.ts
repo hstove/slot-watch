@@ -1,16 +1,9 @@
 import type {
   BURN_BLOCKS_EVENT,
   StackerDBPayload,
-  ChunkEvent,
-  WSNewBlock,
-  CoreNodeBlockMessage,
   NEW_BLOCK_EVENT,
   CoreNodeBurnBlockMessage,
-  WSBurnBlock,
   MANY_CHUNKS_EVENT,
-  WSManyChunks,
-  WSPayload,
-  CHUNKS_EVENT,
 } from 'slot-watch-common';
 import type { StacksBlockDb } from '../db/schema';
 

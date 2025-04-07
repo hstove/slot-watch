@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import type { Version } from 'slot-watch-common';
 import {
   getSortableVersion,
   percentString,

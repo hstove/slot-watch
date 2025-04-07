@@ -17,11 +17,7 @@ import { useEntity } from '@/hooks/use-entity';
 import { Countdown } from '../countdown';
 import { Text } from '../text';
 import { colord } from 'colord';
-import {
-  signersApiAtom,
-  signersAtomFamily,
-  totalWeightAtom,
-} from '@/store/signers-store';
+import { signersAtomFamily, totalWeightAtom } from '@/store/signers-store';
 
 const minColor = colord('#15803d');
 const maxColor = colord('#0f766e');

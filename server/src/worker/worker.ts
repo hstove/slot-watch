@@ -1,4 +1,4 @@
-import { redisClient, redisURL } from '../redis';
+import { redisURL } from '../redis';
 import { Worker } from 'bullmq';
 import { QUEUE_NAME, type WorkerJob } from './types';
 import { logger as _logger } from '../logger';

@@ -11,8 +11,6 @@ import { BtcIcon } from '../icons/btc-icon';
 import { Timestamp } from '../timestamp';
 import { BurnBlockCosts } from './burn-block-costs';
 import { PublicKey } from '../public-key';
-import { Button } from '../ui/button';
-import { textStyles, textVariants } from '@/lib/text-variants';
 import { Link } from '@tanstack/react-router';
 
 export const BurnBlock = ({

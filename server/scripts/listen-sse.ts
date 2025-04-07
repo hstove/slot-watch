@@ -1,4 +1,3 @@
-import { EventSource } from 'eventsource';
 import { createEventSource } from 'eventsource-client';
 
 const eventSource = createEventSource({

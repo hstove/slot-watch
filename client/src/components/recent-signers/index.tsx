@@ -3,7 +3,6 @@ import { useAtom, useAtomValue } from 'jotai';
 import {
   recentSignersAtom,
   totalRecentSignersAtom,
-  totalUpatedSignersAtom,
   useSignerVersionsWeightedAtom,
 } from '@/store/signers-store';
 import { colord, extend } from 'colord';
@@ -14,7 +13,7 @@ import { networkIdAtom } from '@/store/network';
 import { DataTable } from '../ui/data-table';
 import { columns } from './columns';
 import { VersionsChart } from './versions-chart';
-import { Card, CardContent, CardHeader } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Route } from '../../routes/signers';
 

@@ -1,12 +1,11 @@
 import type { WSPayload } from 'slot-watch-common';
 import { useEffect } from 'react';
-import _useWebSocket from 'react-use-websocket';
 import { useEventSource } from 'react-use-websocket';
 import { allPayloadsSetterAtom } from '@/store/chunks-store';
 import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
 import { networkIdAtom } from '@/store/network';
-import { slotsApiUrl, slotsWsUrl } from '@/lib/slots-api';
+import { slotsApiUrl } from '@/lib/slots-api';
 import { useAtomValue } from 'jotai';
 
 type UseWebSocketProps = {

@@ -3,12 +3,7 @@ import { networkIdAtom } from './network';
 import type { RecentSigner } from 'slot-watch-common';
 import { getSortableVersion } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
-import {
-  type ApiRecentSigners,
-  type ApiSigner,
-  type ApiSigners,
-  getRecentSigners,
-} from '@/lib/slots-api';
+import type { ApiRecentSigners, ApiSigner, ApiSigners } from '@/lib/slots-api';
 import { atomFamily } from 'jotai/utils';
 import { dequal } from 'dequal/lite';
 import { setDebugLabel } from './store-utils';

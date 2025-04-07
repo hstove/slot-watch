@@ -4,11 +4,7 @@ import {
   blockTenureCostsAtom,
   cumulativeBlockCostsAtom,
 } from '@/store/blocks-store';
-import {
-  costLimitsUsed,
-  type MAINNET_COST_LIMITS,
-  ZERO_COST,
-} from '@/lib/costs';
+import { costLimitsUsed, type MAINNET_COST_LIMITS } from '@/lib/costs';
 import { statusStyles, type StatusVariants } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
 import { percentString } from 'slot-watch-common';

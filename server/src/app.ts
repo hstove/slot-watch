@@ -5,12 +5,6 @@ import eventsRoutes from './routes/events.routes';
 import { createBunWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
 import type { ServerWebSocket } from 'bun';
-import {
-  BURN_BLOCKS_EVENT,
-  CHUNKS_EVENT,
-  MANY_CHUNKS_EVENT,
-  NEW_BLOCK_EVENT,
-} from 'slot-watch-common';
 import { blockRoutes } from './routes/blocks.routes';
 import { getChunksRoutes } from './routes/chunks.routes';
 import { prettyJSON } from 'hono/pretty-json';

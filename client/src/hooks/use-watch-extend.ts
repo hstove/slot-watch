@@ -1,18 +1,10 @@
 import { useWebSocket } from './use-websocket';
-import {
-  BLOCK_RESPONSE_EVENT,
-  decodeChunkMaybe,
-  recoverChunkPublicKey,
-  SignerMessageTypePrefix,
-  type WSPayload,
-} from 'slot-watch-common';
+import { BLOCK_RESPONSE_EVENT, type WSPayload } from 'slot-watch-common';
 import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
 import { networkIdAtom } from '@/store/network';
 // import { signerLatestResponsesMapAtom } from '@/store/blocks-store';
 import { setSignerLatestResponsesAtom } from '@/store/responses-store';
-import { hex } from '@scure/base';
-import type { ApiBlockResponseForBlock } from '@/lib/slots-api';
 
 export const useWatchExtend = () => {
   const { lastMessage, readyState } = useWebSocket();
