@@ -152,15 +152,8 @@
     {
       "idx": 21,
       "version": "7",
-      "when": 1744063642550,
-      "tag": "0021_friendly_electro",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1744063886491,
-      "tag": "0022_vengeful_rhino",
+      "when": 1744066963291,
+      "tag": "0021_square_madrox",
       "breakpoints": true
     }
   ]
