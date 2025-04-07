@@ -1,5 +1,5 @@
 {
-  "id": "2df8b8f8-5a37-4f96-a5ff-b0af83baf83d",
+  "id": "0418fc67-a135-4e20-84e2-52c8beb3077c",
   "prevId": "1ff45f0e-c009-4190-848e-983f653e3fa1",
   "version": "7",
   "dialect": "postgresql",
@@ -91,7 +91,8 @@
           "name": "tx_fees",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": 0
         }
       },
       "indexes": {
@@ -910,7 +911,8 @@
           "name": "tx_fees",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": 0
         },
         "read_count": {
           "name": "read_count",
