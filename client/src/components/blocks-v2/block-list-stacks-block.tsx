@@ -25,7 +25,7 @@ import { textStyles } from '@/lib/text-variants';
 import { PublicKey } from '../public-key';
 import { Button } from '../ui/button';
 import { Link } from '@tanstack/react-router';
-import { getStacksExplorerUrl } from 'slot-watch-common';
+import { getStacksExplorerUrl, prefix0x } from 'slot-watch-common';
 import {
   Tooltip,
   TooltipContent,
@@ -157,7 +157,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
               <Button variant="ghost" size="sm" asChild>
                 <Link
                   to={getStacksExplorerUrl(
-                    `/block/${blockHash}`,
+                    `/block/${prefix0x(blockHash)}`,
                     block.networkKey,
                   )}
                   target="_blank"
