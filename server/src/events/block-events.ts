@@ -17,6 +17,7 @@ import {
 import { db } from '../db/db';
 import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
+import { fetchRecentMinerStats } from '../db/block-proposals';
 
 export function convertBlock(
   block: unknown,
@@ -95,6 +96,7 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
       burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
     },
   } satisfies WSNewBlockV2);
+  await fetchRecentMinerStats(block.networkKey);
 }
 
 export async function handleBurnBlockEvent(payload: WSBurnBlock) {

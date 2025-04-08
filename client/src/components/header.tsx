@@ -16,6 +16,9 @@ export const Header = () => {
         </NavLink> */}
         <NavLink to="/when-extend">Extend</NavLink>
         <NavLink to={'/signers'}>Signers</NavLink>
+        <NavLink className="hidden md:block" to={'/miners'}>
+          Miners
+        </NavLink>
         <NavLink to={'/'}>Blocks</NavLink>
         <NetworkPicker />
         <ModeToggle />
