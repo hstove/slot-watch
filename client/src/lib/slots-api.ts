@@ -257,3 +257,13 @@ export async function getTenureChanges(networkKey: string) {
     } satisfies ProcessedStacksBlock;
   });
 }
+
+export async function getMinerStats(networkKey: string) {
+  const response = await apiClient[':networkKey'].miners.$get({
+    param: { networkKey },
+  });
+  return (await response.json()).minerStats;
+}
+
+export type ApiMinerStats = Awaited<ReturnType<typeof getMinerStats>>;
+export type ApiMinerStat = ApiMinerStats['miners'][0];
