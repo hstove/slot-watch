@@ -1,5 +1,6 @@
 import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
 import { SQL } from 'bun';
+import * as schema from './schema';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -17,73 +18,9 @@ if (port) {
 
 const sql = new SQL(sqlUrl.toString());
 
-// const client = new Pool({
-// 	connectionString: dbUrl,
-// 	// pool: {
-// 	min: 0,
-// 	max: 10,
-// 	connectionTimeoutMillis: 8000,
-// 	idle_in_transaction_session_timeout: 8000,
-// 	idleTimeoutMillis: 8000,
-// 	// reapIntervalMillis: 1000,
-// 	statement_timeout: 100,
-// 	query_timeout: 8000,
-// 	// },
-// 	// ssl: false,
-// });
-
-// const sql = postgres(dbUrl, {
-//   connect_timeout: 10,
-//   idle_timeout: 20, // Terminate idle connections after 20 seconds
-//   max: 20,
-//   port,
-//   debug: (connection_id, query, params) => {
-//     logger.debug(
-//       {
-//         module: 'db',
-//         connection_id,
-//         query: query
-//           .split('\n')
-//           .map((s) => s.trim())
-//           .join(' '),
-//         params,
-//       },
-//       'Postgres debug',
-//     );
-//   },
-//   onnotice: (notice) => {
-//     logger.debug(
-//       {
-//         module: 'db',
-//         notice,
-//       },
-//       'Postgres Notice',
-//     );
-//   },
-//   onparameter: (key, value) => {
-//     logger.debug(
-//       {
-//         module: 'db',
-//         key,
-//         value,
-//       },
-//       'Postgres Parameter',
-//     );
-//   },
-// });
-
-// try {
-// 	await client.connect();
-// 	console.log("Connected to DB");
-// } catch (error) {
-// 	console.error(`Error connecting to DB: ${error}`);
-// 	// console.error(error.stack);
-// 	// process.exit(1);
-// }
-
 // export const db = drizzle(client);
 // export const db = drizzlePg(sql);
-export const db = drizzleBun(sql);
+export const db = drizzleBun(sql, { schema });
 
 // Add this function to check pool status
 export const getPoolStatus = () => {
