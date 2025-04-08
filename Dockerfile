@@ -21,7 +21,7 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
 
 # Install node modules
-COPY bun.lockb package.json turbo.json ./
+COPY bun.lock package.json turbo.json ./
 COPY common/package.json ./common/
 COPY client/package.json ./client/
 COPY server/package.json ./server/
