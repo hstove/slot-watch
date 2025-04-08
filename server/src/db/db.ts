@@ -6,9 +6,9 @@ const dbUrl =
   'postgresql://hankstoever@localhost:5432/slot_watch';
 
 let port: number | undefined;
-if (process.env.FLY_PROCESS_GROUP === 'app') {
-  port = 5433;
-}
+// if (process.env.FLY_PROCESS_GROUP === 'app') {
+//   port = 5433;
+// }
 
 const sqlUrl = new URL(dbUrl);
 if (port) {
