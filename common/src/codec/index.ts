@@ -14,6 +14,7 @@ import {
 import { BytesReader } from '@stacks/transactions/dist/BytesReader';
 import type { Prettify } from '../utils';
 import { hex } from '@scure/base';
+import { StateMachineUpdateCoder } from './state-machine';
 
 export type BitVec = {
   length: number;
@@ -86,6 +87,8 @@ export const SignerMessageTypePrefix = {
   MockBlock: 5,
   /// Earlier mock signature message
   MockSignatureOld: 3,
+  /// StackerDB state machine update message
+  StateMachineUpdate: 6,
 } as const;
 
 export type SignerMessageTypeId =
@@ -409,6 +412,11 @@ export const MockSignatureOldCoder = P.struct({
   chainId: P.U32BE,
 });
 
+export const StackerDBStateMachineUpdateCoder = P.struct({
+  typeId: TypeIdCoder(SignerMessageTypePrefix.StateMachineUpdate),
+  stateMachineUpdate: StateMachineUpdateCoder,
+});
+
 export type MockBlock = Prettify<
   Omit<P.UnwrapCoder<typeof MockBlockCoder>, 'proposal'> & {
     proposal: MockProposalInner;
@@ -464,6 +472,15 @@ export type MockSignatureOld = Prettify<
   }
 >;
 
+type StackerDBStateMachineUpdateOuter = P.UnwrapCoder<
+  typeof StackerDBStateMachineUpdateCoder
+>;
+
+export type StackerDBStateMachineUpdate = Prettify<
+  Omit<StackerDBStateMachineUpdateOuter, 'stateMachineUpdate'> &
+    StackerDBStateMachineUpdateOuter['stateMachineUpdate']
+>;
+
 export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
 export function chunkTypeName(chunk: Uint8Array) {
@@ -487,6 +504,8 @@ export function chunkTypeName(chunk: Uint8Array) {
       return 'Mock Signature';
     case SignerMessageTypePrefix.MockBlock:
       return 'Mock Block';
+    case SignerMessageTypePrefix.StateMachineUpdate:
+      return 'State Machine Update';
     default:
       return 'Unknown';
   }
@@ -569,6 +588,14 @@ export function decodeChunk(chunk: Uint8Array) {
   }
   if (type === SignerMessageTypePrefix.MockSignature) {
     return MockSignatureCoder.decode(chunk) as MockSignature;
+  }
+  if (type === SignerMessageTypePrefix.StateMachineUpdate) {
+    const { stateMachineUpdate, ...rest } =
+      StackerDBStateMachineUpdateCoder.decode(chunk);
+    return {
+      ...rest,
+      ...stateMachineUpdate,
+    } satisfies StackerDBStateMachineUpdate;
   }
   throw new Error(
     `Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
