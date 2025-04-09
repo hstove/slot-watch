@@ -18,6 +18,8 @@ import {
   type MockSignatureOld,
   MockSignatureOldCoder,
   SignerMessageTypePrefix,
+  type StackerDBStateMachineUpdate,
+  StateMachineUpdateCoder,
 } from '../src';
 import {
   decodeChunk,
@@ -31,6 +33,14 @@ import {
   chunkTypeName,
 } from '../src';
 import * as P from 'micro-packed';
+
+function makeStubBytes(byte: number, length: number): Uint8Array {
+  const arr = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    arr[i] = byte;
+  }
+  return arr;
+}
 
 test('parse-fixtures', () => {
   const payload = fixtureToJson(fixtures.signers1);
@@ -412,4 +422,48 @@ test('block proposal with weird height', () => {
   expect(proposal.serverVersion).toEqual(
     'stacks-node 3.1.0.0.6 (release/3.1.0.0.6:037f020+, release build, linux [x86_64])',
   );
+});
+
+test('state machine update - no miner variant', () => {
+  const hexStr =
+    '000000000000000000000000000000040000001d5555555555555555555555555555555555555555000000000000006400';
+
+  const decoded = StateMachineUpdateCoder.decode(hex.decode(hexStr));
+  expect(decoded.activeSignerProtocolVersion).toEqual(0n);
+  expect(decoded.localSignerProtocolVersion).toEqual(4n);
+  expect(decoded.stateMachineUpdate.minerState.variant).toEqual(0);
+  expect(decoded.stateMachineUpdate.burnBlockHeight).toEqual(100n);
+});
+
+test('state machine update - miner variant', () => {
+  const hexStr =
+    '00000000000000000000000000000003000000815555555555555555555555555555555555555555000000000000006401abababababababababababababababababababab4444444444444444444444444444444444444444222222222222222222222222222222222222222233333333333333333333333333333333333333333333333333333333333333330000000000000001';
+
+  const decoded = StateMachineUpdateCoder.decode(hex.decode(hexStr));
+  expect(decoded.activeSignerProtocolVersion).toEqual(0n);
+  expect(decoded.localSignerProtocolVersion).toEqual(3n);
+  expect(decoded.stateMachineUpdate.minerState.variant).toEqual(1);
+  expect(decoded.stateMachineUpdate.burnBlockHeight).toEqual(100n);
+  if (decoded.stateMachineUpdate.minerState.variant !== 1) {
+    throw new Error('Invalid variant');
+  }
+  const minerState = decoded.stateMachineUpdate.minerState;
+  expect(minerState.parentTenureLastBlockHeight).toEqual(1n);
+  expect(minerState.parentTenureLastBlock).toEqual(makeStubBytes(0x33, 32));
+  expect(minerState.currentMinerPkh).toEqual(makeStubBytes(0xab, 20));
+  expect(minerState.parentTenureId).toEqual(makeStubBytes(0x22, 20));
+  expect(minerState.tenureId).toEqual(makeStubBytes(0x44, 20));
+});
+
+test('state machine update - signer message', () => {
+  const hexStr =
+    '0600000000000000000000000000000003000000815555555555555555555555555555555555555555000000000000006401abababababababababababababababababababab4444444444444444444444444444444444444444222222222222222222222222222222222222222233333333333333333333333333333333333333333333333333333333333333330000000000000001';
+
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.StateMachineUpdate) {
+    throw new Error('Invalid type');
+  }
+  const stateMachineUpdate = decoded as StackerDBStateMachineUpdate;
+  expect(stateMachineUpdate.activeSignerProtocolVersion).toEqual(0n);
+  expect(stateMachineUpdate.localSignerProtocolVersion).toEqual(3n);
 });
