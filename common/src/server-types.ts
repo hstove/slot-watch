@@ -144,5 +144,5 @@ export type ApiStateMachineUpdate = {
   signerPublicKey: string;
   networkKey: string;
   chunkId: number | null;
-  createdAt: Date;
+  createdAt: string;
 };

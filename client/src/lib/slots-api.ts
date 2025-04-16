@@ -1,6 +1,6 @@
 import { hc } from 'hono/client';
 import type { SlotWatchServer } from 'slot-watch-api';
-import type { TypeMerge } from 'slot-watch-common';
+import { superDeserialize, type TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 
 export const slotsApiUrl =
@@ -267,3 +267,18 @@ export async function getMinerStats(networkKey: string) {
 
 export type ApiMinerStats = Awaited<ReturnType<typeof getMinerStats>>;
 export type ApiMinerStat = ApiMinerStats['miners'][0];
+
+export async function getStateMachineUpdates(networkKey: string) {
+  const response = await apiClient[':networkKey']['state-machines'].$get({
+    param: { networkKey },
+  });
+  const data = await response.json();
+  return data;
+}
+
+export type ApiStateMachineUpdates = Awaited<
+  ReturnType<typeof getStateMachineUpdates>
+>;
+
+export type ApiStateMachineUpdate =
+  ApiStateMachineUpdates['latestStateMachineUpdates'][0];

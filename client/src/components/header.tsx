@@ -19,6 +19,9 @@ export const Header = () => {
         <NavLink className="hidden md:block" to={'/miners'}>
           Miners
         </NavLink>
+        <NavLink className="hidden md:block" to={'/state-machines'}>
+          State Machines
+        </NavLink>
         <NavLink to={'/'}>Blocks</NavLink>
         <NetworkPicker />
         <ModeToggle />

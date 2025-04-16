@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as WhenExtendImport } from './routes/when-extend'
 import { Route as UiTestImport } from './routes/ui-test'
 import { Route as StreamImport } from './routes/stream'
+import { Route as StateMachinesImport } from './routes/state-machines'
 import { Route as SignersImport } from './routes/signers'
 import { Route as MinersImport } from './routes/miners'
 import { Route as BlocksV1Import } from './routes/blocks-v1'
@@ -38,6 +39,12 @@ const UiTestRoute = UiTestImport.update({
 const StreamRoute = StreamImport.update({
   id: '/stream',
   path: '/stream',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const StateMachinesRoute = StateMachinesImport.update({
+  id: '/state-machines',
+  path: '/state-machines',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -109,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignersImport
       parentRoute: typeof rootRoute
     }
+    '/state-machines': {
+      id: '/state-machines'
+      path: '/state-machines'
+      fullPath: '/state-machines'
+      preLoaderRoute: typeof StateMachinesImport
+      parentRoute: typeof rootRoute
+    }
     '/stream': {
       id: '/stream'
       path: '/stream'
@@ -154,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
+  '/state-machines': typeof StateMachinesRoute
   '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -166,6 +181,7 @@ export interface FileRoutesByTo {
   '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
+  '/state-machines': typeof StateMachinesRoute
   '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -179,6 +195,7 @@ export interface FileRoutesById {
   '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
+  '/state-machines': typeof StateMachinesRoute
   '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -193,6 +210,7 @@ export interface FileRouteTypes {
     | '/blocks-v1'
     | '/miners'
     | '/signers'
+    | '/state-machines'
     | '/stream'
     | '/ui-test'
     | '/when-extend'
@@ -204,6 +222,7 @@ export interface FileRouteTypes {
     | '/blocks-v1'
     | '/miners'
     | '/signers'
+    | '/state-machines'
     | '/stream'
     | '/ui-test'
     | '/when-extend'
@@ -215,6 +234,7 @@ export interface FileRouteTypes {
     | '/blocks-v1'
     | '/miners'
     | '/signers'
+    | '/state-machines'
     | '/stream'
     | '/ui-test'
     | '/when-extend'
@@ -228,6 +248,7 @@ export interface RootRouteChildren {
   BlocksV1Route: typeof BlocksV1Route
   MinersRoute: typeof MinersRoute
   SignersRoute: typeof SignersRoute
+  StateMachinesRoute: typeof StateMachinesRoute
   StreamRoute: typeof StreamRoute
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
@@ -240,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlocksV1Route: BlocksV1Route,
   MinersRoute: MinersRoute,
   SignersRoute: SignersRoute,
+  StateMachinesRoute: StateMachinesRoute,
   StreamRoute: StreamRoute,
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
@@ -261,6 +283,7 @@ export const routeTree = rootRoute
         "/blocks-v1",
         "/miners",
         "/signers",
+        "/state-machines",
         "/stream",
         "/ui-test",
         "/when-extend",
@@ -279,6 +302,9 @@ export const routeTree = rootRoute
     },
     "/signers": {
       "filePath": "signers.tsx"
+    },
+    "/state-machines": {
+      "filePath": "state-machines.tsx"
     },
     "/stream": {
       "filePath": "stream.tsx"
