@@ -119,7 +119,7 @@ export const stateMachineColumns: ColumnDef<FullSignerStateMachine>[] = [
     },
     // header: 'Last Updated',
     header: ({ column }) => {
-      return <SortableHeader column={column}>Last Seen</SortableHeader>;
+      return <SortableHeader column={column}>Updated</SortableHeader>;
     },
   },
   {
