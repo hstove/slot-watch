@@ -13,6 +13,8 @@ import { ripemd160 } from '@noble/hashes/ripemd160';
 // import { sha256 } from '@noble/hashes/sha256';
 import { sha256 } from '@noble/hashes/sha2';
 import BigNumber from 'bignumber.js';
+import type { SuperJSONResult } from 'superjson';
+import { serialize, deserialize } from 'superjson';
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -129,4 +131,17 @@ export function stxToMicroStx(stx: IntegerType) {
 
 export function prefix0x(value: string) {
   return value.startsWith('0x') ? value : `0x${value}`;
+}
+export type SuperJSON<T> = SuperJSONResult & {
+  _v?: T;
+};
+
+export type DeserializedSuperJSON<T> = SuperJSON<T>['_v'];
+
+export function superSerialize<T>(value: T): SuperJSON<T> {
+  return serialize(value) as SuperJSON<T>;
+}
+
+export function superDeserialize<T>(value: SuperJSON<T>): T {
+  return deserialize(value) as T;
 }

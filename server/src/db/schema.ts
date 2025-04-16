@@ -10,6 +10,7 @@ import {
   bigint,
   boolean,
   unique,
+  json,
 } from 'drizzle-orm/pg-core';
 import { isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
 
@@ -216,3 +217,34 @@ export const burnBlocks = pgTable(
 );
 
 export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
+
+export const stateMachineUpdates = pgTable(
+  'state_machine_updates',
+  {
+    id: serial('id').primaryKey(),
+    signerPublicKey: varchar('signer_public_key', { length: 66 }).notNull(),
+    networkKey: varchar('network_key', { length: 20 }).notNull(),
+    localSignerProtocolVersion: integer(
+      'local_signer_protocol_version',
+    ).notNull(),
+    activeSignerProtocolVersion: integer(
+      'active_signer_protocol_version',
+    ).notNull(),
+    updateContent: json('update_content').notNull(),
+    chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
+    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+  },
+  (table) => [
+    index('state_machine_updates_network_key_idx').on(table.networkKey),
+    index('state_machine_updates_signer_public_key_idx').on(
+      table.signerPublicKey,
+    ),
+    index('state_machine_updates_by_signer_latest_idx').on(
+      table.signerPublicKey,
+      table.createdAt.desc(),
+      table.networkKey,
+    ),
+  ],
+);
+
+export type StateMachineUpdateDb = InferSelectModel<typeof stateMachineUpdates>;

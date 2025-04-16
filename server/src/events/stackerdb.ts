@@ -16,6 +16,10 @@ import {
   BLOCK_RESPONSE_EVENT,
   getVersionFromString,
   type ApiBlockProposal,
+  type StateMachineUpdate,
+  STATE_MACHINE_UPDATE_EVENT,
+  type WSStateMachineUpdate,
+  superSerialize,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -24,6 +28,7 @@ import {
   blockPushes,
   blockResponses,
   stackerDbSlots,
+  stateMachineUpdates,
 } from '../db/schema';
 import { hex } from '@scure/base';
 import { logger } from '../logger';
@@ -33,6 +38,7 @@ import {
 } from '../db/block-responses';
 import { publishWsEvent } from '../redis';
 import { setLatestBlockProposal } from '../db/block-proposals';
+import type { InferInsertModel } from 'drizzle-orm';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -91,6 +97,17 @@ export async function handleStackerDBChunk(
         networkKey,
         publicKey,
         chunkId,
+      });
+    } else if (decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate) {
+      if (chunkId === null) {
+        return;
+      }
+      await handleStateMachineUpdate({
+        payload: decoded,
+        receivedAt,
+        networkKey,
+        chunkId,
+        publicKey,
       });
     }
   }
@@ -239,4 +256,37 @@ export async function handleBlockResponse({
       }),
     },
   } satisfies WSBlockResponse);
+}
+
+export async function handleStateMachineUpdate({
+  payload,
+  receivedAt,
+  networkKey,
+  chunkId,
+  publicKey,
+}: {
+  payload: StateMachineUpdate;
+  receivedAt: Date;
+  networkKey: string;
+  publicKey: string;
+  chunkId: number;
+}) {
+  const dbStateMachineUpdate = {
+    signerPublicKey: publicKey,
+    networkKey,
+    chunkId,
+    createdAt: receivedAt,
+    activeSignerProtocolVersion: Number(payload.activeSignerProtocolVersion),
+    localSignerProtocolVersion: Number(payload.localSignerProtocolVersion),
+    updateContent: payload.stateMachineUpdate,
+  } satisfies InferInsertModel<typeof stateMachineUpdates>;
+  await db.insert(stateMachineUpdates).values(dbStateMachineUpdate);
+  await publishWsEvent({
+    type: STATE_MACHINE_UPDATE_EVENT,
+    networkKey,
+    receivedAt: receivedAt.toISOString(),
+    payload: superSerialize({
+      ...dbStateMachineUpdate,
+    }),
+  } satisfies WSStateMachineUpdate);
 }

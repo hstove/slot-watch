@@ -69,7 +69,7 @@ export type StateMachineUpdateContentV0 = P.UnwrapCoder<
 >;
 
 export type StateMachineUpdate = {
-  activeSignerProtocolVersion: bigint;
+  activeSignerProtocolVersion: 0n;
   localSignerProtocolVersion: bigint;
   stateMachineUpdate: StateMachineUpdateContentV0;
 };
@@ -95,6 +95,6 @@ export const StateMachineUpdateCoder = P.wrap({
       activeSignerProtocolVersion,
       localSignerProtocolVersion,
       stateMachineUpdate,
-    };
+    } satisfies StateMachineUpdate;
   },
 });

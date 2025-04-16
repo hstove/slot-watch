@@ -1,4 +1,5 @@
 import type { ChunkType } from './codec';
+import type { StateMachineUpdate } from './codec/state-machine';
 import type {
   CoreNodeBlockMessage,
   CoreNodeBurnBlockMessage,
@@ -7,6 +8,7 @@ import type {
   ApiBlockProposal,
   ApiBurnBlock,
   ApiStacksBlock,
+  ApiStateMachineUpdate,
   BlockResponseApi,
 } from './server-types';
 import type { Prettify } from './utils';
@@ -21,6 +23,7 @@ export const BLOCK_RESPONSE_EVENT = 'block_response';
 export const NEW_BLOCK_V2_EVENT = 'new_block_v2';
 export const BURN_BLOCK_V2_EVENT = 'burn_block_v2';
 export const BLOCK_PROPOSAL_EVENT = 'block_proposal';
+export const STATE_MACHINE_UPDATE_EVENT = 'state_machine_update';
 
 export type ChunkEvent = {
   contractId: string;
@@ -201,6 +204,11 @@ export type WSBlockProposal = WSBase<
   ApiBlockProposal
 >;
 
+export type WSStateMachineUpdate = WSBase<
+  typeof STATE_MACHINE_UPDATE_EVENT,
+  ApiStateMachineUpdate
+>;
+
 export type WSPayload =
   | WSChunkEvent
   | WSNewBlock
@@ -209,7 +217,8 @@ export type WSPayload =
   | WSBlockProposal
   | WSBlockResponse
   | WSNewBlockV2
-  | WSBurnBlockV2;
+  | WSBurnBlockV2
+  | WSStateMachineUpdate;
 
 export function getChunkId(chunk: ChunkEvent): string {
   return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;
