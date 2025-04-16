@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import type { StateMachineUpdate } from './codec/state-machine';
+import type {
+  StateMachineUpdate,
+  StateMachineUpdateMinerStateInactive,
+} from './codec/state-machine';
 import type { SuperJSON } from './utils';
 
 export type RecentSigner = {
@@ -120,12 +123,26 @@ export const apiBlockProposalSchema = z.object({
 
 export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;
 
-export type ApiStateMachineUpdate = SuperJSON<{
-  updateContent: StateMachineUpdate['stateMachineUpdate'];
+export type ApiStateMachineMinerState =
+  | StateMachineUpdateMinerStateInactive
+  | {
+      variant: 1;
+      tenureId: string;
+      parentTenureId: string;
+      parentTenureLastBlock: string;
+      parentTenureLastBlockHeight: number;
+      currentMinerPkh: string;
+    };
+
+export type ApiStateMachineUpdate = {
+  // updateContent: StateMachineUpdate['stateMachineUpdate'];
+  burnBlock: string;
+  burnBlockHeight: number;
+  minerState: ApiStateMachineMinerState;
   activeSignerProtocolVersion: number;
   localSignerProtocolVersion: number;
   signerPublicKey: string;
   networkKey: string;
-  chunkId: number;
+  chunkId: number | null;
   createdAt: Date;
-}>;
+};

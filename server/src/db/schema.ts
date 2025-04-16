@@ -13,6 +13,7 @@ import {
   json,
 } from 'drizzle-orm/pg-core';
 import { isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
+import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
   dataType() {
@@ -230,7 +231,9 @@ export const stateMachineUpdates = pgTable(
     activeSignerProtocolVersion: integer(
       'active_signer_protocol_version',
     ).notNull(),
-    updateContent: json('update_content').notNull(),
+    updateContent: json('update_content')
+      .$type<SuperJSON<StateMachineUpdate['stateMachineUpdate']>>()
+      .notNull(),
     chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
   },
