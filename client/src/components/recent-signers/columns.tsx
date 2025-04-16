@@ -15,6 +15,7 @@ import { useEntity } from '@/hooks/use-entity';
 import { Timestamp } from '../timestamp';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/text';
+
 function Degregation({
   degradation,
   lastNBlocks,
@@ -41,7 +42,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     // header: "#",
     accessorKey: 'slotId',
     cell: ({ row }) => {
-      return <div className="font-mono ml-2">{row.original.slotId}</div>;
+      return <div className="font-mono">{row.original.slotId}</div>;
     },
     header: ({ column }) => {
       return (
@@ -53,6 +54,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
   },
   {
     header: 'Public Key',
+    enableSorting: false,
     // accessorKey: "publicKey",
     cell: ({ row }) => {
       return (
@@ -68,6 +70,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
   {
     header: 'Entity',
     // accessorKey: "entity",
+    enableSorting: false,
     cell: ({ row }) => {
       const entity = useEntity(row.original.publicKey);
       return (
@@ -81,7 +84,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     // header: "Signing Power",
     cell: ({ row }) => {
       return (
-        <div className="font-mono ml-2 text-xs">
+        <div className="font-mono text-xs">
           {row.original.weightPercentStr}%
         </div>
       );
@@ -142,7 +145,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
         <Degregation
           degradation={row.original.degradation50}
           lastNBlocks={50}
-          className="ml-2 text-xs"
+          className="ml-0 text-xs"
         />
       );
     },
@@ -166,10 +169,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
           })}
         >
           {/* <TimeAgo date={row.original.createdAt} className="ml-4" /> */}
-          <Timestamp
-            timestamp={row.original.createdAt}
-            className="text-xs ml-2"
-          />
+          <Timestamp timestamp={row.original.createdAt} className="text-xs" />
         </SimpleTooltip>
       );
       // return <TimeAgo date={row.original.createdAt} className="ml-4" />;
@@ -194,7 +194,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     cell: ({ row }) => {
       return (
         <SimpleTooltip content={row.original.version}>
-          <Text variant="small" className="text-xs ml-3">
+          <Text variant="small" className="text-xs">
             {row.original.versionShort}
           </Text>
         </SimpleTooltip>

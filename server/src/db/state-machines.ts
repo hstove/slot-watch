@@ -26,12 +26,14 @@ export function serializeMinerState(
 export function serializeStateMachineUpdate(
   update: StateMachineUpdateDb,
 ): ApiStateMachineUpdate {
-  const updateContent = superDeserialize(update.updateContent);
+  const { updateContent, ...rest } = update;
+  const content = superDeserialize(updateContent);
 
   return {
-    ...update,
-    burnBlock: hex.encode(updateContent.burnBlock),
-    burnBlockHeight: Number(updateContent.burnBlockHeight),
-    minerState: serializeMinerState(updateContent.minerState),
+    ...rest,
+    burnBlock: hex.encode(content.burnBlock),
+    burnBlockHeight: Number(content.burnBlockHeight),
+    minerState: serializeMinerState(content.minerState),
+    createdAt: rest.createdAt.toISOString(),
   } satisfies ApiStateMachineUpdate;
 }
