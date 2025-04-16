@@ -15,6 +15,7 @@ import { subClient } from './redis';
 import { signersRoutes } from './routes/signers.routes';
 import { streamRoutes } from './routes/stream.routes';
 import workerRoutes from './routes/worker.routes';
+import { stateMachineRoutes } from './routes/state-machine.routes';
 
 type AppWebSocket = ServerWebSocket<{ networkKey: string }>;
 
@@ -55,6 +56,7 @@ export const app = new Hono()
   .route('/', getChunksRoutes)
   .route('/', getRecentsRoutes)
   .route('/', signersRoutes)
+  .route('/', stateMachineRoutes)
   .route('/health', healthRoutes)
   .route('/', metricsRoutes)
   .route('/', streamRoutes)

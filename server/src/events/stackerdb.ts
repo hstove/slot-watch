@@ -39,6 +39,7 @@ import {
 import { publishWsEvent } from '../redis';
 import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
+import { serializeStateMachineUpdate } from '../db/state-machines';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -278,15 +279,19 @@ export async function handleStateMachineUpdate({
     createdAt: receivedAt,
     activeSignerProtocolVersion: Number(payload.activeSignerProtocolVersion),
     localSignerProtocolVersion: Number(payload.localSignerProtocolVersion),
-    updateContent: payload.stateMachineUpdate,
+    updateContent: superSerialize(payload.stateMachineUpdate),
   } satisfies InferInsertModel<typeof stateMachineUpdates>;
-  await db.insert(stateMachineUpdates).values(dbStateMachineUpdate);
+  const [newRow] = await db
+    .insert(stateMachineUpdates)
+    .values(dbStateMachineUpdate)
+    .returning({ id: stateMachineUpdates.id });
   await publishWsEvent({
     type: STATE_MACHINE_UPDATE_EVENT,
     networkKey,
     receivedAt: receivedAt.toISOString(),
-    payload: superSerialize({
+    payload: serializeStateMachineUpdate({
       ...dbStateMachineUpdate,
+      id: newRow?.id ?? 0,
     }),
   } satisfies WSStateMachineUpdate);
 }

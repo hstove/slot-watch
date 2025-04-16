@@ -132,7 +132,7 @@ export function stxToMicroStx(stx: IntegerType) {
 export function prefix0x(value: string) {
   return value.startsWith('0x') ? value : `0x${value}`;
 }
-export type SuperJSON<T> = SuperJSONResult & {
+export type SuperJSON<T> = {
   _v?: T;
 };
 
@@ -143,5 +143,5 @@ export function superSerialize<T>(value: T): SuperJSON<T> {
 }
 
 export function superDeserialize<T>(value: SuperJSON<T>): T {
-  return deserialize(value) as T;
+  return deserialize(value as SuperJSONResult) as T;
 }
