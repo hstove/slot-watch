@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { StateMachineUpdate } from './codec/state-machine';
+import type { SuperJSON } from './utils';
 
 export type RecentSigner = {
   publicKey: string;
@@ -117,3 +119,13 @@ export const apiBlockProposalSchema = z.object({
 });
 
 export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;
+
+export type ApiStateMachineUpdate = SuperJSON<{
+  updateContent: StateMachineUpdate['stateMachineUpdate'];
+  activeSignerProtocolVersion: number;
+  localSignerProtocolVersion: number;
+  signerPublicKey: string;
+  networkKey: string;
+  chunkId: number;
+  createdAt: Date;
+}>;
