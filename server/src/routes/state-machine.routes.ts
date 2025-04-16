@@ -6,7 +6,7 @@ import { timeout } from 'hono/timeout';
 import { logger } from '../logger';
 import { db } from '../db/db';
 import { stateMachineUpdates } from '../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, gte, and } from 'drizzle-orm';
 import {
   superDeserialize,
   superSerialize,
@@ -36,4 +36,34 @@ export const stateMachineRoutes = new Hono()
       latestStateMachineUpdates: latestUpdates,
     };
     return c.json(response);
-  });
+  })
+  .get(
+    '/:networkKey/state-machine-updates',
+    zValidator(
+      'query',
+      z.object({
+        cursor: z.coerce.number().optional(),
+      }),
+    ),
+    async (c) => {
+      const cursor = c.req.query('cursor');
+      const cursorDate = cursor ? new Date(cursor) : undefined;
+      const stateMachines = await db.query.stateMachineUpdates.findMany({
+        where({ networkKey, createdAt }, { and, gte, eq }) {
+          return and(
+            eq(networkKey, networkKey),
+            cursorDate ? gte(createdAt, cursorDate) : undefined,
+          );
+        },
+        orderBy({ createdAt }, { desc }) {
+          return desc(createdAt);
+        },
+        limit: 200,
+      });
+      const lastCreatedAt = stateMachines.at(-1)?.createdAt;
+      return c.json({
+        stateMachines: stateMachines.map(serializeStateMachineUpdate),
+        lastCreatedAt: lastCreatedAt?.getTime(),
+      });
+    },
+  );
