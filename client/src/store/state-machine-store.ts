@@ -69,6 +69,13 @@ function getBaseStateMachine(stateMachine: ApiStateMachineUpdate) {
 
 export type BaseStateMachine = ReturnType<typeof getBaseStateMachine>;
 
+export type GroupedStateMachine = {
+  stateMachine: BaseStateMachine | null;
+  signers: FullSignerStateMachine['signer'][];
+  signerWeightPercentStr: string;
+  signerWeightPercent: number;
+};
+
 export const groupedStateMachinesAtom = atom((get) => {
   const allSignersStateMachines = get(allSignersStateMachinesAtom);
   const grouped: [BaseStateMachine | null, FullSignerStateMachine[]][] = [];
@@ -86,7 +93,7 @@ export const groupedStateMachinesAtom = atom((get) => {
     }
   }
 
-  const mappedGroups = grouped.map(([base, signers]) => {
+  const mappedGroups: GroupedStateMachine[] = grouped.map(([base, signers]) => {
     const signerWeightPercent = signers.reduce(
       (acc, signer) => acc + signer.signer.weightPercent,
       0,

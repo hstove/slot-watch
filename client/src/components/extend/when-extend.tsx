@@ -14,14 +14,12 @@ import { Route } from '@/routes/when-extend';
 import { setSignersApiAtom } from '@/store/signers-store';
 import { loadable } from 'jotai/utils';
 import { Countdown } from '../countdown';
-import { useWatchBlocks } from '@/hooks/use-watch-blocks';
 import { Timestamp } from '../timestamp';
 
 export function WhenExtend() {
   const loaderData = Route.useLoaderData();
   // const init = useSetAtom(setSignerLatestResponsesAtom);
   useAtomValue(loadable(fetchSignersLatestResponsesAtom));
-  const { readyState } = useWatchBlocks();
   const setSigners = useSetAtom(setSignersApiAtom);
   const setTenureChanges = useSetAtom(tenureChangesWriterAtom);
 
@@ -80,10 +78,6 @@ export function WhenExtend() {
           <ExtendSigners />
           <ExtendSignersTable />
         </div>
-      </div>
-      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50">
-        <Clock className="mr-4" />
-        <ConnectionStatus readyState={readyState} />
       </div>
     </div>
   );

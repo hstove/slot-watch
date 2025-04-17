@@ -16,6 +16,7 @@ import { Outlet } from '@tanstack/react-router';
 import { Route as RootRoute } from '@/routes/__root';
 import React from 'react';
 import { useSetAtom } from 'jotai';
+import { Footer } from './components/footer';
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === 'production'
@@ -55,6 +56,7 @@ function App() {
           >
             <Outlet />
           </Suspense>
+          <Footer />
         </main>
         <Toaster />
         {/* <ChunkWatcher /> */}

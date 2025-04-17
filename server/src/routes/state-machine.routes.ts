@@ -1,18 +1,9 @@
 import { Hono } from 'hono';
-import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { timeout } from 'hono/timeout';
-import { logger } from '../logger';
 import { db } from '../db/db';
 import { stateMachineUpdates } from '../db/schema';
-import { eq, desc, gte, and } from 'drizzle-orm';
-import {
-  superDeserialize,
-  superSerialize,
-  type ApiStateMachineUpdate,
-  type SuperJSON,
-} from 'slot-watch-common';
+import { eq, desc } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 
 export const stateMachineRoutes = new Hono()
@@ -46,13 +37,13 @@ export const stateMachineRoutes = new Hono()
       }),
     ),
     async (c) => {
-      const cursor = c.req.query('cursor');
-      const cursorDate = cursor ? new Date(cursor) : undefined;
+      const networkKeyParam = c.req.param('networkKey');
+      const { cursor } = c.req.valid('query');
       const stateMachines = await db.query.stateMachineUpdates.findMany({
-        where({ networkKey, createdAt }, { and, gte, eq }) {
+        where({ networkKey, id }, { and, eq, lt }) {
           return and(
-            eq(networkKey, networkKey),
-            cursorDate ? gte(createdAt, cursorDate) : undefined,
+            eq(networkKey, networkKeyParam),
+            cursor ? lt(id, cursor) : undefined,
           );
         },
         orderBy({ createdAt }, { desc }) {
@@ -60,10 +51,11 @@ export const stateMachineRoutes = new Hono()
         },
         limit: 200,
       });
-      const lastCreatedAt = stateMachines.at(-1)?.createdAt;
+      const lastId = stateMachines.at(-1)?.id;
       return c.json({
+        lastId,
+        next: `/${networkKeyParam}/state-machine-updates?cursor=${lastId}`,
         stateMachines: stateMachines.map(serializeStateMachineUpdate),
-        lastCreatedAt: lastCreatedAt?.getTime(),
       });
     },
   );

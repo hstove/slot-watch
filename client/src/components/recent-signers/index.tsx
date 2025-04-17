@@ -2,6 +2,7 @@ import React from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import {
   recentSignersAtom,
+  recentSignersWithLatestResponsesAtom,
   totalRecentSignersAtom,
   useSignerVersionsWeightedAtom,
 } from '@/store/signers-store';
@@ -38,6 +39,9 @@ export const RecentSigners = () => {
   const networkId = useAtomValue(networkIdAtom);
   const loaderData = Route.useLoaderData();
   const [recentSigners, setRecentSigners] = useAtom(recentSignersAtom);
+  const recentSignersWithLatestResponses = useAtomValue(
+    recentSignersWithLatestResponsesAtom,
+  );
   const [useWeighted, setUseWeighted] = useAtom(useSignerVersionsWeightedAtom);
   const showCustom = !MAINNET_LAUNCHED && networkId === 'mainnet';
   React.useEffect(() => {
@@ -132,7 +136,7 @@ export const RecentSigners = () => {
       )}
       <DataTable
         columns={columns}
-        data={recentSigners.signers}
+        data={recentSignersWithLatestResponses}
         columnVisibility={columnVisibility}
       />
     </div>
