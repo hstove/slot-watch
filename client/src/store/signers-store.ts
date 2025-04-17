@@ -11,6 +11,7 @@ import * as R from 'remeda';
 import type { ChartConfig } from '@/components/ui/chart';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
+import { signerLatestResponseFamilyInner } from './responses-store';
 
 extend([mixPlugin]);
 
@@ -61,6 +62,18 @@ export const recentSignersAtom = atom<ApiRecentSigners>({
   rewardCycle: 0,
   totalWeight: 0,
   signers: [],
+});
+
+export const recentSignersWithLatestResponsesAtom = atom((get) => {
+  const recentSigners = get(recentSignersAtom);
+
+  return recentSigners.signers.map((signer) => {
+    const response = get(signerLatestResponseFamilyInner(signer.publicKey));
+    return {
+      ...signer,
+      createdAt: response?.createdAt ?? signer.createdAt,
+    };
+  });
 });
 
 export const totalRecentSignersAtom = atom((get) => {

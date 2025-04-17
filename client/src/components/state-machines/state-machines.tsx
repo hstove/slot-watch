@@ -22,8 +22,8 @@ export function StateMachines() {
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTable columns={stateMachineColumns} data={allSignersStateMachines} />
       <GroupedStateMachines />
+      <DataTable columns={stateMachineColumns} data={allSignersStateMachines} />
     </div>
   );
 }

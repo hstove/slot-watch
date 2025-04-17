@@ -84,7 +84,15 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
     indexBlockHash: block.indexBlockHash ?? '',
   };
   // const _block = convertBlock(payload.payload);
-  await db.insert(stacksBlocks).values(dbBlock);
+  await db
+    .insert(stacksBlocks)
+    .values(dbBlock)
+    .onConflictDoUpdate({
+      target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
+      set: {
+        ...dbBlock,
+      },
+    });
   await publishWsEvent({
     type: NEW_BLOCK_V2_EVENT,
     networkKey: block.networkKey,

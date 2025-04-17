@@ -7,6 +7,8 @@ import {
   type ApiBlockProposal,
   BLOCK_RESPONSE_EVENT,
   type BlockResponseApi,
+  type ApiStateMachineUpdate,
+  STATE_MACHINE_UPDATE_EVENT,
 } from 'slot-watch-common';
 import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
@@ -20,6 +22,7 @@ import {
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
 import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
+import { setLatestStateMachinesAtom } from '@/store/state-machine-store';
 
 export const useWatchBlocks = () => {
   const { lastMessage, readyState } = useWebSocket();
@@ -86,6 +89,18 @@ export const useWatchBlocks = () => {
     }, []),
   );
 
+  const handleStateMachineUpdate = useAtomCallback(
+    React.useCallback(
+      (_get, set, stateMachineUpdate: ApiStateMachineUpdate) => {
+        console.log('Received state machine update', stateMachineUpdate);
+        set(setLatestStateMachinesAtom, {
+          ...stateMachineUpdate,
+        });
+      },
+      [],
+    ),
+  );
+
   const handleMessage = useAtomCallback(
     React.useCallback(
       // biome-ignore lint/suspicious/noExplicitAny: This is a websocket message event
@@ -134,12 +149,15 @@ export const useWatchBlocks = () => {
             set(insertBurnBlockAtom, {
               ...burnBlock,
             });
+          } else if (payload.type === STATE_MACHINE_UPDATE_EVENT) {
+            const stateMachineUpdate = payload.payload;
+            handleStateMachineUpdate(stateMachineUpdate);
           }
         } catch (error) {
           console.debug('Error parsing message', error);
         }
       },
-      [handleBlockProposal, handleBlockResponse],
+      [handleBlockProposal, handleBlockResponse, handleStateMachineUpdate],
     ),
   );
 

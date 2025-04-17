@@ -135,7 +135,6 @@ export type ApiStateMachineMinerState =
     };
 
 export type ApiStateMachineUpdate = {
-  // updateContent: StateMachineUpdate['stateMachineUpdate'];
   burnBlock: string;
   burnBlockHeight: number;
   minerState: ApiStateMachineMinerState;

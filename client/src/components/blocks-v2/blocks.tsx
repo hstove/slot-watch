@@ -6,7 +6,6 @@ import {
 } from '@/store/blocks-store';
 import { BurnBlock } from './burn-block';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useWatchBlocks } from '@/hooks/use-watch-blocks';
 import { ConnectionStatus } from '../connection-status';
 import { Clock } from '../clock';
 import { setSignersApiAtom } from '@/store/signers-store';
@@ -17,7 +16,6 @@ export function Blocks() {
   const burnBlocks = useAtomValue(sortedBurnBlocksAtom);
   const setBurnBlocks = useSetAtom(setAllBurnBlocksAtom);
   const setSigners = useSetAtom(setSignersApiAtom);
-  const { readyState } = useWatchBlocks();
 
   React.useEffect(() => {
     setBurnBlocks(loaderData.burnBlocks);
@@ -32,10 +30,6 @@ export function Blocks() {
           burnBlockHeight={b.burnBlockHeight}
         />
       ))}
-      <div className="sticky bottom-0 w-full flex justify-end p-4 bg-background bg-opacity-50 z-20">
-        <Clock className="mr-4" />
-        <ConnectionStatus readyState={readyState} />
-      </div>
       <BlockModal />
     </div>
   );
