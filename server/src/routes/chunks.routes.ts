@@ -105,12 +105,12 @@ const getChunksRoutes = new Hono()
         .where(
           and(
             eq(stackerDbSlots.networkKey, networkKey),
-            gte(stackerDbSlots.createdAt, from),
+            // gte(stackerDbSlots.createdAt, from),
             lte(stackerDbSlots.createdAt, to),
           ),
         )
         .orderBy(desc(stackerDbSlots.createdAt))
-        .limit(5000);
+        .limit(100);
 
       return c.json<{ chunks: ChunkEventParsed[] }>({
         chunks: chunks.map(serializeDbChunk),
