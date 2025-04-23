@@ -80,32 +80,43 @@ const getChunksRoutes = new Hono()
     },
   )
 
-  .get('/chunks/:networkKey/:from/:to', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    function getDate(key: 'from' | 'to') {
-      const param = c.req.param(key);
-      return new Date(Number.parseInt(param, 10));
-    }
-    const from = getDate('from');
-    const to = getDate('to');
+  .get(
+    '/chunks/:networkKey/:from/:to',
+    zValidator(
+      'param',
+      z.object({
+        networkKey: z.string(),
+        from: z.coerce.number().int().positive(),
+        to: z.coerce.number().int().positive(),
+      }),
+    ),
+    async (c) => {
+      const networkKey = c.req.valid('param').networkKey;
+      function getDate(key: 'from' | 'to') {
+        const param = c.req.valid('param')[key];
+        return new Date(param);
+      }
+      const from = getDate('from');
+      const to = getDate('to');
 
-    const chunks = await db
-      .select()
-      .from(stackerDbSlots)
-      .where(
-        and(
-          eq(stackerDbSlots.networkKey, networkKey),
-          gte(stackerDbSlots.createdAt, from),
-          lte(stackerDbSlots.createdAt, to),
-        ),
-      )
-      .orderBy(asc(stackerDbSlots.createdAt))
-      .limit(5000);
+      const chunks = await db
+        .select()
+        .from(stackerDbSlots)
+        .where(
+          and(
+            eq(stackerDbSlots.networkKey, networkKey),
+            gte(stackerDbSlots.createdAt, from),
+            lte(stackerDbSlots.createdAt, to),
+          ),
+        )
+        .orderBy(desc(stackerDbSlots.createdAt))
+        .limit(5000);
 
-    return c.json<{ chunks: ChunkEventParsed[] }>({
-      chunks: chunks.map(serializeDbChunk),
-    });
-  })
+      return c.json<{ chunks: ChunkEventParsed[] }>({
+        chunks: chunks.map(serializeDbChunk),
+      });
+    },
+  )
 
   .get(
     '/chunks/id/:id',

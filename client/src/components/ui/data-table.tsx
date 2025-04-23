@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
   getSortedRowModel,
+  type Table as ReactTable,
   type SortingState,
   type SortDirection,
   type VisibilityState,
@@ -46,6 +47,16 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  return <DataTableWithTable table={table} columns={columns} />;
+}
+
+export function DataTableWithTable<TData, TValue>({
+  table,
+  columns,
+}: {
+  table: ReactTable<TData>;
+  columns: ColumnDef<TData, TValue>[];
+}) {
   return (
     <div className="rounded-md border">
       <Table>
