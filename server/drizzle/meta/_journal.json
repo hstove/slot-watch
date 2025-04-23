@@ -162,6 +162,13 @@
       "when": 1744769186808,
       "tag": "0022_broken_lyja",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1745436962327,
+      "tag": "0023_brief_madame_web",
+      "breakpoints": true
     }
   ]
 }

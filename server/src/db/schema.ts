@@ -37,6 +37,10 @@ export const stackerDbSlots = pgTable(
   (table) => [
     index('network_key_idx').on(table.networkKey),
     index('public_key_idx').on(table.publicKey),
+    index('created_at_network_key_idx').on(
+      table.networkKey,
+      table.createdAt.desc(),
+    ),
   ],
 );
 
