@@ -67,10 +67,12 @@ export const app = new Hono()
         err,
         stack: err.stack,
         message: err.message,
+        path: c.req.path,
       });
     } else {
       logger.error({
         err,
+        path: c.req.path,
       });
     }
     return c.text('Internal Server Error', 500);

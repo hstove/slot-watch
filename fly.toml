@@ -38,7 +38,7 @@ primary_region = 'iad'
 
 [[http_service.checks]]
   grace_period = "60s"
-  interval = "15s"
+  interval = "5s"
   method = "GET"
   timeout = "2s"
   path = "/db-health"

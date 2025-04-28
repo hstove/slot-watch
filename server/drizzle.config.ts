@@ -1,4 +1,7 @@
+// import { config } from 'dotenv-flow';
 import { defineConfig } from 'drizzle-kit';
+
+console.log(process.env.DATABASE_URL);
 
 const dbUrl =
   process.env.DATABASE_URL ||
