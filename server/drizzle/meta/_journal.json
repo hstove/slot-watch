@@ -169,6 +169,20 @@
       "when": 1745436962327,
       "tag": "0023_brief_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1745876955779,
+      "tag": "0024_fair_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1745935914427,
+      "tag": "0025_brown_red_hulk",
+      "breakpoints": true
     }
   ]
 }

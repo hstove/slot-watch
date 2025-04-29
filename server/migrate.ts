@@ -8,7 +8,7 @@ console.log('Migrating...');
 try {
   const curTimeout = await db.execute(sql`SHOW statement_timeout;`);
   console.log(curTimeout);
-  await db.execute(sql`SET statement_timeout = '2min';`);
+  await db.execute(sql`SET statement_timeout = '30min';`);
   await migrate(db, {
     migrationsFolder: './drizzle',
   });

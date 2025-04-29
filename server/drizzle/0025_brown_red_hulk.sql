@@ -1,0 +1,1 @@
+CREATE INDEX "stackerdb_slots_created_at_idx" ON "stacker_db_slots" USING btree ("created_at" DESC NULLS LAST);

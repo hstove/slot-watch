@@ -12,7 +12,7 @@ import {
   unique,
   json,
 } from 'drizzle-orm/pg-core';
-import { isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
+import { eq, isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
@@ -37,10 +37,10 @@ export const stackerDbSlots = pgTable(
   (table) => [
     index('network_key_idx').on(table.networkKey),
     index('public_key_idx').on(table.publicKey),
-    index('created_at_network_key_idx').on(
-      table.networkKey,
-      table.createdAt.desc(),
-    ),
+    index('stackerdb_slots_created_at_mainnet_idx')
+      .on(table.createdAt.desc())
+      .where(eq(table.networkKey, 'mainnet')),
+    index('stackerdb_slots_created_at_idx').on(table.createdAt.desc()),
   ],
 );
 
