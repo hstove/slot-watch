@@ -22,7 +22,7 @@ if (port) {
 const sql = postgres(sqlUrl.toString(), { prepare: false });
 
 // export const db = drizzle(client);
-export const db = drizzlePg(sql);
+export const db = drizzlePg(sql, { schema });
 // export const db = drizzleBun(sql, { schema });
 
 // Add this function to check pool status
