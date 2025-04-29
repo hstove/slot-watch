@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db/db';
-import { desc, eq, inArray, and, gte, lte, asc } from 'drizzle-orm';
+import { desc, eq, inArray, and, gte, lte, asc, sql, lt } from 'drizzle-orm';
 import { stackerDbSlots } from '../db/schema';
 import type {
   ChunkEventParsed,
@@ -99,18 +99,27 @@ const getChunksRoutes = new Hono()
       const from = getDate('from');
       const to = getDate('to');
 
-      const chunks = await db
-        .select()
-        .from(stackerDbSlots)
-        .where(
-          and(
-            eq(stackerDbSlots.networkKey, networkKey),
-            // gte(stackerDbSlots.createdAt, from),
-            lte(stackerDbSlots.createdAt, to),
-          ),
-        )
-        .orderBy(desc(stackerDbSlots.createdAt))
-        .limit(100);
+      const chunks = await db.transaction(async (tx) => {
+        await tx.execute(sql`
+        SET max_parallel_workers_per_gather = 0;
+        `);
+        const chunks = await db
+          .select()
+          .from(stackerDbSlots)
+          .where(
+            and(
+              eq(stackerDbSlots.networkKey, networkKey),
+              gte(stackerDbSlots.createdAt, from),
+              lt(stackerDbSlots.createdAt, to),
+            ),
+          )
+          .orderBy(desc(stackerDbSlots.createdAt))
+          .limit(1000);
+        await tx.execute(sql`
+        SET max_parallel_workers_per_gather = 4;
+        `);
+        return chunks;
+      });
 
       return c.json<{ chunks: ChunkEventParsed[] }>({
         chunks: chunks.map(serializeDbChunk),
@@ -137,12 +146,21 @@ const getChunksRoutes = new Hono()
   .get('/chunks/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
 
-    const chunks = await db
-      .select()
-      .from(stackerDbSlots)
-      .where(eq(stackerDbSlots.networkKey, networkKey))
-      .orderBy(desc(stackerDbSlots.createdAt))
-      .limit(1000);
+    const chunks = await db.transaction(async (tx) => {
+      await tx.execute(sql`
+      SET max_parallel_workers_per_gather = 0;
+      `);
+      const chunks = await db
+        .select()
+        .from(stackerDbSlots)
+        .where(eq(stackerDbSlots.networkKey, networkKey))
+        .orderBy(desc(stackerDbSlots.createdAt))
+        .limit(1000);
+      await tx.execute(sql`
+      SET max_parallel_workers_per_gather = 4;
+      `);
+      return chunks;
+    });
 
     const chunkEvents: ChunkEventParsed[] = chunks.map(serializeDbChunk);
 
