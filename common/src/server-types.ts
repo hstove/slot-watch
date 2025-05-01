@@ -68,6 +68,7 @@ export const blockResponseApiSchema = z.object({
   validationCode: z.number().optional(),
   reason: z.string().optional(),
   rejectReason: z.number().optional(),
+  latencyMs: z.number().optional(),
 });
 
 export type BlockResponseApi = z.infer<typeof blockResponseApiSchema>;

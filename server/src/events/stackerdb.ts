@@ -213,8 +213,18 @@ export async function handleBlockResponse({
   const tenureExtendTimestamp = payload.data.tenureExtendTimestamp
     ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
     : null;
+  const signerSignatureHash = hex.encode(payload.signerSignatureHash);
+  let latencyMs: number | null = null;
+  const blockProposal = await db.query.blockProposals.findFirst({
+    where(fields, operators) {
+      return operators.eq(fields.signerSignatureHash, signerSignatureHash);
+    },
+  });
+  if (blockProposal) {
+    latencyMs = receivedAt.getTime() - blockProposal.createdAt.getTime();
+  }
   const data = {
-    signerSignatureHash: hex.encode(payload.signerSignatureHash),
+    signerSignatureHash,
     slotId: chunk.slot_id,
     createdAt: receivedAt,
     networkKey,
@@ -227,6 +237,7 @@ export async function handleBlockResponse({
     validationCode: payload.validationCode ?? null,
     version: payload.metadata ?? null,
     rejectReason: payload.data.rejectReason ?? null,
+    latencyMs,
   };
   logger.debug(
     {

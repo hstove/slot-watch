@@ -183,6 +183,13 @@
       "when": 1745935914427,
       "tag": "0025_brown_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1746111469559,
+      "tag": "0026_rare_nebula",
+      "breakpoints": true
     }
   ]
 }

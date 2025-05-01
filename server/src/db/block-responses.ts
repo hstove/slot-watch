@@ -160,6 +160,7 @@ export function serializeBlockResponse(
     validationCode: response.validationCode ?? undefined,
     rejectCode: response.rejectCode ?? undefined,
     rejectReason: response.rejectReason ?? undefined,
+    latencyMs: response.latencyMs ?? undefined,
   };
 }
 
