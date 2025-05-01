@@ -106,6 +106,7 @@ export const blockResponses = pgTable(
     validationCode: smallint('validation_code'),
     reason: varchar('reason'),
     rejectReason: smallint('reject_reason'),
+    latencyMs: integer('latency_ms'),
   },
   (table) => [
     index('block_responses_network_key_idx').on(table.networkKey),
