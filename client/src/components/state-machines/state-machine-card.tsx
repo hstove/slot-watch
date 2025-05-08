@@ -26,7 +26,7 @@ export function StateMachineCard({
 }) {
   const { stateMachine, signerWeightPercent, signerWeightPercentStr } =
     groupedStateMachine;
-  const isConsensus = signerWeightPercent >= 70;
+  const isConsensus = signerWeightPercent >= 0.7;
   if (!stateMachine) {
     return null;
   }
@@ -57,33 +57,6 @@ export function StateMachineCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* <div className="flex justify-between items-center">
-            <div className="flex items-center gap-1.5">
-              <span className="font-medium text-sm">Signer:</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="inline-flex items-center">
-                    <span className="text-sm font-mono">
-                      {truncatedSignerKey}
-                    </span>
-                    <InfoIcon className="h-3.5 w-3.5 ml-1 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="font-mono text-xs break-all">
-                      {stateMachine.signerPublicKey}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">Network:</span>
-              <Badge variant="outline" className="font-mono">
-                {stateMachine.networkKey}
-              </Badge>
-            </div>
-          </div> */}
-
           <div className="space-y-1.5">
             <div className="flex justify-between text-sm">
               <span>Signer Weight</span>
@@ -97,12 +70,6 @@ export function StateMachineCard({
               <span className="text-muted-foreground">Protocol Version:</span>
               <div className="font-medium">
                 {stateMachine.activeSignerProtocolVersion}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Local Version:</span>
-              <div className="font-medium">
-                {stateMachine.localSignerProtocolVersion}
               </div>
             </div>
           </div>
