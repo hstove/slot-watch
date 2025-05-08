@@ -57,7 +57,7 @@ export const allSignersStateMachinesAtom = atom<FullSignerStateMachine[]>(
 function getBaseStateMachine(stateMachine: ApiStateMachineUpdate) {
   return {
     activeSignerProtocolVersion: stateMachine.activeSignerProtocolVersion,
-    localSignerProtocolVersion: stateMachine.localSignerProtocolVersion,
+    // localSignerProtocolVersion: stateMachine.localSignerProtocolVersion,
     // createdAt: stateMachine.createdAt,
     burnBlockHeight: stateMachine.burnBlockHeight,
     burnBlock: stateMachine.burnBlock,
@@ -107,7 +107,10 @@ export const groupedStateMachinesAtom = atom((get) => {
     };
   });
 
-  return mappedGroups;
+  return R.sort(
+    mappedGroups,
+    (a, b) => b.signerWeightPercent - a.signerWeightPercent,
+  );
   // const grouped = R.groupBy(allSignersStateMachines, ({ signer, stateMachine }) => {
   //   if (!stateMachine) return null;
 
