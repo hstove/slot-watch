@@ -1,4 +1,6 @@
+import type { StacksTransactionWire } from '@stacks/transactions/dist/transaction';
 import * as P from 'micro-packed';
+import { decodeTransactions } from './transactions';
 
 export const StateMachineUpdateOuterCoder = P.struct({
   activeSignerProtocolVersion: P.U64BE,
@@ -64,15 +66,51 @@ export const StateMachineUpdateContentV0Coder = P.struct({
   minerState: StateMachineUpdateMinerStateCoder,
 });
 
+export const StateMachineUpdateContentV1Coder = P.struct({
+  burnBlock: P.bytes(20),
+  burnBlockHeight: P.U64BE,
+  minerState: StateMachineUpdateMinerStateCoder,
+  remainingBytes: P.bytes(null),
+});
+
+export const StateMachineUpdateContentUnknownCoder = P.struct({
+  burnBlock: P.bytes(20),
+  burnBlockHeight: P.U64BE,
+  minerState: StateMachineUpdateMinerStateCoder,
+  unknownBytes: P.bytes(null),
+});
+
 export type StateMachineUpdateContentV0 = P.UnwrapCoder<
   typeof StateMachineUpdateContentV0Coder
 >;
 
-export type StateMachineUpdate = {
-  activeSignerProtocolVersion: 0n;
-  localSignerProtocolVersion: bigint;
-  stateMachineUpdate: StateMachineUpdateContentV0;
+export type StateMachineUpdateContentV1 = P.UnwrapCoder<
+  typeof StateMachineUpdateContentV1Coder
+> & {
+  replayTxs: string[];
 };
+
+export type StateMachineUpdateContentUnknown = P.UnwrapCoder<
+  typeof StateMachineUpdateContentUnknownCoder
+>;
+
+type StateMachine<V, C> = {
+  activeSignerProtocolVersion: V;
+  localSignerProtocolVersion: bigint;
+  stateMachineUpdate: C;
+};
+
+type StateMachineUpdateV0 = StateMachine<0n, StateMachineUpdateContentV0>;
+type StateMachineUpdateV1 = StateMachine<1n, StateMachineUpdateContentV1>;
+type StateMachineUpdateUnknown = StateMachine<
+  Exclude<bigint, 0n | 1n>,
+  StateMachineUpdateContentUnknown
+>;
+
+export type StateMachineUpdate =
+  | StateMachineUpdateV0
+  | StateMachineUpdateV1
+  | StateMachineUpdateUnknown;
 
 export const StateMachineUpdateCoder = P.wrap({
   encodeStream: (w: P.Writer, data: StateMachineUpdate) => {
@@ -86,15 +124,39 @@ export const StateMachineUpdateCoder = P.wrap({
   decodeStream: (r: P.Reader) => {
     const activeSignerProtocolVersion = P.U64BE.decodeStream(r);
     const localSignerProtocolVersion = P.U64BE.decodeStream(r);
-    if (activeSignerProtocolVersion !== 0n) {
-      throw new Error('Invalid version');
-    }
+
     const byteLen = P.U32BE.decodeStream(r);
-    const stateMachineUpdate = StateMachineUpdateContentV0Coder.decodeStream(r);
+    if (activeSignerProtocolVersion === 0n) {
+      const stateMachineUpdate =
+        StateMachineUpdateContentV0Coder.decodeStream(r);
+      return {
+        activeSignerProtocolVersion,
+        localSignerProtocolVersion,
+        stateMachineUpdate,
+      } satisfies StateMachineUpdateV0;
+    }
+    if (activeSignerProtocolVersion === 1n) {
+      const stateMachineUpdate =
+        StateMachineUpdateContentV1Coder.decodeStream(r);
+      const { txs, extraBytes } = decodeTransactions(
+        stateMachineUpdate.remainingBytes,
+      );
+      return {
+        activeSignerProtocolVersion,
+        localSignerProtocolVersion,
+        stateMachineUpdate: {
+          ...stateMachineUpdate,
+          replayTxs: txs.map((tx) => tx.txid()),
+          remainingBytes: extraBytes,
+        },
+      } satisfies StateMachineUpdateV1;
+    }
+    const stateMachineUpdate =
+      StateMachineUpdateContentUnknownCoder.decodeStream(r);
     return {
       activeSignerProtocolVersion,
       localSignerProtocolVersion,
       stateMachineUpdate,
-    } satisfies StateMachineUpdate;
+    } satisfies StateMachineUpdateUnknown;
   },
 });

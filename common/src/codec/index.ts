@@ -15,6 +15,7 @@ import { BytesReader } from '@stacks/transactions/dist/BytesReader';
 import type { Prettify } from '../utils';
 import { hex } from '@scure/base';
 import { StateMachineUpdateCoder } from './state-machine';
+import { decodeTransactions } from './transactions';
 
 export type BitVec = {
   length: number;
@@ -545,13 +546,15 @@ export function decodeChunk(chunk: Uint8Array) {
   }
   if (type === SignerMessageTypePrefix.BlockProposal) {
     const { rest: remaining, ...proposal } = BlockProposalCoder.decode(chunk);
-    const txs = remaining.slice(0);
-    const txCount = P.U32BE.decode(txs.slice(0, 4));
-    const txReader = new BytesReader(txs.slice(4));
+    // const txs = remaining.slice(0);
+    // const txCount = P.U32BE.decode(txs.slice(0, 4));
+    // const txReader = new BytesReader(txs.slice(4));
     let tenureChangeCause: TenureChangeCause | null = null;
     let txFees = 0n;
-    for (let i = 0; i < txCount; i++) {
-      const tx = deserializeTransaction(txReader);
+    const { txs: txsArray, extraBytes } = decodeTransactions(
+      remaining.slice(0),
+    );
+    for (const tx of txsArray) {
       if (tx.payload.payloadType === PayloadType.TenureChange) {
         tenureChangeCause = tx.payload.cause;
       }
@@ -561,7 +564,7 @@ export function decodeChunk(chunk: Uint8Array) {
         txFees += tx.auth.sponsorSpendingCondition.fee;
       }
     }
-    const extraBytes = txs.slice(4 + txReader.consumed);
+    // const extraBytes = txs.slice(4 + txReader.consumed);
     const extras = P.struct({
       blockHeight: P.U64BE,
       rewardCycle: P.U64BE,
@@ -572,7 +575,7 @@ export function decodeChunk(chunk: Uint8Array) {
       blockHeight: extras.blockHeight,
       rewardCycle: extras.rewardCycle,
       serverVersion: extras.blockResponseData.serverVersion,
-      txCount: txCount,
+      txCount: txsArray.length,
       tenureChangeCause,
       txFees,
     } satisfies BlockProposal;
