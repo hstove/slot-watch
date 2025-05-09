@@ -467,3 +467,43 @@ test('state machine update - signer message', () => {
   expect(stateMachineUpdate.activeSignerProtocolVersion).toEqual(0n);
   expect(stateMachineUpdate.localSignerProtocolVersion).toEqual(3n);
 });
+
+test('state machine update - v1, no miner', () => {
+  const hexStr =
+    '0600000000000000010000000000000003000001395555555555555555555555555555555555555555000000000000006401abababababababababababababababababababab444444444444444444444444444444444444444422222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333000000000000000100000001808000000004009776abfd06efd752d8fa457fe4267e77ef6615b20000000000000024000000000000012c0000f0faecd6e3cc00088cf39fc8199ee89b864af45d902470d135380e568200b8171b983ce53dba004139fc115a5918622afd5a20abdeffd8c99cb0d9925c4637ce01010000000000051a34900b4f29ae30493b661351018f1195bb85d65500000000000f424000000000000000000000000000000000000000000000000000000000000000000000';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.StateMachineUpdate) {
+    throw new Error('Invalid type');
+  }
+  const stateMachineUpdate = decoded as StackerDBStateMachineUpdate;
+  expect(stateMachineUpdate.activeSignerProtocolVersion).toEqual(1n);
+  if (stateMachineUpdate.activeSignerProtocolVersion !== 1n) {
+    throw new Error('Invalid active signer protocol version');
+  }
+  if (!('replayTxs' in stateMachineUpdate.stateMachineUpdate)) {
+    throw new Error('Invalid state machine update');
+  }
+
+  expect(stateMachineUpdate.stateMachineUpdate.replayTxs.length).toEqual(1);
+  // expect(stateMachineUpdate.localSignerProtocolVersion).toEqual(3n);
+  // console.log(stateMachineUpdate.stateMachineUpdate);
+});
+
+test('state machine update - v1, with miner', () => {
+  const hexStr =
+    '0600000000000000010000000000000004000000d5555555555555555555555555555555555555555500000000000000640000000001808000000004009776abfd06efd752d8fa457fe4267e77ef6615b20000000000000024000000000000012c0000f0faecd6e3cc00088cf39fc8199ee89b864af45d902470d135380e568200b8171b983ce53dba004139fc115a5918622afd5a20abdeffd8c99cb0d9925c4637ce01010000000000051a34900b4f29ae30493b661351018f1195bb85d65500000000000f424000000000000000000000000000000000000000000000000000000000000000000000';
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.StateMachineUpdate) {
+    throw new Error('Invalid type');
+  }
+  const stateMachineUpdate = decoded as StackerDBStateMachineUpdate;
+  expect(stateMachineUpdate.activeSignerProtocolVersion).toEqual(1n);
+  if (stateMachineUpdate.activeSignerProtocolVersion !== 1n) {
+    throw new Error('Invalid active signer protocol version');
+  }
+  if (!('replayTxs' in stateMachineUpdate.stateMachineUpdate)) {
+    throw new Error('Invalid state machine update');
+  }
+
+  expect(stateMachineUpdate.stateMachineUpdate.replayTxs.length).toEqual(1);
+});
