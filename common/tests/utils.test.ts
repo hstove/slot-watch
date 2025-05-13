@@ -3,6 +3,7 @@ import {
   getSortableVersion,
   getVersionFromString,
   hash160,
+  superSerialize,
 } from '../src/utils';
 import { test, expect } from 'vitest';
 import { hex } from '@scure/base';
@@ -47,4 +48,14 @@ test('hash160', () => {
 
 test('getSortableVersion', () => {
   expect(getSortableVersion('3.1.0.0.1.0')).toEqual([3, 1, 0, 0, 1, 0]);
+});
+
+test('superSerialize', () => {
+  const obj = {
+    a: 1,
+    b: 2,
+  };
+  const serialized = superSerialize(obj);
+  // console.log('serialized', serialized);
+  expect(serialized).toStrictEqual({ json: obj });
 });
