@@ -292,6 +292,15 @@ export async function handleStateMachineUpdate({
     localSignerProtocolVersion: Number(payload.localSignerProtocolVersion),
     updateContent: superSerialize(payload.stateMachineUpdate),
   } satisfies InferInsertModel<typeof stateMachineUpdates>;
+  logger.debug(
+    {
+      updateContentType: typeof payload.stateMachineUpdate,
+      updateContent: payload.stateMachineUpdate,
+      topic: 'stackerdb-events',
+      table: 'state_machine_updates',
+    },
+    'Inserting state machine update',
+  );
   const [newRow] = await db
     .insert(stateMachineUpdates)
     .values(dbStateMachineUpdate)
