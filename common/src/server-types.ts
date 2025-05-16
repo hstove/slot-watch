@@ -102,6 +102,7 @@ export const apiStacksBlockSchema = z.object({
   indexBlockHash: z.string(),
   burnBlockTimestamp: z.string(),
   consensusHash: z.string(),
+  txFees: z.number(),
 });
 
 export type ApiStacksBlock = z.infer<typeof apiStacksBlockSchema>;
@@ -120,6 +121,7 @@ export const apiBlockProposalSchema = z.object({
   serverVersion: z.string().nullable(),
   blockTimestamp: z.string(),
   serverVersionShort: z.string().nullable(),
+  txFees: z.number(),
 });
 
 export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;

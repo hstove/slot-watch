@@ -24,7 +24,11 @@ import { textStyles } from '@/lib/text-variants';
 import { PublicKey } from '../public-key';
 import { Button } from '../ui/button';
 import { Link } from '@tanstack/react-router';
-import { getStacksExplorerUrl, prefix0x } from 'slot-watch-common';
+import {
+  getStacksExplorerUrl,
+  microStxToStx,
+  prefix0x,
+} from 'slot-watch-common';
 import {
   Tooltip,
   TooltipContent,
@@ -216,6 +220,13 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
               </Badge>
             </SimpleTooltip>
           )}
+          {block.txFees ? (
+            <SimpleTooltip content={'Transaction fees'}>
+              <Badge size="icon" variant="outline" className="">
+                <span>{microStxToStx(block.txFees).toFormat()}</span>
+              </Badge>
+            </SimpleTooltip>
+          ) : null}
           {!block.processedAt && <ResponseOutcome blockHash={blockHash} />}
 
           <CumulativeBlockCosts

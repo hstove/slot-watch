@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import {
   burnBlocksAtomFamily,
@@ -12,6 +12,9 @@ import { Timestamp } from '../timestamp';
 import { BurnBlockCosts } from './burn-block-costs';
 import { PublicKey } from '../public-key';
 import { Link } from '@tanstack/react-router';
+import { microStxToStx } from 'slot-watch-common';
+import { SimpleTooltip } from '../simple-tooltip';
+import { Badge } from '../ui/badge';
 
 export const BurnBlock = ({
   burnBlockHeight,
@@ -40,9 +43,10 @@ export const BurnBlock = ({
             <Timestamp timestamp={burnBlock.createdAt} />
           </Text>
         </div>
-        <React.Suspense>
+        <div className="flex gap-2">
+          <BurnBlockTxFees burnBlockHeight={burnBlockHeight} />
           <BurnBlockCosts burnBlockHeight={burnBlockHeight} />
-        </React.Suspense>
+        </div>
       </div>
       <BurnBlockStacksBlocks burnBlockHeight={burnBlockHeight} />
     </div>
@@ -129,5 +133,26 @@ export const BurnBlockStacksBlocks = ({
     <React.Suspense>
       <BurnBlockStacksBlocksInner burnBlockHeight={burnBlockHeight} />
     </React.Suspense>
+  );
+};
+
+export const BurnBlockTxFees = ({
+  burnBlockHeight,
+}: { burnBlockHeight: number }) => {
+  const stacksBlocks = useAtomValue(
+    sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
+  );
+
+  const totalFees = useMemo(() => {
+    const feesUstx = stacksBlocks.reduce((acc, block) => acc + block.txFees, 0);
+    return microStxToStx(feesUstx).toFormat();
+  }, [stacksBlocks]);
+
+  return (
+    <SimpleTooltip content={'Transaction fees'}>
+      <Badge size="icon" variant="outline" className="">
+        <span>{totalFees}</span>
+      </Badge>
+    </SimpleTooltip>
   );
 };

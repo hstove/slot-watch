@@ -144,6 +144,7 @@ export async function getBlocksForBurnBlock(
         burnBlockTimestamp: stacksBlock.burnBlockTimestamp,
         serverVersion: proposal.serverVersion,
         serverVersionShort: proposal.serverVersionShort,
+        txFees: stacksBlock.txFees,
       } satisfies AllInfoBlock;
     }
     return {
@@ -159,6 +160,7 @@ export async function getBlocksForBurnBlock(
       blockTimestamp,
       serverVersion: proposal.serverVersion,
       serverVersionShort: proposal.serverVersionShort,
+      txFees: proposal.txFees,
     } satisfies ProposalOnlyBlock;
   });
 }
@@ -172,6 +174,7 @@ type StacksBlockBase = {
   burnBlockHeight: number;
   networkKey: string;
   consensusHash: string | null;
+  txFees: number;
 };
 
 interface _ProposalOnlyBlock extends StacksBlockBase {
