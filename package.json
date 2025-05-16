@@ -25,6 +25,7 @@
   "peerDependencies": {},
   "dependencies": {
     "@stacks/transactions": "^7.0.2",
+    "caniuse-lite": "^1.0.30001718",
     "superjson": "^2.2.1",
     "turbo": "^2.4.4",
     "usehooks-ts": "^3.1.0"

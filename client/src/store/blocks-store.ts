@@ -129,8 +129,8 @@ export const insertBurnBlockAtom = atom(
 );
 
 export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
-  atom(async (get) => {
-    const stacksBlocks = await get(
+  atom((get) => {
+    const stacksBlocks = get(
       sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
     );
     const cost = {

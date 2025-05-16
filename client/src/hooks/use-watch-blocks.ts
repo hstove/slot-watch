@@ -74,6 +74,7 @@ export const useWatchBlocks = () => {
         proposedAt: blockProposal.createdAt,
         serverVersion: blockProposal.serverVersion,
         serverVersionShort: blockProposal.serverVersionShort,
+        txFees: blockProposal.txFees,
       } satisfies ProposalOnlyBlock;
       const existing = get(
         __stacksBlocksFamilyInner(blockProposal.signerSignatureHash),
