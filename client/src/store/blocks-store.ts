@@ -217,6 +217,7 @@ export const cumulativeBlockCostsAtom = atomFamily<
 });
 
 export const maxProcessedStacksHeightAtom = atom(0);
+export const maxProposedAtAtom = atom(0);
 
 export const [
   stacksBlocksForBurnBlockAtom,
@@ -235,8 +236,13 @@ export const [
   },
   (get, set, block) => {
     const maxProcessed = get(maxProcessedStacksHeightAtom);
+    const maxProposed = get(maxProposedAtAtom);
     if (block.blockHeight > maxProcessed && block.processedAt) {
       set(maxProcessedStacksHeightAtom, block.blockHeight);
+    }
+    const proposedAt = new Date(block.blockTimestamp).getTime();
+    if (proposedAt && proposedAt > maxProposed) {
+      set(maxProposedAtAtom, proposedAt);
     }
     if (
       block.tenureChangeCause !== null &&

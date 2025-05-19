@@ -4,6 +4,7 @@ import { Text } from '@/components/text';
 import {
   activeBlockHashAtom,
   maxProcessedStacksHeightAtom,
+  maxProposedAtAtom,
   responseOutcomeForBlockAtomFamily,
   stacksBlocksFamily,
 } from '@/store/blocks-store';
@@ -112,6 +113,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
   const block = useAtomValue(stacksBlocksFamily(blockHash));
   const setActiveBlockHash = useSetAtom(activeBlockHashAtom);
   const maxProcessed = useAtomValue(maxProcessedStacksHeightAtom);
+  const maxProposed = useAtomValue(maxProposedAtAtom);
 
   const blockStatus = React.useMemo(() => {
     if (block.processedAt) {
@@ -122,6 +124,12 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
     }
     return 'pending';
   }, [block, maxProcessed]);
+
+  const showResponses = React.useMemo(() => {
+    if (blockStatus !== 'pending') return false;
+    const proposedAt = new Date(block.blockTimestamp).getTime();
+    return proposedAt >= maxProposed;
+  }, [blockStatus, block.blockTimestamp, maxProposed]);
 
   return (
     <>
@@ -235,9 +243,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           />
         </div>
       </div>
-      {blockStatus === 'pending' ? (
-        <BlockListResponses blockHash={blockHash} />
-      ) : null}
+      {showResponses ? <BlockListResponses blockHash={blockHash} /> : null}
     </>
   );
 };
