@@ -93,14 +93,17 @@ export async function handleStackerDBChunk(
         chunkId,
       });
     } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      await handleBlockResponse({
-        chunk,
-        payload: decoded,
-        receivedAt,
-        networkKey,
-        publicKey,
-        chunkId,
-      });
+      const handleProposals = false;
+      if (handleProposals) {
+        await handleBlockResponse({
+          chunk,
+          payload: decoded,
+          receivedAt,
+          networkKey,
+          publicKey,
+          chunkId,
+        });
+      }
     } else if (decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate) {
       if (chunkId === null) {
         return;
