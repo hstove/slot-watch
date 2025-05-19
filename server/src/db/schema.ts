@@ -56,7 +56,7 @@ export const blockProposals = pgTable(
     chainLength: integer('chain_length').notNull(),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
+    chunkId: integer('chunk_id'),
     minerPublicKey: varchar('miner_public_key', { length: 66 }),
     consensusHash: varchar('consensus_hash', { length: 64 }),
     tenureChangeCause: smallint('tenure_change_cause'),
@@ -97,7 +97,7 @@ export const blockResponses = pgTable(
     slotId: smallint('slot_id').notNull(),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
+    chunkId: integer('chunk_id'),
     signerPublicKey: varchar('signer_public_key', { length: 66 }),
     accepted: boolean('accepted'),
     tenureExtendTimestamp: timestamp('tenure_extend_timestamp'),
@@ -135,7 +135,7 @@ export const blockPushes = pgTable(
     chainLength: integer('chain_length').notNull(),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
+    chunkId: integer('chunk_id'),
     minerPublicKey: varchar('miner_public_key', { length: 66 }),
   },
   (table) => [
@@ -239,7 +239,7 @@ export const stateMachineUpdates = pgTable(
     updateContent: json('update_content')
       .$type<SuperJSON<StateMachineUpdate['stateMachineUpdate']>>()
       .notNull(),
-    chunkId: integer('chunk_id').references(() => stackerDbSlots.id),
+    chunkId: integer('chunk_id'),
     createdAt: timestamp('created_at').default(sql`now()`).notNull(),
   },
   (table) => [
