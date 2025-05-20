@@ -83,4 +83,10 @@ export const knownSigners: Record<string, string> = {
   '02778d476704afa540ac01438f62c371dc38741b00f35fb895e5cd48d070ebab41':
     'Degen Labs',
   '03161dd42571db5ca2599ef32774ec0c6c9ef125cbb8f826a63fe527489bb91400': 'Jovan',
+  '025f9fd3d308e7306e154d9a5466a5aee6918258cdb08924ade59bea04f472b339':
+    'Figment-1',
+  '0227e324721b149302542657ca3499fda145c1f62e69e236e8bc09ff9c4fb56ac9':
+    'Figment-2',
+  '038b9ddb9808631dd75ccb0b6715b36bb1e391d85d40f1a031e98a332890bed2ea':
+    'Figment-3',
 };
