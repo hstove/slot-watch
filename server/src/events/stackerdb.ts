@@ -93,7 +93,7 @@ export async function handleStackerDBChunk(
         chunkId,
       });
     } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      const handleProposals = false;
+      const handleProposals = true;
       if (handleProposals) {
         await handleBlockResponse({
           chunk,
