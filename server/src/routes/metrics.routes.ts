@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
 import { warmupMetrics } from '../metrics';
 import { register, Registry } from 'prom-client';
+import { updateStxCommittedMetrics } from '../pox-4';
 
 process.nextTick(async () => {
   await warmupMetrics();
+  await updateStxCommittedMetrics();
 });
 
 export const metricsRoutes = new Hono().get('/metrics', async (c) => {
