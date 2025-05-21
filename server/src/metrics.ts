@@ -44,6 +44,12 @@ export const pendingBlockTime = new Gauge({
   help: 'The time (seconds) since the last pending block proposal',
 });
 
+export const stxCommittedNextCycle = new Gauge({
+  name: 'slot_watch_stx_committed_next_cycle',
+  help: 'The amount of STX committed to the next cycle',
+  labelNames: ['signer_key'] as const,
+});
+
 let lastRun = 0;
 const runEvery = 1000 * 60; // 1 minute
 let isRunning = false;

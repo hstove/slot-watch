@@ -20,8 +20,8 @@ export const workerQueue = new Worker<WorkerJob>(
   QUEUE_NAME,
   async (job) => {
     if (job.data.type === BURN_BLOCKS_EVENT) {
-      await warmCache(job.data.networkKey);
       await handleBurnBlockEvent(job.data);
+      await warmCache(job.data.networkKey);
     } else if (job.data.type === NEW_BLOCK_EVENT) {
       await handleStacksBlockEvent(job.data);
     } else if (job.data.type === MANY_CHUNKS_EVENT) {
