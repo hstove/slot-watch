@@ -27,6 +27,7 @@ import {
   getVersionFromString,
   type RejectReasonPrefix,
 } from 'slot-watch-common';
+import BigNumber from 'bignumber.js';
 
 export const BlockListResponse = ({
   blockHash,
@@ -137,6 +138,19 @@ export const BlockListResponse = ({
             <>
               <DataLabel>Version</DataLabel>
               <DataValue>{getVersionFromString(response.version)}</DataValue>
+            </>
+          ) : null}
+
+          {response?.latencyMs ? (
+            <>
+              <DataLabel>Latency</DataLabel>
+              <DataValue>
+                {new BigNumber(response.latencyMs)
+                  .div(1000)
+                  .decimalPlaces(1)
+                  .toFormat()}
+                s
+              </DataValue>
             </>
           ) : null}
         </div>
