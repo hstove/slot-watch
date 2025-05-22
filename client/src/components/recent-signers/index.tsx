@@ -6,9 +6,6 @@ import {
   totalRecentSignersAtom,
   useSignerVersionsWeightedAtom,
 } from '@/store/signers-store';
-import { colord, extend } from 'colord';
-import { differenceInSeconds, parseISO } from 'date-fns';
-import mixPlugin from 'colord/plugins/mix';
 import { textVariants } from '@/lib/text-variants';
 import { networkIdAtom } from '@/store/network';
 import { DataTable } from '../ui/data-table';
@@ -17,20 +14,7 @@ import { VersionsChart } from './versions-chart';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Route } from '../../routes/signers';
-
-extend([mixPlugin]);
-
-const okColor = colord('#15803d');
-const badColor = colord('#b91c1c');
-
-function colorForTimeAgo(timeAgo: string | null) {
-  if (timeAgo === null) return badColor.toHex();
-  const date = parseISO(timeAgo);
-  const diff = differenceInSeconds(new Date(), date);
-  const maxDiff = 60 * 60; // 1 hour
-  const ratio = Math.min(diff / maxDiff, 1);
-  return okColor.mix(badColor, ratio).toHex();
-}
+import { SignerBarItem } from './signer-bar-item';
 
 const MAINNET_LAUNCHED = true;
 
@@ -119,18 +103,8 @@ export const RecentSigners = () => {
       </div>
       {showCustom ? null : (
         <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8 gap-[2px]">
-          {recentSigners.signers.map((s) => {
-            const color = colorForTimeAgo(s.createdAt);
-            return (
-              <div
-                key={s.publicKey}
-                className="h-full"
-                style={{
-                  flexGrow: s.weight + recentSigners.totalWeight * 0.01,
-                  backgroundColor: color,
-                }}
-              />
-            );
+          {recentSignersWithLatestResponses.map((s) => {
+            return <SignerBarItem key={s.publicKey} signer={s} />;
           })}
         </div>
       )}

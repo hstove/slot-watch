@@ -55,14 +55,16 @@ export const thresholdAtom = atom((get) => {
   return Math.ceil(totalWeight * 0.7);
 });
 
-export type RecentSignerWithPower = RecentSigner;
-
 export const recentSignersAtom = atom<ApiRecentSigners>({
   networkKey: '',
   rewardCycle: 0,
   totalWeight: 0,
   signers: [],
 });
+
+export type RecentSignerWithLatestResponse = RecentSigner & {
+  totalWeight: number;
+};
 
 export const recentSignersWithLatestResponsesAtom = atom((get) => {
   const recentSigners = get(recentSignersAtom);
@@ -72,6 +74,7 @@ export const recentSignersWithLatestResponsesAtom = atom((get) => {
     return {
       ...signer,
       createdAt: response?.createdAt ?? signer.createdAt,
+      totalWeight: recentSigners.totalWeight,
     };
   });
 });
