@@ -2,6 +2,7 @@ import { Gauge } from 'prom-client';
 import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 import { logger } from './logger';
+import { stxCommittedCache } from './pox-4';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -161,6 +162,12 @@ export async function warmupMetrics() {
       { last_n_blocks: n },
       sumWeightDegraded / sumWeight,
     );
+  }
+
+  const allCommits = await stxCommittedCache.get();
+  stxCommittedNextCycle.reset();
+  for (const [signerKey, stxCommitted] of Object.entries(allCommits)) {
+    stxCommittedNextCycle.set({ signer_key: signerKey }, Number(stxCommitted));
   }
 
   const runDuration = Date.now() - runStart;

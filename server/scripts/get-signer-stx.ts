@@ -5,7 +5,7 @@ const poxInfo = await getPoxInfo.get('mainnet');
 
 const nextRewardCycle = poxInfo.rewardCycleId;
 
-const stxCommitted = await getStxCommittedForCycle(BigInt(nextRewardCycle));
+const stxCommitted = await getStxCommittedForCycle(BigInt(nextRewardCycle + 1));
 
 console.log(stxCommitted);
 
