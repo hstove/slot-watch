@@ -5,6 +5,7 @@ import BigNumber from 'bignumber.js';
 import { hex } from '@scure/base';
 import { getPoxInfo } from './stacks-api';
 import { stxCommittedNextCycle } from './metrics';
+import { memoizeCache } from './cache';
 
 export const client = new ClarigenClient('https://api.hiro.so');
 const pox4 = mainnet.pox4;
@@ -64,11 +65,11 @@ export async function getStxCommittedForCycle(rewardCycle: bigint) {
   return signers;
 }
 
-export async function updateStxCommittedMetrics() {
-  const { rewardCycleId } = await getPoxInfo.get('mainnet');
-  const allCommits = await getStxCommittedForCycle(BigInt(rewardCycleId + 1));
-  stxCommittedNextCycle.reset();
-  for (const [signerKey, stxCommitted] of Object.entries(allCommits)) {
-    stxCommittedNextCycle.set({ signer_key: signerKey }, Number(stxCommitted));
-  }
-}
+export const stxCommittedCache = memoizeCache(
+  () => 'stx_committed_cache',
+  async () => {
+    const { rewardCycleId } = await getPoxInfo.get('mainnet');
+    const allCommits = await getStxCommittedForCycle(BigInt(rewardCycleId + 1));
+    return allCommits;
+  },
+);

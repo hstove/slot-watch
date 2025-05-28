@@ -7,7 +7,7 @@ import {
   knownSigners,
 } from 'slot-watch-common';
 import { memoizeCache } from './cache';
-import { updateStxCommittedMetrics } from './pox-4';
+import { warmupMetrics } from './metrics';
 
 export const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
@@ -94,5 +94,5 @@ export async function warmCache(networkKey: string) {
   const poxInfo = await getPoxInfo.warm(networkKey);
   const rewardCycle = poxInfo.rewardCycleId;
   await getStackerSetCache.warm(networkKey, rewardCycle);
-  await updateStxCommittedMetrics();
+  await warmupMetrics();
 }
