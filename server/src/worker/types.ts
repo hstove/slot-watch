@@ -40,3 +40,5 @@ export type NewBlockJob = WorkerJobBase<
 >;
 
 export type WorkerJob = StackerDbChunkJob | BurnBlockJob | NewBlockJob;
+
+export type WorkerJobType = WorkerJob['type'];

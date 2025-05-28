@@ -13,12 +13,16 @@ import {
   handleStacksBlockEvent,
 } from '../events/block-events';
 import { handleStackerDBChunk } from '../events/stackerdb';
+import { workerJobProcessingTimeSummary } from '../metrics';
 
 const logger = _logger.child({ module: 'worker' });
 
 export const workerQueue = new Worker<WorkerJob>(
   QUEUE_NAME,
   async (job) => {
+    const endTimer = workerJobProcessingTimeSummary.startTimer({
+      job_type: job.data.type,
+    });
     if (job.data.type === BURN_BLOCKS_EVENT) {
       await handleBurnBlockEvent(job.data);
       await warmCache(job.data.networkKey);
@@ -31,6 +35,7 @@ export const workerQueue = new Worker<WorkerJob>(
         job.data.networkKey,
       );
     }
+    endTimer();
   },
   {
     connection: {
