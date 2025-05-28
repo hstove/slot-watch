@@ -20,6 +20,7 @@ import {
   STATE_MACHINE_UPDATE_EVENT,
   type WSStateMachineUpdate,
   superSerialize,
+  chunkTypeName,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getPayloadContractId } from '../utils';
@@ -41,7 +42,8 @@ import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import { sql } from 'drizzle-orm';
-import type { SuperJSON } from 'slot-watch-common';
+import type { ChunkType, SuperJSON } from 'slot-watch-common';
+import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -51,6 +53,11 @@ export async function handleStackerDBChunk(
   const contractId = getPayloadContractId(payload);
 
   for (const chunk of payload.modified_slots) {
+    const chunkData = hex.decode(chunk.data);
+    const chunkType = chunkTypeName(chunkData);
+    const endTimer = stackerDbChunkProcessingTimeSummary.startTimer({
+      chunk_type: chunkType,
+    });
     const publicKey = recoverChunkPublicKey({
       data: hex.decode(chunk.data),
       slotId: chunk.slot_id,
@@ -71,7 +78,9 @@ export async function handleStackerDBChunk(
       })
       .returning({ id: stackerDbSlots.id });
     const chunkId = newRow?.id ?? null;
-    const decoded = decodeChunkMaybe(hex.decode(chunk.data));
+
+    const decoded = decodeChunkMaybe(chunkData);
+
     if (decoded === null) {
       logger.error(`Error decoding chunk: ${chunk.data}`, chunk);
       continue;
@@ -93,7 +102,7 @@ export async function handleStackerDBChunk(
         chunkId,
       });
     } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      const handleProposals = true;
+      const handleProposals = false;
       if (handleProposals) {
         await handleBlockResponse({
           chunk,
@@ -105,9 +114,6 @@ export async function handleStackerDBChunk(
         });
       }
     } else if (decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate) {
-      if (chunkId === null) {
-        return;
-      }
       await handleStateMachineUpdate({
         payload: decoded,
         receivedAt,
@@ -116,6 +122,7 @@ export async function handleStackerDBChunk(
         publicKey,
       });
     }
+    endTimer();
   }
 }
 
@@ -286,7 +293,7 @@ export async function handleStateMachineUpdate({
   receivedAt: Date;
   networkKey: string;
   publicKey: string;
-  chunkId: number;
+  chunkId: number | null;
 }) {
   const updateContent = superSerialize(payload.stateMachineUpdate);
   const dbStateMachineUpdate = {

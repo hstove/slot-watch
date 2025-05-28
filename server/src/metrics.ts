@@ -1,8 +1,9 @@
-import { Gauge } from 'prom-client';
+import { Gauge, Summary } from 'prom-client';
 import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
+import { workerQueue } from './worker/queue';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -49,6 +50,24 @@ export const stxCommittedNextCycle = new Gauge({
   name: 'slot_watch_stx_committed_next_cycle',
   help: 'The amount of STX committed to the next cycle',
   labelNames: ['signer_key'] as const,
+});
+
+export const workerJobsCounts = new Gauge({
+  name: 'slot_watch_worker_job_count',
+  help: 'The amount of worker jobs',
+  labelNames: ['status'] as const,
+});
+
+export const stackerDbChunkProcessingTimeSummary = new Summary({
+  name: 'slot_watch_stackerdb_chunk_processing_time',
+  help: 'The time (seconds) it takes to process a chunk',
+  labelNames: ['chunk_type'] as const,
+});
+
+export const workerJobProcessingTimeSummary = new Summary({
+  name: 'slot_watch_worker_job_processing_time',
+  help: 'The time (seconds) it takes to process a worker job',
+  labelNames: ['job_type'] as const,
 });
 
 let lastRun = 0;
@@ -168,6 +187,11 @@ export async function warmupMetrics() {
   stxCommittedNextCycle.reset();
   for (const [signerKey, stxCommitted] of Object.entries(allCommits)) {
     stxCommittedNextCycle.set({ signer_key: signerKey }, Number(stxCommitted));
+  }
+
+  const workerCounts = await workerQueue.getJobCounts();
+  for (const [status, count] of Object.entries(workerCounts)) {
+    workerJobsCounts.set({ status }, Number(count));
   }
 
   const runDuration = Date.now() - runStart;
