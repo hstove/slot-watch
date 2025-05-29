@@ -1,0 +1,38 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Hex Import Standard
+
+## Required Import Pattern
+
+When importing hex utilities for encoding/decoding operations, **always** use:
+
+```typescript
+import { hex } from '@scure/base';
+```
+
+## Rules
+
+- ✅ **DO**: Use `import { hex } from '@scure/base';`
+- ❌ **DON'T**: Use any other hex libraries or import patterns
+- ❌ **DON'T**: Use `import hex from '@scure/base';` (default import)
+- ❌ **DON'T**: Use alternative libraries like `buffer` or custom hex utilities
+
+## Usage Examples
+
+```typescript
+// Correct usage
+import { hex } from '@scure/base';
+
+// Encoding
+const encoded = hex.encode(buffer);
+
+// Decoding
+const decoded = hex.decode(hexString);
+```
+
+## Rationale
+
+This ensures consistency across the codebase and leverages the reliable `@scure/base` library that's already established in the project, as seen in [server/src/events/stackerdb.ts](mdc:server/src/events/stackerdb.ts).

@@ -1,9 +1,10 @@
 import { redisURL } from '../redis';
 import { Worker } from 'bullmq';
-import { QUEUE_NAME, type WorkerJob } from './types';
+import { QUEUE_NAME, type WorkerJob, type WorkerResult } from './types';
 import { logger as _logger } from '../logger';
 import {
   BURN_BLOCKS_EVENT,
+  chunkTypeName,
   MANY_CHUNKS_EVENT,
   NEW_BLOCK_EVENT,
 } from 'slot-watch-common';
@@ -14,15 +15,14 @@ import {
 } from '../events/block-events';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import { workerJobProcessingTimeSummary } from '../metrics';
+import { hex } from '@scure/base';
 
 const logger = _logger.child({ module: 'worker' });
 
-export const workerQueue = new Worker<WorkerJob>(
+export const workerQueue = new Worker<WorkerJob, WorkerResult>(
   QUEUE_NAME,
   async (job) => {
-    const endTimer = workerJobProcessingTimeSummary.startTimer({
-      job_type: job.data.type,
-    });
+    const start = Date.now();
     if (job.data.type === BURN_BLOCKS_EVENT) {
       await handleBurnBlockEvent(job.data);
       await warmCache(job.data.networkKey);
@@ -35,7 +35,9 @@ export const workerQueue = new Worker<WorkerJob>(
         job.data.networkKey,
       );
     }
-    endTimer();
+    return {
+      timeSecs: (Date.now() - start) / 1000,
+    };
   },
   {
     connection: {
@@ -49,8 +51,24 @@ workerQueue.on('ready', () => {
   logger.info('Worker ready');
 });
 
-workerQueue.on('completed', (job) => {
-  logger.debug(`Job ${job.name} completed (${job.data.networkKey})`);
+workerQueue.on('completed', (job, result) => {
+  if (job.data.type === MANY_CHUNKS_EVENT) {
+    const [slot] = job.data.payload.modified_slots;
+    if (slot) {
+      const chunkType = chunkTypeName(hex.decode(slot.data));
+      logger.debug(
+        {
+          chunkType,
+          module: 'worker',
+          event: 'completed',
+          timeSecs: result.timeSecs,
+        },
+        `New chunks (${chunkType}) processed in ${result.timeSecs.toFixed(2)}s`,
+      );
+    }
+  } else {
+    logger.debug(`Job ${job.name} completed (${job.data.networkKey})`);
+  }
 });
 
 workerQueue.on('failed', (job, err) => {
