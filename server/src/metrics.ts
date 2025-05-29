@@ -52,6 +52,12 @@ export const stxCommittedNextCycle = new Gauge({
   labelNames: ['signer_key'] as const,
 });
 
+export const signingPowerThisCycle = new Gauge({
+  name: 'slot_watch_signing_power_this_cycle',
+  help: 'The signing power of the current cycle',
+  labelNames: ['signer_key'] as const,
+});
+
 export const workerJobsCounts = new Gauge({
   name: 'slot_watch_worker_job_count',
   help: 'The amount of worker jobs',
@@ -97,9 +103,7 @@ export async function warmupMetrics() {
   signerParticipationRate.reset();
   signerDegradationRate.reset();
 
-  const blocksResolved = recentBlocks.blocks.filter(
-    (b) => typeof b.accepted === 'boolean',
-  );
+  const blocksResolved = recentBlocks.blocks.filter((b) => b.pushedAt !== null);
 
   const [mostRecent] = recentBlocks.blocks;
   if (mostRecent && mostRecent.accepted === null) {
@@ -187,6 +191,14 @@ export async function warmupMetrics() {
   stxCommittedNextCycle.reset();
   for (const [signerKey, stxCommitted] of Object.entries(allCommits)) {
     stxCommittedNextCycle.set({ signer_key: signerKey }, Number(stxCommitted));
+  }
+
+  signingPowerThisCycle.reset();
+  for (const signer of stackerSet.signers) {
+    signingPowerThisCycle.set(
+      { signer_key: signer.signing_key },
+      signer.weight,
+    );
   }
 
   const workerCounts = await workerQueue.getJobCounts();

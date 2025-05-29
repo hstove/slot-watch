@@ -43,7 +43,6 @@ async function getCache<T>(key: string) {
   // if (typeof ttl !== 'number') {
   //   throw new Error('Cache error: TTL is not a number');
   // }
-  console.log(key);
   const [result, ttl] = await Promise.all([
     redisClient.get(cacheKey(key)),
     redisClient.ttl(cacheKey(key)),
