@@ -13,10 +13,10 @@ const pox4 = mainnet.pox4;
 async function getRewardSet(rewardCycle: bigint) {
   const listLen = await client.ro(pox4.getRewardSetSize(rewardCycle));
   const listItems = [];
-  console.log('Fetching reward set with length', listLen);
+  // console.log('Fetching reward set with length', listLen);
   for (let i = 0; i < listLen; i++) {
     listItems.push(async () => {
-      console.log('Fetching reward set item', i);
+      // console.log('Fetching reward set item', i);
       try {
         return fetchMapGet(
           pox4.identifier,
@@ -71,5 +71,8 @@ export const stxCommittedCache = memoizeCache(
     const { rewardCycleId } = await getPoxInfo.get('mainnet');
     const allCommits = await getStxCommittedForCycle(BigInt(rewardCycleId + 1));
     return allCommits;
+  },
+  {
+    ttl: 120 * 60,
   },
 );

@@ -27,7 +27,7 @@ async function getCache<T>(key: string) {
   // pipeline.ttl(cacheKey(key));
   // const outcome = await pipeline.exec();
   // if (outcome === null) {
-  //   throw new Error('Cache error');
+  //   throw new Error(`Cache error'`;
   // }
   // const [valueResult, ttlResult] = outcome;
   // // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -41,7 +41,7 @@ async function getCache<T>(key: string) {
   //   throw new Error(`Cache error: ${ttlError.message}`);
   // }
   // if (typeof ttl !== 'number') {
-  //   throw new Error('Cache error: TTL is not a number');
+  //   throw new Error(`Cache error: TTL is not a number'`;
   // }
   const [result, ttl] = await Promise.all([
     redisClient.get(cacheKey(key)),
@@ -54,28 +54,47 @@ async function getCache<T>(key: string) {
   return { value, ttl };
 }
 
-async function setCache<T>(key: string, value: T) {
+async function setCache<T>(key: string, value: T, ttl: number) {
+  logger.debug(
+    {
+      key,
+      ttl,
+    },
+    `Cache: setCache ${key}`,
+  );
   // await redisClient.set(cacheKey(key), stringify(value), 'EX', CACHE_TTL);
   await redisClient.set(cacheKey(key), stringify(value), {
-    EX: CACHE_TTL,
+    EX: ttl,
   });
 }
 
 export function memoizeCache<Fn extends F.Function>(
   key: F.Function<F.Parameters<Fn>, string>,
   fn: Fn,
+  options: {
+    /**
+     * The time to live for the cache in seconds
+     */
+    ttl?: number;
+    /**
+     * When the cache's TTL is less than this value (in seconds),
+     * it will be refreshed
+     */
+    refreshTtl?: number;
+  } = {},
 ): {
   get: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;
   warm: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;
   clear: F.Function<F.Parameters<Fn>, void>;
 } {
+  const { ttl = CACHE_TTL, refreshTtl = REFRESH_TTL } = options;
   return {
     async get(...args: F.Parameters<Fn>): A.Promise<F.Return<Fn>> {
       logger.debug(
         {
           key: key(...args),
         },
-        'Cache: getCache',
+        `Cache: getCache ${key(...args)}`,
       );
       // const cached = cache.get<F.Return<Fn>>(key(...args));
       const cached = await getCache<F.Return<Fn>>(key(...args));
@@ -85,10 +104,10 @@ export function memoizeCache<Fn extends F.Function>(
             key: key(...args),
             ttl: cached.ttl,
           },
-          'Cache: hit',
+          `Cache: hit ${key(...args)}`,
         );
         process.nextTick(async () => {
-          if (cached.ttl < REFRESH_TTL) {
+          if (cached.ttl < refreshTtl) {
             const mutex = new Mutex(ioredisClient, mutexKey(key(...args)), {
               lockTimeout: 60 * 1000,
               refreshInterval: 0,
@@ -98,11 +117,11 @@ export function memoizeCache<Fn extends F.Function>(
                 {
                   key: key(...args),
                 },
-                'Cache: refresh',
+                `Cache: refresh ${key(...args)}`,
               );
               try {
                 const result = (await fn(...args)) as F.Return<Fn>;
-                await setCache(key(...args), result);
+                await setCache(key(...args), result, ttl);
               } catch (error) {
                 await mutex.release();
               }
@@ -115,11 +134,11 @@ export function memoizeCache<Fn extends F.Function>(
         {
           key: key(...args),
         },
-        'Cache: miss',
+        `Cache: miss ${key(...args)}`,
       );
       const result = (await fn(...args)) as F.Return<Fn>;
       // cache.set<F.Return<Fn>>(key(...args), result);
-      await setCache(key(...args), result);
+      await setCache(key(...args), result, ttl);
       return result as unknown as A.Promise<F.Return<Fn>>;
     },
     async warm(...args: F.Parameters<Fn>): A.Promise<F.Return<Fn>> {
@@ -127,10 +146,10 @@ export function memoizeCache<Fn extends F.Function>(
         {
           key: key(...args),
         },
-        'Cache: warm',
+        `Cache: warm ${key(...args)}`,
       );
       const result = await fn(...args);
-      await setCache(key(...args), result);
+      await setCache(key(...args), result, ttl);
       return result;
     },
     async clear(...args: F.Parameters<Fn>) {
@@ -138,7 +157,7 @@ export function memoizeCache<Fn extends F.Function>(
         {
           key: key(...args),
         },
-        'Cache: clear',
+        `Cache: clear ${key(...args)}`,
       );
       await redisClient.del(key(...args));
     },
