@@ -11,7 +11,6 @@ import {
   deserializeTransaction,
   serializeTransaction,
 } from '@stacks/transactions/dist/transaction';
-import { BytesReader } from '@stacks/transactions/dist/BytesReader';
 import type { Prettify } from '../utils';
 import { hex } from '@scure/base';
 import { StateMachineUpdateCoder } from './state-machine';
