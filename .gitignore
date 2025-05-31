@@ -209,3 +209,4 @@ Caddyfile
 Caddyfile.test
 
 data
+.dev.vars
