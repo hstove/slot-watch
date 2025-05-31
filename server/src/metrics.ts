@@ -3,7 +3,7 @@ import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
-import { workerQueue } from './worker/queue';
+// import { workerQueue } from './worker/queue';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -201,10 +201,10 @@ export async function warmupMetrics() {
     );
   }
 
-  const workerCounts = await workerQueue.getJobCounts();
-  for (const [status, count] of Object.entries(workerCounts)) {
-    workerJobsCounts.set({ status }, Number(count));
-  }
+  // const workerCounts = await workerQueue.getJobCounts();
+  // for (const [status, count] of Object.entries(workerCounts)) {
+  //   workerJobsCounts.set({ status }, Number(count));
+  // }
 
   const runDuration = Date.now() - runStart;
   logger.info(`Metrics warmed up in ${runDuration}ms`);

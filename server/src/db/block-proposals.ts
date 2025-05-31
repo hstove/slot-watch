@@ -22,10 +22,11 @@ import {
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
 import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
-import { redisClient } from '../redis';
+// import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
 import { logger } from '../logger';
 import { memoizeCache } from '../cache';
+import { env } from 'cloudflare:workers';
 
 export function serializeBlockProposal(
   block: BlockProposalDb,
@@ -57,11 +58,11 @@ export function latestBlockProposalLookupKey({
 export async function getAllLatestBlockProposals(
   networkKey: string,
 ): Promise<ApiBlockProposal[]> {
-  const keys = await redisClient.keys(
-    `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:*`,
-  );
-  const results = await redisClient.mGet(keys);
-  return results
+  const keys = await env.SLOT_WATCH.list({
+    prefix: `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:`,
+  });
+  const results = await env.SLOT_WATCH.get(keys.keys.map((k) => k.name));
+  return [...results.values()]
     .filter((result): result is string => result !== null)
     .map(parseBlockProposal)
     .filter((proposal): proposal is ApiBlockProposal => proposal !== null);
@@ -85,7 +86,8 @@ export async function getLatestBlockProposal(
   networkKey: string,
 ) {
   const key = latestBlockProposalLookupKey({ minerPublicKey, networkKey });
-  const result = await redisClient.get(key);
+  const result = await env.SLOT_WATCH.get(key);
+  // const result = await redisClient.get(key);
   logger.debug(
     {
       topic: 'block-proposal',
@@ -113,7 +115,8 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
     },
     'setting latest block proposal',
   );
-  await redisClient.set(key, stringify(blockProposal));
+  await env.SLOT_WATCH.put(key, stringify(blockProposal));
+  // await redisClient.set(key, stringify(blockProposal));
 }
 
 export async function getCachedLatestBlockProposals(
@@ -123,7 +126,8 @@ export async function getCachedLatestBlockProposals(
   const keys = minerPublicKeys.map((minerPublicKey) =>
     latestBlockProposalLookupKey({ minerPublicKey, networkKey }),
   );
-  const results = await redisClient.mGet(keys);
+  const results = await Promise.all(keys.map((key) => env.SLOT_WATCH.get(key)));
+  // const results = await redisClient.mGet(keys);
   logger.debug(
     {
       topic: 'block-proposal',

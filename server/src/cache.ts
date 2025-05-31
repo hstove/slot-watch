@@ -1,8 +1,7 @@
 import type { F, A } from 'ts-toolbelt';
-import { redisClient, ioredisClient } from './redis';
 import { parse, stringify } from 'superjson';
 import { logger as _logger } from './logger';
-import { Mutex } from 'redis-semaphore';
+import { env } from 'cloudflare:workers';
 
 const logger = _logger.child({
   module: 'cache',
@@ -21,37 +20,24 @@ function mutexKey(key: string) {
   return `${KEY_PREFIX}${key}:mutex`;
 }
 
+function ttlKey(key: string) {
+  return `${KEY_PREFIX}${key}:ttl`;
+}
+
 async function getCache<T>(key: string) {
-  // const pipeline = redisClient.pipeline();
-  // pipeline.get(cacheKey(key));
-  // pipeline.ttl(cacheKey(key));
-  // const outcome = await pipeline.exec();
-  // if (outcome === null) {
-  //   throw new Error(`Cache error'`;
-  // }
-  // const [valueResult, ttlResult] = outcome;
-  // // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  // const [valueError, valueStr] = valueResult!;
-  // // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  // const [ttlError, ttl] = ttlResult!;
-  // if (valueError) {
-  //   throw new Error(`Cache error: ${valueError.message}`);
-  // }
-  // if (ttlError) {
-  //   throw new Error(`Cache error: ${ttlError.message}`);
-  // }
-  // if (typeof ttl !== 'number') {
-  //   throw new Error(`Cache error: TTL is not a number'`;
-  // }
   const [result, ttl] = await Promise.all([
-    redisClient.get(cacheKey(key)),
-    redisClient.ttl(cacheKey(key)),
+    env.SLOT_WATCH.get(cacheKey(key)),
+    env.SLOT_WATCH.get(ttlKey(key)),
   ]);
   let value: T | null = null;
   if (typeof result === 'string') {
     value = parse<T>(result);
   }
-  return { value, ttl };
+  let ttlValue: number | null = null;
+  if (typeof ttl === 'string') {
+    ttlValue = Number(ttl);
+  }
+  return { value, ttl: ttlValue };
 }
 
 async function setCache<T>(key: string, value: T, ttl: number) {
@@ -62,10 +48,14 @@ async function setCache<T>(key: string, value: T, ttl: number) {
     },
     `Cache: setCache ${key}`,
   );
-  // await redisClient.set(cacheKey(key), stringify(value), 'EX', CACHE_TTL);
-  await redisClient.set(cacheKey(key), stringify(value), {
-    EX: ttl,
-  });
+  await Promise.all([
+    env.SLOT_WATCH.put(cacheKey(key), stringify(value), {
+      expiration: ttl,
+    }),
+    env.SLOT_WATCH.put(ttlKey(key), ttl.toString(), {
+      expiration: ttl,
+    }),
+  ]);
 }
 
 export function memoizeCache<Fn extends F.Function>(
@@ -106,28 +96,28 @@ export function memoizeCache<Fn extends F.Function>(
           },
           `Cache: hit ${key(...args)}`,
         );
-        process.nextTick(async () => {
-          if (cached.ttl < refreshTtl) {
-            const mutex = new Mutex(ioredisClient, mutexKey(key(...args)), {
-              lockTimeout: 60 * 1000,
-              refreshInterval: 0,
-            });
-            if (await mutex.tryAcquire()) {
-              logger.debug(
-                {
-                  key: key(...args),
-                },
-                `Cache: refresh ${key(...args)}`,
-              );
-              try {
-                const result = (await fn(...args)) as F.Return<Fn>;
-                await setCache(key(...args), result, ttl);
-              } catch (error) {
-                await mutex.release();
-              }
-            }
-          }
-        });
+        // process.nextTick(async () => {
+        //   if (cached.ttl && cached.ttl < refreshTtl) {
+        //     const mutex = new Mutex(ioredisClient, mutexKey(key(...args)), {
+        //       lockTimeout: 60 * 1000,
+        //       refreshInterval: 0,
+        //     });
+        //     if (await mutex.tryAcquire()) {
+        //       logger.debug(
+        //         {
+        //           key: key(...args),
+        //         },
+        //         `Cache: refresh ${key(...args)}`,
+        //       );
+        //       try {
+        //         const result = (await fn(...args)) as F.Return<Fn>;
+        //         await setCache(key(...args), result, ttl);
+        //       } catch (error) {
+        //         await mutex.release();
+        //       }
+        //     }
+        //   }
+        // });
         return cached.value;
       }
       logger.debug(
@@ -159,7 +149,8 @@ export function memoizeCache<Fn extends F.Function>(
         },
         `Cache: clear ${key(...args)}`,
       );
-      await redisClient.del(key(...args));
+      await env.SLOT_WATCH.delete(cacheKey(key(...args)));
+      await env.SLOT_WATCH.delete(ttlKey(key(...args)));
     },
   };
 }

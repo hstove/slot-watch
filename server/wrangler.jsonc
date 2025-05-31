@@ -1,20 +1,18 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "slot-watch",
-  "main": "src/cloudflare-worker.ts",
+  "main": "src/server.ts",
   "compatibility_date": "2025-05-29",
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
+  "compatibility_flags": ["nodejs_compat"],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
-  // "kv_namespaces": [
-  //   {
-  //     "binding": "MY_KV_NAMESPACE",
-  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  //   }
-  // ],
+  "kv_namespaces": [
+    {
+      "binding": "SLOT_WATCH",
+      "id": "aa1dbaeb71644d1d99282d2e2bf02b45",
+    },
+  ],
   // "r2_buckets": [
   //   {
   //     "binding": "MY_BUCKET",
@@ -31,8 +29,8 @@
   // "ai": {
   //   "binding": "AI"
   // },
-  // "observability": {
-  //   "enabled": true,
-  //   "head_sampling_rate": 1
-  // }
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
 }
