@@ -1,17 +1,13 @@
 // import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
+// import { migrate } from 'drizzle-orm/postgres-js/migrator';
 // import { migrate } from 'drizzle-orm/bun-sql/migrator';
+import { migrate } from 'drizzle-orm/d1/migrator';
 import { db } from './src/db/db';
 import { sql } from 'drizzle-orm';
 
 console.log('Migration starting.');
 try {
-  console.log('Getting timeout');
-  const curTimeout = await db.execute(sql`SHOW statement_timeout;`);
-  console.log(curTimeout);
-  console.log('Setting timeout');
-  await db.execute(sql`SET statement_timeout = '2min';`);
-  console.log('Migrating');
+  // console.log('Migrating');
   await migrate(db, {
     migrationsFolder: './drizzle',
   });

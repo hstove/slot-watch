@@ -59,7 +59,7 @@ export const blockResponseApiSchema = z.object({
   slotId: z.number(),
   createdAt: z.string(),
   networkKey: z.string(),
-  chunkId: z.number(),
+  chunkId: z.string().nullable(),
   signerPublicKey: z.string(),
   accepted: z.boolean(),
   tenureExtendTimestamp: z.union([z.null(), z.string()]),
@@ -112,7 +112,7 @@ export const apiBlockProposalSchema = z.object({
   chainLength: z.number(),
   createdAt: z.string(),
   networkKey: z.string(),
-  // chunkId: z.number(),
+  chunkId: z.string().nullable(),
   minerPublicKey: z.string(),
   consensusHash: z.string(),
   tenureChangeCause: z.number().nullable(),
@@ -145,6 +145,6 @@ export type ApiStateMachineUpdate = {
   localSignerProtocolVersion: number;
   signerPublicKey: string;
   networkKey: string;
-  chunkId: number | null;
+  chunkId: string | null;
   createdAt: string;
 };

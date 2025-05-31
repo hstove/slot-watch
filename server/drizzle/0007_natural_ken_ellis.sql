@@ -1,1 +1,0 @@
-ALTER TABLE "block_proposals" ADD COLUMN "consensus_hash" varchar(64);

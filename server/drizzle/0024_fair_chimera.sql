@@ -1,2 +1,0 @@
-DROP INDEX "created_at_network_key_idx";--> statement-breakpoint
-CREATE INDEX "stackerdb_slots_created_at_mainnet_idx" ON "stacker_db_slots" USING btree ("created_at" DESC NULLS LAST) WHERE "stacker_db_slots"."network_key" = 'mainnet';

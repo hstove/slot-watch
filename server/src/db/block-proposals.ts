@@ -27,13 +27,15 @@ import { parse, stringify } from 'superjson';
 import { logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
+import { getCreatedAt } from '../utils';
 
 export function serializeBlockProposal(
   block: BlockProposalDb,
 ): ApiBlockProposal {
+  const createdAt = getCreatedAt(block.id);
   return {
     ...block,
-    createdAt: block.createdAt.toISOString(),
+    createdAt: createdAt.toISOString(),
     burnBlockHeight: block.burnBlockHeight ?? 0,
     consensusHash: block.consensusHash ?? '',
     minerPublicKey: block.minerPublicKey ?? '',
@@ -42,7 +44,7 @@ export function serializeBlockProposal(
       ? getVersionFromString(block.serverVersion)
       : null,
     serverVersion: block.serverVersion ?? null,
-    blockTimestamp: (block.blockTimestamp || block.createdAt).toISOString(),
+    blockTimestamp: (block.blockTimestamp || createdAt).toISOString(),
   };
 }
 
@@ -154,7 +156,7 @@ export async function getRecentBlocksHealth({
   const recentBlocks = await db
     .select({
       ...getTableColumns(blockProposalsSchema),
-      pushedAt: blockPushes.createdAt,
+      pushedAt: blockPushes.id,
     })
     .from(blockProposalsSchema)
     .where(
@@ -176,7 +178,7 @@ export async function getRecentBlocksHealth({
     )
     .orderBy(
       desc(blockProposalsSchema.chainLength),
-      desc(blockProposalsSchema.createdAt),
+      desc(blockProposalsSchema.id),
     )
     .limit(50);
 
@@ -192,7 +194,7 @@ export async function getRecentBlocksHealth({
         ),
       ),
     )
-    .orderBy(desc(blockResponsesSchema.createdAt));
+    .orderBy(desc(blockResponsesSchema.id));
 
   const responsesByBlock = new Map<string, BlockResponseDb[]>();
 
@@ -217,12 +219,14 @@ export async function getRecentBlocksHealth({
       responseInfo.countAccepted -
       responseInfo.countRejected;
     const pendingRatio = weightPending / responseInfo.totalWeight;
+    const pushedAt = b.pushedAt ? getCreatedAt(b.pushedAt) : null;
     return {
       ...b,
       ...responseInfo,
       countPending,
       pendingRatio,
       weightPending,
+      pushedAt,
     };
   });
 
@@ -232,13 +236,18 @@ export async function getRecentBlocksHealth({
 }
 
 export async function _fetchRecentMinerBlocks(networkKey: string) {
-  const recentBlocks = await db
-    .selectDistinctOn([blockProposals.burnBlockHeight], {
+  const recentBlocksDistinct = await db
+    .selectDistinct({
+      burnBlockHeight: blockProposals.burnBlockHeight,
       chainLength: blockProposals.chainLength,
-      minerPublicKey: blockProposals.minerPublicKey,
-      serverVersion: blockProposals.serverVersion,
-      burnBlockHeight: burnBlocks.burnBlockHeight,
+      id: blockProposals.id,
     })
+    // .selectDistinctOn([blockProposals.burnBlockHeight], {
+    //   chainLength: blockProposals.chainLength,
+    //   minerPublicKey: blockProposals.minerPublicKey,
+    //   serverVersion: blockProposals.serverVersion,
+    //   burnBlockHeight: burnBlocks.burnBlockHeight,
+    // })
     .from(blockProposals)
     .innerJoin(
       burnBlocks,
@@ -258,6 +267,21 @@ export async function _fetchRecentMinerBlocks(networkKey: string) {
     .orderBy(
       desc(blockProposals.burnBlockHeight),
       desc(blockProposals.chainLength),
+      desc(blockProposals.id),
+    )
+    .limit(1000);
+
+  const recentBlocks = await db
+    .select({
+      ...getTableColumns(blockProposalsSchema),
+      pushedAt: blockPushes.id,
+    })
+    .from(blockProposalsSchema)
+    .where(eq(blockProposalsSchema.networkKey, networkKey))
+    .orderBy(
+      desc(blockProposalsSchema.burnBlockHeight),
+      desc(blockProposalsSchema.chainLength),
+      desc(blockProposalsSchema.id),
     )
     .limit(1000);
 

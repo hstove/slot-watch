@@ -105,7 +105,7 @@ const blockRoutes = new Hono()
         .select()
         .from(burnBlocks)
         .where(eq(burnBlocks.networkKey, networkKey))
-        .orderBy(desc(burnBlocks.createdAt))
+        .orderBy(desc(burnBlocks.id))
         .limit(3);
 
       logger.debug(
@@ -151,7 +151,7 @@ const blockRoutes = new Hono()
           eq(burnBlocks.networkKey, networkKey),
         ),
       )
-      .orderBy(desc(burnBlocks.createdAt))
+      .orderBy(desc(burnBlocks.id))
       .limit(1);
     return c.json({ btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null });
   })
@@ -181,10 +181,7 @@ const blockRoutes = new Hono()
             eq(blockProposals.networkKey, networkKey),
           ),
         )
-        .orderBy(
-          desc(blockProposals.chainLength),
-          desc(blockProposals.createdAt),
-        );
+        .orderBy(desc(blockProposals.chainLength), desc(blockProposals.id));
       return c.json({
         blocks: blocks.map((b) => ({
           proposal: serializeBlockProposal(b.block_proposals),
@@ -206,9 +203,9 @@ const blockRoutes = new Hono()
     async (c) => {
       const networkKey = c.req.param('networkKey');
       const { cause } = c.req.valid('query');
-      const { id, ...tableColumns } = getTableColumns(stacksBlocks);
+      // const { id, ...tableColumns } = getTableColumns(stacksBlocks);
       const tenureChanges = await db
-        .select(tableColumns)
+        .select()
         .from(stacksBlocks)
         .where(
           and(
@@ -218,7 +215,7 @@ const blockRoutes = new Hono()
               : isNotNull(stacksBlocks.tenureChangeCause),
           ),
         )
-        .orderBy(desc(stacksBlocks.createdAt))
+        .orderBy(desc(stacksBlocks.id))
         .limit(5);
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     },

@@ -1,1 +1,0 @@
-ALTER TABLE "stacker_db_slots" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;

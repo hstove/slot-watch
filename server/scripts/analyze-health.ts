@@ -6,6 +6,8 @@ import { burnBlocks, stacksBlocks } from '../src/db/schema';
 import { eq, and, gt, asc } from 'drizzle-orm';
 import { subDays, format } from 'date-fns';
 import * as R from 'remeda';
+import { v7 as uuidv7 } from 'uuid';
+import { getCreatedAt } from '../src/utils';
 
 const csvStr = await readFile('../data/signer-health-l2.csv', 'utf-8');
 const [_, ...recordsRaw] = parse(csvStr, {
@@ -28,6 +30,8 @@ const records = recordsRaw.map((r) => {
   };
 });
 
+const timeAgoV7 = uuidv7({ msecs: subDays(new Date(), 1.5).getTime() });
+
 const btcBlocks = await db
   .select()
   .from(burnBlocks)
@@ -35,28 +39,31 @@ const btcBlocks = await db
     and(
       eq(burnBlocks.networkKey, 'mainnet'),
       // created since at least 1.5 days ago
-      gt(burnBlocks.createdAt, subDays(new Date(), 1.5)),
+      gt(burnBlocks.id, timeAgoV7),
     ),
   )
-  .orderBy(asc(burnBlocks.createdAt));
+  .orderBy(asc(burnBlocks.id));
 
 const stxBlocks = await db
   .select()
   .from(stacksBlocks)
   .where(
-    and(
-      eq(stacksBlocks.networkKey, 'mainnet'),
-      gt(stacksBlocks.createdAt, subDays(new Date(), 1.5)),
-    ),
+    and(eq(stacksBlocks.networkKey, 'mainnet'), gt(stacksBlocks.id, timeAgoV7)),
   )
-  .orderBy(asc(stacksBlocks.createdAt));
+  .orderBy(asc(stacksBlocks.id));
 
 // Now, merge the CSV data with a "burn height" column
 
 const merged = records.map((r) => {
-  const beforeTimeBtc = R.filter(btcBlocks, (b) => b.createdAt <= r.timestamp);
+  const beforeTimeBtc = R.filter(
+    btcBlocks,
+    (b) => getCreatedAt(b.id) <= r.timestamp,
+  );
   const btcBlock = beforeTimeBtc.at(-1);
-  const beforeTimeStx = R.filter(stxBlocks, (b) => b.createdAt <= r.timestamp);
+  const beforeTimeStx = R.filter(
+    stxBlocks,
+    (b) => getCreatedAt(b.id) <= r.timestamp,
+  );
   const stxBlock = beforeTimeStx.at(-1);
   return {
     ...r,

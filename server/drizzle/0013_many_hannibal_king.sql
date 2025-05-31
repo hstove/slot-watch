@@ -1,1 +1,0 @@
-CREATE INDEX IF NOT EXISTS "block_responses_max_created_by_signer_idx" ON "block_responses" USING btree ("signer_public_key","created_at" DESC NULLS LAST);

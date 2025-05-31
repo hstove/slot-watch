@@ -1,62 +1,858 @@
 {
-  "id": "8fe07799-6c05-4ccf-a53e-a674d132c6af",
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "c452e1ac-f02f-44e0-be6e-5cfc7945d3bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "7",
-  "dialect": "postgresql",
   "tables": {
-    "public.stacker_db_slots": {
-      "name": "stacker_db_slots",
-      "schema": "",
+    "block_proposals": {
+      "name": "block_proposals",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chain_length": {
+          "name": "chain_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "miner_public_key": {
+          "name": "miner_public_key",
+          "type": "text(66)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tenure_change_cause": {
+          "name": "tenure_change_cause",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tx_count": {
+          "name": "tx_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "server_version": {
+          "name": "server_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "block_timestamp": {
+          "name": "block_timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tx_fees": {
+          "name": "tx_fees",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "block_proposals_network_key_idx": {
+          "name": "block_proposals_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_signer_signature_hash_idx": {
+          "name": "block_proposals_signer_signature_hash_idx",
+          "columns": [
+            "signer_signature_hash"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_chain_length_idx": {
+          "name": "block_proposals_chain_length_idx",
+          "columns": [
+            "chain_length"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_chunk_id_idx": {
+          "name": "block_proposals_chunk_id_idx",
+          "columns": [
+            "chunk_id"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_miner_public_key_idx": {
+          "name": "block_proposals_miner_public_key_idx",
+          "columns": [
+            "miner_public_key"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_burn_block_height_idx": {
+          "name": "block_proposals_burn_block_height_idx",
+          "columns": [
+            "burn_block_height",
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "block_proposals_consensus_hash_network_key_idx": {
+          "name": "block_proposals_consensus_hash_network_key_idx",
+          "columns": [
+            "consensus_hash",
+            "network_key"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "block_pushes": {
+      "name": "block_pushes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chain_length": {
+          "name": "chain_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "miner_public_key": {
+          "name": "miner_public_key",
+          "type": "text(66)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "block_pushes_network_key_idx": {
+          "name": "block_pushes_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "block_pushes_signer_signature_hash_idx": {
+          "name": "block_pushes_signer_signature_hash_idx",
+          "columns": [
+            "signer_signature_hash"
+          ],
+          "isUnique": false
+        },
+        "block_pushes_chain_length_idx": {
+          "name": "block_pushes_chain_length_idx",
+          "columns": [
+            "chain_length"
+          ],
+          "isUnique": false
+        },
+        "block_pushes_chunk_id_idx": {
+          "name": "block_pushes_chunk_id_idx",
+          "columns": [
+            "chunk_id"
+          ],
+          "isUnique": false
+        },
+        "block_pushes_miner_public_key_idx": {
+          "name": "block_pushes_miner_public_key_idx",
+          "columns": [
+            "miner_public_key"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "block_responses": {
+      "name": "block_responses",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "slot_id": {
           "name": "slot_id",
-          "type": "smallint",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "signer_public_key": {
+          "name": "signer_public_key",
+          "type": "text(66)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "accepted": {
+          "name": "accepted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tenure_extend_timestamp": {
+          "name": "tenure_extend_timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reject_code": {
+          "name": "reject_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "validation_code": {
+          "name": "validation_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reject_reason": {
+          "name": "reject_reason",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latency_ms": {
+          "name": "latency_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "block_responses_network_key_idx": {
+          "name": "block_responses_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "block_responses_signer_signature_hash_idx": {
+          "name": "block_responses_signer_signature_hash_idx",
+          "columns": [
+            "signer_signature_hash"
+          ],
+          "isUnique": false
+        },
+        "slot_id_idx": {
+          "name": "slot_id_idx",
+          "columns": [
+            "slot_id"
+          ],
+          "isUnique": false
+        },
+        "block_responses_chunk_id_idx": {
+          "name": "block_responses_chunk_id_idx",
+          "columns": [
+            "chunk_id"
+          ],
+          "isUnique": false
+        },
+        "block_responses_signer_public_key_idx": {
+          "name": "block_responses_signer_public_key_idx",
+          "columns": [
+            "signer_public_key"
+          ],
+          "isUnique": false
+        },
+        "block_responses_max_created_by_signer_idx": {
+          "name": "block_responses_max_created_by_signer_idx",
+          "columns": [
+            "signer_public_key",
+            "id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "burn_blocks": {
+      "name": "burn_blocks",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_hash": {
+          "name": "burn_block_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "burn_blocks_network_key_idx": {
+          "name": "burn_blocks_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "burn_blocks_burn_block_height_idx": {
+          "name": "burn_blocks_burn_block_height_idx",
+          "columns": [
+            "burn_block_height"
+          ],
+          "isUnique": false
+        },
+        "burn_blocks_burn_block_hash_idx": {
+          "name": "burn_blocks_burn_block_hash_idx",
+          "columns": [
+            "burn_block_hash"
+          ],
+          "isUnique": false
+        },
+        "burn_blocks_consensus_hash_network_key_idx": {
+          "name": "burn_blocks_consensus_hash_network_key_idx",
+          "columns": [
+            "consensus_hash",
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "burn_blocks_network_key_burn_block_hash_idx": {
+          "name": "burn_blocks_network_key_burn_block_hash_idx",
+          "columns": [
+            "network_key",
+            "burn_block_hash"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stacker_db_slots": {
+      "name": "stacker_db_slots",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "version": {
           "name": "version",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "signature": {
           "name": "signature",
           "type": "bytea",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "data": {
           "name": "data",
           "type": "bytea",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "contract_id": {
           "name": "contract_id",
-          "type": "varchar(255)",
+          "type": "text(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "public_key": {
+          "name": "public_key",
+          "type": "text(66)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "network_key_idx": {
+          "name": "network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "public_key_idx": {
+          "name": "public_key_idx",
+          "columns": [
+            "public_key"
+          ],
+          "isUnique": false
+        },
+        "stackerdb_slots_created_at_network_key_idx": {
+          "name": "stackerdb_slots_created_at_network_key_idx",
+          "columns": [
+            "id",
+            "network_key"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stacks_blocks": {
+      "name": "stacks_blocks",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "block_height": {
+          "name": "block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "block_hash": {
+          "name": "block_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_hash": {
+          "name": "burn_block_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tenure_change_cause": {
+          "name": "tenure_change_cause",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "block_timestamp": {
+          "name": "block_timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "burn_block_timestamp": {
+          "name": "burn_block_timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "index_block_hash": {
+          "name": "index_block_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tx_count": {
+          "name": "tx_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tx_fees": {
+          "name": "tx_fees",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "read_count": {
+          "name": "read_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "read_length": {
+          "name": "read_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "runtime": {
+          "name": "runtime",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "write_count": {
+          "name": "write_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "write_length": {
+          "name": "write_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "stacks_blocks_network_key_idx": {
+          "name": "stacks_blocks_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "stacks_blocks_block_height_idx": {
+          "name": "stacks_blocks_block_height_idx",
+          "columns": [
+            "block_height"
+          ],
+          "isUnique": false
+        },
+        "stacks_blocks_block_hash_idx": {
+          "name": "stacks_blocks_block_hash_idx",
+          "columns": [
+            "block_hash"
+          ],
+          "isUnique": false
+        },
+        "stacks_blocks_burn_block_hash_idx": {
+          "name": "stacks_blocks_burn_block_hash_idx",
+          "columns": [
+            "burn_block_hash"
+          ],
+          "isUnique": false
+        },
+        "stacks_blocks_tenure_change_recent_idx": {
+          "name": "stacks_blocks_tenure_change_recent_idx",
+          "columns": [
+            "tenure_change_cause",
+            "id",
+            "network_key"
+          ],
+          "isUnique": false,
+          "where": "\"stacks_blocks\".\"tenure_change_cause\" is not null"
+        },
+        "stacks_blocks_consensus_hash_network_key_idx": {
+          "name": "stacks_blocks_consensus_hash_network_key_idx",
+          "columns": [
+            "consensus_hash",
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "stacks_blocks_network_key_block_hash_idx": {
+          "name": "stacks_blocks_network_key_block_hash_idx",
+          "columns": [
+            "network_key",
+            "block_hash"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "state_machine_updates": {
+      "name": "state_machine_updates",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signer_public_key": {
+          "name": "signer_public_key",
+          "type": "text(66)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "local_signer_protocol_version": {
+          "name": "local_signer_protocol_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active_signer_protocol_version": {
+          "name": "active_signer_protocol_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "update_content": {
+          "name": "update_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "state_machine_updates_network_key_idx": {
+          "name": "state_machine_updates_network_key_idx",
+          "columns": [
+            "network_key"
+          ],
+          "isUnique": false
+        },
+        "state_machine_updates_signer_public_key_idx": {
+          "name": "state_machine_updates_signer_public_key_idx",
+          "columns": [
+            "signer_public_key"
+          ],
+          "isUnique": false
+        },
+        "state_machine_updates_by_signer_latest_idx": {
+          "name": "state_machine_updates_by_signer_latest_idx",
+          "columns": [
+            "signer_public_key",
+            "network_key"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
+  "views": {},
   "enums": {},
-  "schemas": {},
-  "sequences": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
   }
 }

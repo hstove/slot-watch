@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { db } from '../db/db';
 import { stateMachineUpdates } from '../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 
 export const stateMachineRoutes = new Hono()
@@ -12,14 +12,28 @@ export const stateMachineRoutes = new Hono()
     const networkKey = c.req.param('networkKey');
     // const poxInfo = await getPoxInfo.get(networkKey);
     // const { signers } = await getStackerSet(networkKey, poxInfo.rewardCycleId);
-    const latestStateMachineUpdates = await db
-      .selectDistinctOn([stateMachineUpdates.signerPublicKey])
+    const latestStateMachineUpdatesDistinct = await db
+      // .selectDistinctOn([stateMachineUpdates.signerPublicKey])
+      .selectDistinct({
+        signerPublicKey: stateMachineUpdates.signerPublicKey,
+        id: stateMachineUpdates.id,
+      })
       .from(stateMachineUpdates)
       .where(eq(stateMachineUpdates.networkKey, networkKey))
       .orderBy(
         stateMachineUpdates.signerPublicKey,
-        desc(stateMachineUpdates.createdAt),
+        desc(stateMachineUpdates.id),
       );
+    const latestStateMachineUpdates = await db
+      .select()
+      .from(stateMachineUpdates)
+      .where(
+        inArray(
+          stateMachineUpdates.id,
+          latestStateMachineUpdatesDistinct.map((u) => u.id),
+        ),
+      )
+      .orderBy(desc(stateMachineUpdates.id));
     const latestUpdates = latestStateMachineUpdates.map((update) => {
       return serializeStateMachineUpdate(update);
     });
@@ -33,7 +47,7 @@ export const stateMachineRoutes = new Hono()
     zValidator(
       'query',
       z.object({
-        cursor: z.coerce.number().optional(),
+        cursor: z.string().optional(),
       }),
     ),
     async (c) => {
@@ -46,8 +60,8 @@ export const stateMachineRoutes = new Hono()
             cursor ? lt(id, cursor) : undefined,
           );
         },
-        orderBy({ createdAt }, { desc }) {
-          return desc(createdAt);
+        orderBy({ id }, { desc }) {
+          return desc(id);
         },
         limit: 200,
       });

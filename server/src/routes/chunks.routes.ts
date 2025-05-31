@@ -8,7 +8,7 @@ import type {
   TimelineResponse,
 } from 'slot-watch-common';
 import * as P from 'micro-packed';
-import { serializeDbChunk } from '../utils';
+import { getCreatedAt, serializeDbChunk } from '../utils';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { getLatestResponses } from '../db/block-responses';
@@ -30,17 +30,18 @@ const getChunksRoutes = new Hono()
         .select()
         .from(stackerDbSlots)
         .where(eq(stackerDbSlots.networkKey, first))
-        .orderBy(desc(stackerDbSlots.createdAt))
+        .orderBy(desc(stackerDbSlots.id))
         .limit(200);
 
       const otherChunks = await db
         .select()
         .from(stackerDbSlots)
         .where(inArray(stackerDbSlots.networkKey, otherNetworks))
-        .orderBy(desc(stackerDbSlots.createdAt))
+        .orderBy(desc(stackerDbSlots.id))
         .limit(400);
 
       const groupedChunks: TimelineChunk[] = firstChunks.map((chunk) => {
+        const chunkCreatedAt = getCreatedAt(chunk.id);
         const othersFound = Object.fromEntries(
           otherNetworks.map((networkKey) => {
             const found = otherChunks.find((otherChunk) => {
@@ -56,12 +57,14 @@ const getChunksRoutes = new Hono()
               return [networkKey, null];
             }
 
+            const foundCreatedAt = getCreatedAt(found.id);
+
             const diffSeconds =
-              (found.createdAt.getTime() - chunk.createdAt.getTime()) / 1000;
+              (foundCreatedAt.getTime() - chunkCreatedAt.getTime()) / 1000;
 
             return [
               networkKey,
-              { createdAt: found.createdAt.toISOString(), diffSeconds },
+              { createdAt: foundCreatedAt.toISOString(), diffSeconds },
             ];
           }),
         );
@@ -124,14 +127,15 @@ const getChunksRoutes = new Hono()
       // });
 
       return c.json<{ chunks: ChunkEventParsed[] }>({
-        chunks: chunks.map(serializeDbChunk),
+        // chunks: chunks.map(serializeDbChunk),
+        chunks: [],
       });
     },
   )
 
   .get(
     '/chunks/id/:id',
-    zValidator('param', z.object({ id: z.coerce.number() })),
+    zValidator('param', z.object({ id: z.string() })),
     async (c) => {
       const id = c.req.valid('param').id;
       const [chunk] = await db
