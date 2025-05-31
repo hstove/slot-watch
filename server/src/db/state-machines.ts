@@ -6,6 +6,7 @@ import {
   superDeserialize,
 } from 'slot-watch-common';
 import { hex } from '@scure/base';
+import { getCreatedAt } from '../utils';
 
 export function serializeMinerState(
   minerState: StateMachineUpdateMinerState,
@@ -26,6 +27,7 @@ export function serializeMinerState(
 export function serializeStateMachineUpdate(
   update: StateMachineUpdateDb,
 ): ApiStateMachineUpdate {
+  const createdAt = getCreatedAt(update.id);
   const { updateContent, ...rest } = update;
   const content = superDeserialize(updateContent);
 
@@ -34,6 +36,6 @@ export function serializeStateMachineUpdate(
     burnBlock: hex.encode(content.burnBlock),
     burnBlockHeight: Number(content.burnBlockHeight),
     minerState: serializeMinerState(content.minerState),
-    createdAt: rest.createdAt.toISOString(),
+    createdAt: createdAt.toISOString(),
   } satisfies ApiStateMachineUpdate;
 }

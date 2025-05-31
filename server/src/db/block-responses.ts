@@ -9,6 +9,7 @@ import { logger } from '../logger';
 // import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
 import { env } from 'cloudflare:workers';
+import { getCreatedAt } from '../utils';
 
 export function mapSignerDataToResponses({
   stackerSet,
@@ -147,15 +148,15 @@ export async function getLatestResponses(networkKey: string) {
 export function serializeBlockResponse(
   response: BlockResponseDb,
 ): BlockResponseApi {
+  const createdAt = getCreatedAt(response.id);
   return {
     ...response,
     tenureExtendTimestamp: response.tenureExtendTimestamp
       ? response.tenureExtendTimestamp.toISOString()
       : null,
-    createdAt: response.createdAt.toISOString(),
+    createdAt: createdAt.toISOString(),
     signerPublicKey: response.signerPublicKey ?? '',
     accepted: response.accepted ?? true,
-    chunkId: response.chunkId ?? 0,
     version: response.version ?? undefined,
     reason: response.reason ?? undefined,
     validationCode: response.validationCode ?? undefined,

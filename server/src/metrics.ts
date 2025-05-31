@@ -3,6 +3,7 @@ import { getRecentBlocksHealth } from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
+import { getCreatedAt } from './utils';
 // import { workerQueue } from './worker/queue';
 
 export const acceptanceRateLastBlocks = new Gauge({
@@ -107,7 +108,8 @@ export async function warmupMetrics() {
 
   const [mostRecent] = recentBlocks.blocks;
   if (mostRecent && mostRecent.accepted === null) {
-    pendingBlockTime.set((Date.now() - mostRecent.createdAt.getTime()) / 1000);
+    const createdAt = getCreatedAt(mostRecent.id);
+    pendingBlockTime.set((Date.now() - createdAt.getTime()) / 1000);
   } else {
     pendingBlockTime.set(0);
   }
@@ -140,7 +142,8 @@ export async function warmupMetrics() {
     let sumTimeToPushed = 0;
     for (const b of blocksWithPush) {
       if (b.pushedAt) {
-        sumTimeToPushed += b.pushedAt.getTime() - b.createdAt.getTime();
+        const createdAt = getCreatedAt(b.id);
+        sumTimeToPushed += b.pushedAt.getTime() - createdAt.getTime();
       }
     }
     averageTimeToPushedLastBlocks.set(

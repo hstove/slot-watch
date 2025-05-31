@@ -18,6 +18,7 @@ import { db } from '../db/db';
 // import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
 import { fetchRecentMinerStats } from '../db/block-proposals';
+import { getCreatedAt } from '../utils';
 
 export function convertBlock(
   block: unknown,
@@ -55,10 +56,9 @@ export function convertBlock(
     blockHeight: parsed.block_height,
     burnBlockHeight: parsed.burn_block_height,
     burnBlockHash: parsed.burn_block_hash,
-    createdAt: new Date(),
     blockTimestamp: parsed.block_time
       ? new Date(parsed.block_time * 1000)
-      : null,
+      : new Date(),
     burnBlockTimestamp: new Date(parsed.burn_block_time * 1000),
     indexBlockHash: parsed.index_block_hash,
     tenureChangeCause,
@@ -84,15 +84,13 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
     indexBlockHash: block.indexBlockHash ?? '',
   };
   // const _block = convertBlock(payload.payload);
-  await db
-    .insert(stacksBlocks)
-    .values(dbBlock)
-    .onConflictDoUpdate({
-      target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
-      set: {
-        ...dbBlock,
-      },
-    });
+  await db.insert(stacksBlocks).values(dbBlock).onConflictDoNothing();
+  // .onConflictDoUpdate({
+  //   target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
+  //   set: {
+  //     ...dbBlock,
+  //   },
+  // });
   // await publishWsEvent({
   //   type: NEW_BLOCK_V2_EVENT,
   //   networkKey: block.networkKey,

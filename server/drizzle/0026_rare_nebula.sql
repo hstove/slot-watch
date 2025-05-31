@@ -1,1 +1,0 @@
-ALTER TABLE "block_responses" ADD COLUMN "latency_ms" integer;

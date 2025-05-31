@@ -1,2 +1,0 @@
-ALTER TABLE "block_proposals" ADD COLUMN "burn_block_height" integer;--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "block_proposals_burn_block_height_idx" ON "block_proposals" USING btree ("burn_block_height","network_key");

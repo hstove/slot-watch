@@ -1,1 +1,0 @@
-CREATE INDEX "created_at_network_key_idx" ON "stacker_db_slots" USING btree ("network_key","created_at" DESC NULLS LAST);

@@ -1,19 +1,22 @@
 import {
-  pgTable,
-  serial,
-  varchar,
+  // pgTable,
+  // serial,
+  // varchar,
   integer,
-  smallint,
+  // smallint,
   customType,
-  timestamp,
+  // timestamp,
   index,
-  bigint,
-  boolean,
+  // bigint,
+  // boolean,
   unique,
-  json,
-} from 'drizzle-orm/pg-core';
+  // json,
+  sqliteTable as pgTable,
+  text,
+} from 'drizzle-orm/sqlite-core';
 import { eq, isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
+import { v7 as uuidv7 } from 'uuid';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
   dataType() {
@@ -24,23 +27,25 @@ const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
 export const stackerDbSlots = pgTable(
   'stacker_db_slots',
   {
-    id: serial('id').primaryKey(),
-    slotId: smallint('slot_id').notNull(),
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
+    slotId: integer('slot_id').notNull(),
     version: integer('version').notNull(),
     signature: bytea('signature').notNull(),
     data: bytea('data').notNull(),
-    contractId: varchar('contract_id', { length: 255 }).notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }),
-    publicKey: varchar('public_key', { length: 66 }),
+    contractId: text('contract_id', { length: 255 }).notNull(),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    publicKey: text('public_key', { length: 66 }).notNull(),
   },
   (table) => [
     index('network_key_idx').on(table.networkKey),
     index('public_key_idx').on(table.publicKey),
-    index('stackerdb_slots_created_at_mainnet_idx')
-      .on(table.createdAt.desc())
-      .where(eq(table.networkKey, 'mainnet')),
-    index('stackerdb_slots_created_at_idx').on(table.createdAt.desc()),
+    index('stackerdb_slots_created_at_network_key_idx').on(
+      table.id,
+      table.networkKey,
+    ),
   ],
 );
 
@@ -49,22 +54,26 @@ export type StackerDbSlotDb = InferSelectModel<typeof stackerDbSlots>;
 export const blockProposals = pgTable(
   'block_proposals',
   {
-    id: serial('id').primaryKey(),
-    signerSignatureHash: varchar('signer_signature_hash', {
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
+    signerSignatureHash: text('signer_signature_hash', {
       length: 64,
     }).notNull(),
     chainLength: integer('chain_length').notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id'),
-    minerPublicKey: varchar('miner_public_key', { length: 66 }),
-    consensusHash: varchar('consensus_hash', { length: 64 }),
-    tenureChangeCause: smallint('tenure_change_cause'),
-    txCount: integer('tx_count'),
-    burnBlockHeight: integer('burn_block_height'),
-    serverVersion: varchar('server_version'),
-    blockTimestamp: timestamp('block_timestamp'),
-    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    chunkId: text('chunk_id'),
+    minerPublicKey: text('miner_public_key', { length: 66 }).notNull(),
+    consensusHash: text('consensus_hash', { length: 64 }).notNull(),
+    tenureChangeCause: integer('tenure_change_cause'),
+    txCount: integer('tx_count').notNull(),
+    burnBlockHeight: integer('burn_block_height').notNull(),
+    serverVersion: text('server_version'),
+    blockTimestamp: integer('block_timestamp', {
+      mode: 'timestamp_ms',
+    }).notNull(),
+    txFees: integer('tx_fees', { mode: 'number' }).default(0).notNull(),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
@@ -90,22 +99,26 @@ export type BlockProposalDb = InferSelectModel<typeof blockProposals>;
 export const blockResponses = pgTable(
   'block_responses',
   {
-    id: serial('id').primaryKey(),
-    signerSignatureHash: varchar('signer_signature_hash', {
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
+    signerSignatureHash: text('signer_signature_hash', {
       length: 64,
     }).notNull(),
-    slotId: smallint('slot_id').notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id'),
-    signerPublicKey: varchar('signer_public_key', { length: 66 }),
-    accepted: boolean('accepted'),
-    tenureExtendTimestamp: timestamp('tenure_extend_timestamp'),
-    version: varchar('version'),
-    rejectCode: smallint('reject_code'),
-    validationCode: smallint('validation_code'),
-    reason: varchar('reason'),
-    rejectReason: smallint('reject_reason'),
+    slotId: integer('slot_id').notNull(),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    chunkId: text('chunk_id'),
+    signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
+    accepted: integer('accepted', { mode: 'boolean' }).notNull(),
+    tenureExtendTimestamp: integer('tenure_extend_timestamp', {
+      mode: 'timestamp_ms',
+    }),
+    version: text('version'),
+    rejectCode: integer('reject_code'),
+    validationCode: integer('validation_code'),
+    reason: text('reason'),
+    rejectReason: integer('reject_reason'),
     latencyMs: integer('latency_ms'),
   },
   (table) => [
@@ -118,7 +131,7 @@ export const blockResponses = pgTable(
     index('block_responses_signer_public_key_idx').on(table.signerPublicKey),
     index('block_responses_max_created_by_signer_idx').on(
       table.signerPublicKey,
-      table.createdAt.desc(),
+      table.id,
     ),
   ],
 );
@@ -128,15 +141,17 @@ export type BlockResponseDb = InferSelectModel<typeof blockResponses>;
 export const blockPushes = pgTable(
   'block_pushes',
   {
-    id: serial('id').primaryKey(),
-    signerSignatureHash: varchar('signer_signature_hash', {
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
+    signerSignatureHash: text('signer_signature_hash', {
       length: 64,
     }).notNull(),
     chainLength: integer('chain_length').notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
-    chunkId: integer('chunk_id'),
-    minerPublicKey: varchar('miner_public_key', { length: 66 }),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    chunkId: text('chunk_id'),
+    minerPublicKey: text('miner_public_key', { length: 66 }).notNull(),
   },
   (table) => [
     index('block_pushes_network_key_idx').on(table.networkKey),
@@ -154,30 +169,36 @@ export type BlockPushDb = InferSelectModel<typeof blockPushes>;
 export const stacksBlocks = pgTable(
   'stacks_blocks',
   {
-    id: serial('id').primaryKey(),
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
     blockHeight: integer('block_height').notNull(),
-    blockHash: varchar('block_hash', { length: 64 }).notNull(),
+    blockHash: text('block_hash', { length: 64 }).notNull(),
     burnBlockHeight: integer('burn_block_height').notNull(),
-    burnBlockHash: varchar('burn_block_hash', { length: 64 }).notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
-    tenureChangeCause: smallint('tenure_change_cause'),
-    blockTimestamp: timestamp('block_timestamp'),
-    burnBlockTimestamp: timestamp('burn_block_timestamp').notNull(),
-    indexBlockHash: varchar('index_block_hash', { length: 64 }),
-    txCount: smallint('tx_count').notNull(),
-    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
-    readCount: bigint('read_count', { mode: 'number' }).notNull(),
-    readLength: bigint('read_length', { mode: 'number' }).notNull(),
-    runtime: bigint('runtime', { mode: 'number' }).notNull(),
-    writeCount: bigint('write_count', { mode: 'number' }).notNull(),
-    writeLength: bigint('write_length', { mode: 'number' }).notNull(),
-    consensusHash: varchar('consensus_hash', { length: 64 }),
+    burnBlockHash: text('burn_block_hash', { length: 64 }).notNull(),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    tenureChangeCause: integer('tenure_change_cause'),
+    blockTimestamp: integer('block_timestamp', {
+      mode: 'timestamp_ms',
+    }).notNull(),
+    burnBlockTimestamp: integer('burn_block_timestamp', {
+      mode: 'timestamp_ms',
+    }).notNull(),
+    indexBlockHash: text('index_block_hash', { length: 64 }).notNull(),
+    txCount: integer('tx_count').notNull(),
+    txFees: integer('tx_fees', { mode: 'number' }).default(0).notNull(),
+    readCount: integer('read_count', { mode: 'number' }).notNull(),
+    readLength: integer('read_length', { mode: 'number' }).notNull(),
+    runtime: integer('runtime', { mode: 'number' }).notNull(),
+    writeCount: integer('write_count', { mode: 'number' }).notNull(),
+    writeLength: integer('write_length', { mode: 'number' }).notNull(),
+    consensusHash: text('consensus_hash', { length: 64 }).notNull(),
   },
   (table) => [
     index('stacks_blocks_network_key_idx').on(table.networkKey),
     index('stacks_blocks_block_height_idx').on(table.blockHeight),
-    index('stacks_blocks_created_at_idx').on(table.createdAt),
+    // index('stacks_blocks_created_at_idx').on(table.createdAt),
     index('stacks_blocks_block_hash_idx').on(table.blockHash),
     index('stacks_blocks_burn_block_hash_idx').on(table.burnBlockHash),
     unique('stacks_blocks_network_key_block_hash_idx').on(
@@ -185,7 +206,7 @@ export const stacksBlocks = pgTable(
       table.blockHash,
     ),
     index('stacks_blocks_tenure_change_recent_idx')
-      .on(table.tenureChangeCause, table.createdAt.desc(), table.networkKey)
+      .on(table.tenureChangeCause, table.id, table.networkKey)
       .where(isNotNull(table.tenureChangeCause)),
     index('stacks_blocks_consensus_hash_network_key_idx').on(
       table.consensusHash,
@@ -199,17 +220,19 @@ export type StacksBlockDb = InferSelectModel<typeof stacksBlocks>;
 export const burnBlocks = pgTable(
   'burn_blocks',
   {
-    id: serial('id').primaryKey(),
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
     burnBlockHeight: integer('burn_block_height').notNull(),
-    burnBlockHash: varchar('burn_block_hash', { length: 64 }).notNull(),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
-    consensusHash: varchar('consensus_hash', { length: 64 }),
+    burnBlockHash: text('burn_block_hash', { length: 64 }).notNull(),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    consensusHash: text('consensus_hash', { length: 64 }).notNull(),
   },
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),
     index('burn_blocks_burn_block_height_idx').on(table.burnBlockHeight),
-    index('burn_blocks_created_at_idx').on(table.createdAt),
+    // index('burn_blocks_created_at_idx').on(table.createdAt),
     index('burn_blocks_burn_block_hash_idx').on(table.burnBlockHash),
     unique('burn_blocks_network_key_burn_block_hash_idx').on(
       table.networkKey,
@@ -227,20 +250,22 @@ export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
 export const stateMachineUpdates = pgTable(
   'state_machine_updates',
   {
-    id: serial('id').primaryKey(),
-    signerPublicKey: varchar('signer_public_key', { length: 66 }).notNull(),
-    networkKey: varchar('network_key', { length: 20 }).notNull(),
+    id: text()
+      .$defaultFn(() => uuidv7())
+      .primaryKey(),
+    signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
     localSignerProtocolVersion: integer(
       'local_signer_protocol_version',
     ).notNull(),
     activeSignerProtocolVersion: integer(
       'active_signer_protocol_version',
     ).notNull(),
-    updateContent: json('update_content')
+    updateContent: text('update_content', { mode: 'json' })
       .$type<SuperJSON<StateMachineUpdate['stateMachineUpdate']>>()
       .notNull(),
-    chunkId: integer('chunk_id'),
-    createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+    chunkId: text('chunk_id'),
+    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
   },
   (table) => [
     index('state_machine_updates_network_key_idx').on(table.networkKey),
@@ -249,7 +274,7 @@ export const stateMachineUpdates = pgTable(
     ),
     index('state_machine_updates_by_signer_latest_idx').on(
       table.signerPublicKey,
-      table.createdAt.desc(),
+      // table.createdAt.desc(),
       table.networkKey,
     ),
   ],

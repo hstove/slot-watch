@@ -1,2 +1,0 @@
-DROP INDEX IF EXISTS "stacks_blocks_tenure_change_recent_idx";--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "stacks_blocks_tenure_change_recent_idx" ON "stacks_blocks" USING btree ("tenure_change_cause","created_at" DESC NULLS LAST,"network_key") WHERE "stacks_blocks"."tenure_change_cause" is not null;

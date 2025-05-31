@@ -19,13 +19,13 @@
   //     "bucket_name": "my-bucket"
   //   }
   // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
-  //   }
-  // ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "slot-watch-prod",
+      "database_id": "c96f4bf2-1e21-49b2-9e56-7765d0216c87",
+    },
+  ],
   // "ai": {
   //   "binding": "AI"
   // },
