@@ -1,4 +1,3 @@
-import type { Server } from 'bun';
 import { createMiddleware } from 'hono/factory';
 import { Hono, type Context } from 'hono';
 import { getPayloadContractId } from '../utils';
@@ -16,20 +15,14 @@ import {
   type WSPayload,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
-import { redisClient } from '../redis';
 import { logger } from '../logger';
-import { workerQueue } from '../worker/queue';
+import { handleStackerDBChunk } from '../events/stackerdb';
+import { handleBurnBlockEvent } from '../events/block-events';
+import { handleStacksBlockEvent } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
-
-export const getBunServer = (c: Context): Server => {
-  const server = ('server' in c.env ? c.env.server : c.env) as
-    | Server
-    | undefined;
-  if (!server) {
-    throw new Error('Server not found');
-  }
-  return server;
-};
+import { publishWsEvent } from '../redis';
+// import { workerQueue } from '../worker/queue';
+// import { convertBlock } from '../events/block-events';
 
 type Env = {
   Variables: {
@@ -47,20 +40,6 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
   await next();
 });
 
-function publishEvent(networkKey: string, payload: WSPayload) {
-  process.nextTick(async () => {
-    try {
-      logger.trace(
-        { topic: 'redis', payloadType: payload.type },
-        'Publishing event',
-      );
-      await redisClient.publish(networkKey, JSON.stringify(payload));
-    } catch (error) {
-      logger.error({ topic: 'redis' }, `Error publishing event: ${error}`);
-    }
-  });
-}
-
 const eventsRoutes = new Hono<Env>()
   .onError((err, c) => {
     logger.error(
@@ -76,7 +55,6 @@ const eventsRoutes = new Hono<Env>()
   })
 
   .post('/stackerdb_chunks', basicAuthMiddleware, async (c) => {
-    const server = getBunServer(c);
     const networkKey = c.get('networkKey');
     if (networkKey.startsWith('fnd-') || networkKey.startsWith('hiro-')) {
       return new Response('OK', { status: 200 });
@@ -104,13 +82,19 @@ const eventsRoutes = new Hono<Env>()
       payload: chunks,
       receivedAt: receivedAt.toISOString(),
     };
-    // publishEvent(networkKey, manyChunksPayload);
-    workerQueue.add(MANY_CHUNKS_EVENT, {
-      networkKey,
-      payload: data,
-      receivedAt: receivedAt.toISOString(),
-      type: MANY_CHUNKS_EVENT,
-    });
+
+    c.executionCtx.waitUntil(
+      Promise.all([
+        handleStackerDBChunk(data, receivedAt, networkKey),
+        publishWsEvent(manyChunksPayload),
+      ]),
+    );
+    // workerQueue.add(MANY_CHUNKS_EVENT, {
+    //   networkKey,
+    //   payload: data,
+    //   receivedAt: receivedAt.toISOString(),
+    //   type: MANY_CHUNKS_EVENT,
+    // });
     // process.nextTick(async () => {
     //   try {
     //     await handleStackerDBChunk(data, receivedAt, networkKey);
@@ -135,26 +119,43 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    // publishEvent(networkKey, sharedPayload);
+    publishWsEvent(sharedPayload);
     const block = convertBlock(data);
-    workerQueue.add(NEW_BLOCK_EVENT, {
-      networkKey,
-      payload: {
-        ...block,
-        networkKey,
-        receivedAt: receivedAt.toISOString(),
-        blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-        burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-      },
-      receivedAt: receivedAt.toISOString(),
-      type: NEW_BLOCK_EVENT,
-    });
+    // workerQueue.add(NEW_BLOCK_EVENT, {
+    //   networkKey,
+    //   payload: {
+    //     ...block,
+    //     networkKey,
+    //     receivedAt: receivedAt.toISOString(),
+    //     blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+    //     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+    //   },
+    //   receivedAt: receivedAt.toISOString(),
+    //   type: NEW_BLOCK_EVENT,
+    // });
+
+    c.executionCtx.waitUntil(
+      Promise.all([
+        publishWsEvent(sharedPayload),
+        handleStacksBlockEvent({
+          type: NEW_BLOCK_EVENT,
+          networkKey,
+          receivedAt: receivedAt.toISOString(),
+          payload: {
+            ...block,
+            networkKey,
+            receivedAt: receivedAt.toISOString(),
+            blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+            burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+          },
+        }),
+      ]),
+    );
 
     return new Response('OK', { status: 200 });
   })
 
   .post('/new_burn_block', basicAuthMiddleware, async (c) => {
-    const server = getBunServer(c);
     const networkKey = c.get('networkKey');
     if (networkKey.startsWith('fnd-') || networkKey.startsWith('hiro-')) {
       return new Response('OK', { status: 200 });
@@ -169,13 +170,15 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: data,
     };
-    // publishEvent(networkKey, payload);
-    workerQueue.add(BURN_BLOCKS_EVENT, {
-      networkKey,
-      payload: data,
-      receivedAt: new Date().toISOString(),
-      type: BURN_BLOCKS_EVENT,
-    });
+    c.executionCtx.waitUntil(
+      Promise.all([handleBurnBlockEvent(payload), publishWsEvent(payload)]),
+    );
+    // workerQueue.add(BURN_BLOCKS_EVENT, {
+    //   networkKey,
+    //   payload: data,
+    //   receivedAt: new Date().toISOString(),
+    //   type: BURN_BLOCKS_EVENT,
+    // });
     // process.nextTick(async () => {
     //   await warmCache(networkKey);
     //   try {

@@ -6,8 +6,9 @@ import {
   type BlockResponseApi,
 } from 'slot-watch-common';
 import { logger } from '../logger';
-import { redisClient } from '../redis';
+// import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
+import { env } from 'cloudflare:workers';
 
 export function mapSignerDataToResponses({
   stackerSet,
@@ -184,7 +185,8 @@ export async function getLatestBlockResponse(
   networkKey: string,
 ) {
   const key = latestBlockResponseLookupKey({ signerPublicKey, networkKey });
-  const result = await redisClient.get(key);
+  const result = await env.SLOT_WATCH.get(key);
+  // const result = await redisClient.get(key);
   logger.debug(
     {
       topic: 'block-response',
@@ -212,7 +214,8 @@ export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
     },
     'setting latest block response',
   );
-  await redisClient.set(key, stringify(blockResponse));
+  await env.SLOT_WATCH.put(key, stringify(blockResponse));
+  // await redisClient.set(key, stringify(blockResponse));
 }
 
 export async function getCachedLatestBlockResponses(
@@ -222,7 +225,8 @@ export async function getCachedLatestBlockResponses(
   const keys = signerPublicKeys.map((signerPublicKey) =>
     latestBlockResponseLookupKey({ signerPublicKey, networkKey }),
   );
-  const results = await redisClient.mGet(keys);
+  const results = await Promise.all(keys.map((key) => env.SLOT_WATCH.get(key)));
+  // const results = await redisClient.mGet(keys);
   logger.debug(
     {
       topic: 'block-response',

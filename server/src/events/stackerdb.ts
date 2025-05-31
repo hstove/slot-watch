@@ -37,7 +37,7 @@ import {
   serializeBlockResponse,
   setLatestBlockResponse,
 } from '../db/block-responses';
-import { publishWsEvent } from '../redis';
+// import { publishWsEvent } from '../redis';
 import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
@@ -170,12 +170,12 @@ export async function handleBlockProposal({
     blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
     serverVersionShort: getVersionFromString(dbBlockProposal.serverVersion),
   };
-  await publishWsEvent({
-    type: BLOCK_PROPOSAL_EVENT,
-    networkKey,
-    receivedAt: receivedAt.toISOString(),
-    payload: blockProposal,
-  } satisfies WSBlockProposal);
+  // await publishWsEvent({
+  //   type: BLOCK_PROPOSAL_EVENT,
+  //   networkKey,
+  //   receivedAt: receivedAt.toISOString(),
+  //   payload: blockProposal,
+  // } satisfies WSBlockProposal);
   await setLatestBlockProposal(blockProposal);
 }
 
@@ -269,17 +269,17 @@ export async function handleBlockResponse({
       id: newRow?.id ?? 0,
     }),
   );
-  await publishWsEvent({
-    type: BLOCK_RESPONSE_EVENT,
-    networkKey,
-    receivedAt: receivedAt.toISOString(),
-    payload: {
-      ...serializeBlockResponse({
-        ...data,
-        id: newRow?.id ?? 0,
-      }),
-    },
-  } satisfies WSBlockResponse);
+  // await publishWsEvent({
+  //   type: BLOCK_RESPONSE_EVENT,
+  //   networkKey,
+  //   receivedAt: receivedAt.toISOString(),
+  //   payload: {
+  //     ...serializeBlockResponse({
+  //       ...data,
+  //       id: newRow?.id ?? 0,
+  //     }),
+  //   },
+  // } satisfies WSBlockResponse);
 }
 
 export async function handleStateMachineUpdate({
@@ -326,13 +326,13 @@ export async function handleStateMachineUpdate({
       >`${updateContent}::json`,
     })
     .returning({ id: stateMachineUpdates.id });
-  await publishWsEvent({
-    type: STATE_MACHINE_UPDATE_EVENT,
-    networkKey,
-    receivedAt: receivedAt.toISOString(),
-    payload: serializeStateMachineUpdate({
-      ...dbStateMachineUpdate,
-      id: newRow?.id ?? 0,
-    }),
-  } satisfies WSStateMachineUpdate);
+  // await publishWsEvent({
+  //   type: STATE_MACHINE_UPDATE_EVENT,
+  //   networkKey,
+  //   receivedAt: receivedAt.toISOString(),
+  //   payload: serializeStateMachineUpdate({
+  //     ...dbStateMachineUpdate,
+  //     id: newRow?.id ?? 0,
+  //   }),
+  // } satisfies WSStateMachineUpdate);
 }

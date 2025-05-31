@@ -15,7 +15,7 @@ import {
   type TenureChangeCause,
 } from '@stacks/transactions';
 import { db } from '../db/db';
-import { publishWsEvent } from '../redis';
+// import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
 import { fetchRecentMinerStats } from '../db/block-proposals';
 
@@ -93,17 +93,17 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
         ...dbBlock,
       },
     });
-  await publishWsEvent({
-    type: NEW_BLOCK_V2_EVENT,
-    networkKey: block.networkKey,
-    receivedAt: block.receivedAt,
-    payload: {
-      ...dbBlock,
-      processedAt: block.receivedAt,
-      blockTimestamp: dbBlock.blockTimestamp.toISOString(),
-      burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
-    },
-  } satisfies WSNewBlockV2);
+  // await publishWsEvent({
+  //   type: NEW_BLOCK_V2_EVENT,
+  //   networkKey: block.networkKey,
+  //   receivedAt: block.receivedAt,
+  //   payload: {
+  //     ...dbBlock,
+  //     processedAt: block.receivedAt,
+  //     blockTimestamp: dbBlock.blockTimestamp.toISOString(),
+  //     burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
+  //   },
+  // } satisfies WSNewBlockV2);
   await fetchRecentMinerStats(block.networkKey);
 }
 
@@ -117,13 +117,13 @@ export async function handleBurnBlockEvent(payload: WSBurnBlock) {
     createdAt: new Date(payload.receivedAt),
   };
   await db.insert(burnBlocks).values(dbBurnBlock);
-  await publishWsEvent({
-    type: BURN_BLOCK_V2_EVENT,
-    networkKey: payload.networkKey,
-    receivedAt: payload.receivedAt,
-    payload: {
-      ...dbBurnBlock,
-      createdAt: dbBurnBlock.createdAt.toISOString(),
-    },
-  } satisfies WSBurnBlockV2);
+  // await publishWsEvent({
+  //   type: BURN_BLOCK_V2_EVENT,
+  //   networkKey: payload.networkKey,
+  //   receivedAt: payload.receivedAt,
+  //   payload: {
+  //     ...dbBurnBlock,
+  //     createdAt: dbBurnBlock.createdAt.toISOString(),
+  //   },
+  // } satisfies WSBurnBlockV2);
 }

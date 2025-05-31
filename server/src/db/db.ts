@@ -1,5 +1,5 @@
-import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
-import { SQL } from 'bun';
+// import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
+// import { SQL } from 'bun';
 import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
@@ -18,12 +18,12 @@ if (port) {
   sqlUrl.port = port.toString();
 }
 
-const sql = new SQL(sqlUrl.toString());
-// const sql = postgres(sqlUrl.toString(), { prepare: false });
+// const sql = new SQL(sqlUrl.toString());
+const sql = postgres(sqlUrl.toString(), { prepare: false });
 
 // export const db = drizzle(client);
-// export const db = drizzlePg(sql, { schema });
-export const db = drizzleBun(sql, { schema });
+export const db = drizzlePg(sql, { schema });
+// export const db = drizzleBun(sql, { schema });
 
 // Add this function to check pool status
 export const getPoolStatus = () => {
