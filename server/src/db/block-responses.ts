@@ -186,7 +186,7 @@ export async function getLatestBlockResponse(
   networkKey: string,
 ) {
   const key = latestBlockResponseLookupKey({ signerPublicKey, networkKey });
-  const result = await env.SLOT_WATCH.get(key);
+  const result = await env.CACHE.get(key);
   // const result = await redisClient.get(key);
   logger.debug(
     {
@@ -215,7 +215,7 @@ export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
     },
     'setting latest block response',
   );
-  await env.SLOT_WATCH.put(key, stringify(blockResponse));
+  await env.CACHE.put(key, stringify(blockResponse));
   // await redisClient.set(key, stringify(blockResponse));
 }
 
@@ -226,7 +226,7 @@ export async function getCachedLatestBlockResponses(
   const keys = signerPublicKeys.map((signerPublicKey) =>
     latestBlockResponseLookupKey({ signerPublicKey, networkKey }),
   );
-  const results = await Promise.all(keys.map((key) => env.SLOT_WATCH.get(key)));
+  const results = await Promise.all(keys.map((key) => env.CACHE.get(key)));
   // const results = await redisClient.mGet(keys);
   logger.debug(
     {

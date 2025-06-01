@@ -1,0 +1,162 @@
+{
+  "kind": "cloudflare::WranglerJson",
+  "id": "wrangler",
+  "fqn": "slot-watch/prod/wrangler",
+  "seq": 4,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::WranglerJson",
+    "Symbol(alchemy::ResourceID)": "wrangler",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/wrangler",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 4,
+    "worker": {
+      "Symbol(alchemy::ResourceKind)": "cloudflare::Worker",
+      "Symbol(alchemy::ResourceID)": "slot-watch-worker",
+      "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-worker",
+      "Symbol(alchemy::ResourceScope)": {
+        "@scope": null
+      },
+      "Symbol(alchemy::ResourceSeq)": 2,
+      "name": "slot-watch-worker",
+      "entrypoint": "src/server.ts",
+      "compatibilityFlags": [
+        "nodejs_compat"
+      ],
+      "compatibilityDate": "2025-05-29",
+      "observability": {
+        "enabled": true
+      },
+      "bindings": {
+        "CACHE": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+          "Symbol(alchemy::ResourceID)": "cache",
+          "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/cache",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 0,
+          "type": "kv_namespace",
+          "namespaceId": "4d65a9f9771f4b2d8887dc2c89cf766f",
+          "title": "slot-watch-cache",
+          "createdAt": 1748736368405,
+          "modifiedAt": 1748736368405
+        },
+        "DB": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+          "Symbol(alchemy::ResourceID)": "slot-watch-db",
+          "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-db",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 1,
+          "type": "d1",
+          "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
+          "name": "slot-watch-db",
+          "fileSize": 12288,
+          "numTables": 0,
+          "version": "production",
+          "readReplication": {
+            "mode": "disabled"
+          },
+          "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
+          "migrationsDir": "drizzle"
+        }
+      },
+      "type": "service",
+      "id": "slot-watch-worker",
+      "format": "esm",
+      "createdAt": 1748737551973,
+      "updatedAt": 1748737551973
+    },
+    "path": "wrangler.jsonc",
+    "spec": {
+      "name": "slot-watch-worker",
+      "main": "src/server.ts",
+      "compatibility_date": "2025-05-29",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "CACHE",
+          "id": "4d65a9f9771f4b2d8887dc2c89cf766f"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "d908479c-6b77-4d99-9890-47fcbae3788c",
+          "database_name": "slot-watch-db",
+          "migrations_dir": "drizzle"
+        }
+      ]
+    },
+    "createdAt": 1748737552038,
+    "updatedAt": 1748737552038
+  },
+  "props": {
+    "worker": {
+      "Symbol(alchemy::ResourceKind)": "cloudflare::Worker",
+      "Symbol(alchemy::ResourceID)": "slot-watch-worker",
+      "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-worker",
+      "Symbol(alchemy::ResourceScope)": {
+        "@scope": null
+      },
+      "Symbol(alchemy::ResourceSeq)": 2,
+      "name": "slot-watch-worker",
+      "entrypoint": "src/server.ts",
+      "compatibilityFlags": [
+        "nodejs_compat"
+      ],
+      "compatibilityDate": "2025-05-29",
+      "observability": {
+        "enabled": true
+      },
+      "bindings": {
+        "CACHE": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+          "Symbol(alchemy::ResourceID)": "cache",
+          "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/cache",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 0,
+          "type": "kv_namespace",
+          "namespaceId": "4d65a9f9771f4b2d8887dc2c89cf766f",
+          "title": "slot-watch-cache",
+          "createdAt": 1748736368405,
+          "modifiedAt": 1748736368405
+        },
+        "DB": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+          "Symbol(alchemy::ResourceID)": "slot-watch-db",
+          "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-db",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 1,
+          "type": "d1",
+          "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
+          "name": "slot-watch-db",
+          "fileSize": 12288,
+          "numTables": 0,
+          "version": "production",
+          "readReplication": {
+            "mode": "disabled"
+          },
+          "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
+          "migrationsDir": "drizzle"
+        }
+      },
+      "type": "service",
+      "id": "slot-watch-worker",
+      "format": "esm",
+      "createdAt": 1748737551973,
+      "updatedAt": 1748737551973
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "kind": "fs::File",
+  "id": "wrangler.jsonc",
+  "fqn": "slot-watch/prod/wrangler/wrangler.jsonc",
+  "seq": 0,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "fs::File",
+    "Symbol(alchemy::ResourceID)": "wrangler.jsonc",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/wrangler/wrangler.jsonc",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "path": "wrangler.jsonc",
+    "content": "{\n  \"name\": \"slot-watch-worker\",\n  \"main\": \"src/server.ts\",\n  \"compatibility_date\": \"2025-05-29\",\n  \"compatibility_flags\": [\"nodejs_compat\"],\n  \"kv_namespaces\": [\n    { \"binding\": \"CACHE\", \"id\": \"4d65a9f9771f4b2d8887dc2c89cf766f\" }\n  ],\n  \"d1_databases\": [\n    {\n      \"binding\": \"DB\",\n      \"database_id\": \"d908479c-6b77-4d99-9890-47fcbae3788c\",\n      \"database_name\": \"slot-watch-db\",\n      \"migrations_dir\": \"drizzle\"\n    }\n  ]\n}\n"
+  },
+  "props": {
+    "path": "wrangler.jsonc",
+    "content": "{\n  \"name\": \"slot-watch-worker\",\n  \"main\": \"src/server.ts\",\n  \"compatibility_date\": \"2025-05-29\",\n  \"compatibility_flags\": [\"nodejs_compat\"],\n  \"kv_namespaces\": [\n    { \"binding\": \"CACHE\", \"id\": \"4d65a9f9771f4b2d8887dc2c89cf766f\" }\n  ],\n  \"d1_databases\": [\n    {\n      \"binding\": \"DB\",\n      \"database_id\": \"d908479c-6b77-4d99-9890-47fcbae3788c\",\n      \"database_name\": \"slot-watch-db\",\n      \"migrations_dir\": \"drizzle\"\n    }\n  ]\n}\n"
+  }
+}

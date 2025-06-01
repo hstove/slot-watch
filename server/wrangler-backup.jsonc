@@ -1,0 +1,36 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "slot-watch",
+  "main": "src/server.ts",
+  "compatibility_date": "2025-05-29",
+  "compatibility_flags": ["nodejs_compat"],
+  // "vars": {
+  //   "MY_VAR": "my-variable"
+  // },
+  "kv_namespaces": [
+    {
+      "binding": "SLOT_WATCH",
+      "id": "aa1dbaeb71644d1d99282d2e2bf02b45",
+    },
+  ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "slot-watch-prod",
+      "database_id": "c96f4bf2-1e21-49b2-9e56-7765d0216c87",
+    },
+  ],
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+}

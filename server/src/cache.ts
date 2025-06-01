@@ -26,8 +26,8 @@ function ttlKey(key: string) {
 
 async function getCache<T>(key: string) {
   const [result, ttl] = await Promise.all([
-    env.SLOT_WATCH.get(cacheKey(key)),
-    env.SLOT_WATCH.get(ttlKey(key)),
+    env.CACHE.get(cacheKey(key)),
+    env.CACHE.get(ttlKey(key)),
   ]);
   let value: T | null = null;
   if (typeof result === 'string') {
@@ -49,10 +49,10 @@ async function setCache<T>(key: string, value: T, ttl: number) {
     `Cache: setCache ${key}`,
   );
   await Promise.all([
-    env.SLOT_WATCH.put(cacheKey(key), stringify(value), {
+    env.CACHE.put(cacheKey(key), stringify(value), {
       expiration: ttl,
     }),
-    env.SLOT_WATCH.put(ttlKey(key), ttl.toString(), {
+    env.CACHE.put(ttlKey(key), ttl.toString(), {
       expiration: ttl,
     }),
   ]);
@@ -127,7 +127,6 @@ export function memoizeCache<Fn extends F.Function>(
         `Cache: miss ${key(...args)}`,
       );
       const result = (await fn(...args)) as F.Return<Fn>;
-      // cache.set<F.Return<Fn>>(key(...args), result);
       await setCache(key(...args), result, ttl);
       return result as unknown as A.Promise<F.Return<Fn>>;
     },
@@ -149,8 +148,8 @@ export function memoizeCache<Fn extends F.Function>(
         },
         `Cache: clear ${key(...args)}`,
       );
-      await env.SLOT_WATCH.delete(cacheKey(key(...args)));
-      await env.SLOT_WATCH.delete(ttlKey(key(...args)));
+      await env.CACHE.delete(cacheKey(key(...args)));
+      await env.CACHE.delete(ttlKey(key(...args)));
     },
   };
 }

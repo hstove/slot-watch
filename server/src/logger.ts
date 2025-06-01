@@ -6,7 +6,14 @@ import { getPath } from 'hono/utils/url';
 
 export let logger: Logger;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'development') {
+  logger = pino({
+    level: 'info',
+    transport: {
+      target: 'pino-pretty',
+    },
+  });
+} else {
   logger = pino({
     level: 'debug',
     formatters: {
@@ -18,13 +25,6 @@ if (process.env.NODE_ENV === 'production') {
       return {
         fly_process_group: process.env.FLY_PROCESS_GROUP,
       };
-    },
-  });
-} else {
-  logger = pino({
-    level: 'info',
-    transport: {
-      target: 'pino-pretty',
     },
   });
 }

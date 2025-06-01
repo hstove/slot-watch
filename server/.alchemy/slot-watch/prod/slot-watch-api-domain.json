@@ -1,0 +1,29 @@
+{
+  "kind": "cloudflare::CustomDomain",
+  "id": "slot-watch-api-domain",
+  "fqn": "slot-watch/prod/slot-watch-api-domain",
+  "seq": 3,
+  "data": {},
+  "status": "created",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::CustomDomain",
+    "Symbol(alchemy::ResourceID)": "slot-watch-api-domain",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-api-domain",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 3,
+    "name": "api.slotwatch.dev",
+    "zoneId": "121c1d3bc83456fd77bf1957012e03bc",
+    "workerName": "slot-watch-worker",
+    "id": "f6695668352c06c7eadef1066e69a5d28e1e3c9d",
+    "environment": "production",
+    "createdAt": 1748737376701,
+    "updatedAt": 1748737376701
+  },
+  "props": {
+    "name": "api.slotwatch.dev",
+    "zoneId": "121c1d3bc83456fd77bf1957012e03bc",
+    "workerName": "slot-watch-worker"
+  }
+}
