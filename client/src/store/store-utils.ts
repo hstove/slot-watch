@@ -9,7 +9,7 @@ export function setDebugLabel(
   name: string,
   key?: unknown,
 ) {
-  if (process.env.NODE_ENV === 'production' || !label) return;
+  if (import.meta.env.PROD || !label) return;
   let debugLabel = `${label}-${name}`;
   if (key) {
     debugLabel = `${debugLabel}-${JSON.stringify(key)}`;

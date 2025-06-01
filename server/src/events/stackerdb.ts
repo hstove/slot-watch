@@ -32,7 +32,7 @@ import {
   stateMachineUpdates,
 } from '../db/schema';
 import { hex } from '@scure/base';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 import {
   serializeBlockResponse,
   setLatestBlockResponse,
@@ -84,7 +84,11 @@ export async function handleStackerDBChunk(
     const decoded = decodeChunkMaybe(chunkData);
 
     if (decoded === null) {
-      logger.error(`Error decoding chunk: ${chunk.data}`, chunk);
+      log
+        .withMetadata({
+          chunk,
+        })
+        .error(`Error decoding chunk: ${chunk.data}`);
       continue;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {

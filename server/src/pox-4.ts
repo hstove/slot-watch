@@ -6,22 +6,20 @@ import { hex } from '@scure/base';
 import { getPoxInfo } from './stacks-api';
 import { stxCommittedNextCycle } from './metrics';
 import { memoizeCache } from './cache';
-import { logger as _logger } from './logger';
+import { logger as _logger, log } from './logger';
 
 export const client = new ClarigenClient('https://api.hiro.so');
 const pox4 = mainnet.pox4;
 
-const logger = _logger.child({
+const logger = log.child().withContext({
   module: 'pox-4',
 });
 
 async function getRewardSet(rewardCycle: bigint) {
   const listLen = await client.ro(pox4.getRewardSetSize(rewardCycle));
   const listItems = [];
-  // console.log('Fetching reward set with length', listLen);
   for (let i = 0; i < listLen; i++) {
     listItems.push(async () => {
-      // console.log('Fetching reward set item', i);
       try {
         return fetchMapGet(
           pox4.identifier,
@@ -35,12 +33,7 @@ async function getRewardSet(rewardCycle: bigint) {
           },
         );
       } catch (error) {
-        logger.error(
-          {
-            error,
-          },
-          'Error fetching reward set item',
-        );
+        logger.withError(error).error('Error fetching reward set item');
         return null;
       }
     });

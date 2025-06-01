@@ -15,15 +15,13 @@ import {
   type WSPayload,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import { handleBurnBlockEvent } from '../events/block-events';
 import { handleStacksBlockEvent } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
-import { publishWsEventToStreamer } from '../redis';
+import { publishWsEventToStreamer } from '../streamer';
 import { warmCache } from '../stacks-api';
-// import { workerQueue } from '../worker/queue';
-// import { convertBlock } from '../events/block-events';
 
 type Env = {
   Variables: {
@@ -43,10 +41,13 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 
 const eventsRoutes = new Hono<Env>()
   .onError((err, c) => {
-    logger.error(
-      { topic: 'event-routes', err, path: c.req.path },
-      `Error: ${err}`,
-    );
+    log
+      .withError(err)
+      .withMetadata({
+        topic: 'event-routes',
+        path: c.req.path,
+      })
+      .error('Error in event routes');
 
     return c.text('Internal Server Error', 200);
   })
@@ -62,9 +63,13 @@ const eventsRoutes = new Hono<Env>()
     }
     const data = await c.req.json<StackerDBPayload>();
     const contractId = getPayloadContractId(data);
-    console.debug(
-      `${networkKey}: Got ${data.modified_slots.length} updates for ${contractId}`,
-    );
+    log
+      .withMetadata({
+        networkKey,
+        contractId,
+        numSlots: data.modified_slots.length,
+      })
+      .debug(`Got ${data.modified_slots.length} stackerdb chunks`);
     const receivedAt = new Date();
     const chunks: ChunkEvent[] = [];
     for (const chunk of data.modified_slots) {
@@ -84,9 +89,6 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
 
-    // await publishWsEvent(manyChunksPayload);
-    // await publishWsEventToStreamer(manyChunksPayload);
-
     c.executionCtx.waitUntil(
       Promise.all([
         handleStackerDBChunk(data, receivedAt, networkKey),
@@ -94,19 +96,6 @@ const eventsRoutes = new Hono<Env>()
         // publishWsEvent(manyChunksPayload),
       ]),
     );
-    // workerQueue.add(MANY_CHUNKS_EVENT, {
-    //   networkKey,
-    //   payload: data,
-    //   receivedAt: receivedAt.toISOString(),
-    //   type: MANY_CHUNKS_EVENT,
-    // });
-    // process.nextTick(async () => {
-    //   try {
-    //     await handleStackerDBChunk(data, receivedAt, networkKey);
-    //   } catch (error) {
-    //     logger.error(`Error handling stacker db chunk: ${error}`);
-    //   }
-    // });
     return new Response('OK', { status: 200 });
   })
 
@@ -124,20 +113,7 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    // publishWsEvent(sharedPayload);
     const block = convertBlock(data);
-    // workerQueue.add(NEW_BLOCK_EVENT, {
-    //   networkKey,
-    //   payload: {
-    //     ...block,
-    //     networkKey,
-    //     receivedAt: receivedAt.toISOString(),
-    //     blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-    //     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-    //   },
-    //   receivedAt: receivedAt.toISOString(),
-    //   type: NEW_BLOCK_EVENT,
-    // });
 
     c.executionCtx.waitUntil(
       Promise.all([
@@ -182,20 +158,6 @@ const eventsRoutes = new Hono<Env>()
         warmCache(networkKey),
       ]),
     );
-    // workerQueue.add(BURN_BLOCKS_EVENT, {
-    //   networkKey,
-    //   payload: data,
-    //   receivedAt: new Date().toISOString(),
-    //   type: BURN_BLOCKS_EVENT,
-    // });
-    // process.nextTick(async () => {
-    //   await warmCache(networkKey);
-    //   try {
-    //     await handleBurnBlockEvent(payload);
-    //   } catch (error) {
-    //     logger.error(`Error handling burn block event: ${error}`);
-    //   }
-    // });
     return new Response('OK', { status: 200 });
   })
 

@@ -1,9 +1,9 @@
 import type { F, A } from 'ts-toolbelt';
 import { parse, stringify } from 'superjson';
-import { logger as _logger } from './logger';
+import { log } from './logger';
 import { env } from 'cloudflare:workers';
 
-const logger = _logger.child({
+const logger = log.child().withContext({
   module: 'cache',
 });
 
@@ -41,13 +41,12 @@ async function getCache<T>(key: string) {
 }
 
 async function setCache<T>(key: string, value: T, ttl: number) {
-  logger.debug(
-    {
+  logger
+    .withMetadata({
       key,
       ttl,
-    },
-    `Cache: setCache ${key}`,
-  );
+    })
+    .debug(`Cache: setCache ${key}`);
   await Promise.all([
     env.CACHE.put(cacheKey(key), stringify(value), {
       expirationTtl: ttl,
@@ -80,22 +79,20 @@ export function memoizeCache<Fn extends F.Function>(
   const { ttl = CACHE_TTL, refreshTtl = REFRESH_TTL } = options;
   return {
     async get(...args: F.Parameters<Fn>): A.Promise<F.Return<Fn>> {
-      logger.debug(
-        {
+      logger
+        .withMetadata({
           key: key(...args),
-        },
-        `Cache: getCache ${key(...args)}`,
-      );
+        })
+        .debug(`Cache: getCache ${key(...args)}`);
       // const cached = cache.get<F.Return<Fn>>(key(...args));
       const cached = await getCache<F.Return<Fn>>(key(...args));
       if (cached.value) {
-        logger.debug(
-          {
+        logger
+          .withMetadata({
             key: key(...args),
             ttl: cached.ttl,
-          },
-          `Cache: hit ${key(...args)}`,
-        );
+          })
+          .debug(`Cache: hit ${key(...args)}`);
         // process.nextTick(async () => {
         //   if (cached.ttl && cached.ttl < refreshTtl) {
         //     const mutex = new Mutex(ioredisClient, mutexKey(key(...args)), {
@@ -120,34 +117,31 @@ export function memoizeCache<Fn extends F.Function>(
         // });
         return cached.value;
       }
-      logger.debug(
-        {
+      logger
+        .withMetadata({
           key: key(...args),
-        },
-        `Cache: miss ${key(...args)}`,
-      );
+        })
+        .debug(`Cache: miss ${key(...args)}`);
       const result = (await fn(...args)) as F.Return<Fn>;
       await setCache(key(...args), result, ttl);
       return result as unknown as A.Promise<F.Return<Fn>>;
     },
     async warm(...args: F.Parameters<Fn>): A.Promise<F.Return<Fn>> {
-      logger.debug(
-        {
+      logger
+        .withMetadata({
           key: key(...args),
-        },
-        `Cache: warm ${key(...args)}`,
-      );
+        })
+        .debug(`Cache: warm ${key(...args)}`);
       const result = await fn(...args);
       await setCache(key(...args), result, ttl);
       return result;
     },
     async clear(...args: F.Parameters<Fn>) {
-      logger.debug(
-        {
+      logger
+        .withMetadata({
           key: key(...args),
-        },
-        `Cache: clear ${key(...args)}`,
-      );
+        })
+        .debug(`Cache: clear ${key(...args)}`);
       await env.CACHE.delete(cacheKey(key(...args)));
       await env.CACHE.delete(ttlKey(key(...args)));
     },

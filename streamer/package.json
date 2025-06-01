@@ -7,6 +7,6 @@
     "dev": "bun run --watch index.ts"
   },
   "dependencies": {
-    "hono": "^4.7.11"
+    "hono": "4.7.11"
   }
 }

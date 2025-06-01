@@ -108,7 +108,7 @@ export function StacksBlock() {
         <DataLabel>Miner's node version</DataLabel>
         <DataValue>{block.serverVersion || 'Unknown'}</DataValue>
       </div>
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <code>
           <pre>{JSON.stringify(block, null, 2)}</pre>
         </code>

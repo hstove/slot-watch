@@ -21,7 +21,7 @@ import { fetchRecentMinerStats } from '../db/block-proposals';
 import { getCreatedAt } from '../utils';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
-import { logger } from '../logger';
+import { log } from '../logger';
 
 export function convertBlock(
   block: unknown,
@@ -109,13 +109,12 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
     // } satisfies WSNewBlockV2);
     // await fetchRecentMinerStats(block.networkKey);
   } catch (error) {
-    logger.error(
-      {
-        error,
+    log
+      .withError(error)
+      .withMetadata({
         blockHash: job?.payload?.blockHash,
-      },
-      'Error handling stacks block event',
-    );
+      })
+      .error('Error handling stacks block event');
   }
 }
 

@@ -21,7 +21,7 @@ import {
   getAllLatestBlockProposals,
   serializeBlockProposal,
 } from '../db/block-proposals';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 import { getPoolStatus } from '../db/db';
 import { timeout } from 'hono/timeout';
 
@@ -119,15 +119,13 @@ const blockRoutes = new Hono()
 
       return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
     } catch (error) {
-      logger.error(
-        {
+      log
+        .withError(error)
+        .withMetadata({
           route: c.req.path,
           networkKey,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-        'Error fetching burn blocks',
-      );
+        })
+        .error('Error fetching burn blocks');
 
       return c.json({ error: 'Database query failed' }, 500);
     }
@@ -220,42 +218,38 @@ const blockRoutes = new Hono()
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     },
   )
-  .get('/db-health', async (c) => {
-    try {
-      const timeoutPromise = new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
-      });
-      logger.debug({ module: 'db-health' }, 'Starting DB health check');
-      const dbPromise = db
-        .select()
-        .from(burnBlocks)
-        .where(eq(burnBlocks.networkKey, 'mainnet'))
-        .limit(1);
-      const poolStatus = getPoolStatus();
-      logger.debug(
-        {
-          ...poolStatus,
-          module: 'db-health',
-        },
-        'DB health check',
-      );
-      await Promise.race([dbPromise, timeoutPromise]);
-      logger.info({ module: 'db-health' }, 'DB health check complete');
-      return c.json({ status: 'healthy', pool: poolStatus });
-    } catch (error) {
-      logger.error(
-        {
-          error: String(error),
-          module: 'db-health',
-        },
-        'Error fetching db health',
-      );
-      process.nextTick(() => {
-        process.exit(1);
-      });
-      return c.json({ status: 'unhealthy', error: String(error) }, 500);
-    }
-  })
+  // .get('/db-health', async (c) => {
+  //   try {
+  //     const timeoutPromise = new Promise<void>((_, reject) => {
+  //       setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
+  //     });
+  //     logger.debug({ module: 'db-health' }, 'Starting DB health check');
+  //     const dbPromise = db
+  //       .select()
+  //       .from(burnBlocks)
+  //       .where(eq(burnBlocks.networkKey, 'mainnet'))
+  //       .limit(1);
+  //     const poolStatus = getPoolStatus();
+  //     logger.debug(
+  //       {
+  //         ...poolStatus,
+  //         module: 'db-health',
+  //       },
+  //       'DB health check',
+  //     );
+  //     await Promise.race([dbPromise, timeoutPromise]);
+  //     logger.info({ module: 'db-health' }, 'DB health check complete');
+  //     return c.json({ status: 'healthy', pool: poolStatus });
+  //   } catch (error) {
+  //     log
+  //       .withError(error)
+  //       .withMetadata({
+  //         module: 'db-health',
+  //       })
+  //       .error('Error fetching db health');
+  //     return c.json({ status: 'unhealthy', error: String(error) }, 500);
+  //   }
+  // })
   .get('/:networkKey/miners', async (c) => {
     const networkKey = c.req.param('networkKey');
     // const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
