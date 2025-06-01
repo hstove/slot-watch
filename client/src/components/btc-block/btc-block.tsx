@@ -20,7 +20,7 @@ export function BtcBlock() {
     <>
       <BurnBlock
         burnBlockHash={loaderData.btcBlock.burnBlockHash}
-        burnBlockHeight={loaderData.btcBlock.burnBlockHeight}
+        consensusHash={loaderData.btcBlock.consensusHash}
       />
       <BlockModal />
     </>

@@ -154,13 +154,13 @@ const blockRoutes = new Hono()
     return c.json({ btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null });
   })
   .get(
-    '/burn-blocks/:networkKey/:burnBlockHeight/blocks',
+    '/burn-blocks/:networkKey/:consensusHash/blocks',
     zValidator(
       'param',
-      z.object({ burnBlockHeight: z.coerce.number(), networkKey: z.string() }),
+      z.object({ consensusHash: z.string(), networkKey: z.string() }),
     ),
     async (c) => {
-      const { burnBlockHeight, networkKey } = c.req.valid('param');
+      const { consensusHash, networkKey } = c.req.valid('param');
       // const networkKey = c.req.valid;
       // const burnBlockHeight = c.req.valid;
       const blocks = await db
@@ -175,7 +175,7 @@ const blockRoutes = new Hono()
         )
         .where(
           and(
-            eq(blockProposals.burnBlockHeight, burnBlockHeight),
+            eq(blockProposals.consensusHash, consensusHash),
             eq(blockProposals.networkKey, networkKey),
           ),
         )

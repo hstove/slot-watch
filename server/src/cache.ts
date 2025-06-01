@@ -51,9 +51,9 @@ async function setCache<T>(key: string, value: T, ttl: number) {
     env.CACHE.put(cacheKey(key), stringify(value), {
       expirationTtl: ttl,
     }),
-    env.CACHE.put(ttlKey(key), ttl.toString(), {
-      expirationTtl: ttl,
-    }),
+    // env.CACHE.put(ttlKey(key), ttl.toString(), {
+    //   expirationTtl: ttl,
+    // }),
   ]);
 }
 

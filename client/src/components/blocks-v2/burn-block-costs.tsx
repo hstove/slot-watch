@@ -81,9 +81,9 @@ export const CostUsedBar = ({
 };
 
 export const BurnBlockCosts = ({
-  burnBlockHeight,
-}: { burnBlockHeight: number }) => {
-  const cost = useAtomValue(blockTenureCostsAtom(burnBlockHeight));
+  consensusHash,
+}: { consensusHash: string }) => {
+  const cost = useAtomValue(blockTenureCostsAtom(consensusHash));
   // const used = costLimitsUsed(cost);
   return <BlockCosts costs={cost} />;
 };
@@ -114,9 +114,9 @@ export const BlockCosts = ({ costs, className }: BlockCostsProps) => {
 
 export const CumulativeBlockCosts = ({
   blockHash,
-  burnBlockHeight,
-}: { blockHash: string; burnBlockHeight: number }) => {
-  const cost = useAtomValue(cumulativeBlockCostsAtom(burnBlockHeight));
+  consensusHash,
+}: { blockHash: string; consensusHash: string }) => {
+  const cost = useAtomValue(cumulativeBlockCostsAtom(consensusHash));
   const blockCost = cost.get(blockHash);
   if (blockCost === undefined) {
     return null;

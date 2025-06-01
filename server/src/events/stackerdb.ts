@@ -46,6 +46,7 @@ import { sql } from 'drizzle-orm';
 import type { ChunkType, DecodedChunk, SuperJSON } from 'slot-watch-common';
 import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 import { v7 as uuidv7 } from 'uuid';
+import { publishWsEventToStreamer } from '../streamer';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -54,85 +55,90 @@ export async function handleStackerDBChunk(
 ) {
   const contractId = getPayloadContractId(payload);
 
-  for (const chunk of payload.modified_slots) {
-    const chunkData = hex.decode(chunk.data);
-    const chunkType = chunkTypeName(chunkData);
-    const endTimer = stackerDbChunkProcessingTimeSummary.startTimer({
-      chunk_type: chunkType,
-    });
-    const id = uuidv7({ msecs: receivedAt.getTime() });
-    const publicKey = recoverChunkPublicKey({
-      data: hex.decode(chunk.data),
-      slotId: chunk.slot_id,
-      version: chunk.slot_version,
-      signature: hex.decode(chunk.sig),
-    }).toHex();
-    const [newRow] = await db
-      .insert(stackerDbSlots)
-      .values({
+  // for (const chunk of payload.modified_slots) {
+  await Promise.all(
+    payload.modified_slots.map(async (chunk) => {
+      const chunkData = hex.decode(chunk.data);
+      const chunkType = chunkTypeName(chunkData);
+      const endTimer = stackerDbChunkProcessingTimeSummary.startTimer({
+        chunk_type: chunkType,
+      });
+      const id = uuidv7({ msecs: receivedAt.getTime() });
+      const publicKey = recoverChunkPublicKey({
+        data: hex.decode(chunk.data),
         slotId: chunk.slot_id,
         version: chunk.slot_version,
-        contractId,
-        networkKey,
         signature: hex.decode(chunk.sig),
-        data: hex.decode(chunk.data),
-        id,
-        publicKey,
-      })
-      .returning({ id: stackerDbSlots.id });
-    const chunkId = newRow?.id ?? null;
-
-    let decoded: DecodedChunk;
-    try {
-      decoded = decodeChunk(chunkData);
-    } catch (error) {
-      log
-        .withError(error)
-        .withMetadata({
-          chunk,
+      }).toHex();
+      const [newRow] = await db
+        .insert(stackerDbSlots)
+        .values({
+          slotId: chunk.slot_id,
+          version: chunk.slot_version,
+          contractId,
+          networkKey,
+          signature: hex.decode(chunk.sig),
+          data: hex.decode(chunk.data),
+          id,
+          publicKey,
         })
-        .error('Error decoding chunk');
-      continue;
-    }
-    if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
-      await handleBlockProposal({
-        payload: decoded,
-        receivedAt,
-        networkKey,
-        publicKey,
-        chunkId,
-      });
-    } else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-      await handleBlockPush({
-        payload: decoded,
-        receivedAt,
-        networkKey,
-        publicKey,
-        chunkId,
-      });
-    } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      const handleProposals = true;
-      if (handleProposals) {
-        await handleBlockResponse({
-          chunk,
+        .returning({ id: stackerDbSlots.id });
+      const chunkId = newRow?.id ?? null;
+
+      let decoded: DecodedChunk;
+      try {
+        decoded = decodeChunk(chunkData);
+      } catch (error) {
+        log
+          .withError(error)
+          .withMetadata({
+            chunk,
+          })
+          .error('Error decoding chunk');
+        return;
+      }
+      if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
+        await handleBlockProposal({
           payload: decoded,
           receivedAt,
           networkKey,
           publicKey,
           chunkId,
         });
+      } else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
+        await handleBlockPush({
+          payload: decoded,
+          receivedAt,
+          networkKey,
+          publicKey,
+          chunkId,
+        });
+      } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
+        const handleProposals = true;
+        if (handleProposals) {
+          await handleBlockResponse({
+            chunk,
+            payload: decoded,
+            receivedAt,
+            networkKey,
+            publicKey,
+            chunkId,
+          });
+        }
+      } else if (
+        decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate
+      ) {
+        await handleStateMachineUpdate({
+          payload: decoded,
+          receivedAt,
+          networkKey,
+          chunkId,
+          publicKey,
+        });
       }
-    } else if (decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate) {
-      await handleStateMachineUpdate({
-        payload: decoded,
-        receivedAt,
-        networkKey,
-        chunkId,
-        publicKey,
-      });
-    }
-    endTimer();
-  }
+      endTimer();
+    }),
+  );
 }
 
 export async function handleBlockProposal({
@@ -180,12 +186,13 @@ export async function handleBlockProposal({
     blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
     serverVersionShort: getVersionFromString(dbBlockProposal.serverVersion),
   };
-  // await publishWsEvent({
-  //   type: BLOCK_PROPOSAL_EVENT,
-  //   networkKey,
-  //   receivedAt: receivedAt.toISOString(),
-  //   payload: blockProposal,
-  // } satisfies WSBlockProposal);
+
+  await publishWsEventToStreamer({
+    type: BLOCK_PROPOSAL_EVENT,
+    networkKey,
+    receivedAt: receivedAt.toISOString(),
+    payload: blockProposal,
+  } satisfies WSBlockProposal);
   await setLatestBlockProposal(blockProposal);
 }
 
@@ -272,29 +279,26 @@ export async function handleBlockResponse({
     },
     'Inserting block response',
   );
-  const [newRow] = await db
-    .insert(blockResponses)
-    .values(data)
-    .returning({ id: blockResponses.id });
-  if (newRow) {
+  await Promise.all([
+    await db.insert(blockResponses).values(data),
     await setLatestBlockResponse(
       serializeBlockResponse({
         ...data,
-        id: newRow.id,
+        id,
       }),
-    );
-  }
-  // await publishWsEvent({
-  //   type: BLOCK_RESPONSE_EVENT,
-  //   networkKey,
-  //   receivedAt: receivedAt.toISOString(),
-  //   payload: {
-  //     ...serializeBlockResponse({
-  //       ...data,
-  //       id: newRow?.id ?? 0,
-  //     }),
-  //   },
-  // } satisfies WSBlockResponse);
+    ),
+    await publishWsEventToStreamer({
+      type: BLOCK_RESPONSE_EVENT,
+      networkKey,
+      receivedAt: receivedAt.toISOString(),
+      payload: {
+        ...serializeBlockResponse({
+          ...data,
+          id,
+        }),
+      },
+    } satisfies WSBlockResponse),
+  ]);
 }
 
 export async function handleStateMachineUpdate({
@@ -333,22 +337,21 @@ export async function handleStateMachineUpdate({
     },
     'Inserting state machine update',
   );
-  const [newRow] = await db
-    .insert(stateMachineUpdates)
-    .values({
+  await Promise.all([
+    db.insert(stateMachineUpdates).values({
       ...dbStateMachineUpdate,
       updateContent: sql<
         SuperJSON<StateMachineUpdate['stateMachineUpdate']>
       >`${updateContent}::json`,
-    })
-    .returning({ id: stateMachineUpdates.id });
-  // await publishWsEvent({
-  //   type: STATE_MACHINE_UPDATE_EVENT,
-  //   networkKey,
-  //   receivedAt: receivedAt.toISOString(),
-  //   payload: serializeStateMachineUpdate({
-  //     ...dbStateMachineUpdate,
-  //     id: newRow?.id ?? 0,
-  //   }),
-  // } satisfies WSStateMachineUpdate);
+    }),
+    publishWsEventToStreamer({
+      type: STATE_MACHINE_UPDATE_EVENT,
+      networkKey,
+      receivedAt: receivedAt.toISOString(),
+      payload: serializeStateMachineUpdate({
+        ...dbStateMachineUpdate,
+        id,
+      }),
+    } satisfies WSStateMachineUpdate),
+  ]);
 }

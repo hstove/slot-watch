@@ -118,15 +118,15 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
   }
 }
 
-export async function handleBurnBlockEvent(payload: WSBurnBlock) {
-  const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
+export async function handleBurnBlockEvent(payload: WSBurnBlockV2) {
+  // const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
   const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
   const dbBurnBlock = {
     id,
-    burnBlockHeight: burnBlock.burn_block_height,
-    burnBlockHash: burnBlock.burn_block_hash,
+    burnBlockHeight: payload.payload.burnBlockHeight,
+    burnBlockHash: payload.payload.burnBlockHash,
     networkKey: payload.networkKey,
-    consensusHash: burnBlock.consensus_hash,
+    consensusHash: payload.payload.consensusHash,
     createdAt: new Date(payload.receivedAt),
   };
   await db.insert(burnBlocks).values(dbBurnBlock);

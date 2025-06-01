@@ -13,6 +13,10 @@ import {
   MANY_CHUNKS_EVENT,
   type WSManyChunks,
   type WSPayload,
+  type WSNewBlockV2,
+  NEW_BLOCK_V2_EVENT,
+  type WSBurnBlockV2,
+  BURN_BLOCK_V2_EVENT,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
 import { log, logger } from '../logger';
@@ -92,7 +96,7 @@ const eventsRoutes = new Hono<Env>()
     c.executionCtx.waitUntil(
       Promise.all([
         handleStackerDBChunk(data, receivedAt, networkKey),
-        publishWsEventToStreamer(manyChunksPayload),
+        // publishWsEventToStreamer(manyChunksPayload),
         // publishWsEvent(manyChunksPayload),
       ]),
     );
@@ -107,13 +111,19 @@ const eventsRoutes = new Hono<Env>()
     const data = await c.req.json<CoreNodeBlockMessage>();
     logger.info(`${networkKey}: Got new Block (${data.block_height})`);
     const receivedAt = new Date();
-    const sharedPayload: WSNewBlock = {
-      type: NEW_BLOCK_EVENT,
+    const block = convertBlock(data);
+    const sharedPayload: WSNewBlockV2 = {
+      type: NEW_BLOCK_V2_EVENT,
       networkKey,
-      payload: data,
+      payload: {
+        ...block,
+        networkKey,
+        processedAt: receivedAt.toISOString(),
+        blockTimestamp: block.blockTimestamp.toISOString(),
+        burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+      },
       receivedAt: receivedAt.toISOString(),
     };
-    const block = convertBlock(data);
 
     c.executionCtx.waitUntil(
       Promise.all([
@@ -145,11 +155,20 @@ const eventsRoutes = new Hono<Env>()
     logger.info(
       `${networkKey}: Got new Burn Block (${data.burn_block_height})`,
     );
-    const payload: WSBurnBlock = {
-      type: BURN_BLOCKS_EVENT,
+    const payload: WSBurnBlockV2 = {
+      type: BURN_BLOCK_V2_EVENT,
       receivedAt: new Date().toISOString(),
       networkKey,
-      payload: data,
+      payload: {
+        ...data,
+        networkKey,
+        createdAt: new Date().toISOString(),
+        burnBlockHeight: data.burn_block_height,
+        burnBlockHash: data.burn_block_hash,
+        consensusHash: data.consensus_hash,
+        // processedAt: new Date().toISOString(),
+        // burnBlockTimestamp: data.burn_block_timestamp.toISOString(),
+      },
     };
     c.executionCtx.waitUntil(
       Promise.all([

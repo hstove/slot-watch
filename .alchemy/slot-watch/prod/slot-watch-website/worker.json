@@ -50,14 +50,14 @@
             "contentType": "image/svg+xml"
           },
           {
-            "path": "assets/index-BS9fs6bk.js",
-            "filePath": "client/dist/assets/index-BS9fs6bk.js",
-            "contentType": "application/javascript"
-          },
-          {
             "path": "assets/index-D6M90wCz.css",
             "filePath": "client/dist/assets/index-D6M90wCz.css",
             "contentType": "text/css"
+          },
+          {
+            "path": "assets/index-x3Woz1VR.js",
+            "filePath": "client/dist/assets/index-x3Woz1VR.js",
+            "contentType": "application/javascript"
           },
           {
             "path": "favicon.svg",
@@ -66,7 +66,7 @@
           }
         ],
         "createdAt": 1748738754449,
-        "updatedAt": 1748755297541
+        "updatedAt": 1748760298382
       }
     },
     "entrypoint": "client/worker.ts",
@@ -78,8 +78,8 @@
     "observability": {
       "enabled": true
     },
-    "createdAt": 1748755305495,
-    "updatedAt": 1748755305495
+    "createdAt": 1748760307401,
+    "updatedAt": 1748760307401
   },
   "props": {
     "name": "slot-watch-website",
@@ -119,14 +119,14 @@
             "contentType": "image/svg+xml"
           },
           {
-            "path": "assets/index-BS9fs6bk.js",
-            "filePath": "client/dist/assets/index-BS9fs6bk.js",
-            "contentType": "application/javascript"
-          },
-          {
             "path": "assets/index-D6M90wCz.css",
             "filePath": "client/dist/assets/index-D6M90wCz.css",
             "contentType": "text/css"
+          },
+          {
+            "path": "assets/index-x3Woz1VR.js",
+            "filePath": "client/dist/assets/index-x3Woz1VR.js",
+            "contentType": "application/javascript"
           },
           {
             "path": "favicon.svg",
@@ -135,7 +135,7 @@
           }
         ],
         "createdAt": 1748738754449,
-        "updatedAt": 1748755297541
+        "updatedAt": 1748760298382
       }
     },
     "entrypoint": "client/worker.ts",

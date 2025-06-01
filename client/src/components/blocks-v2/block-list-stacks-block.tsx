@@ -239,7 +239,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
 
           <CumulativeBlockCosts
             blockHash={block.blockHash}
-            burnBlockHeight={block.burnBlockHeight}
+            consensusHash={block.consensusHash}
           />
         </div>
       </div>
