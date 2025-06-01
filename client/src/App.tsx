@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import './App.css';
-import '@fontsource/ibm-plex-mono/400.css';
-import '@fontsource/ibm-plex-mono/500.css';
-import '@fontsource/ibm-plex-mono/600.css';
-import '@fontsource-variable/public-sans';
+// import '@fontsource/ibm-plex-mono/400.css';
+// import '@fontsource/ibm-plex-mono/500.css';
+// import '@fontsource/ibm-plex-mono/600.css';
+// import '@fontsource-variable/public-sans';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/toaster';

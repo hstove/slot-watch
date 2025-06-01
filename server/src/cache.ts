@@ -50,10 +50,10 @@ async function setCache<T>(key: string, value: T, ttl: number) {
   );
   await Promise.all([
     env.CACHE.put(cacheKey(key), stringify(value), {
-      expiration: ttl,
+      expirationTtl: ttl,
     }),
     env.CACHE.put(ttlKey(key), ttl.toString(), {
-      expiration: ttl,
+      expirationTtl: ttl,
     }),
   ]);
 }

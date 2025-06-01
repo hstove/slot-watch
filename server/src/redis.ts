@@ -1,4 +1,3 @@
-import { createClient } from 'redis';
 import { logger as _logger } from './logger';
 import type { WSPayload } from 'slot-watch-common';
 import { Redis } from '@upstash/redis/cloudflare';

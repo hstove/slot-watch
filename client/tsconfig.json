@@ -9,6 +9,7 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["./env.d.ts"]
   }
 }

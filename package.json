@@ -6,6 +6,7 @@
     "dev:client": "turbo dev --filter=slot-watch-ui",
     "build:common": "turbo build --filter=slot-watch-common",
     "build:client": "turbo build --filter=slot-watch-ui",
+    "build:server": "turbo build --filter=slot-watch-api",
     "build": "turbo build",
     "build:packages": "turbo build --filter=slot-watch-common",
     "dev:server": "cd server && bun run dev:watch",
