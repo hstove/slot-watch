@@ -21,18 +21,19 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
 
 # Install node modules
-COPY bun.lock package.json turbo.json ./
-COPY common/package.json ./common/
-COPY client/package.json ./client/
-COPY server/package.json ./server/
-RUN bun install --frozen-lockfile
+# COPY bun.lock package.json turbo.json ./
+# COPY common/package.json ./common/
+# COPY client/package.json ./client/
+# COPY server/package.json ./server/
+COPY streamer/package.json ./
+RUN bun install
 
 # Copy application code
-COPY common ./common
+# COPY common ./common
 
-RUN bunx turbo build --filter=slot-watch-common
+# RUN bunx turbo build --filter=slot-watch-common
 
-COPY . .
+COPY ./streamer ./
 
 # COPY common/dist ./common/dist
 
@@ -44,4 +45,4 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "bun", "run", "dev:server" ]
+CMD [ "bun", "run", "index.ts" ]

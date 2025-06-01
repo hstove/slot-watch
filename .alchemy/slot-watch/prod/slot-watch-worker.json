@@ -56,13 +56,23 @@
         },
         "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
         "migrationsDir": "server/drizzle"
+      },
+      "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
+      "UPSTASH_REDIS_REST_URL": {
+        "@secret": "JXkl75/gQqelOpbx0V1+Kw6LWxrh3H00i5/eMqx6feY1x3oH+lDNGsG8Yui7vjL65riscwnGnQ40oP0ydHYVk67hcZZzhnCehNQKrWbi"
+      },
+      "UPSTASH_REDIS_REST_TOKEN": {
+        "@secret": "AoaP6PAMiIUFHwpkdjALxJESQkXc2IcpN5b3s8JUZ7G9/mcxCsYIoC/9jf3IKMcf3jDzP62tD75som1EMYUz+jSOMpnmmXm+BayquIGKM+jagt0eGOftIw5ShlAVYGJ63/o="
+      },
+      "OBSERVER_TOKEN": {
+        "@secret": "Meega/mplbKanjxtqesN1AJGPmTpQYx/HscnnRNp8ITJuwBohcKo+Tvns4RDkJubqOruYtUkiDY="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748741684477,
-    "updatedAt": 1748741684477
+    "createdAt": 1748746350033,
+    "updatedAt": 1748746350033
   },
   "props": {
     "name": "slot-watch-worker",
@@ -108,6 +118,16 @@
         },
         "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
         "migrationsDir": "server/drizzle"
+      },
+      "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
+      "UPSTASH_REDIS_REST_URL": {
+        "@secret": "PhWGw7HhyIbpfZNeWGGFuCMVwz5nElHNXSgkA5CXpEeBihvTZ5CtU5mVUAOqyoRF8KwKTiShlICpSPTeCGtlaDC3dMEaTlB3waAcBX5r"
+      },
+      "UPSTASH_REDIS_REST_TOKEN": {
+        "@secret": "0zPzOZYdWwNlJsPOAkOMHEEnHME59Lj2pmVk/8cqP2xXSJRdTb75NwtTRGQCQRd65uyIbwJ/PM4/o7ANHhu4grItOnzDLKpOc3KOctEIIiSr+PV9Z4Mgrz9T17nFhfTrUlM="
+      },
+      "OBSERVER_TOKEN": {
+        "@secret": "ROgHBmbbMf96ykqvVMI+DBQoZErAMu26/L4MfelTRy77K1eQYIRhDS6bv+/B509yX2uqN+QMpbo="
       }
     }
   }

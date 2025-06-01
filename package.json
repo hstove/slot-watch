@@ -31,7 +31,7 @@
     "turbo": "^2.4.4",
     "usehooks-ts": "^3.1.0"
   },
-  "workspaces": ["./client", "./common", "./server"],
+  "workspaces": ["./client", "./common", "./server", "./streamer"],
   "packageManager": "bun@1.0.22",
   "resolutions": {
     "whatwg-url": "^14.0.0"

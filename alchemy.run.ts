@@ -13,6 +13,7 @@ import { Exec } from 'alchemy/os';
 const app = await alchemy('slot-watch', {
   stage: 'prod',
   phase: process.argv.includes('--destroy') ? 'destroy' : 'up',
+  password: process.env.ALCHEMY_PASSWORD,
 });
 
 await Exec('build-common', {
@@ -72,6 +73,12 @@ const worker = await Worker('slot-watch-worker', {
   bindings: {
     CACHE: kv,
     DB: d1,
+    STREAMER_URL: 'https://slot-watch-streamer.fly.dev',
+    UPSTASH_REDIS_REST_URL: alchemy.secret(process.env.UPSTASH_REDIS_REST_URL),
+    UPSTASH_REDIS_REST_TOKEN: alchemy.secret(
+      process.env.UPSTASH_REDIS_REST_TOKEN,
+    ),
+    OBSERVER_TOKEN: alchemy.secret(process.env.OBSERVER_TOKEN),
   },
 });
 
@@ -85,5 +92,7 @@ await WranglerJson('wrangler-worker', {
   worker,
   path: 'server/wrangler.jsonc',
 });
+
+// console.log(process.env.UPSTASH_REDIS_REST_URL);
 
 await app.finalize();

@@ -6,6 +6,10 @@ import type { O } from 'ts-toolbelt';
 export const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
 
+export const slotsStreamerUrl =
+  import.meta.env.VITE_SLOTS_STREAMER_URL ??
+  'https://slot-watch-streamer.fly.dev';
+
 export const apiClient = hc<SlotWatchServer>(slotsApiUrl);
 
 export type HealthBlocksResponse = Awaited<

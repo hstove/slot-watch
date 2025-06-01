@@ -39,6 +39,7 @@ export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   const authHeader = request.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Basic ')) {
+    console.debug('No auth (missing header)');
     return null;
   }
 
@@ -58,6 +59,7 @@ export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
 export function getNetworkKeyHono(request: HonoRequest): string | null {
   const auth = getBasicAuthHono(request);
   if (!auth) {
+    console.log('No auth');
     return null;
   }
 

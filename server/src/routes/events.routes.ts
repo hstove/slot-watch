@@ -20,7 +20,7 @@ import { handleStackerDBChunk } from '../events/stackerdb';
 import { handleBurnBlockEvent } from '../events/block-events';
 import { handleStacksBlockEvent } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
-import { publishWsEvent } from '../redis';
+import { publishWsEventToStreamer } from '../redis';
 // import { workerQueue } from '../worker/queue';
 // import { convertBlock } from '../events/block-events';
 
@@ -61,7 +61,7 @@ const eventsRoutes = new Hono<Env>()
     }
     const data = await c.req.json<StackerDBPayload>();
     const contractId = getPayloadContractId(data);
-    logger.debug(
+    console.debug(
       `${networkKey}: Got ${data.modified_slots.length} updates for ${contractId}`,
     );
     const receivedAt = new Date();
@@ -83,10 +83,14 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
 
+    // await publishWsEvent(manyChunksPayload);
+    await publishWsEventToStreamer(manyChunksPayload);
+
     c.executionCtx.waitUntil(
       Promise.all([
         handleStackerDBChunk(data, receivedAt, networkKey),
-        publishWsEvent(manyChunksPayload),
+        publishWsEventToStreamer(manyChunksPayload),
+        // publishWsEvent(manyChunksPayload),
       ]),
     );
     // workerQueue.add(MANY_CHUNKS_EVENT, {
@@ -119,7 +123,7 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
       receivedAt: receivedAt.toISOString(),
     };
-    publishWsEvent(sharedPayload);
+    // publishWsEvent(sharedPayload);
     const block = convertBlock(data);
     // workerQueue.add(NEW_BLOCK_EVENT, {
     //   networkKey,
@@ -136,7 +140,7 @@ const eventsRoutes = new Hono<Env>()
 
     c.executionCtx.waitUntil(
       Promise.all([
-        publishWsEvent(sharedPayload),
+        publishWsEventToStreamer(sharedPayload),
         handleStacksBlockEvent({
           type: NEW_BLOCK_EVENT,
           networkKey,
@@ -171,7 +175,10 @@ const eventsRoutes = new Hono<Env>()
       payload: data,
     };
     c.executionCtx.waitUntil(
-      Promise.all([handleBurnBlockEvent(payload), publishWsEvent(payload)]),
+      Promise.all([
+        handleBurnBlockEvent(payload),
+        publishWsEventToStreamer(payload),
+      ]),
     );
     // workerQueue.add(BURN_BLOCKS_EVENT, {
     //   networkKey,

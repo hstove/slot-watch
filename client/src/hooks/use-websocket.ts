@@ -5,7 +5,7 @@ import { allPayloadsSetterAtom } from '@/store/chunks-store';
 import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
 import { networkIdAtom } from '@/store/network';
-import { slotsApiUrl } from '@/lib/slots-api';
+import { slotsApiUrl, slotsStreamerUrl } from '@/lib/slots-api';
 import { useAtomValue } from 'jotai';
 
 type UseWebSocketProps = {
@@ -56,7 +56,7 @@ export const useWebSocket = () => {
   const didUnmount = React.useRef(false);
   const networkId = useAtomValue(networkIdAtom);
   // const wsUrl = `${slotsWsUrl}/watch/${networkId}`;
-  const wsUrl = `${slotsApiUrl}/stream/${networkId}`;
+  const wsUrl = `${slotsStreamerUrl}/stream/${networkId}`;
   const { lastEvent: lastMessage, readyState } = useEventSource(wsUrl, {
     reconnectAttempts: 10,
     reconnectInterval: 1000,

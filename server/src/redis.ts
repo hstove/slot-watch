@@ -60,14 +60,32 @@ export const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
 // await subClient.connect();
 
+export async function publishWsEventToStreamer(payload: WSPayload) {
+  try {
+    console.info('Publishing event to streamer', payload);
+    const url = env.STREAMER_URL;
+    await fetch(`${url}/${payload.networkKey}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    console.error(`Error publishing event to streamer: ${error}`);
+    logger.error(
+      { topic: 'redis', payloadType: payload.type, err: error },
+      `Error publishing event to streamer: ${error}`,
+    );
+  }
+}
 export async function publishWsEvent(payload: WSPayload) {
   try {
-    logger.trace(
+    logger.info(
       { topic: 'redis', payloadType: payload.type },
       'Publishing event',
     );
+    console.info('Publishing event', payload);
     await redis.publish(payload.networkKey, JSON.stringify(payload));
   } catch (error) {
+    console.error(`Error publishing event: ${error}`);
     logger.error(
       { topic: 'redis', payloadType: payload.type, err: error },
       `Error publishing event: ${error}`,

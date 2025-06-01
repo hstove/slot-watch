@@ -1,0 +1,71 @@
+# fly.toml app configuration file generated for slot-watch on 2024-09-27T08:58:33-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'slot-watch'
+primary_region = 'iad'
+
+[build]
+
+[processes]
+  app = ''
+  worker = 'bun run dev:worker'
+
+[deploy]
+  release_command = "bun run migrate"
+  strategy = "bluegreen"
+
+[env]
+  STACKS_NETWORK = 'testnet'
+
+[http_service]
+  internal_port = 1080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+  [http_service.http_options]
+    idle_timeout = 600
+
+[[http_service.checks]]
+  grace_period = "5s"
+  interval = "3s"
+  method = "GET"
+  timeout = "2s"
+  path = "/"
+
+[[http_service.checks]]
+  grace_period = "60s"
+  interval = "5s"
+  method = "GET"
+  timeout = "2s"
+  path = "/db-health"
+
+[[restart]]
+  policy = "always"
+  processes = ["app", "worker"]
+
+# [[services]]
+#   internal_port = 1080
+#   protocol = "tcp"
+#   auto_stop_machines = "off"
+#   min_machines_running = 1
+
+#   [[services.ports]]
+#     port = 80
+#     handlers = ["http"]
+
+#   [[services.ports]]
+#     port = 443
+#     handlers = ["tls", "http"]
+
+#   [services.ports.http_options]
+#     idle_timeout = 600
+
+
+[[vm]]
+  memory = '1024mb'
+  cpu_kind = 'shared'
+  cpus = 1
