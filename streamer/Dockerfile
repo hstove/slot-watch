@@ -14,7 +14,7 @@ ENV NODE_ENV="production"
 
 
 # Throw-away build stage to reduce size of final image
-FROM base AS build
+# FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
@@ -25,7 +25,7 @@ RUN apt-get update -qq && \
 # COPY common/package.json ./common/
 # COPY client/package.json ./client/
 # COPY server/package.json ./server/
-COPY streamer/package.json ./
+COPY . .
 RUN bun install
 
 # Copy application code
@@ -33,15 +33,15 @@ RUN bun install
 
 # RUN bunx turbo build --filter=slot-watch-common
 
-COPY ./streamer ./
+# COPY ./streamer ./
 
 # COPY common/dist ./common/dist
 
 # Final stage for app image
-FROM base
+# FROM base
 
 # Copy built application
-COPY --from=build /app /app
+# COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

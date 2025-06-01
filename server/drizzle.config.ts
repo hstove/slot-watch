@@ -7,6 +7,12 @@ export default defineConfig({
   dialect: 'sqlite', // 'postgresql' | 'mysql' | 'sqlite'
   driver: 'd1-http',
   // dbCredentials: {
+
+  // }
+  // dbCredentials: {
+  //   conf
+  // }
+  // dbCredentials: {
   //   url: dbUrl,
   // },
 });

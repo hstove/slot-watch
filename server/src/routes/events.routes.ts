@@ -21,6 +21,7 @@ import { handleBurnBlockEvent } from '../events/block-events';
 import { handleStacksBlockEvent } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
 import { publishWsEventToStreamer } from '../redis';
+import { warmCache } from '../stacks-api';
 // import { workerQueue } from '../worker/queue';
 // import { convertBlock } from '../events/block-events';
 
@@ -84,7 +85,7 @@ const eventsRoutes = new Hono<Env>()
     };
 
     // await publishWsEvent(manyChunksPayload);
-    await publishWsEventToStreamer(manyChunksPayload);
+    // await publishWsEventToStreamer(manyChunksPayload);
 
     c.executionCtx.waitUntil(
       Promise.all([
@@ -178,6 +179,7 @@ const eventsRoutes = new Hono<Env>()
       Promise.all([
         handleBurnBlockEvent(payload),
         publishWsEventToStreamer(payload),
+        warmCache(networkKey),
       ]),
     );
     // workerQueue.add(BURN_BLOCKS_EVENT, {

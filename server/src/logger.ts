@@ -26,8 +26,8 @@ if (process.env.NODE_ENV === 'development') {
         fly_process_group: process.env.FLY_PROCESS_GROUP,
       };
     },
-    write(msg) {
-      console.log(msg);
+    browser: {
+      asObject: true,
     },
   });
 }

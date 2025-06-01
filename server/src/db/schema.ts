@@ -28,7 +28,7 @@ export const stackerDbSlots = pgTable(
   'stacker_db_slots',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     slotId: integer('slot_id').notNull(),
     version: integer('version').notNull(),
@@ -55,7 +55,7 @@ export const blockProposals = pgTable(
   'block_proposals',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     signerSignatureHash: text('signer_signature_hash', {
       length: 64,
@@ -100,7 +100,7 @@ export const blockResponses = pgTable(
   'block_responses',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     signerSignatureHash: text('signer_signature_hash', {
       length: 64,
@@ -142,7 +142,7 @@ export const blockPushes = pgTable(
   'block_pushes',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     signerSignatureHash: text('signer_signature_hash', {
       length: 64,
@@ -170,7 +170,7 @@ export const stacksBlocks = pgTable(
   'stacks_blocks',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     blockHeight: integer('block_height').notNull(),
     blockHash: text('block_hash', { length: 64 }).notNull(),
@@ -221,7 +221,7 @@ export const burnBlocks = pgTable(
   'burn_blocks',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     burnBlockHeight: integer('burn_block_height').notNull(),
     burnBlockHash: text('burn_block_hash', { length: 64 }).notNull(),
@@ -251,7 +251,7 @@ export const stateMachineUpdates = pgTable(
   'state_machine_updates',
   {
     id: text()
-      .$defaultFn(() => uuidv7())
+      // .$defaultFn(() => uuidv7())
       .primaryKey(),
     signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
     networkKey: text('network_key', { length: 20 }).notNull(),

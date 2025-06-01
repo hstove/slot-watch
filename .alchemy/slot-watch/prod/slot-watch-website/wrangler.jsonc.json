@@ -54,8 +54,8 @@
         "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev"
       }
     },
-    "createdAt": 1748746336574,
-    "updatedAt": 1748746336574
+    "createdAt": 1748752628627,
+    "updatedAt": 1748752628627
   },
   "props": {
     "path": "wrangler.jsonc",

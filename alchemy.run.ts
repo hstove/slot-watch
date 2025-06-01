@@ -62,7 +62,7 @@ await CustomDomain('slot-watch-website-domain', {
   workerName: website.name,
 });
 
-const worker = await Worker('slot-watch-worker', {
+export const worker = await Worker('slot-watch-worker', {
   name: 'slot-watch-worker',
   entrypoint: 'server/src/server.ts',
   compatibilityFlags: ['nodejs_compat'],
@@ -90,9 +90,15 @@ const domain = await CustomDomain('slot-watch-api-domain', {
 
 await WranglerJson('wrangler-worker', {
   worker,
-  path: 'server/wrangler.jsonc',
+  path: 'server-wrangler.jsonc',
 });
 
-// console.log(process.env.UPSTASH_REDIS_REST_URL);
+await Exec('deploy-streamer', {
+  command: 'fly deploy',
+  cwd: 'streamer',
+  memoize: {
+    patterns: ['./streamer/**/*'],
+  },
+});
 
 await app.finalize();

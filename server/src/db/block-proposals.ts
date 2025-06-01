@@ -277,6 +277,16 @@ export async function _fetchRecentMinerBlocks(networkKey: string) {
       pushedAt: blockPushes.id,
     })
     .from(blockProposalsSchema)
+    .leftJoin(
+      blockPushes,
+      and(
+        eq(
+          blockProposalsSchema.signerSignatureHash,
+          blockPushes.signerSignatureHash,
+        ),
+        eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
+      ),
+    )
     .where(eq(blockProposalsSchema.networkKey, networkKey))
     .orderBy(
       desc(blockProposalsSchema.burnBlockHeight),
@@ -309,7 +319,7 @@ export async function _fetchRecentMinerBlocks(networkKey: string) {
   return recentBlocks;
 }
 
-const fetchRecentMinerBlocks = memoizeCache(
+export const fetchRecentMinerBlocksCache = memoizeCache(
   (networkKey: string) => `recent-miner-blocks-v2:${networkKey}`,
   async (networkKey: string) => {
     return _fetchRecentMinerBlocks(networkKey);
@@ -317,7 +327,7 @@ const fetchRecentMinerBlocks = memoizeCache(
 );
 
 export const fetchRecentMinerStats = async (networkKey: string) => {
-  const recentBlocks = await fetchRecentMinerBlocks.get(networkKey);
+  const recentBlocks = await fetchRecentMinerBlocksCache.get(networkKey);
 
   const miners: Record<
     string,
