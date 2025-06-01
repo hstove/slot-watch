@@ -21,6 +21,7 @@ import {
   type WSStateMachineUpdate,
   superSerialize,
   chunkTypeName,
+  decodeChunk,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getCreatedAt, getPayloadContractId } from '../utils';
@@ -42,7 +43,7 @@ import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import { sql } from 'drizzle-orm';
-import type { ChunkType, SuperJSON } from 'slot-watch-common';
+import type { ChunkType, DecodedChunk, SuperJSON } from 'slot-watch-common';
 import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -81,14 +82,16 @@ export async function handleStackerDBChunk(
       .returning({ id: stackerDbSlots.id });
     const chunkId = newRow?.id ?? null;
 
-    const decoded = decodeChunkMaybe(chunkData);
-
-    if (decoded === null) {
+    let decoded: DecodedChunk;
+    try {
+      decoded = decodeChunk(chunkData);
+    } catch (error) {
       log
+        .withError(error)
         .withMetadata({
           chunk,
         })
-        .error(`Error decoding chunk: ${chunk.data}`);
+        .error('Error decoding chunk');
       continue;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {

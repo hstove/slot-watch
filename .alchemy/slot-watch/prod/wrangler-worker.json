@@ -67,20 +67,20 @@
         },
         "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
         "UPSTASH_REDIS_REST_URL": {
-          "@secret": "wdjt+PUgTOJHH1x3WSl+Z/1Vp6WqYhfNnCjhVhtwgzFSozIEpBQVDEUl5euAfus4yVlSeQlsjKKgZIdjjmsadE+KPVE59WPAaIRgmtA9"
+          "@secret": "gktPQsiA5U76xIdXqqs8Jte4e9rSEXSVm2WwdPhDE3j+l+FwWY9QtFwyxMUxfLgbJOknsINySiF1i9W87ya1NM08eVMIte0o38SStNU/"
         },
         "UPSTASH_REDIS_REST_TOKEN": {
-          "@secret": "FEfdKZ42W/b7LB41LpNMVYrdB3bYEbYJE6gP78ZORGpYZ8swPi1G3APAk0bTTK2z4IMsMpJB+MrWs9lEWrqXn2g/R3w+8Dzh65ufc6xk5/dNrBNj6vvp3hX+GSbBLd+hWg4="
+          "@secret": "fdPxxHa/GgnqemrRCfrKR5MzbIilSX5dG2LVTywn0LxwRUbn5AOrE7okWQZBy5FoXmz0XJb+234RZikaaa6ksO4nYfJMncBtpdTHUawLtPDvZfD8qukEtaGo0v2d193AAeI="
         },
         "OBSERVER_TOKEN": {
-          "@secret": "ha/VeSpnA/RxcsIswpYh9kThIGTbL0HY4wtBtLJEm5S+W1iL6weHkymP1xn8QPPVYa1gILknMbo="
+          "@secret": "YeomnAtBIoYHsCtztrkjqLOv9dQxC3uvt7LM7BylWlsuaE99o85A+mNRx4bXHug1wViERZxhzjA="
         }
       },
       "type": "service",
       "id": "slot-watch-worker",
       "format": "esm",
-      "createdAt": 1748752642098,
-      "updatedAt": 1748752642098
+      "createdAt": 1748755308556,
+      "updatedAt": 1748755308556
     },
     "path": "server-wrangler.jsonc",
     "spec": {
@@ -108,8 +108,8 @@
         }
       ]
     },
-    "createdAt": 1748752642114,
-    "updatedAt": 1748752642114
+    "createdAt": 1748755308572,
+    "updatedAt": 1748755308572
   },
   "props": {
     "worker": {
@@ -166,20 +166,20 @@
         },
         "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
         "UPSTASH_REDIS_REST_URL": {
-          "@secret": "HcNWMcDkjDjaY/3ugWdD+N+y6vdqrHUU7q5X7AkYh5EZRc9DjSQPvQ2dWO+7rNNRO4YEqwr/3tmzdxDMeEXNVjA2Ys1mM7qOHBBh06pP"
+          "@secret": "16vPz2HMkr7KLVDp6ejBLoDSuLgJVua7A4aCLBlXW2IMMQtXzAb4+4qLAwNa+s0W8Vw64z1kBO2TOYujALxSzvs1PRQyflGIc0yYO1TM"
         },
         "UPSTASH_REDIS_REST_TOKEN": {
-          "@secret": "0AYMKNMArmPfMemdl43uBPpTCagPJXOjxlhhW6MOfo84/s9qOpv0mENoEH7w2b2hAKnxXdYhTfQTLHv9oV/G58ZugsAdOk0kiU9R8sKBThh0ArUkHauaXPmTP7vEsHiKwEU="
+          "@secret": "zy+scPEYnyG5gcJU8YinmNqgP7d77qQkHT6EBXswvX8B/iyHHvb6+SIkCFNAtiA76XrCqlgr22EfCVHO8kbjrb5uS3UaQPqLC/mbiIotJoyy8Qzk1LQ/bwzs895VzSCXDBo="
         },
         "OBSERVER_TOKEN": {
-          "@secret": "1FWWiuHVeNdBZU8X/10UIa306rZNCz03xBkmx0s223kPCy4LxOUUvq32zUBUngU57dc1eP3RjjI="
+          "@secret": "DnSMFZYAcUn67FveZA3RDv07PNMBxfmEn0DS5HrH5gzevrVdS4XXrEnpEqAJ1zd40xgEEbBhkrc="
         }
       },
       "type": "service",
       "id": "slot-watch-worker",
       "format": "esm",
-      "createdAt": 1748752642098,
-      "updatedAt": 1748752642098
+      "createdAt": 1748755308556,
+      "updatedAt": 1748755308556
     },
     "path": "server-wrangler.jsonc"
   }

@@ -28,8 +28,8 @@
         "contentType": "image/svg+xml"
       },
       {
-        "path": "assets/index-Db1RqZOA.js",
-        "filePath": "client/dist/assets/index-Db1RqZOA.js",
+        "path": "assets/index-BS9fs6bk.js",
+        "filePath": "client/dist/assets/index-BS9fs6bk.js",
         "contentType": "application/javascript"
       },
       {
@@ -44,7 +44,7 @@
       }
     ],
     "createdAt": 1748738754449,
-    "updatedAt": 1748752634236
+    "updatedAt": 1748755297541
   },
   "props": {
     "path": "client/dist"
