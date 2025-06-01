@@ -9,6 +9,10 @@ import {
 import { memoizeCache } from './cache';
 import { warmupMetrics } from './metrics';
 import { stxCommittedCache } from './pox-4';
+import {
+  fetchRecentMinerBlocksCache,
+  fetchRecentMinerStats,
+} from './db/block-proposals';
 
 export const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
@@ -95,6 +99,9 @@ export async function warmCache(networkKey: string) {
   const poxInfo = await getPoxInfo.warm(networkKey);
   const rewardCycle = poxInfo.rewardCycleId;
   await getStackerSetCache.warm(networkKey, rewardCycle);
-  await stxCommittedCache.warm();
-  await warmupMetrics();
+  await Promise.all([
+    stxCommittedCache.warm(),
+    fetchRecentMinerBlocksCache.warm(networkKey),
+    warmupMetrics(),
+  ]);
 }

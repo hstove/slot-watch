@@ -19,6 +19,9 @@ import { db } from '../db/db';
 import type { NewBlockJob } from '../worker/types';
 import { fetchRecentMinerStats } from '../db/block-proposals';
 import { getCreatedAt } from '../utils';
+import type { InferInsertModel } from 'drizzle-orm';
+import { v7 as uuidv7 } from 'uuid';
+import { logger } from '../logger';
 
 export function convertBlock(
   block: unknown,
@@ -70,44 +73,57 @@ export function convertBlock(
 }
 
 export async function handleStacksBlockEvent(job: NewBlockJob) {
-  const block = job.payload;
-  const dbBlock = {
-    ...block,
-    createdAt: new Date(block.receivedAt),
-    blockTimestamp: block.blockTimestamp
-      ? new Date(block.blockTimestamp)
-      : new Date(),
-    burnBlockTimestamp: block.burnBlockTimestamp
-      ? new Date(block.burnBlockTimestamp)
-      : new Date(),
-    consensusHash: block.consensusHash ?? '',
-    indexBlockHash: block.indexBlockHash ?? '',
-  };
-  // const _block = convertBlock(payload.payload);
-  await db.insert(stacksBlocks).values(dbBlock).onConflictDoNothing();
-  // .onConflictDoUpdate({
-  //   target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
-  //   set: {
-  //     ...dbBlock,
-  //   },
-  // });
-  // await publishWsEvent({
-  //   type: NEW_BLOCK_V2_EVENT,
-  //   networkKey: block.networkKey,
-  //   receivedAt: block.receivedAt,
-  //   payload: {
-  //     ...dbBlock,
-  //     processedAt: block.receivedAt,
-  //     blockTimestamp: dbBlock.blockTimestamp.toISOString(),
-  //     burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
-  //   },
-  // } satisfies WSNewBlockV2);
-  await fetchRecentMinerStats(block.networkKey);
+  try {
+    const block = job.payload;
+    const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
+    const dbBlock = {
+      ...block,
+      id,
+      blockTimestamp: block.blockTimestamp
+        ? new Date(block.blockTimestamp)
+        : new Date(),
+      burnBlockTimestamp: block.burnBlockTimestamp
+        ? new Date(block.burnBlockTimestamp)
+        : new Date(),
+      consensusHash: block.consensusHash ?? '',
+      indexBlockHash: block.indexBlockHash ?? '',
+    } satisfies InferInsertModel<typeof stacksBlocks>;
+    // const _block = convertBlock(payload.payload);
+    await db.insert(stacksBlocks).values(dbBlock);
+    // .onConflictDoUpdate({
+    //   target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
+    //   set: {
+    //     ...dbBlock,
+    //   },
+    // });
+    // await publishWsEvent({
+    //   type: NEW_BLOCK_V2_EVENT,
+    //   networkKey: block.networkKey,
+    //   receivedAt: block.receivedAt,
+    //   payload: {
+    //     ...dbBlock,
+    //     processedAt: block.receivedAt,
+    //     blockTimestamp: dbBlock.blockTimestamp.toISOString(),
+    //     burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
+    //   },
+    // } satisfies WSNewBlockV2);
+    // await fetchRecentMinerStats(block.networkKey);
+  } catch (error) {
+    logger.error(
+      {
+        error,
+        blockHash: job?.payload?.blockHash,
+      },
+      'Error handling stacks block event',
+    );
+  }
 }
 
 export async function handleBurnBlockEvent(payload: WSBurnBlock) {
   const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
+  const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
   const dbBurnBlock = {
+    id,
     burnBlockHeight: burnBlock.burn_block_height,
     burnBlockHash: burnBlock.burn_block_hash,
     networkKey: payload.networkKey,

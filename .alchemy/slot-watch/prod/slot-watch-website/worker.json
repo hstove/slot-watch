@@ -50,8 +50,8 @@
             "contentType": "image/svg+xml"
           },
           {
-            "path": "assets/index-BBaxZT5J.js",
-            "filePath": "client/dist/assets/index-BBaxZT5J.js",
+            "path": "assets/index-Db1RqZOA.js",
+            "filePath": "client/dist/assets/index-Db1RqZOA.js",
             "contentType": "application/javascript"
           },
           {
@@ -66,7 +66,7 @@
           }
         ],
         "createdAt": 1748738754449,
-        "updatedAt": 1748746342265
+        "updatedAt": 1748752634236
       }
     },
     "entrypoint": "client/worker.ts",
@@ -78,8 +78,8 @@
     "observability": {
       "enabled": true
     },
-    "createdAt": 1748746346946,
-    "updatedAt": 1748746346946
+    "createdAt": 1748752638868,
+    "updatedAt": 1748752638868
   },
   "props": {
     "name": "slot-watch-website",
@@ -119,8 +119,8 @@
             "contentType": "image/svg+xml"
           },
           {
-            "path": "assets/index-BBaxZT5J.js",
-            "filePath": "client/dist/assets/index-BBaxZT5J.js",
+            "path": "assets/index-Db1RqZOA.js",
+            "filePath": "client/dist/assets/index-Db1RqZOA.js",
             "contentType": "application/javascript"
           },
           {
@@ -135,7 +135,7 @@
           }
         ],
         "createdAt": 1748738754449,
-        "updatedAt": 1748746342265
+        "updatedAt": 1748752634236
       }
     },
     "entrypoint": "client/worker.ts",

@@ -7,6 +7,7 @@ import { stateMachineUpdates } from '../src/db/schema';
 import type { StateMachineUpdate } from 'slot-watch-common';
 import type { SuperJSON } from 'slot-watch-common';
 import { sql } from 'drizzle-orm';
+import { v7 as uuidv7 } from 'uuid';
 
 // test('convert block', () => {
 //   const block = convertBlock(tenureExtendBlock);
@@ -22,6 +23,7 @@ test('inserting a state machine update', async () => {
   const [newRow] = await db
     .insert(stateMachineUpdates)
     .values({
+      id: uuidv7(),
       // updateContent: updateContent as SuperJSON<
       //   StateMachineUpdate['stateMachineUpdate']
       // >,

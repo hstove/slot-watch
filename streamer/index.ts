@@ -1,23 +1,12 @@
 import { Hono } from 'hono';
-import { createClient } from 'redis';
 import { streamSSE } from 'hono/streaming';
 import { EventEmitter } from 'node:events';
-
-// console.log(process.env.REDIS_URL);
-
-const client = createClient({
-  url: process.env.REDIS_URL,
-});
+import { cors } from 'hono/cors';
 
 const ee = new EventEmitter();
-// process.nextTick(async () => {
-await client.connect();
-await client.pSubscribe('*', (message, channel) => {
-  ee.emit(channel, message);
-});
-// });
 
 const app = new Hono()
+  .use(cors())
   .get('/', (c) => {
     return c.text('Hello World');
   })

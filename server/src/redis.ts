@@ -62,7 +62,7 @@ export const redisURL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
 export async function publishWsEventToStreamer(payload: WSPayload) {
   try {
-    console.info('Publishing event to streamer', payload);
+    // console.info('Publishing event to streamer', payload);
     const url = env.STREAMER_URL;
     await fetch(`${url}/${payload.networkKey}`, {
       method: 'POST',
