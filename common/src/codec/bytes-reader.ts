@@ -61,6 +61,7 @@ export class BytesReader {
   }
 
   readBytes(length: number): Uint8Array {
+    console.log(this.source);
     const view = this.source.subarray(this.consumed, this.consumed + length);
     this.consumed += length;
     return view;

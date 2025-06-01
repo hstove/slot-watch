@@ -4,7 +4,8 @@ import {
   serializeTransaction,
   type StacksTransactionWire,
 } from '@stacks/transactions/dist/transaction';
-import { BytesReader } from './bytes-reader';
+import { BytesReader } from '@stacks/transactions/dist/BytesReader';
+// import { BytesReader } from './bytes-reader';
 
 export function decodeTransactions(txsBytes: Uint8Array) {
   const txCount = P.U32BE.decode(txsBytes.slice(0, 4));
