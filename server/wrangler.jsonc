@@ -3,6 +3,7 @@
   "main": "server/src/server.ts",
   "compatibility_date": "2025-05-29",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": { "STREAMER_URL": "https://slot-watch-streamer.fly.dev" },
   "kv_namespaces": [
     { "binding": "CACHE", "id": "4d65a9f9771f4b2d8887dc2c89cf766f" }
   ],

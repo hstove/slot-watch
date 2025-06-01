@@ -26,6 +26,9 @@ if (process.env.NODE_ENV === 'development') {
         fly_process_group: process.env.FLY_PROCESS_GROUP,
       };
     },
+    write(msg) {
+      console.log(msg);
+    },
   });
 }
 
@@ -34,7 +37,15 @@ export const honoLogger: MiddlewareHandler = async (c, next) => {
   const method = c.req.method;
   const requestId = c.get('requestId');
 
-  logger.debug(
+  // logger.debug(
+  //   {
+  //     requestId,
+  //     path,
+  //     method,
+  //   },
+  //   'Request received',
+  // );
+  console.debug(
     {
       requestId,
       path,

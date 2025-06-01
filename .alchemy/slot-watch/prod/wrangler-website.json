@@ -74,7 +74,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748741675212
+          "updatedAt": 1748746342265
         }
       },
       "entrypoint": "client/worker.ts",
@@ -86,8 +86,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748741680165,
-      "updatedAt": 1748741680165
+      "createdAt": 1748746346946,
+      "updatedAt": 1748746346946
     },
     "path": "client/wrangler.jsonc",
     "spec": {
@@ -105,8 +105,8 @@
         "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev"
       }
     },
-    "createdAt": 1748741680180,
-    "updatedAt": 1748741680180
+    "createdAt": 1748746346961,
+    "updatedAt": 1748746346961
   },
   "props": {
     "worker": {
@@ -170,7 +170,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748741675212
+          "updatedAt": 1748746342265
         }
       },
       "entrypoint": "client/worker.ts",
@@ -182,8 +182,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748741680165,
-      "updatedAt": 1748741680165
+      "createdAt": 1748746346946,
+      "updatedAt": 1748746346946
     },
     "path": "client/wrangler.jsonc"
   }

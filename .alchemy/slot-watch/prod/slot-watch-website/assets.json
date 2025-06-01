@@ -44,7 +44,7 @@
       }
     ],
     "createdAt": 1748738754449,
-    "updatedAt": 1748741675212
+    "updatedAt": 1748746342265
   },
   "props": {
     "path": "client/dist"
