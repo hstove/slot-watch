@@ -1,18 +1,18 @@
 {
   "kind": "cloudflare::WranglerJson",
-  "id": "wrangler",
-  "fqn": "slot-watch/prod/wrangler",
-  "seq": 4,
+  "id": "wrangler-worker",
+  "fqn": "slot-watch/prod/wrangler-worker",
+  "seq": 9,
   "data": {},
   "status": "updated",
   "output": {
     "Symbol(alchemy::ResourceKind)": "cloudflare::WranglerJson",
-    "Symbol(alchemy::ResourceID)": "wrangler",
-    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/wrangler",
+    "Symbol(alchemy::ResourceID)": "wrangler-worker",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/wrangler-worker",
     "Symbol(alchemy::ResourceScope)": {
       "@scope": null
     },
-    "Symbol(alchemy::ResourceSeq)": 4,
+    "Symbol(alchemy::ResourceSeq)": 9,
     "worker": {
       "Symbol(alchemy::ResourceKind)": "cloudflare::Worker",
       "Symbol(alchemy::ResourceID)": "slot-watch-worker",
@@ -20,9 +20,9 @@
       "Symbol(alchemy::ResourceScope)": {
         "@scope": null
       },
-      "Symbol(alchemy::ResourceSeq)": 2,
+      "Symbol(alchemy::ResourceSeq)": 7,
       "name": "slot-watch-worker",
-      "entrypoint": "src/server.ts",
+      "entrypoint": "server/src/server.ts",
       "compatibilityFlags": [
         "nodejs_compat"
       ],
@@ -56,26 +56,26 @@
           "type": "d1",
           "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
           "name": "slot-watch-db",
-          "fileSize": 12288,
-          "numTables": 0,
+          "fileSize": 237568,
+          "numTables": 8,
           "version": "production",
           "readReplication": {
             "mode": "disabled"
           },
           "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
-          "migrationsDir": "drizzle"
+          "migrationsDir": "server/drizzle"
         }
       },
       "type": "service",
       "id": "slot-watch-worker",
       "format": "esm",
-      "createdAt": 1748737551973,
-      "updatedAt": 1748737551973
+      "createdAt": 1748741684477,
+      "updatedAt": 1748741684477
     },
-    "path": "wrangler.jsonc",
+    "path": "server/wrangler.jsonc",
     "spec": {
       "name": "slot-watch-worker",
-      "main": "src/server.ts",
+      "main": "server/src/server.ts",
       "compatibility_date": "2025-05-29",
       "compatibility_flags": [
         "nodejs_compat"
@@ -91,12 +91,12 @@
           "binding": "DB",
           "database_id": "d908479c-6b77-4d99-9890-47fcbae3788c",
           "database_name": "slot-watch-db",
-          "migrations_dir": "drizzle"
+          "migrations_dir": "server/drizzle"
         }
       ]
     },
-    "createdAt": 1748737552038,
-    "updatedAt": 1748737552038
+    "createdAt": 1748741684489,
+    "updatedAt": 1748741684489
   },
   "props": {
     "worker": {
@@ -106,9 +106,9 @@
       "Symbol(alchemy::ResourceScope)": {
         "@scope": null
       },
-      "Symbol(alchemy::ResourceSeq)": 2,
+      "Symbol(alchemy::ResourceSeq)": 7,
       "name": "slot-watch-worker",
-      "entrypoint": "src/server.ts",
+      "entrypoint": "server/src/server.ts",
       "compatibilityFlags": [
         "nodejs_compat"
       ],
@@ -142,21 +142,22 @@
           "type": "d1",
           "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
           "name": "slot-watch-db",
-          "fileSize": 12288,
-          "numTables": 0,
+          "fileSize": 237568,
+          "numTables": 8,
           "version": "production",
           "readReplication": {
             "mode": "disabled"
           },
           "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
-          "migrationsDir": "drizzle"
+          "migrationsDir": "server/drizzle"
         }
       },
       "type": "service",
       "id": "slot-watch-worker",
       "format": "esm",
-      "createdAt": 1748737551973,
-      "updatedAt": 1748737551973
-    }
+      "createdAt": 1748741684477,
+      "updatedAt": 1748741684477
+    },
+    "path": "server/wrangler.jsonc"
   }
 }

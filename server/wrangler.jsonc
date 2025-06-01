@@ -1,6 +1,6 @@
 {
   "name": "slot-watch-worker",
-  "main": "src/server.ts",
+  "main": "server/src/server.ts",
   "compatibility_date": "2025-05-29",
   "compatibility_flags": ["nodejs_compat"],
   "kv_namespaces": [
@@ -11,7 +11,7 @@
       "binding": "DB",
       "database_id": "d908479c-6b77-4d99-9890-47fcbae3788c",
       "database_name": "slot-watch-db",
-      "migrations_dir": "drizzle"
+      "migrations_dir": "server/drizzle"
     }
   ]
 }

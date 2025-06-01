@@ -1,0 +1,39 @@
+{
+  "kind": "os::Exec",
+  "id": "build-common",
+  "fqn": "slot-watch/prod/build-common",
+  "seq": 0,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "os::Exec",
+    "Symbol(alchemy::ResourceID)": "build-common",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/build-common",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "id": "build-common",
+    "command": "bun build:common",
+    "memoize": {
+      "patterns": [
+        "./common/**/*"
+      ]
+    },
+    "inheritStdio": true,
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "executedAt": 1748738441439,
+    "completed": true,
+    "hash": "3855fae217c0f0682e14dd5a5c23f13eadc699e480adc66926f1f21ac3ecb63e"
+  },
+  "props": {
+    "command": "bun build:common",
+    "memoize": {
+      "patterns": [
+        "./common/**/*"
+      ]
+    }
+  }
+}

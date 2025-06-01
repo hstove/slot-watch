@@ -1,0 +1,39 @@
+{
+  "kind": "os::Exec",
+  "id": "build-server",
+  "fqn": "slot-watch/prod/build-server",
+  "seq": 1,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "os::Exec",
+    "Symbol(alchemy::ResourceID)": "build-server",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/build-server",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 1,
+    "id": "build-server",
+    "command": "bun build:server",
+    "memoize": {
+      "patterns": [
+        "./server/**/*"
+      ]
+    },
+    "inheritStdio": true,
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "executedAt": 1748741669101,
+    "completed": true,
+    "hash": "6f20f93bbdd17e6a33b944eedae34b65240439efdf96419052b40e3362d04b6c"
+  },
+  "props": {
+    "command": "bun build:server",
+    "memoize": {
+      "patterns": [
+        "./server/**/*"
+      ]
+    }
+  }
+}

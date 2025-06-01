@@ -16,18 +16,18 @@
     "type": "d1",
     "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
     "name": "slot-watch-db",
-    "fileSize": 12288,
-    "numTables": 0,
+    "fileSize": 237568,
+    "numTables": 8,
     "version": "production",
     "readReplication": {
       "mode": "disabled"
     },
     "accountId": "d16d6f5618beae9f5e92cee6a50a103d",
-    "migrationsDir": "drizzle"
+    "migrationsDir": "server/drizzle"
   },
   "props": {
     "name": "slot-watch-db",
-    "migrationsDir": "drizzle",
+    "migrationsDir": "server/drizzle",
     "migrationsFiles": [
       {
         "id": "0000_chubby_songbird.sql",

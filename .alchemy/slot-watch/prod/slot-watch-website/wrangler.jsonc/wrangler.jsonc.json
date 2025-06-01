@@ -1,0 +1,23 @@
+{
+  "kind": "fs::File",
+  "id": "wrangler.jsonc",
+  "fqn": "slot-watch/prod/slot-watch-website/wrangler.jsonc/wrangler.jsonc",
+  "seq": 0,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "fs::File",
+    "Symbol(alchemy::ResourceID)": "wrangler.jsonc",
+    "Symbol(alchemy::ResourceFQN)": "slot-watch/prod/slot-watch-website/wrangler.jsonc/wrangler.jsonc",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "path": "wrangler.jsonc",
+    "content": "{\n  \"name\": \"slot-watch-website\",\n  \"main\": \"client/worker.ts\",\n  \"compatibility_date\": \"2025-05-29\",\n  \"compatibility_flags\": [\"nodejs_compat\"],\n  \"assets\": { \"binding\": \"ASSETS\", \"directory\": \"client/dist\" },\n  \"vars\": { \"VITE_SLOTS_API_URL\": \"https://slot-watch.fly.dev\" }\n}\n"
+  },
+  "props": {
+    "path": "wrangler.jsonc",
+    "content": "{\n  \"name\": \"slot-watch-website\",\n  \"main\": \"client/worker.ts\",\n  \"compatibility_date\": \"2025-05-29\",\n  \"compatibility_flags\": [\"nodejs_compat\"],\n  \"assets\": { \"binding\": \"ASSETS\", \"directory\": \"client/dist\" },\n  \"vars\": { \"VITE_SLOTS_API_URL\": \"https://slot-watch.fly.dev\" }\n}\n"
+  }
+}

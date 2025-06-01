@@ -4,9 +4,7 @@ import { superDeserialize, type TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 
 export const slotsApiUrl =
-  import.meta.env.VITE_SLOTS_API_URL ?? 'https://slot-watch.fly.dev';
-
-export const slotsWsUrl = slotsApiUrl.replace(/(http)(s)?\:\/\//, 'ws$2://');
+  import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
 
 export const apiClient = hc<SlotWatchServer>(slotsApiUrl);
 
