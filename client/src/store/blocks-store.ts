@@ -83,7 +83,12 @@ export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
 export const maxBurnBlockHeightAtom = atom((get) => {
   const all = get(allBurnBlocksAtom);
-  return all.reduce((max, b) => Math.max(max, b.burnBlockHeight), 0);
+  return all[0]?.burnBlockHeight ?? 0;
+});
+
+export const maxBurnBlockConsensusHashAtom = atom((get) => {
+  const all = get(allBurnBlocksAtom);
+  return all[0]?.consensusHash ?? '';
 });
 
 export const sortedBurnBlocksAtom = atom((get) => {
@@ -128,11 +133,9 @@ export const insertBurnBlockAtom = atom(
   },
 );
 
-export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
+export const blockTenureCostsAtom = atomFamily((consensusHash: string) =>
   atom((get) => {
-    const stacksBlocks = get(
-      sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
-    );
+    const stacksBlocks = get(sortedStacksBlocksForBurnBlockAtom(consensusHash));
     const cost = {
       readCount: 0,
       readLength: 0,
@@ -156,7 +159,7 @@ export const blockTenureCostsAtom = atomFamily((burnBlockHeight: number) =>
 );
 
 export const cumulativeBlockCostsAtom = atomFamily<
-  number,
+  string,
   Atom<
     Map<
       string,
@@ -166,10 +169,10 @@ export const cumulativeBlockCostsAtom = atomFamily<
       }
     >
   >
->((burnBlockHeight: number) => {
+>((consensusHash: string) => {
   return atom((get) => {
     const stacksBlocks = get(
-      loadable(sortedStacksBlocksForBurnBlockAtom(burnBlockHeight)),
+      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash)),
     );
     if (stacksBlocks.state !== 'hasData') return new Map();
     const blocks = R.reverse(stacksBlocks.data);
@@ -226,9 +229,9 @@ export const [
   __stacksBlocksForBurnBlockFamilyInner,
   setStacksBlocksForBurnBlockFamily,
 ] = listAtomFamilyWithInit(
-  async (burnBlockHeight: number, get) => {
+  async (consensusHash: string, get) => {
     const networkKey = get(networkIdAtom);
-    const blocks = await getBlocksForBurnBlock(networkKey, burnBlockHeight);
+    const blocks = await getBlocksForBurnBlock(networkKey, consensusHash);
     return blocks;
   },
   (block) => {
@@ -281,9 +284,9 @@ export const [
 );
 
 export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
-  (burnBlockHeight: number) =>
+  (consensusHash: string) =>
     atom((get) => {
-      const list = get(loadable(stacksBlocksForBurnBlockAtom(burnBlockHeight)));
+      const list = get(loadable(stacksBlocksForBurnBlockAtom(consensusHash)));
       if (list.state !== 'hasData') return [];
       return R.pipe(
         list.data,

@@ -79,7 +79,7 @@ export const apiBurnBlockSchema = z.object({
   burnBlockHeight: z.number(),
   burnBlockHash: z.string(),
   createdAt: z.string(),
-  consensusHash: z.union([z.null(), z.string()]),
+  consensusHash: z.string(),
 });
 
 export type ApiBurnBlock = z.infer<typeof apiBurnBlockSchema>;

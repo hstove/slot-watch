@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import {
   burnBlocksAtomFamily,
+  maxBurnBlockConsensusHashAtom,
   maxBurnBlockHeightAtom,
   sortedStacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
@@ -17,9 +18,9 @@ import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
 
 export const BurnBlock = ({
-  burnBlockHeight,
+  consensusHash,
   burnBlockHash,
-}: { burnBlockHeight: number; burnBlockHash: string }) => {
+}: { consensusHash: string; burnBlockHash: string }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
 
   if (!burnBlock) return null;
@@ -44,22 +45,22 @@ export const BurnBlock = ({
           </Text>
         </div>
         <div className="flex gap-2">
-          <BurnBlockTxFees burnBlockHeight={burnBlockHeight} />
-          <BurnBlockCosts burnBlockHeight={burnBlockHeight} />
+          <BurnBlockTxFees consensusHash={consensusHash} />
+          <BurnBlockCosts consensusHash={consensusHash} />
         </div>
       </div>
-      <BurnBlockStacksBlocks burnBlockHeight={burnBlockHeight} />
+      <BurnBlockStacksBlocks consensusHash={consensusHash} />
     </div>
   );
 };
 
 export const BurnBlockStacksBlocksInner = ({
-  burnBlockHeight,
-}: { burnBlockHeight: number }) => {
+  consensusHash,
+}: { consensusHash: string }) => {
   const stacksBlocks = useAtomValue(
-    sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
+    sortedStacksBlocksForBurnBlockAtom(consensusHash),
   );
-  const maxBurnBlockHeight = useAtomValue(maxBurnBlockHeightAtom);
+  const maxBurnBlockConsensusHash = useAtomValue(maxBurnBlockConsensusHashAtom);
   const [viewBlocks, setViewBlocks] = React.useState(false);
 
   if (stacksBlocks.length === 0)
@@ -71,7 +72,7 @@ export const BurnBlockStacksBlocksInner = ({
       </div>
     );
 
-  if (burnBlockHeight !== maxBurnBlockHeight && !viewBlocks) {
+  if (consensusHash !== maxBurnBlockConsensusHash && !viewBlocks) {
     return (
       <div className="flex items-center mt-4">
         <Text variant="small" className="text-muted-foreground font-normal">
@@ -112,7 +113,7 @@ export const BurnBlockStacksBlocksInner = ({
             <BlockListStacksBlock blockHash={block.blockHash} />
           </React.Suspense>
         ))}
-        {burnBlockHeight !== maxBurnBlockHeight && (
+        {consensusHash !== maxBurnBlockConsensusHash && (
           <div className="flex items-center gap-2 mt-2">
             <Text variant="small" className="text-muted-foreground font-normal">
               <button type="reset" onClick={() => setViewBlocks(false)}>
@@ -127,20 +128,20 @@ export const BurnBlockStacksBlocksInner = ({
 };
 
 export const BurnBlockStacksBlocks = ({
-  burnBlockHeight,
-}: { burnBlockHeight: number }) => {
+  consensusHash,
+}: { consensusHash: string }) => {
   return (
     <React.Suspense>
-      <BurnBlockStacksBlocksInner burnBlockHeight={burnBlockHeight} />
+      <BurnBlockStacksBlocksInner consensusHash={consensusHash} />
     </React.Suspense>
   );
 };
 
 export const BurnBlockTxFees = ({
-  burnBlockHeight,
-}: { burnBlockHeight: number }) => {
+  consensusHash,
+}: { consensusHash: string }) => {
   const stacksBlocks = useAtomValue(
-    sortedStacksBlocksForBurnBlockAtom(burnBlockHeight),
+    sortedStacksBlocksForBurnBlockAtom(consensusHash),
   );
 
   const totalFees = useMemo(() => {

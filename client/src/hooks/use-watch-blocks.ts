@@ -80,8 +80,8 @@ export const useWatchBlocks = () => {
         __stacksBlocksFamilyInner(blockProposal.signerSignatureHash),
       );
       set(
-        setStacksBlocksForBurnBlockFamily(base.burnBlockHeight),
-        base.burnBlockHeight,
+        setStacksBlocksForBurnBlockFamily(base.consensusHash),
+        base.consensusHash,
         {
           ...existing,
           ...base,
@@ -131,8 +131,8 @@ export const useWatchBlocks = () => {
               ...block,
             } satisfies ProcessedStacksBlock;
             set(
-              setStacksBlocksForBurnBlockFamily(base.burnBlockHeight),
-              base.burnBlockHeight,
+              setStacksBlocksForBurnBlockFamily(base.consensusHash),
+              base.consensusHash,
               {
                 ...existing,
                 ...base,

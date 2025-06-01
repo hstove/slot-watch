@@ -32,13 +32,14 @@ export const app = new Hono()
   .route('/', metricsRoutes)
   // .route('/', workerRoutes)
   .onError((err, c) => {
+    console.error(err, 'Error handling request');
     log
       .withError(err)
       .withMetadata({
         path: c.req.path,
       })
       .error('Error handling request');
-    return c.text('Internal Server Error', 500);
+    return c.text(`Internal Server Error: ${err.message}`, 500);
   })
 
   .notFound((c) => {

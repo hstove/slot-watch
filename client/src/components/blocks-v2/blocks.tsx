@@ -27,7 +27,7 @@ export function Blocks() {
         <BurnBlock
           burnBlockHash={b.burnBlockHash}
           key={b.burnBlockHash}
-          burnBlockHeight={b.burnBlockHeight}
+          consensusHash={b.consensusHash}
         />
       ))}
       <BlockModal />

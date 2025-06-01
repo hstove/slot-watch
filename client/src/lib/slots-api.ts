@@ -111,12 +111,12 @@ export type ApiBlockResponseForBlock = Omit<
 
 export async function getBlocksForBurnBlock(
   networkKey: string,
-  burnBlockHeight: number,
+  consensusHash: string,
 ): Promise<ApiBlockForBurnBlock[]> {
   const response = await apiClient['burn-blocks'][':networkKey'][
-    ':burnBlockHeight'
+    ':consensusHash'
   ].blocks.$get({
-    param: { networkKey, burnBlockHeight: burnBlockHeight.toString() },
+    param: { networkKey, consensusHash },
   });
   const data = await response.json();
 
@@ -175,7 +175,7 @@ type StacksBlockBase = {
   txCount: number;
   burnBlockHeight: number;
   networkKey: string;
-  consensusHash: string | null;
+  consensusHash: string;
   txFees: number;
 };
 
