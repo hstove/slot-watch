@@ -1,5 +1,5 @@
 import type { HonoRequest } from 'hono';
-import { logger } from './logger';
+import { log } from './logger';
 
 export type BasicAuth = { username: string; password: string };
 export function getBasicAuth(request: Request): BasicAuth | null {
@@ -39,7 +39,7 @@ export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   const authHeader = request.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Basic ')) {
-    console.debug('No auth (missing header)');
+    log.debug('No auth (missing header)');
     return null;
   }
 
@@ -59,12 +59,17 @@ export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
 export function getNetworkKeyHono(request: HonoRequest): string | null {
   const auth = getBasicAuthHono(request);
   if (!auth) {
-    console.log('No auth');
+    log.debug('No auth');
     return null;
   }
 
   if (auth.password !== process.env.OBSERVER_TOKEN) {
-    logger.warn('Invalid password', auth.password, process.env.OBSERVER_TOKEN);
+    log
+      .withMetadata({
+        password: auth.password,
+        // expected: process.env.OBSERVER_TOKEN,
+      })
+      .warn('Invalid password');
     return null;
   }
 

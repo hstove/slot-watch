@@ -158,7 +158,7 @@ export const searchChunksAtom = atom<null, [], void>(null, async (get, set) => {
   set(isSearchingAtom, false);
 });
 
-export const chunksByIdAtoms = atomFamily((id: number) =>
+export const chunksByIdAtoms = atomFamily((id: string) =>
   atom(async () => {
     const chunk = await getChunkById(id);
     return chunk;

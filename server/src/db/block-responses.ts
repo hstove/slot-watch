@@ -49,14 +49,17 @@ export function mapSignerDataToResponses({
     }
   }
   const signersArr = stackerSet.signers.map((s) => {
-    const blockSigner = blockSigners[s.signing_key] || {
+    const blockSignerBase = blockSigners[s.signing_key];
+    const blockSigner = blockSignerBase || {
       accepted: null,
       createdAt: null,
       tenureExtendTimestamp: null,
     };
+    const createdAt = blockSignerBase ? getCreatedAt(blockSignerBase.id) : null;
     return {
       ...s,
       ...blockSigner,
+      createdAt,
       weightPercent: s.weight / totalWeight,
       entity: knownSigners[s.signing_key] ?? null,
       tenureExtendTimestamp: blockSigner.tenureExtendTimestamp

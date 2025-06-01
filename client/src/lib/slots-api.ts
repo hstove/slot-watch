@@ -60,9 +60,9 @@ export async function getChunksByTime(
   return response.json();
 }
 
-export async function getChunkById(id: number) {
+export async function getChunkById(id: string) {
   const response = await apiClient.chunks.id[':id'].$get({
-    param: { id: id.toString() },
+    param: { id },
   });
   return response.json();
 }

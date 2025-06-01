@@ -11,7 +11,7 @@ import {
   type ChunkEventParsed,
   type StackerDBPayload,
 } from 'slot-watch-common';
-import { logger } from './logger';
+import { log, logger } from './logger';
 
 export function getPayloadContractId(payload: StackerDBPayload) {
   const version =
@@ -58,7 +58,7 @@ export function getCreatedAt(uuid: string): Date {
   // Basic validation: Check if the cleaned string has the correct length (32 hex chars)
   // and contains only hex characters.
   if (cleanUuid.length !== 32 || !/^[0-9a-f]+$/i.test(cleanUuid)) {
-    logger.error('Invalid UUID format:', uuid);
+    log.withMetadata({ uuid }).error('Invalid UUID format');
     throw new Error('Invalid UUID format');
   }
 
@@ -69,10 +69,12 @@ export function getCreatedAt(uuid: string): Date {
   if (versionHex !== '7') {
     // While the first 48 bits can always be interpreted as a number,
     // the function is specifically for v7, so we validate the version.
-    logger.warn(
-      `UUID does not appear to be v7 (version nibble is '${versionHex}'), returning null.`,
-      uuid,
-    );
+    log
+      .withMetadata({
+        uuid,
+        versionHex,
+      })
+      .warn('UUID does not appear to be v7, returning null.');
     throw new Error('Invalid UUID format');
   }
 

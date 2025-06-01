@@ -24,7 +24,7 @@ import { mapSignerDataToResponses } from './block-responses';
 import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
 // import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
@@ -75,10 +75,12 @@ function parseBlockProposal(result: string) {
     const parsed = parse(result);
     return parsed as ApiBlockProposal;
   } catch (error) {
-    logger.error(
-      { topic: 'block-proposal', error },
-      'Error parsing block proposal from Redis',
-    );
+    log
+      .withError(error)
+      .withMetadata({
+        topic: 'block-proposal',
+      })
+      .error('Error parsing block proposal from Redis');
     return null;
   }
 }

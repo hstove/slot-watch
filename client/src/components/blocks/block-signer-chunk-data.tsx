@@ -10,7 +10,7 @@ import {
 } from 'slot-watch-common';
 import { DataLabel, DataValue } from '../data-group';
 
-export function BlockSignerChunkDataInner({ chunkId }: { chunkId: number }) {
+export function BlockSignerChunkDataInner({ chunkId }: { chunkId: string }) {
   const chunk = useAtomValue(chunksByIdAtoms(chunkId));
   const decoded = decodeChunkMaybe(hex.decode(chunk.data));
   if (!decoded) {
@@ -47,7 +47,7 @@ export function BlockSignerChunkDataInner({ chunkId }: { chunkId: number }) {
   );
 }
 
-export function BlockSignerChunkData({ chunkId }: { chunkId: number }) {
+export function BlockSignerChunkData({ chunkId }: { chunkId: string }) {
   return (
     <React.Suspense fallback={null}>
       <BlockSignerChunkDataInner chunkId={chunkId} />

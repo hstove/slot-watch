@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
-import { logger, honoLogger } from './logger';
+import { logger, honoLogger, log } from './logger';
 import eventsRoutes from './routes/events.routes';
 import { cors } from 'hono/cors';
 import { blockRoutes } from './routes/blocks.routes';
@@ -10,7 +10,6 @@ import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
 import { signersRoutes } from './routes/signers.routes';
-import { streamRoutes } from './routes/stream.routes';
 // import workerRoutes from './routes/worker.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
 
@@ -31,27 +30,19 @@ export const app = new Hono()
   .route('/', stateMachineRoutes)
   .route('/health', healthRoutes)
   .route('/', metricsRoutes)
-  .route('/', streamRoutes)
   // .route('/', workerRoutes)
   .onError((err, c) => {
-    if (err instanceof Error) {
-      logger.error({
-        err,
-        stack: err.stack,
-        message: err.message,
+    log
+      .withError(err)
+      .withMetadata({
         path: c.req.path,
-      });
-    } else {
-      logger.error({
-        err,
-        path: c.req.path,
-      });
-    }
+      })
+      .error('Error handling request');
     return c.text('Internal Server Error', 500);
   })
 
   .notFound((c) => {
-    logger.debug(`${c.req.method} ${c.req.url} not found`);
+    log.debug(`${c.req.method} ${c.req.url} not found`);
     return c.text('Not Found', 200);
   });
 

@@ -3,7 +3,7 @@ import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { timeout } from 'hono/timeout';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
@@ -53,13 +53,12 @@ export const signersRoutes = new Hono()
         status: 'healthy',
       });
     } catch (error) {
-      logger.error(
-        {
-          error: String(error),
+      log
+        .withError(error)
+        .withMetadata({
           module: 'signers-health-check',
-        },
-        'Error fetching signers health check',
-      );
+        })
+        .error('Error fetching signers health check');
       process.nextTick(() => {
         process.exit(1);
       });
