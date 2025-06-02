@@ -28,14 +28,14 @@
         "contentType": "image/svg+xml"
       },
       {
+        "path": "assets/index-Bi9B3E5X.js",
+        "filePath": "client/dist/assets/index-Bi9B3E5X.js",
+        "contentType": "application/javascript"
+      },
+      {
         "path": "assets/index-D6M90wCz.css",
         "filePath": "client/dist/assets/index-D6M90wCz.css",
         "contentType": "text/css"
-      },
-      {
-        "path": "assets/index-x3Woz1VR.js",
-        "filePath": "client/dist/assets/index-x3Woz1VR.js",
-        "contentType": "application/javascript"
       },
       {
         "path": "favicon.svg",
@@ -44,7 +44,7 @@
       }
     ],
     "createdAt": 1748738754449,
-    "updatedAt": 1748760298382
+    "updatedAt": 1748822665966
   },
   "props": {
     "path": "client/dist"

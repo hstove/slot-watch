@@ -70,20 +70,17 @@ export async function handleStackerDBChunk(
         version: chunk.slot_version,
         signature: hex.decode(chunk.sig),
       }).toHex();
-      const [newRow] = await db
-        .insert(stackerDbSlots)
-        .values({
-          slotId: chunk.slot_id,
-          version: chunk.slot_version,
-          contractId,
-          networkKey,
-          signature: hex.decode(chunk.sig),
-          data: hex.decode(chunk.data),
-          id,
-          publicKey,
-        })
-        .returning({ id: stackerDbSlots.id });
-      const chunkId = newRow?.id ?? null;
+      await db.insert(stackerDbSlots).values({
+        slotId: chunk.slot_id,
+        version: chunk.slot_version,
+        contractId,
+        networkKey,
+        signature: hex.decode(chunk.sig),
+        data: hex.decode(chunk.data),
+        id,
+        publicKey,
+      });
+      const chunkId = id;
 
       let decoded: DecodedChunk;
       try {
@@ -331,7 +328,7 @@ export async function handleStateMachineUpdate({
   logger.debug(
     {
       updateContentType: typeof payload.stateMachineUpdate,
-      updateContent: payload.stateMachineUpdate,
+      // updateContent: payload.stateMachineUpdate,
       topic: 'stackerdb-events',
       table: 'state_machine_updates',
     },
@@ -340,9 +337,9 @@ export async function handleStateMachineUpdate({
   await Promise.all([
     db.insert(stateMachineUpdates).values({
       ...dbStateMachineUpdate,
-      updateContent: sql<
-        SuperJSON<StateMachineUpdate['stateMachineUpdate']>
-      >`${updateContent}::json`,
+      // updateContent: sql<
+      //   SuperJSON<StateMachineUpdate['stateMachineUpdate']>
+      // >`${updateContent}::json`,
     }),
     publishWsEventToStreamer({
       type: STATE_MACHINE_UPDATE_EVENT,
