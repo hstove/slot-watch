@@ -59,20 +59,20 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "nU3U3FAwlqPEoPScJvRQmhAW2bFOp+/GuGr5ZyfKmRWvOxrZP/QiUEpgnptCeYqxWiFHDKmQQXxFpGvxSNhNlFdUcpp5dzC9eoP93cuC"
+        "@secret": "BfYqfxuW27ujYXGuYDZWhvyEU0xvUtZ/QWLak2JkgBJX+f6VvtUCy18X1y1rvzW7SehJ8xo/kIOpHnjaAgiKbL0AqNgc9TokMyQY5b+U"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "oKHTjWgMC/+aEF8o949Wccq/VF2EO1HV3bmOn9B8VCV2cNGL/F30a5hDMxuIqcozP7m21NLbztYpBXJV/tSxhpicFCVEcoOFqKX50s/cGOfKBdniu1eu6sz231fr6Nq0jwQ="
+        "@secret": "S7tQcuy3iFQOglktP+mO9Ls86QcMsItsH2Z9vaDA1yCd/FPOGjZRDIVytj9pjxdbMuHPi48pjlPSudetKkGgg/YZu6mJOIlbnwoyhOVp32xSM2ApHn37mt5rq0dqj46K0/M="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "4oXNaWXB+emLBhT/0XWAJhlEssMBYMPxgRvbtLSn7UAv+dq44go+Jb/Nh+GpNYZ4JNbU4NfL80g="
+        "@secret": "U1yy2qdpn4Sq1N3iMlIi1ouAcJU2ngNaEXi1wgLuDWhzNMTcmT9RpinR8GREGsJTYUCXFHxZWjM="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748896746867,
-    "updatedAt": 1748896746867
+    "createdAt": 1748903538792,
+    "updatedAt": 1748903538792
   },
   "props": {
     "name": "slot-watch-worker",
@@ -121,13 +121,13 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "FHZCWVRczXAPu58C//7mDdWxCxXK1W6mpnEKUPnrjWXrkPNXbzVttf2I34INltAPrPtgH+Lj/VA4VLGTG8wRZLHFYOOcBxqVZDgVvNlV"
+        "@secret": "EW9X+WeqBuf/OmN6zmCLK4qwuY4BXjYy7hFFg7YwnhpoMbXDmdwh22W76KsuwoGES25dsPeqNPqEjDvrVEeOmo3oIW+Z/ULLnqlMv2NB"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "u2cI/o5IDxNCV32zKfbPrZ92KX4NFF1x6NPmS3/mM2KBrMEeyjftk9mXB2vqpgF6kl8ClQyMZrEy8S13l88RVbOV1O+yirU95zxv5Zfa2uzLSHB/FK6FJ3NyQqmdxFI5aco="
+        "@secret": "LR5QeT3BNoHOOlZwOxSjGePITIoiI/aUMP9qmAWn4Q/ad/b6BfA8cIO03zcslvs6yD/W4FAm691ncA5u6sFizl0bR8+nxu6tyGsxxWrHfazlsOqOkQ+psILAavNh3qifYYM="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "Dthl+qvBH2UsrJhrhQ+PB/DYiyZCHF1uLYFe4prSApcobjUmPYGQCs3iPw6cnVmI0oPQOIUnf0Q="
+        "@secret": "83t+REdAk9DoiNvgGdMZwICyh83d0CwhxS1az4hFqMerY/emlIoV7dXK/p8xII9N04p4or0cZuE="
       }
     }
   }

@@ -10,6 +10,7 @@ import type {
   ApiStacksBlock,
   ApiStateMachineUpdate,
   BlockResponseApi,
+  MiniBlockResponseApi,
 } from './server-types';
 import type { Prettify } from './utils';
 export type { ModifiedSlot, StackerDBPayload } from './event-stream-types';
@@ -24,6 +25,7 @@ export const NEW_BLOCK_V2_EVENT = 'new_block_v2';
 export const BURN_BLOCK_V2_EVENT = 'burn_block_v2';
 export const BLOCK_PROPOSAL_EVENT = 'block_proposal';
 export const STATE_MACHINE_UPDATE_EVENT = 'state_machine_update';
+export const MINI_BLOCK_RESPONSES_EVENT = 'mini_block_responses';
 
 export type ChunkEvent = {
   contractId: string;
@@ -209,29 +211,35 @@ export type WSStateMachineUpdate = WSBase<
   ApiStateMachineUpdate
 >;
 
+export type WSMiniBlockResponses = WSBase<
+  typeof MINI_BLOCK_RESPONSES_EVENT,
+  MiniBlockResponseApi[]
+>;
+
 export type WSPayload =
-  | WSChunkEvent
-  | WSNewBlock
-  | WSBurnBlock
-  | WSManyChunks
+  // | WSChunkEvent
+  // | WSNewBlock
+  // | WSBurnBlock
+  // | WSManyChunks
   | WSBlockProposal
-  | WSBlockResponse
+  // | WSBlockResponse
   | WSNewBlockV2
   | WSBurnBlockV2
-  | WSStateMachineUpdate;
+  | WSStateMachineUpdate
+  | WSMiniBlockResponses;
 
 export function getChunkId(chunk: ChunkEvent): string {
   return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;
 }
 
 export function getPayloadId(payload: WSPayload): string {
-  if (payload.type === CHUNKS_EVENT) {
-    return getChunkId(payload.payload);
-  }
-  if (payload.type === MANY_CHUNKS_EVENT) {
-    const contractId = payload.payload[0].contractId ?? 'unknown';
-    const [addr, name] = contractId.split('.');
-    return `${payload.networkKey}-${payload.type}-${addr.slice(0, 4)}...${name}-${payload.receivedAt}`;
-  }
+  // if (payload.type === CHUNKS_EVENT) {
+  //   return getChunkId(payload.payload);
+  // }
+  // if (payload.type === MANY_CHUNKS_EVENT) {
+  //   const contractId = payload.payload[0].contractId ?? 'unknown';
+  //   const [addr, name] = contractId.split('.');
+  //   return `${payload.networkKey}-${payload.type}-${addr.slice(0, 4)}...${name}-${payload.receivedAt}`;
+  // }
   return `${payload.networkKey}-${payload.type}-${payload.receivedAt}`;
 }

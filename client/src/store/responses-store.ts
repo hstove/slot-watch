@@ -6,12 +6,13 @@ import {
   getTenureChanges,
   type ProcessedStacksBlock,
 } from '@/lib/slots-api';
-import { listAtomWithInit } from './store-utils';
+import { listAtomFamilyWithInit, listAtomWithInit } from './store-utils';
 import { networkIdAtom } from './network';
 import { signersApiAtom, thresholdAtom } from './signers-store';
 import * as R from 'remeda';
-import type { TypeMerge } from 'slot-watch-common';
+import type { MiniBlockResponseApi, TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
+import { atomFamily } from 'jotai/utils';
 
 export async function fetchRecentSignerResponses(
   networkKey: string,
@@ -100,6 +101,12 @@ export const sortedLatestResponsesAtom = atom((get) => {
   });
 });
 
+export const latestResponseTimeForSignerFamily = atomFamily(
+  (_signerPublicKey: string) => {
+    return atom<number>();
+  },
+);
+
 export const [
   fetchSignersLatestResponsesAtom,
   signerLatestResponseFamily,
@@ -113,7 +120,12 @@ export const [
     return responses;
   },
   (r) => r.signerPublicKey,
-  undefined,
+  (_get, set, response) => {
+    set(
+      latestResponseTimeForSignerFamily(response.signerPublicKey),
+      new Date(response.createdAt).getTime(),
+    );
+  },
   'signer-latest-responses',
 );
 
@@ -190,3 +202,33 @@ export const mostRecentTenureChangeAtom = atom((get) => {
   }
   return null;
 });
+
+export const [
+  __miniResponsesAtomFamily,
+  __miniResponseAtomFamily,
+  __miniResponseNullableAtomFamily,
+  miniResponsesForBlockFamily,
+  setMiniResponsesAtom,
+] = listAtomFamilyWithInit(
+  async (_signerSignatureHash: string) => {
+    return [] as MiniBlockResponseApi[];
+  },
+  (r) => ({
+    blockHash: r.signerSignatureHash,
+    signerPublicKey: r.signerPublicKey,
+  }),
+  (_get, set, response) => {
+    set(signerLatestResponseFamilyInner(response.signerPublicKey), (latest) => {
+      if (!latest) return latest;
+      return {
+        ...latest,
+        createdAt: new Date().toISOString(),
+      };
+    });
+    set(
+      latestResponseTimeForSignerFamily(response.signerPublicKey),
+      Date.now(),
+    );
+  },
+  'mini-block-responses',
+);

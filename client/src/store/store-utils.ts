@@ -146,7 +146,22 @@ export function listAtomFamilyWithInit<OKey, T, K>(
   const writerAtom = atomFamily((_outerKey: OKey) => {
     const a = atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
       if (Array.isArray(listOrItem)) {
-        set(listAtomFamilyInner(outerKey), listOrItem);
+        set(listAtomFamilyInner(outerKey), (existingList) => {
+          if (existingList.length === 0) {
+            return listOrItem;
+          }
+          for (const item of existingList) {
+            const existingIndex = existingList.findIndex((item) =>
+              dequal(keyFn(item), keyFn(item)),
+            );
+            if (existingIndex === -1) {
+              existingList.push(item);
+            } else {
+              existingList[existingIndex] = item;
+            }
+          }
+          return [...existingList];
+        });
         for (const item of listOrItem) {
           set(itemAtomFamilyInner(keyFn(item)), item);
           onItemSet?.(get, set, item);

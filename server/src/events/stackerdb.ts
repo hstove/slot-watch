@@ -11,6 +11,7 @@ import {
   type BlockResponseAccepted,
   type BlockResponseRejected,
   type WSBlockProposal,
+  type WSMiniBlockResponses,
   BLOCK_PROPOSAL_EVENT,
   type WSBlockResponse,
   BLOCK_RESPONSE_EVENT,
@@ -22,6 +23,7 @@ import {
   superSerialize,
   chunkTypeName,
   decodeChunk,
+  MINI_BLOCK_RESPONSES_EVENT,
 } from 'slot-watch-common';
 import { db } from '../db/db';
 import { getCreatedAt, getPayloadContractId } from '../utils';
@@ -43,7 +45,12 @@ import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import { sql } from 'drizzle-orm';
-import type { ChunkType, DecodedChunk, SuperJSON } from 'slot-watch-common';
+import type {
+  BlockResponseApi,
+  ChunkType,
+  DecodedChunk,
+  SuperJSON,
+} from 'slot-watch-common';
 import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 import { v7 as uuidv7 } from 'uuid';
 import { publishWsEventToStreamer } from '../streamer';
@@ -55,14 +62,13 @@ export async function handleStackerDBChunk(
 ) {
   const contractId = getPayloadContractId(payload);
 
+  const blockResponses: BlockResponseApi[] = [];
+
   // for (const chunk of payload.modified_slots) {
   await Promise.all(
     payload.modified_slots.map(async (chunk) => {
       const chunkData = hex.decode(chunk.data);
       const chunkType = chunkTypeName(chunkData);
-      const endTimer = stackerDbChunkProcessingTimeSummary.startTimer({
-        chunk_type: chunkType,
-      });
       const id = uuidv7({ msecs: receivedAt.getTime() });
       const publicKey = recoverChunkPublicKey({
         data: hex.decode(chunk.data),
@@ -113,7 +119,7 @@ export async function handleStackerDBChunk(
       } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
         const handleProposals = true;
         if (handleProposals) {
-          await handleBlockResponse({
+          const response = await handleBlockResponse({
             chunk,
             payload: decoded,
             receivedAt,
@@ -121,6 +127,7 @@ export async function handleStackerDBChunk(
             publicKey,
             chunkId,
           });
+          blockResponses.push(response);
         }
       } else if (
         decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate
@@ -133,9 +140,22 @@ export async function handleStackerDBChunk(
           publicKey,
         });
       }
-      endTimer();
     }),
   );
+
+  if (blockResponses.length > 0) {
+    await publishWsEventToStreamer({
+      type: MINI_BLOCK_RESPONSES_EVENT,
+      networkKey,
+      receivedAt: receivedAt.toISOString(),
+      payload: blockResponses.map((r) => ({
+        signerSignatureHash: r.signerSignatureHash,
+        signerPublicKey: r.signerPublicKey,
+        accepted: r.accepted,
+        tenureExtendTimestamp: r.tenureExtendTimestamp,
+      })),
+    } satisfies WSMiniBlockResponses);
+  }
 }
 
 export async function handleBlockProposal({
@@ -276,26 +296,21 @@ export async function handleBlockResponse({
     },
     'Inserting block response',
   );
+  const blockResponse: BlockResponseApi = serializeBlockResponse({
+    ...data,
+    id,
+  });
   await Promise.all([
     await db.insert(blockResponses).values(data),
-    await setLatestBlockResponse(
-      serializeBlockResponse({
-        ...data,
-        id,
-      }),
-    ),
-    await publishWsEventToStreamer({
-      type: BLOCK_RESPONSE_EVENT,
-      networkKey,
-      receivedAt: receivedAt.toISOString(),
-      payload: {
-        ...serializeBlockResponse({
-          ...data,
-          id,
-        }),
-      },
-    } satisfies WSBlockResponse),
+    await setLatestBlockResponse(blockResponse),
+    // await publishWsEventToStreamer({
+    //   type: BLOCK_RESPONSE_EVENT,
+    //   networkKey,
+    //   receivedAt: receivedAt.toISOString(),
+    //   payload: blockResponse,
+    // } satisfies WSBlockResponse),
   ]);
+  return blockResponse;
 }
 
 export async function handleStateMachineUpdate({

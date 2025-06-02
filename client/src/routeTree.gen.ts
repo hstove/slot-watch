@@ -13,11 +13,9 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as WhenExtendImport } from './routes/when-extend'
 import { Route as UiTestImport } from './routes/ui-test'
-import { Route as StreamImport } from './routes/stream'
 import { Route as StateMachinesImport } from './routes/state-machines'
 import { Route as SignersImport } from './routes/signers'
 import { Route as MinersImport } from './routes/miners'
-import { Route as BlocksV1Import } from './routes/blocks-v1'
 import { Route as IndexImport } from './routes/index'
 import { Route as BlocksIndexImport } from './routes/blocks/index'
 import { Route as BtcBlocksHeightOrHashImport } from './routes/btc-blocks/$heightOrHash'
@@ -36,12 +34,6 @@ const UiTestRoute = UiTestImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const StreamRoute = StreamImport.update({
-  id: '/stream',
-  path: '/stream',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const StateMachinesRoute = StateMachinesImport.update({
   id: '/state-machines',
   path: '/state-machines',
@@ -57,12 +49,6 @@ const SignersRoute = SignersImport.update({
 const MinersRoute = MinersImport.update({
   id: '/miners',
   path: '/miners',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const BlocksV1Route = BlocksV1Import.update({
-  id: '/blocks-v1',
-  path: '/blocks-v1',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,13 +81,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/blocks-v1': {
-      id: '/blocks-v1'
-      path: '/blocks-v1'
-      fullPath: '/blocks-v1'
-      preLoaderRoute: typeof BlocksV1Import
-      parentRoute: typeof rootRoute
-    }
     '/miners': {
       id: '/miners'
       path: '/miners'
@@ -121,13 +100,6 @@ declare module '@tanstack/react-router' {
       path: '/state-machines'
       fullPath: '/state-machines'
       preLoaderRoute: typeof StateMachinesImport
-      parentRoute: typeof rootRoute
-    }
-    '/stream': {
-      id: '/stream'
-      path: '/stream'
-      fullPath: '/stream'
-      preLoaderRoute: typeof StreamImport
       parentRoute: typeof rootRoute
     }
     '/ui-test': {
@@ -165,11 +137,9 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
-  '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -178,11 +148,9 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
-  '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -192,11 +160,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/blocks-v1': typeof BlocksV1Route
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
-  '/stream': typeof StreamRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -207,11 +173,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/blocks-v1'
     | '/miners'
     | '/signers'
     | '/state-machines'
-    | '/stream'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -219,11 +183,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/blocks-v1'
     | '/miners'
     | '/signers'
     | '/state-machines'
-    | '/stream'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -231,11 +193,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/blocks-v1'
     | '/miners'
     | '/signers'
     | '/state-machines'
-    | '/stream'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -245,11 +205,9 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BlocksV1Route: typeof BlocksV1Route
   MinersRoute: typeof MinersRoute
   SignersRoute: typeof SignersRoute
   StateMachinesRoute: typeof StateMachinesRoute
-  StreamRoute: typeof StreamRoute
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
@@ -258,11 +216,9 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BlocksV1Route: BlocksV1Route,
   MinersRoute: MinersRoute,
   SignersRoute: SignersRoute,
   StateMachinesRoute: StateMachinesRoute,
-  StreamRoute: StreamRoute,
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
   BtcBlocksHeightOrHashRoute: BtcBlocksHeightOrHashRoute,
@@ -280,11 +236,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/blocks-v1",
         "/miners",
         "/signers",
         "/state-machines",
-        "/stream",
         "/ui-test",
         "/when-extend",
         "/btc-blocks/$heightOrHash",
@@ -294,9 +248,6 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
-    "/blocks-v1": {
-      "filePath": "blocks-v1.tsx"
-    },
     "/miners": {
       "filePath": "miners.tsx"
     },
@@ -305,9 +256,6 @@ export const routeTree = rootRoute
     },
     "/state-machines": {
       "filePath": "state-machines.tsx"
-    },
-    "/stream": {
-      "filePath": "stream.tsx"
     },
     "/ui-test": {
       "filePath": "ui-test.tsx"

@@ -73,6 +73,15 @@ export const blockResponseApiSchema = z.object({
 
 export type BlockResponseApi = z.infer<typeof blockResponseApiSchema>;
 
+export const miniBlockResponseApiSchema = z.object({
+  signerSignatureHash: z.string(),
+  signerPublicKey: z.string(),
+  accepted: z.boolean(),
+  tenureExtendTimestamp: z.union([z.null(), z.string()]),
+});
+
+export type MiniBlockResponseApi = z.infer<typeof miniBlockResponseApiSchema>;
+
 export const apiBurnBlockSchema = z.object({
   // id: z.number(),
   networkKey: z.string(),

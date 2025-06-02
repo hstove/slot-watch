@@ -1,5 +1,4 @@
 import { atom } from 'jotai';
-import { allPayloadsAtom } from './chunks-store';
 import { atomWithLocation } from 'jotai-location';
 
 export type Network = {
@@ -40,7 +39,6 @@ export const locationStore = atomWithLocation();
 export const networkAtom = atom<Network, [string | null], void>(
   (get) => get(currentNetworkAtom),
   (_get, set, networkId) => {
-    set(allPayloadsAtom, []);
     set(currentNetworkAtom, getNetwork(networkId));
   },
 );
