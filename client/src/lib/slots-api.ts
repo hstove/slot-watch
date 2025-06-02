@@ -1,6 +1,6 @@
 import { hc } from 'hono/client';
 import type { SlotWatchServer } from 'slot-watch-api';
-import { superDeserialize, type TypeMerge } from 'slot-watch-common';
+import { strip0x, superDeserialize, type TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 
 export const slotsApiUrl =
@@ -116,7 +116,7 @@ export async function getBlocksForBurnBlock(
   const response = await apiClient['burn-blocks'][':networkKey'][
     ':consensusHash'
   ].blocks.$get({
-    param: { networkKey, consensusHash },
+    param: { networkKey, consensusHash: strip0x(consensusHash) },
   });
   const data = await response.json();
 

@@ -1,48 +1,30 @@
-# syntax = docker/dockerfile:1
+# Use a Rust base image with Cargo installed
+FROM rust:1.86.0 AS builder
 
-# Adjust BUN_VERSION as desired
-ARG BUN_VERSION=1.2.13
-FROM oven/bun:${BUN_VERSION}-slim AS base
+# Set the working directory inside the container
+WORKDIR /usr/src/app
 
-LABEL fly_launch_runtime="Bun"
+# Copy the Cargo.toml and Cargo.lock files
+COPY Cargo.toml Cargo.lock ./
 
-# Bun app lives here
-WORKDIR /app
+# Now copy the source code
+COPY ./src ./src
 
-# Set production environment
-ENV NODE_ENV="production"
+# Build your application
+RUN cargo build --release
 
+# Start a new stage to create a smaller image without unnecessary build dependencies
+FROM debian:bookworm-slim
 
-# Throw-away build stage to reduce size of final image
-# FROM base AS build
+# Set the working directory
+WORKDIR /usr/src/app
 
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
+RUN echo pwd
 
-# Install node modules
-# COPY bun.lock package.json turbo.json ./
-# COPY common/package.json ./common/
-# COPY client/package.json ./client/
-# COPY server/package.json ./server/
-COPY . .
-RUN bun install
+# Copy the built binary from the previous stage
+COPY --from=builder /usr/src/app/target/release/rust-pubsub-server ./
 
-# Copy application code
-# COPY common ./common
+EXPOSE 8080
 
-# RUN bunx turbo build --filter=slot-watch-common
-
-# COPY ./streamer ./
-
-# COPY common/dist ./common/dist
-
-# Final stage for app image
-# FROM base
-
-# Copy built application
-# COPY --from=build /app /app
-
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "bun", "run", "index.ts" ]
+# Command to run the application
+CMD ["./rust-pubsub-server"]

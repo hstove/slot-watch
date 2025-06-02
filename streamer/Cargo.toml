@@ -1,0 +1,22 @@
+[package]
+name = "rust-pubsub-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4"
+actix-cors = "0.7"
+actix-web-lab = "0.20" # For SSE
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+futures-util = "0.3" # For stream utilities if needed, sse::Sender uses it
+parking_lot = "0.12" # Often preferred over std::sync::Mutex for performance with Arc
+async-stream = "0.3.6"
+
+# Using parking_lot::Mutex for potentially better performance in highly contended scenarios
+# For this example, std::sync::Mutex would also be fine.
+# We'll use std::sync::Mutex for simplicity to match tokio::sync::Mutex mental model
+# but parking_lot is a good alternative. Let's stick to tokio/std for now.

@@ -1,0 +1,1 @@
+CREATE INDEX `block_proposals_by_consensus_hash_idx` ON `block_proposals` (`consensus_hash`,`network_key`,`chain_length`,`id`);

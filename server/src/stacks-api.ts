@@ -71,6 +71,9 @@ export async function getStackerSet(networkKey: string, rewardCycle: number) {
 
 export async function getSmallPoxInfo(networkKey: string) {
   const poxInfo = await getPoxInfoInner(networkKey);
+  if (!poxInfo.reward_cycle_id) {
+    throw new Error('No reward cycle id');
+  }
   return {
     firstBurnchainBlockHeight: poxInfo.first_burnchain_block_height,
     rewardCycleLength: poxInfo.reward_cycle_length,

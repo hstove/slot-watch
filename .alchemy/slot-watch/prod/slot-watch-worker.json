@@ -44,11 +44,11 @@
         "Symbol(alchemy::ResourceScope)": {
           "@scope": null
         },
-        "Symbol(alchemy::ResourceSeq)": 1,
+        "Symbol(alchemy::ResourceSeq)": 3,
         "type": "d1",
         "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
         "name": "slot-watch-db",
-        "fileSize": 237568,
+        "fileSize": 1248468992,
         "numTables": 8,
         "version": "production",
         "readReplication": {
@@ -59,20 +59,20 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "r+A3vlrFDNxWuFMDhhOsXnwUJVcQOHSqjSqIVXsD+3jj7vLDsucKBf4S8s0TKgOzl+caRHVt78ngfCzmB1RpjtwL85Iy2a+SmdL2iWB1"
+        "@secret": "nU3U3FAwlqPEoPScJvRQmhAW2bFOp+/GuGr5ZyfKmRWvOxrZP/QiUEpgnptCeYqxWiFHDKmQQXxFpGvxSNhNlFdUcpp5dzC9eoP93cuC"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "5PGvzxDID6yn50FQjQSTdU3UeqZ9fTrenJXz+fqJJo8jCR1y3xyuQFoISaPstVSGIzapwZh91dVfeCG/38RXFbhwJVRnjYs3KbxPqRZly76g+xWmfNLn/dETp4f+OeaMRSM="
+        "@secret": "oKHTjWgMC/+aEF8o949Wccq/VF2EO1HV3bmOn9B8VCV2cNGL/F30a5hDMxuIqcozP7m21NLbztYpBXJV/tSxhpicFCVEcoOFqKX50s/cGOfKBdniu1eu6sz231fr6Nq0jwQ="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "9Q+kbuQsJgHraU0S55HK9EOUU4ntPKu3k9zVmEUaIrkAWdjnwVPacacLQqUW0Sbi7IkmS1J5xxw="
+        "@secret": "4oXNaWXB+emLBhT/0XWAJhlEssMBYMPxgRvbtLSn7UAv+dq44go+Jb/Nh+GpNYZ4JNbU4NfL80g="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748822674310,
-    "updatedAt": 1748822674310
+    "createdAt": 1748896746867,
+    "updatedAt": 1748896746867
   },
   "props": {
     "name": "slot-watch-worker",
@@ -106,11 +106,11 @@
         "Symbol(alchemy::ResourceScope)": {
           "@scope": null
         },
-        "Symbol(alchemy::ResourceSeq)": 1,
+        "Symbol(alchemy::ResourceSeq)": 3,
         "type": "d1",
         "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
         "name": "slot-watch-db",
-        "fileSize": 237568,
+        "fileSize": 1248468992,
         "numTables": 8,
         "version": "production",
         "readReplication": {
@@ -121,13 +121,13 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "DUPzxbk8JP3BdMsoLph2FvSISh31otvhnap53v57h/Ndtz45mmsnlNbson6j5Y4TLoKciiXyedEMcr+TbxGtafLUHHUjv63AmEyIiemJ"
+        "@secret": "FHZCWVRczXAPu58C//7mDdWxCxXK1W6mpnEKUPnrjWXrkPNXbzVttf2I34INltAPrPtgH+Lj/VA4VLGTG8wRZLHFYOOcBxqVZDgVvNlV"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "ItTD0MCpC9bviMOosnvwd2BH1XNm76cgiIArnonWAxvWpqd9ltDsWMG3DQgrawEV/Oj0RpgYN0el34Cs118n2UxlF4D8bbWK4lHJrhv91ruN3Eo60KdPYDIs+xvUKmnVANo="
+        "@secret": "u2cI/o5IDxNCV32zKfbPrZ92KX4NFF1x6NPmS3/mM2KBrMEeyjftk9mXB2vqpgF6kl8ClQyMZrEy8S13l88RVbOV1O+yirU95zxv5Zfa2uzLSHB/FK6FJ3NyQqmdxFI5aco="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "cA3XTRzxNbV5ycIbNoUef/wav8OkByxnWD7UxXVpksAYXDgiZceYbzytc53KbHe2PI1ZxGUA0Eg="
+        "@secret": "Dthl+qvBH2UsrJhrhQ+PB/DYiyZCHF1uLYFe4prSApcobjUmPYGQCs3iPw6cnVmI0oPQOIUnf0Q="
       }
     }
   }

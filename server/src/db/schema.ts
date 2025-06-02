@@ -91,6 +91,12 @@ export const blockProposals = pgTable(
       table.consensusHash,
       table.networkKey,
     ),
+    index('block_proposals_by_consensus_hash_idx').on(
+      table.consensusHash,
+      table.networkKey,
+      table.chainLength,
+      table.id,
+    ),
   ],
 );
 
