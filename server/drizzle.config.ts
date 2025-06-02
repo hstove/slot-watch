@@ -6,9 +6,14 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'sqlite', // 'postgresql' | 'mysql' | 'sqlite'
   driver: 'd1-http',
-  // dbCredentials: {
-
-  // }
+  dbCredentials: {
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    databaseId: process.env.CLOUDFLARE_D1_DATABASE_ID!,
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    token: process.env.CLOUDFLARE_D1_API_TOKEN!,
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
+  },
   // dbCredentials: {
   //   conf
   // }

@@ -9,10 +9,21 @@ const logger = log.child().withContext({
 export async function publishWsEventToStreamer(payload: WSPayload) {
   try {
     const url = env.STREAMER_URL;
-    await fetch(`${url}/${payload.networkKey}`, {
+    const res = await fetch(`${url}/${payload.networkKey}`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     });
+    const status = res.status;
+    logger
+      .withMetadata({
+        url,
+        status,
+        payloadType: payload.type,
+      })
+      .info('Published event to streamer');
   } catch (error) {
     logger
       .withError(error)

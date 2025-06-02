@@ -28,19 +28,6 @@ const app = new Hono()
           data: JSON.stringify(message),
         });
       }
-      // function handler(message: string, channel: string) {
-      //   if (channel === networkKey) {
-      //     console.debug(`Sending message to stream for ${networkKey}`);
-      //     try {
-      //       stream.writeSSE({
-      //         event: 'message',
-      //         data: message,
-      //       });
-      //     } catch (error) {
-      //       console.error('Error writing to stream', error);
-      //     }
-      //   }
-      // }
       // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
       return new Promise(async (resolve) => {
         ee.on(networkKey, handler);

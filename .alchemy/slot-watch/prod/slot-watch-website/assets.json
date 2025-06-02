@@ -28,8 +28,8 @@
         "contentType": "image/svg+xml"
       },
       {
-        "path": "assets/index-Bi9B3E5X.js",
-        "filePath": "client/dist/assets/index-Bi9B3E5X.js",
+        "path": "assets/index-DGgHq5dd.js",
+        "filePath": "client/dist/assets/index-DGgHq5dd.js",
         "contentType": "application/javascript"
       },
       {
@@ -44,7 +44,7 @@
       }
     ],
     "createdAt": 1748738754449,
-    "updatedAt": 1748822665966
+    "updatedAt": 1748896738780
   },
   "props": {
     "path": "client/dist"

@@ -17,6 +17,7 @@ import {
   NEW_BLOCK_V2_EVENT,
   type WSBurnBlockV2,
   BURN_BLOCK_V2_EVENT,
+  coreNodeBurnBlockMessageSchema,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
 import { log, logger } from '../logger';
@@ -155,19 +156,18 @@ const eventsRoutes = new Hono<Env>()
     logger.info(
       `${networkKey}: Got new Burn Block (${data.burn_block_height})`,
     );
+    const burnBlock = coreNodeBurnBlockMessageSchema.parse(data);
     const payload: WSBurnBlockV2 = {
       type: BURN_BLOCK_V2_EVENT,
       receivedAt: new Date().toISOString(),
       networkKey,
       payload: {
-        ...data,
+        ...burnBlock,
         networkKey,
         createdAt: new Date().toISOString(),
-        burnBlockHeight: data.burn_block_height,
-        burnBlockHash: data.burn_block_hash,
-        consensusHash: data.consensus_hash,
-        // processedAt: new Date().toISOString(),
-        // burnBlockTimestamp: data.burn_block_timestamp.toISOString(),
+        burnBlockHeight: burnBlock.burn_block_height,
+        burnBlockHash: burnBlock.burn_block_hash,
+        consensusHash: burnBlock.consensus_hash,
       },
     };
     c.executionCtx.waitUntil(

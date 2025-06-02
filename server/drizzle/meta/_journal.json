@@ -8,6 +8,13 @@
       "when": 1748717505961,
       "tag": "0000_chubby_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1748873814223,
+      "tag": "0001_bouncy_thunderbolt",
+      "breakpoints": true
     }
   ]
 }

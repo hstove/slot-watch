@@ -58,8 +58,8 @@
               "contentType": "image/svg+xml"
             },
             {
-              "path": "assets/index-Bi9B3E5X.js",
-              "filePath": "client/dist/assets/index-Bi9B3E5X.js",
+              "path": "assets/index-DGgHq5dd.js",
+              "filePath": "client/dist/assets/index-DGgHq5dd.js",
               "contentType": "application/javascript"
             },
             {
@@ -74,7 +74,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748822665966
+          "updatedAt": 1748896738780
         }
       },
       "entrypoint": "client/worker.ts",
@@ -86,8 +86,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748822670912,
-      "updatedAt": 1748822670912
+      "createdAt": 1748896743668,
+      "updatedAt": 1748896743668
     },
     "path": "client/wrangler.jsonc",
     "spec": {
@@ -105,8 +105,8 @@
         "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev"
       }
     },
-    "createdAt": 1748822670923,
-    "updatedAt": 1748822670923
+    "createdAt": 1748896743682,
+    "updatedAt": 1748896743682
   },
   "props": {
     "worker": {
@@ -154,8 +154,8 @@
               "contentType": "image/svg+xml"
             },
             {
-              "path": "assets/index-Bi9B3E5X.js",
-              "filePath": "client/dist/assets/index-Bi9B3E5X.js",
+              "path": "assets/index-DGgHq5dd.js",
+              "filePath": "client/dist/assets/index-DGgHq5dd.js",
               "contentType": "application/javascript"
             },
             {
@@ -170,7 +170,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748822665966
+          "updatedAt": 1748896738780
         }
       },
       "entrypoint": "client/worker.ts",
@@ -182,8 +182,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748822670912,
-      "updatedAt": 1748822670912
+      "createdAt": 1748896743668,
+      "updatedAt": 1748896743668
     },
     "path": "client/wrangler.jsonc"
   }
