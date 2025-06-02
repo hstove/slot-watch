@@ -27,6 +27,7 @@ import { handleStacksBlockEvent } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
 import { publishWsEventToStreamer } from '../streamer';
 import { warmCache } from '../stacks-api';
+import { recentBlocksHealthCache } from '../db/block-proposals';
 
 type Env = {
   Variables: {
@@ -135,6 +136,7 @@ const eventsRoutes = new Hono<Env>()
             burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
           },
         }),
+        recentBlocksHealthCache.warmIfNeeded(),
       ]),
     );
 

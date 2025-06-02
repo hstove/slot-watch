@@ -24,9 +24,9 @@
     "exitCode": 0,
     "stdout": "",
     "stderr": "",
-    "executedAt": 1748903520975,
+    "executedAt": 1748904955806,
     "completed": true,
-    "hash": "86ad1f7d527ccaaeb3bccae4f802364e449baf34efd824749379231125ee8a2d"
+    "hash": "b78305008e3c34ce0ee5bc4743b4366bbf59b2013d6787bc3919d12297841ba1"
   },
   "props": {
     "command": "bun build:server",
