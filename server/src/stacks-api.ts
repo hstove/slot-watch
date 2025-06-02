@@ -12,6 +12,7 @@ import { stxCommittedCache } from './pox-4';
 import {
   fetchRecentMinerBlocksCache,
   fetchRecentMinerStats,
+  recentBlocksHealthCache,
 } from './db/block-proposals';
 
 export const getStackerSetCache = memoizeCache(
@@ -105,6 +106,7 @@ export async function warmCache(networkKey: string) {
   await Promise.all([
     stxCommittedCache.warm(),
     fetchRecentMinerBlocksCache.warm(networkKey),
-    warmupMetrics(),
+    recentBlocksHealthCache.warmIfNeeded(),
+    // warmupMetrics(),
   ]);
 }

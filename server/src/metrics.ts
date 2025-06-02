@@ -1,5 +1,8 @@
 import { Gauge, Summary } from 'prom-client';
-import { getRecentBlocksHealth } from './db/block-proposals';
+import {
+  getRecentBlocksHealth,
+  recentBlocksHealthCache,
+} from './db/block-proposals';
 import { getStackerSet, getPoxInfo } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
@@ -77,26 +80,13 @@ export const workerJobProcessingTimeSummary = new Summary({
   labelNames: ['job_type'] as const,
 });
 
-let lastRun = 0;
-const runEvery = 1000 * 60; // 1 minute
-let isRunning = false;
-
 export const lastNs = [10, 25, 50];
 
 export async function warmupMetrics() {
-  if (isRunning) {
-    logger.debug('Metrics are already running');
-    return;
-  }
-  if (Date.now() - lastRun < runEvery) {
-    logger.debug('Metrics were last run less than a minute ago');
-    return;
-  }
   const runStart = Date.now();
-  isRunning = true;
 
   logger.info('Warming up metrics');
-  const recentBlocks = await getRecentBlocksHealth({ networkKey: 'mainnet' });
+  const recentBlocks = await recentBlocksHealthCache.get();
   const { rewardCycleId } = await getPoxInfo.get('mainnet');
   const stackerSet = await getStackerSet('mainnet', rewardCycleId);
 
@@ -211,6 +201,4 @@ export async function warmupMetrics() {
 
   const runDuration = Date.now() - runStart;
   logger.info(`Metrics warmed up in ${runDuration}ms`);
-  lastRun = Date.now();
-  isRunning = false;
 }

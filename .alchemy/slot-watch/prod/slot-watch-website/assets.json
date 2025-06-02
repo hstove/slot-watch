@@ -28,13 +28,13 @@
         "contentType": "image/svg+xml"
       },
       {
-        "path": "assets/index-Cs6V8eew.js",
-        "filePath": "client/dist/assets/index-Cs6V8eew.js",
+        "path": "assets/index-CV2bXDBH.js",
+        "filePath": "client/dist/assets/index-CV2bXDBH.js",
         "contentType": "application/javascript"
       },
       {
-        "path": "assets/index-D6M90wCz.css",
-        "filePath": "client/dist/assets/index-D6M90wCz.css",
+        "path": "assets/index-pmqYnFa0.css",
+        "filePath": "client/dist/assets/index-pmqYnFa0.css",
         "contentType": "text/css"
       },
       {
@@ -44,7 +44,7 @@
       }
     ],
     "createdAt": 1748738754449,
-    "updatedAt": 1748903528038
+    "updatedAt": 1748904962378
   },
   "props": {
     "path": "client/dist"

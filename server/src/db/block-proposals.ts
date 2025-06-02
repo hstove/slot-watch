@@ -237,6 +237,17 @@ export async function getRecentBlocksHealth({
   };
 }
 
+export const recentBlocksHealthCache = memoizeCache(
+  () => 'recent-blocks-health:mainnet',
+  async () => {
+    return getRecentBlocksHealth({ networkKey: 'mainnet' });
+  },
+  {
+    ttl: 60 * 5,
+    refreshTtl: 60 * 1,
+  },
+);
+
 export async function _fetchRecentMinerBlocks(networkKey: string) {
   const recentBlocksDistinct = await db
     .selectDistinct({

@@ -7,9 +7,10 @@ import { register, Registry } from 'prom-client';
 // });
 
 export const metricsRoutes = new Hono().get('/metrics', async (c) => {
-  process.nextTick(async () => {
-    await warmupMetrics();
-  });
+  // process.nextTick(async () => {
+  //   await warmupMetrics();
+  // });
+  await warmupMetrics();
   // @ts-ignore
   register.setContentType(Registry.OPENMETRICS_CONTENT_TYPE);
   const metrics = await register.metrics();

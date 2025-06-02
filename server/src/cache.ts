@@ -75,6 +75,8 @@ export function memoizeCache<Fn extends F.Function>(
   get: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;
   warm: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;
   clear: F.Function<F.Parameters<Fn>, void>;
+  getExpiration: F.Function<F.Parameters<Fn>, A.Promise<number | undefined>>;
+  warmIfNeeded: F.Function<F.Parameters<Fn>, Promise<void>>;
 } {
   const { ttl = CACHE_TTL, refreshTtl = REFRESH_TTL } = options;
   return {
@@ -144,6 +146,31 @@ export function memoizeCache<Fn extends F.Function>(
         .debug(`Cache: clear ${key(...args)}`);
       await env.CACHE.delete(cacheKey(key(...args)));
       await env.CACHE.delete(ttlKey(key(...args)));
+    },
+    async getExpiration(
+      ...args: F.Parameters<Fn>
+    ): A.Promise<number | undefined> {
+      const keyFn = key(...args);
+      const keysResult = await env.CACHE.list({
+        prefix: keyFn,
+      });
+      for (const key of keysResult.keys) {
+        if (key.name === keyFn) {
+          return key.expiration;
+        }
+      }
+      return undefined;
+    },
+    async warmIfNeeded(...args: F.Parameters<Fn>): Promise<void> {
+      const expiration = await this.getExpiration(...args);
+      if (typeof expiration !== 'number') {
+        await this.warm(...args);
+        return;
+      }
+      const expRemaining = expiration - Date.now();
+      if (expRemaining / 1000 < refreshTtl) {
+        await this.warm(...args);
+      }
     },
   };
 }
