@@ -59,20 +59,20 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "70m3Sk0TsmUaGGi+o/PiNGHEw0swWGYFQarDokaekVy0H9t4pRMNzXlYvgfucPPW2384OHlRYr+orj6yVaahepd4UmPY7kbiM5aNk8nI"
+        "@secret": "r+A3vlrFDNxWuFMDhhOsXnwUJVcQOHSqjSqIVXsD+3jj7vLDsucKBf4S8s0TKgOzl+caRHVt78ngfCzmB1RpjtwL85Iy2a+SmdL2iWB1"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "j+e9l8JcGVMkfJDMMJhHXpU4NPpR0dR/CeLPJyoMVKeuCdoU987rjSEe94c0h5lNNS7+gfpAjYOqasCcqiHB/YZljtS6vtNO0SIEAX27SZ1cnSoW1bVP6gMKPLnQQU7DbZE="
+        "@secret": "5PGvzxDID6yn50FQjQSTdU3UeqZ9fTrenJXz+fqJJo8jCR1y3xyuQFoISaPstVSGIzapwZh91dVfeCG/38RXFbhwJVRnjYs3KbxPqRZly76g+xWmfNLn/dETp4f+OeaMRSM="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "6rkM4mo1qrcL+RsdvslPJTAPnpOX3AyPxiSH+/VLSsex/vj6IcJ29NNbcmhV7eNqz21WmV2C99E="
+        "@secret": "9Q+kbuQsJgHraU0S55HK9EOUU4ntPKu3k9zVmEUaIrkAWdjnwVPacacLQqUW0Sbi7IkmS1J5xxw="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748760310894,
-    "updatedAt": 1748760310894
+    "createdAt": 1748822674310,
+    "updatedAt": 1748822674310
   },
   "props": {
     "name": "slot-watch-worker",
@@ -121,13 +121,13 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "vIV/sU3bfEtqDFqIOfGagDkgsgXcJElgZPHMchk79T9Rlbx5w2+qbFkb/EY1UVOLrp5sAlUrd6xPhRvAiNvMZpSq7D26xdE7IdSgQ2up"
+        "@secret": "DUPzxbk8JP3BdMsoLph2FvSISh31otvhnap53v57h/Ndtz45mmsnlNbson6j5Y4TLoKciiXyedEMcr+TbxGtafLUHHUjv63AmEyIiemJ"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "6djaYhH/mrGh8HQYykwcBqlyXM3+hvtCSj9NqlpzW0kY5ua8u7LyHohnLymyFwVWuOMBc4pFHcQ2E9niLl1u0EHAfJMt/BpfX/WFXO73DiV3sKp42PNfVPhtf3GEllMrNqs="
+        "@secret": "ItTD0MCpC9bviMOosnvwd2BH1XNm76cgiIArnonWAxvWpqd9ltDsWMG3DQgrawEV/Oj0RpgYN0el34Cs118n2UxlF4D8bbWK4lHJrhv91ruN3Eo60KdPYDIs+xvUKmnVANo="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "Iz6kySHNbZYkd/Z6LSDK3GGMRaOP5xa+APkEEwkSTs2hU/2vD7XIfDMmaTYlZQja+L2gZ6IidMw="
+        "@secret": "cA3XTRzxNbV5ycIbNoUef/wav8OkByxnWD7UxXVpksAYXDgiZceYbzytc53KbHe2PI1ZxGUA0Eg="
       }
     }
   }

@@ -1,5 +1,5 @@
 import * as P from 'micro-packed';
-import { sha512_256 } from '@noble/hashes/sha2';
+import { sha512_256 } from '@noble/hashes/sha512';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import {
   PayloadType,

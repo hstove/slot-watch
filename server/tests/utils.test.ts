@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { getCreatedAt } from '../src/utils';
 import { v7 as uuidv7 } from 'uuid';
 
