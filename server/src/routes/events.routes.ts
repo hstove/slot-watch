@@ -87,12 +87,6 @@ const eventsRoutes = new Hono<Env>()
         createdAt: receivedAt.toISOString(),
       });
     }
-    const manyChunksPayload: WSManyChunks = {
-      type: MANY_CHUNKS_EVENT,
-      networkKey,
-      payload: chunks,
-      receivedAt: receivedAt.toISOString(),
-    };
 
     c.executionCtx.waitUntil(
       Promise.all([

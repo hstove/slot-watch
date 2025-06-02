@@ -9,6 +9,8 @@ import {
   type BlockResponseApi,
   type ApiStateMachineUpdate,
   STATE_MACHINE_UPDATE_EVENT,
+  type MiniBlockResponseApi,
+  MINI_BLOCK_RESPONSES_EVENT,
 } from 'slot-watch-common';
 import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
@@ -23,6 +25,8 @@ import {
 } from '@/store/blocks-store';
 import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
 import { setLatestStateMachinesAtom } from '@/store/state-machine-store';
+import { setMiniResponsesAtom } from '@/store/responses-store';
+import * as R from 'remeda';
 
 export const useWatchBlocks = () => {
   const { lastMessage, readyState } = useWebSocket();
@@ -102,6 +106,24 @@ export const useWatchBlocks = () => {
     ),
   );
 
+  const handleMiniBlockResponses = useAtomCallback(
+    React.useCallback(
+      (_get, set, miniBlockResponses: MiniBlockResponseApi[]) => {
+        const byBlockHash = R.groupBy(
+          miniBlockResponses,
+          (r) => r.signerSignatureHash,
+        );
+        // console.log('Received mini block responses', byBlockHash);
+        for (const blockHash in byBlockHash) {
+          const responses = byBlockHash[blockHash];
+          if (!responses) continue;
+          set(setMiniResponsesAtom(blockHash), blockHash, responses);
+        }
+      },
+      [],
+    ),
+  );
+
   const handleMessage = useAtomCallback(
     React.useCallback(
       // biome-ignore lint/suspicious/noExplicitAny: This is a websocket message event
@@ -119,9 +141,9 @@ export const useWatchBlocks = () => {
           if (payload.type === BLOCK_PROPOSAL_EVENT) {
             const blockProposal = payload.payload;
             handleBlockProposal(blockProposal);
-          } else if (payload.type === BLOCK_RESPONSE_EVENT) {
-            const blockResponse = payload.payload;
-            handleBlockResponse(blockResponse);
+          } else if (payload.type === MINI_BLOCK_RESPONSES_EVENT) {
+            const miniBlockResponses = payload.payload;
+            handleMiniBlockResponses(miniBlockResponses);
           } else if (payload.type === NEW_BLOCK_V2_EVENT) {
             const block = payload.payload;
             console.log('Received block', block.blockHeight, block.blockHash);
@@ -158,7 +180,7 @@ export const useWatchBlocks = () => {
           console.debug('Error parsing message', error);
         }
       },
-      [handleBlockProposal, handleBlockResponse, handleStateMachineUpdate],
+      [handleBlockProposal, handleMiniBlockResponses, handleStateMachineUpdate],
     ),
   );
 

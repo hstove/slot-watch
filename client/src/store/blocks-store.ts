@@ -19,6 +19,7 @@ import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';
 import {
+  miniResponsesForBlockFamily,
   setSignerLatestResponsesAtom,
   tenureChangesWriterAtom,
 } from './responses-store';
@@ -302,7 +303,7 @@ export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
 export const responseOutcomeForBlockAtomFamily = atomFamily(
   (blockHash: string) =>
     atom((get) => {
-      const responses = get(responsesForBlockFamilyInner(blockHash));
+      const responses = get(miniResponsesForBlockFamily(blockHash));
       const signers = get(signersApiAtom);
       if (responses.length === 0 || !signers) {
         return undefined;
