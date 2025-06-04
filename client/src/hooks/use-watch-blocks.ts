@@ -27,39 +27,15 @@ import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
 import { setLatestStateMachinesAtom } from '@/store/state-machine-store';
 import { setMiniResponsesAtom } from '@/store/responses-store';
 import * as R from 'remeda';
+import { formatTimestamp } from './use-timestamp';
 
 export const useWatchBlocks = () => {
   const { lastMessage, readyState } = useWebSocket();
 
-  const handleBlockResponse = useAtomCallback(
-    React.useCallback((get, set, blockResponse: BlockResponseApi) => {
-      const networkKey = get(networkIdAtom);
-      const signerSignatureHash = blockResponse.signerSignatureHash;
-      const ts = blockResponse.tenureExtendTimestamp;
-      const tenureExtendTimestamp = ts ? new Date(ts).toISOString() : null;
-      const rejectStuff = blockResponse.accepted
-        ? {}
-        : {
-            reason: blockResponse.reason,
-            reasonCode: blockResponse.rejectReason,
-            validationCode: blockResponse.validationCode,
-            version: blockResponse.version,
-          };
-      set(setResponseForBlockFamily(signerSignatureHash), signerSignatureHash, {
-        accepted: blockResponse.accepted,
-        signerPublicKey: blockResponse.signerPublicKey,
-        signerSignatureHash,
-        createdAt: blockResponse.createdAt,
-        networkKey,
-        tenureExtendTimestamp,
-        ...rejectStuff,
-      });
-    }, []),
-  );
-
   const handleBlockProposal = useAtomCallback(
     React.useCallback((get, set, blockProposal: ApiBlockProposal) => {
       console.log(
+        formatTimestamp(blockProposal.createdAt).timestamp,
         'Received block proposal',
         blockProposal.chainLength,
         blockProposal.signerSignatureHash,
@@ -146,7 +122,12 @@ export const useWatchBlocks = () => {
             handleMiniBlockResponses(miniBlockResponses);
           } else if (payload.type === NEW_BLOCK_V2_EVENT) {
             const block = payload.payload;
-            console.log('Received block', block.blockHeight, block.blockHash);
+            console.log(
+              formatTimestamp(block.processedAt).timestamp,
+              'Received block',
+              block.blockHeight,
+              block.blockHash,
+            );
 
             const existing = get(__stacksBlocksFamilyInner(block.blockHash));
             const base = {

@@ -58,14 +58,14 @@
               "contentType": "image/svg+xml"
             },
             {
-              "path": "assets/index-CV2bXDBH.js",
-              "filePath": "client/dist/assets/index-CV2bXDBH.js",
-              "contentType": "application/javascript"
-            },
-            {
               "path": "assets/index-pmqYnFa0.css",
               "filePath": "client/dist/assets/index-pmqYnFa0.css",
               "contentType": "text/css"
+            },
+            {
+              "path": "assets/index-DaOBB_BO.js",
+              "filePath": "client/dist/assets/index-DaOBB_BO.js",
+              "contentType": "application/javascript"
             },
             {
               "path": "favicon.svg",
@@ -74,7 +74,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748904962378
+          "updatedAt": 1748918947913
         }
       },
       "entrypoint": "client/worker.ts",
@@ -86,8 +86,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748904974286,
-      "updatedAt": 1748904974286
+      "createdAt": 1748918951860,
+      "updatedAt": 1748918951860
     },
     "path": "client/wrangler.jsonc",
     "spec": {
@@ -105,8 +105,8 @@
         "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev"
       }
     },
-    "createdAt": 1748904974300,
-    "updatedAt": 1748904974300
+    "createdAt": 1748918951870,
+    "updatedAt": 1748918951870
   },
   "props": {
     "worker": {
@@ -154,14 +154,14 @@
               "contentType": "image/svg+xml"
             },
             {
-              "path": "assets/index-CV2bXDBH.js",
-              "filePath": "client/dist/assets/index-CV2bXDBH.js",
-              "contentType": "application/javascript"
-            },
-            {
               "path": "assets/index-pmqYnFa0.css",
               "filePath": "client/dist/assets/index-pmqYnFa0.css",
               "contentType": "text/css"
+            },
+            {
+              "path": "assets/index-DaOBB_BO.js",
+              "filePath": "client/dist/assets/index-DaOBB_BO.js",
+              "contentType": "application/javascript"
             },
             {
               "path": "favicon.svg",
@@ -170,7 +170,7 @@
             }
           ],
           "createdAt": 1748738754449,
-          "updatedAt": 1748904962378
+          "updatedAt": 1748918947913
         }
       },
       "entrypoint": "client/worker.ts",
@@ -182,8 +182,8 @@
       "observability": {
         "enabled": true
       },
-      "createdAt": 1748904974286,
-      "updatedAt": 1748904974286
+      "createdAt": 1748918951860,
+      "updatedAt": 1748918951860
     },
     "path": "client/wrangler.jsonc"
   }

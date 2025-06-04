@@ -4,6 +4,7 @@ import { activeBlockHashAtom } from '@/store/blocks-store';
 import { activeBlockAtom } from '@/store/blocks-store';
 import { StacksBlock } from './stacks-block';
 import { DialogTitle } from '@radix-ui/react-dialog';
+import React from 'react';
 
 export const BlockModal = () => {
   const block = useAtomValue(activeBlockAtom);
@@ -41,7 +42,9 @@ export const BlockModal = () => {
         {/* <ScrollArea className="max-h-dvh"> */}
         <DialogTitle className="sr-only">Block details</DialogTitle>
         {/* </ScrollArea> */}
-        <StacksBlock />
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <StacksBlock />
+        </React.Suspense>
       </DialogContent>
     </Dialog>
   );

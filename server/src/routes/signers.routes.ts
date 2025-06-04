@@ -4,6 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { timeout } from 'hono/timeout';
 import { log, logger } from '../logger';
+import { getSignerLatencies } from '../db/block-responses';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
@@ -12,23 +13,23 @@ export const signersRequestSchema = z.object({
 
 export const signersRoutes = new Hono()
   .use('*', timeout(5000))
-  .get(
-    '/signers/:networkKey/:rewardCycleId',
-    zValidator('param', signersRequestSchema),
-    async (c) => {
-      const { networkKey, rewardCycleId } = c.req.valid('param');
+  // .get(
+  //   '/signers/:networkKey/:rewardCycleId',
+  //   zValidator('param', signersRequestSchema),
+  //   async (c) => {
+  //     const { networkKey, rewardCycleId } = c.req.valid('param');
 
-      const { signers, totalWeight } = await getStackerSet(
-        networkKey,
-        rewardCycleId,
-      );
-      return c.json({
-        signers,
-        totalWeight,
-        rewardCycleId,
-      });
-    },
-  )
+  //     const { signers, totalWeight } = await getStackerSet(
+  //       networkKey,
+  //       rewardCycleId,
+  //     );
+  //     return c.json({
+  //       signers,
+  //       totalWeight,
+  //       rewardCycleId,
+  //     });
+  //   },
+  // )
   .get('/signers/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
     const poxInfo = await getPoxInfo.get(networkKey);
@@ -64,4 +65,9 @@ export const signersRoutes = new Hono()
       });
       return c.json({ status: 'unhealthy', error: String(error) }, 500);
     }
+  })
+  .get('/signers/:networkKey/signer-latencies', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const latencies = await getSignerLatencies(networkKey);
+    return c.json({ latencies });
   });

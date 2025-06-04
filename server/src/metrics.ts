@@ -1,13 +1,9 @@
 import { Gauge, Summary } from 'prom-client';
-import {
-  getRecentBlocksHealth,
-  recentBlocksHealthCache,
-} from './db/block-proposals';
-import { getStackerSet, getPoxInfo } from './stacks-api';
+import { recentBlocksHealthCache } from './db/block-proposals';
+import { getLatestStackerSet } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
 import { getCreatedAt } from './utils';
-// import { workerQueue } from './worker/queue';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -84,11 +80,11 @@ export const lastNs = [10, 25, 50];
 
 export async function warmupMetrics() {
   const runStart = Date.now();
-
-  logger.info('Warming up metrics');
-  const recentBlocks = await recentBlocksHealthCache.get();
-  const { rewardCycleId } = await getPoxInfo.get('mainnet');
-  const stackerSet = await getStackerSet('mainnet', rewardCycleId);
+  const [recentBlocks, stackerSet, allCommits] = await Promise.all([
+    recentBlocksHealthCache.get(),
+    getLatestStackerSet('mainnet'),
+    stxCommittedCache.get(),
+  ]);
 
   // Reset so that we don't show stale signers
   signerParticipationRate.reset();
@@ -180,7 +176,6 @@ export async function warmupMetrics() {
     );
   }
 
-  const allCommits = await stxCommittedCache.get();
   stxCommittedNextCycle.reset();
   for (const [signerKey, stxCommitted] of Object.entries(allCommits)) {
     stxCommittedNextCycle.set({ signer_key: signerKey }, Number(stxCommitted));
@@ -193,11 +188,6 @@ export async function warmupMetrics() {
       signer.weight,
     );
   }
-
-  // const workerCounts = await workerQueue.getJobCounts();
-  // for (const [status, count] of Object.entries(workerCounts)) {
-  //   workerJobsCounts.set({ status }, Number(count));
-  // }
 
   const runDuration = Date.now() - runStart;
   logger.info(`Metrics warmed up in ${runDuration}ms`);

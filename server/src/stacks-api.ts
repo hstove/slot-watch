@@ -21,10 +21,17 @@ export const getStackerSetCache = memoizeCache(
   getStackerSetInner,
 );
 
+export const getLatestStackerSetCache = memoizeCache(
+  (networkKey: string) => `stacker_set_latest_v2_${networkKey}`,
+  async (networkKey: string) => {
+    const poxInfo = await getPoxInfo.get(networkKey);
+    return getStackerSetCache.get(networkKey, poxInfo.rewardCycleId);
+  },
+);
+
 export type StackerSet = Awaited<ReturnType<typeof getStackerSet>>;
 
-export async function getStackerSet(networkKey: string, rewardCycle: number) {
-  const signers = await getStackerSetCache.get(networkKey, rewardCycle);
+function mapCachedSignerData(signers: StackerSetSigner[]) {
   const signersByKey = new Map<string, StackerSetSigner>();
   for (const signer of signers) {
     signersByKey.set(signer.signing_key, signer);
@@ -57,6 +64,16 @@ export async function getStackerSet(networkKey: string, rewardCycle: number) {
     signersByKey,
     totalWeight,
   };
+}
+
+export async function getStackerSet(networkKey: string, rewardCycle: number) {
+  const signers = await getStackerSetCache.get(networkKey, rewardCycle);
+  return mapCachedSignerData(signers);
+}
+
+export async function getLatestStackerSet(networkKey: string) {
+  const signers = await getLatestStackerSetCache.get(networkKey);
+  return mapCachedSignerData(signers);
 }
 
 // export async function _getStackerSet(networkKey: string, rewardCycle: number) {

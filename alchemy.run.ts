@@ -67,6 +67,11 @@ export const worker = await Worker('slot-watch-worker', {
   entrypoint: 'server/src/server.ts',
   compatibilityFlags: ['nodejs_compat'],
   compatibilityDate: '2025-05-29',
+  bundle: {
+    format: 'esm',
+    metafile: true,
+    target: 'es2022',
+  },
   observability: {
     enabled: true,
   },

@@ -3,6 +3,7 @@ import {
   type ApiBlockResponseForBlock,
   apiClient,
   type ApiSigner,
+  getBlockResponsesForBlock,
   getTenureChanges,
   type ProcessedStacksBlock,
 } from '@/lib/slots-api';
@@ -204,14 +205,19 @@ export const mostRecentTenureChangeAtom = atom((get) => {
 });
 
 export const [
-  __miniResponsesAtomFamily,
+  miniResponsesAtomFamilyWithLoader,
   __miniResponseAtomFamily,
   __miniResponseNullableAtomFamily,
   miniResponsesForBlockFamily,
   setMiniResponsesAtom,
 ] = listAtomFamilyWithInit(
-  async (_signerSignatureHash: string) => {
-    return [] as MiniBlockResponseApi[];
+  async (signerSignatureHash: string, get) => {
+    const networkKey = get(networkIdAtom);
+    const responses = await getBlockResponsesForBlock(
+      networkKey,
+      signerSignatureHash,
+    );
+    return responses as MiniBlockResponseApi[];
   },
   (r) => ({
     blockHash: r.signerSignatureHash,

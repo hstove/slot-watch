@@ -19,6 +19,11 @@
       "nodejs_compat"
     ],
     "compatibilityDate": "2025-05-29",
+    "bundle": {
+      "format": "esm",
+      "metafile": true,
+      "target": "es2022"
+    },
     "observability": {
       "enabled": true
     },
@@ -59,20 +64,20 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "A5aHu1dpp+KOuahfhMxlEcCMEao0BBDPpIb9L9osefKe1NzAwSe884wtVQdSVYu64OZ5iq787ToTre7cgSkFSkzyVixFu7/pHI3ag9ec"
+        "@secret": "VJbvqzoBVlrJ3BcWpmJRoX4PGpeU61MlaWJ/bpXuARHuduf/7dvuCAQZc6XMoniELaXDKNdiSxu3plOXbXCFiZ7aGP0XZlTGrFSph3xK"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "BVBdmkpof32y2ewxSFVnOnniVEjQVIuKH+uMmj8dH6kjCc56k4O04T5bmTpRHBU9e7KtbHT8zrelh53aZhvjZd3YVW7Rvn/k85OrE0JfGqC5acMVuiTQ8RaAfbCtm1SmtDE="
+        "@secret": "g+xMd+aBa69TxZtsC2H6zPpPnSvDrRA5LjA80qOHiaAe5renrEbzPmo1KDk6AcIW4oWMOfaTZZojyxPMIzdM4L2j3/yMDJOsE0WmjduFlYnTQTPxloL0glfnw5sDKeNCedg="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "SXyQiPHnGKkwOpmuDO12kvr6zhAzz9F2nQatSjp+qQQr5Y2Uo4LylUvXbpHf+9gVPEUzaEjajO4="
+        "@secret": "Nr6CS/QjVG7Jkz7WUj8wqJ8vgMnzPoZQrf1AJXlMrBa9eo31OYN9Oo95x3HQC4b4zalUpqLxFSg="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748904978266,
-    "updatedAt": 1748904978266
+    "createdAt": 1748918955151,
+    "updatedAt": 1748918955151
   },
   "props": {
     "name": "slot-watch-worker",
@@ -81,6 +86,11 @@
       "nodejs_compat"
     ],
     "compatibilityDate": "2025-05-29",
+    "bundle": {
+      "format": "esm",
+      "metafile": true,
+      "target": "es2022"
+    },
     "observability": {
       "enabled": true
     },
@@ -121,13 +131,13 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "IXJ+N57cEHTfCqpD0C8u9d6i1ojolbzbq6F1mD8GHECsNGJGo9y70vrr1nOTTgrNvoNk4wBmMV/7YgvD8on48hhT7M2haGzUPUbZuK0w"
+        "@secret": "OCKG2ro71uDRLtDwbCUA7rL/Bkn7eSNW/smw9DlHGU9zHEe3TOEpkoH+DuBDvthZnEWue94l1X5lodWu8uLyiAHGarY8RdPR99muP3GY"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "NvUYiRe/49bVUTgPGEOX0UWKRy5F9sR3Al7UeU2/nvvBL8exh2CHCVPAJQdIqyb7rA7QGHywq59unTkkpMXIlJxJHDEQo84Zf5adN4OJxdo56UgELweBRDVZ4bOeM+7ROGk="
+        "@secret": "L+OaswSLIWraBavwZGqQwHe/LIbDyFDm2ePABpadfxHlQ7HSQC1GV7/BJXknEYXciRsILPhq0DceNJ/OjbQcHI0DfswKMTbSqxpNTr8SEQQjmHjxJFCaPesPwkfqx9j8VYQ="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "KoCv75jXLahPW4d3WUxUOxytsCM24yf8zFHr2hXqyy5KC54TEgws7pixZtoc0pcEly+g4JNTCLY="
+        "@secret": "9VUdpCcLvJFFC8MRKuz7tSa9wiKhkW0yufFZub7PLV45/uYJ3f10nPmnHNG0noL/f4djtPWe0Yo="
       }
     }
   }

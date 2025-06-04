@@ -1,5 +1,11 @@
-import type { BlockResponseDb } from './schema';
-import { getPoxInfo, getStackerSet, type StackerSet } from '../stacks-api';
+import { type BlockResponseDb, stacksBlocks, blockResponses } from './schema';
+import { db } from './db';
+import {
+  getLatestStackerSet,
+  getPoxInfo,
+  getStackerSet,
+  type StackerSet,
+} from '../stacks-api';
 import {
   knownSigners,
   blockResponseApiSchema,
@@ -10,6 +16,7 @@ import { logger } from '../logger';
 import { parse, stringify } from 'superjson';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
+import { desc, eq, and, sql } from 'drizzle-orm';
 
 export function mapSignerDataToResponses({
   stackerSet,
@@ -86,41 +93,10 @@ export function mapSignerDataToResponses({
 
 export async function getLatestResponses(networkKey: string) {
   const poxInfo = await getPoxInfo.get(networkKey);
-  const cycle = poxInfo.rewardCycleId;
-  const { signers, signersByKey, totalWeight } = await getStackerSet(
-    networkKey,
-    cycle,
-  );
+  const { signers, signersByKey, totalWeight } =
+    await getLatestStackerSet(networkKey);
   const signerKeys = signers.map((s) => s.signing_key);
   const responses = await getCachedLatestBlockResponses(networkKey, signerKeys);
-  // const query = sql`
-  //   with latest_responses as (
-  //     select
-  //       max(id) as response_id
-  //       , signer_public_key
-  //     from block_responses r
-  //     where
-  //       r.network_key = ${networkKey}
-  //       and r.signer_public_key in ${signerKeys}
-  //     group by r.signer_public_key
-  //   )
-
-  //   select
-  //     r.id
-  //     , r.signer_public_key
-  //     , r.tenure_extend_timestamp
-  //     , r.created_at
-  //   from block_responses r
-  //   join latest_responses l
-  //     on l.response_id = r.id
-  //   `;
-
-  // const responses = await db.execute<{
-  //   id: number;
-  //   signer_public_key: string;
-  //   tenure_extend_timestamp: string | null;
-  //   created_at: string;
-  // }>(query);
 
   const responsesByKey = new Map<string, (typeof responses)[number]>();
   for (const r of responses) {
@@ -244,4 +220,38 @@ export async function getCachedLatestBlockResponses(
     .map((result) => (result ? parseBlockResponse(result) : null))
     .filter((r) => r !== null);
   return blockResponses;
+}
+
+export async function getSignerLatencies(networkKey: string) {
+  const latestBlockHashes = db
+    .$with('latest_block_hashes')
+    .as(
+      db
+        .select({ signerSignatureHash: stacksBlocks.blockHash })
+        .from(stacksBlocks)
+        .where(eq(stacksBlocks.networkKey, networkKey))
+        .orderBy(desc(stacksBlocks.blockHeight))
+        .limit(1),
+    );
+
+  const latestResponses = db
+    .with(latestBlockHashes)
+    .select({
+      signerSignatureHash: blockResponses.signerSignatureHash,
+      latencyMs: sql`avg(${blockResponses.latencyMs})`,
+    })
+    .from(blockResponses)
+    .leftJoin(
+      latestBlockHashes,
+      and(
+        eq(
+          blockResponses.signerSignatureHash,
+          latestBlockHashes.signerSignatureHash,
+        ),
+        eq(blockResponses.networkKey, networkKey),
+      ),
+    )
+    .groupBy(blockResponses.signerSignatureHash);
+
+  return latestResponses;
 }
