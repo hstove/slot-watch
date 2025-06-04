@@ -1,6 +1,7 @@
 {
   "name": "slot-watch-api",
-  "module": "src/run.ts",
+  "module": "src/server.ts",
+  "main": "src/server.ts",
   "type": "module",
   "exports": {
     ".": "./dist/exports.js"
@@ -15,6 +16,7 @@
     "migrate": "bun migrate.ts",
     "test:watch": "vitest",
     "dev": "wrangler dev --config ../server-wrangler.jsonc",
+    "dev:remote": "wrangler dev --remote --config ../server-wrangler.jsonc",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --config ../server-wrangler.jsonc"
   },
   "devDependencies": {

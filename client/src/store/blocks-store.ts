@@ -136,7 +136,9 @@ export const insertBurnBlockAtom = atom(
 
 export const blockTenureCostsAtom = atomFamily((consensusHash: string) =>
   atom((get) => {
-    const stacksBlocks = get(sortedStacksBlocksForBurnBlockAtom(consensusHash));
+    const stacksBlocks = get(
+      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash)),
+    );
     const cost = {
       readCount: 0,
       readLength: 0,
@@ -144,7 +146,8 @@ export const blockTenureCostsAtom = atomFamily((consensusHash: string) =>
       writeLength: 0,
       runtime: 0,
     };
-    for (const block of stacksBlocks) {
+    if (stacksBlocks.state !== 'hasData') return cost;
+    for (const block of stacksBlocks.data) {
       if (typeof block.readCount !== 'number') continue;
       cost.readCount += block.readCount;
       cost.readLength += block.readLength;
@@ -286,11 +289,13 @@ export const [
 
 export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
   (consensusHash: string) =>
-    atom((get) => {
-      const list = get(loadable(stacksBlocksForBurnBlockAtom(consensusHash)));
-      if (list.state !== 'hasData') return [];
+    atom(async (get) => {
+      // const list = get(loadable(stacksBlocksForBurnBlockAtom(consensusHash)));
+      const list = await get(stacksBlocksForBurnBlockAtom(consensusHash));
+      // if (list.state !== 'hasData') return [];
       return R.pipe(
-        list.data,
+        // list.data,
+        list,
         R.uniqueBy((b) => b.blockHash),
         R.sortBy(
           [R.prop('blockHeight'), 'desc'],

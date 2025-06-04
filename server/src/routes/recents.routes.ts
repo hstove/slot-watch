@@ -7,7 +7,7 @@ import {
   type RecentSignersResponse,
   microStxToStx,
 } from 'slot-watch-common';
-import { signerDegradationRate } from '../metrics';
+import { signerDegradationRate, warmupMetrics } from '../metrics';
 import { getLatestResponses } from '../db/block-responses';
 
 const getRecentsRoutes = new Hono()
@@ -15,6 +15,7 @@ const getRecentsRoutes = new Hono()
     const networkKey = c.req.param('networkKey');
     const { responses, signers, totalWeight, poxInfo } =
       await getLatestResponses(networkKey);
+    await warmupMetrics();
     const cycle = poxInfo.rewardCycleId;
 
     const signerDegradations = (await signerDegradationRate.get()).values;

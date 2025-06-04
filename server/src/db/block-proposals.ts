@@ -18,6 +18,7 @@ import {
   blockProposals,
   burnBlocks,
   stacksBlocks,
+  blockResponses,
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
