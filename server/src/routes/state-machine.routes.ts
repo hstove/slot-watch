@@ -2,39 +2,36 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { db } from '../db/db';
-import { stateMachineUpdates } from '../db/schema';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { stateMachineUpdates, type StateMachineUpdateDb } from '../db/schema';
+import { eq, desc, inArray, sql } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
+import * as R from 'remeda';
 
 export const stateMachineRoutes = new Hono()
   // .use('*', timeout(5000))
   .get(':networkKey/state-machines', async (c) => {
     const networkKey = c.req.param('networkKey');
-    // const poxInfo = await getPoxInfo.get(networkKey);
-    // const { signers } = await getStackerSet(networkKey, poxInfo.rewardCycleId);
     const latestStateMachineUpdatesDistinct = await db
-      // .selectDistinctOn([stateMachineUpdates.signerPublicKey])
-      .selectDistinct({
-        signerPublicKey: stateMachineUpdates.signerPublicKey,
-        id: stateMachineUpdates.id,
-      })
-      .from(stateMachineUpdates)
-      .where(eq(stateMachineUpdates.networkKey, networkKey))
-      .orderBy(
-        stateMachineUpdates.signerPublicKey,
-        desc(stateMachineUpdates.id),
-      );
-    const latestStateMachineUpdates = await db
       .select()
       .from(stateMachineUpdates)
-      .where(
-        inArray(
-          stateMachineUpdates.id,
-          latestStateMachineUpdatesDistinct.map((u) => u.id),
-        ),
-      )
-      .orderBy(desc(stateMachineUpdates.id));
-    const latestUpdates = latestStateMachineUpdates.map((update) => {
+      .where(eq(stateMachineUpdates.networkKey, networkKey))
+      .orderBy(desc(stateMachineUpdates.id))
+      .limit(1000);
+    const bySignerKey = R.groupBy(
+      latestStateMachineUpdatesDistinct,
+      R.prop('signerPublicKey'),
+    );
+
+    const stateMachines: StateMachineUpdateDb[] = [];
+    for (const signerKey of Object.keys(bySignerKey)) {
+      const updates = bySignerKey[signerKey];
+      const latestUpdate = updates?.[0];
+      if (latestUpdate) {
+        stateMachines.push(latestUpdate);
+      }
+    }
+
+    const latestUpdates = stateMachines.map((update) => {
       return serializeStateMachineUpdate(update);
     });
     const response = {

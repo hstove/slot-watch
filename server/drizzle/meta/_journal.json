@@ -15,6 +15,13 @@
       "when": 1748873814223,
       "tag": "0001_bouncy_thunderbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1749049008481,
+      "tag": "0002_red_bruce_banner",
+      "breakpoints": true
     }
   ]
 }

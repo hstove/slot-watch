@@ -53,7 +53,7 @@
         "type": "d1",
         "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
         "name": "slot-watch-db",
-        "fileSize": 1248468992,
+        "fileSize": 3927822336,
         "numTables": 8,
         "version": "production",
         "readReplication": {
@@ -64,20 +64,20 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "VJbvqzoBVlrJ3BcWpmJRoX4PGpeU61MlaWJ/bpXuARHuduf/7dvuCAQZc6XMoniELaXDKNdiSxu3plOXbXCFiZ7aGP0XZlTGrFSph3xK"
+        "@secret": "gsTDYUUUL2nDfxCN1dnoLliZ2la4q9nDuhYWqfy+EpVqZyPweKh1QLxcRSVH2BHwUWVPsq5K/qeKek6w1PPfvzkhVGgM/9gL/beodFlA"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "g+xMd+aBa69TxZtsC2H6zPpPnSvDrRA5LjA80qOHiaAe5renrEbzPmo1KDk6AcIW4oWMOfaTZZojyxPMIzdM4L2j3/yMDJOsE0WmjduFlYnTQTPxloL0glfnw5sDKeNCedg="
+        "@secret": "zPDPuWyC0YgFSogTYd3/R+vY1oTwUIbW+MancyxMz0MBSdPLFLJxltF/2TLrxsFcbb5FyErbCcTnB1B+QzQnJUjQeG91DZNlEEdKEZb+fWwxTAMUKFxxGkcJJie/VczEI8Q="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "Nr6CS/QjVG7Jkz7WUj8wqJ8vgMnzPoZQrf1AJXlMrBa9eo31OYN9Oo95x3HQC4b4zalUpqLxFSg="
+        "@secret": "xLU4k/+21w808ZtA46vEDB8TqgNfXaPb+kL5JRha1E1ITuQ7wj07VbKaQQfnwj1t5ijdp7YcWbU="
       }
     },
     "type": "service",
     "id": "slot-watch-worker",
     "format": "esm",
-    "createdAt": 1748918955151,
-    "updatedAt": 1748918955151
+    "createdAt": 1749050435061,
+    "updatedAt": 1749050435061
   },
   "props": {
     "name": "slot-watch-worker",
@@ -120,7 +120,7 @@
         "type": "d1",
         "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
         "name": "slot-watch-db",
-        "fileSize": 1248468992,
+        "fileSize": 3927822336,
         "numTables": 8,
         "version": "production",
         "readReplication": {
@@ -131,13 +131,13 @@
       },
       "STREAMER_URL": "https://slot-watch-streamer.fly.dev",
       "UPSTASH_REDIS_REST_URL": {
-        "@secret": "OCKG2ro71uDRLtDwbCUA7rL/Bkn7eSNW/smw9DlHGU9zHEe3TOEpkoH+DuBDvthZnEWue94l1X5lodWu8uLyiAHGarY8RdPR99muP3GY"
+        "@secret": "hZPwj8ZuOAlKS8Ard+k+BmT6+7VV9TOgYFjEaV6KEfHUtDJoy37CsgkH9DZNzktJkzU9PIr0t6GO2n/US2XgrWC61X045KdmSpZnqaUO"
       },
       "UPSTASH_REDIS_REST_TOKEN": {
-        "@secret": "L+OaswSLIWraBavwZGqQwHe/LIbDyFDm2ePABpadfxHlQ7HSQC1GV7/BJXknEYXciRsILPhq0DceNJ/OjbQcHI0DfswKMTbSqxpNTr8SEQQjmHjxJFCaPesPwkfqx9j8VYQ="
+        "@secret": "IRuHy0SkYNHZ4F7sEUjE/f1co5/yDW5oQdj5zjuhSqmKJexBtD+a0Apc5SdMQMYMj6LALGBMwwVBVE9xlTr+vdg8tlFrZqRyyl/z2W0QUSPYl2+T64CmbyqbebHu13eKlss="
       },
       "OBSERVER_TOKEN": {
-        "@secret": "9VUdpCcLvJFFC8MRKuz7tSa9wiKhkW0yufFZub7PLV45/uYJ3f10nPmnHNG0noL/f4djtPWe0Yo="
+        "@secret": "TtWUf8hkyVNu38jeyMg2/b0+qYTuQ4WZ2aH3GJliXgHQgzr9z8+R4ZX+ThiaIq0l/AGsaWelyDY="
       }
     }
   }

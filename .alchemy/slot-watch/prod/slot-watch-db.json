@@ -16,7 +16,7 @@
     "type": "d1",
     "id": "d908479c-6b77-4d99-9890-47fcbae3788c",
     "name": "slot-watch-db",
-    "fileSize": 1248468992,
+    "fileSize": 3927822336,
     "numTables": 8,
     "version": "production",
     "readReplication": {
@@ -36,6 +36,10 @@
       {
         "id": "0001_bouncy_thunderbolt.sql",
         "sql": "CREATE INDEX `block_proposals_by_consensus_hash_idx` ON `block_proposals` (`consensus_hash`,`network_key`,`chain_length`,`id`);"
+      },
+      {
+        "id": "0002_red_bruce_banner.sql",
+        "sql": "DROP INDEX `state_machine_updates_by_signer_latest_idx`;--> statement-breakpoint\nCREATE INDEX `state_machine_updates_by_signer_latest_id_network_key_idx` ON `state_machine_updates` (`signer_public_key`,`network_key`,`id`);"
       }
     ]
   }

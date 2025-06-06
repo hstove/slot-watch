@@ -278,10 +278,10 @@ export const stateMachineUpdates = pgTable(
     index('state_machine_updates_signer_public_key_idx').on(
       table.signerPublicKey,
     ),
-    index('state_machine_updates_by_signer_latest_idx').on(
+    index('state_machine_updates_by_signer_latest_id_network_key_idx').on(
       table.signerPublicKey,
-      // table.createdAt.desc(),
       table.networkKey,
+      table.id,
     ),
   ],
 );

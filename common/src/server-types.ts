@@ -156,4 +156,5 @@ export type ApiStateMachineUpdate = {
   networkKey: string;
   chunkId: string | null;
   createdAt: string;
+  replayTxs: string[] | null;
 };
