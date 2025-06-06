@@ -6,6 +6,7 @@ import {
   getBlockResponsesForBlock,
   getTenureChanges,
   type ProcessedStacksBlock,
+  queries,
 } from '@/lib/slots-api';
 import { listAtomFamilyWithInit, listAtomWithInit } from './store-utils';
 import { networkIdAtom } from './network';
@@ -14,6 +15,7 @@ import * as R from 'remeda';
 import type { MiniBlockResponseApi, TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 import { atomFamily } from 'jotai/utils';
+import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
 export async function fetchRecentSignerResponses(
   networkKey: string,
@@ -204,6 +206,14 @@ export const mostRecentTenureChangeAtom = atom((get) => {
   return null;
 });
 
+export const blockResponsesForBlockQueryAtomFamily = atomFamily(
+  (blockHash: string) => {
+    return atomWithSuspenseQuery((get) => ({
+      ...queries.blockResponses.forStacksBlock(get(networkIdAtom), blockHash),
+    }));
+  },
+);
+
 export const [
   miniResponsesAtomFamilyWithLoader,
   __miniResponseAtomFamily,
@@ -212,12 +222,11 @@ export const [
   setMiniResponsesAtom,
 ] = listAtomFamilyWithInit(
   async (signerSignatureHash: string, get) => {
-    const networkKey = get(networkIdAtom);
-    const responses = await getBlockResponsesForBlock(
-      networkKey,
-      signerSignatureHash,
+    // const networkKey = get(networkIdAtom);
+    const responses = await get(
+      blockResponsesForBlockQueryAtomFamily(signerSignatureHash),
     );
-    return responses as MiniBlockResponseApi[];
+    return responses.data as MiniBlockResponseApi[];
   },
   (r) => ({
     blockHash: r.signerSignatureHash,
