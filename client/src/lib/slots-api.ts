@@ -2,6 +2,10 @@ import { hc } from 'hono/client';
 import type { SlotWatchServer } from 'slot-watch-api';
 import { strip0x, superDeserialize, type TypeMerge } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
+import {
+  createQueryKeys,
+  createQueryKeyStore,
+} from '@lukemorales/query-key-factory';
 
 export const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
@@ -287,3 +291,18 @@ export type ApiStateMachineUpdates = Awaited<
 
 export type ApiStateMachineUpdate =
   ApiStateMachineUpdates['latestStateMachineUpdates'][0];
+
+export const queries = createQueryKeyStore({
+  stacksBlocks: {
+    forBurnBlock: (networkKey: string, consensusHash: string) => ({
+      queryKey: [networkKey, consensusHash],
+      queryFn: () => getBlocksForBurnBlock(networkKey, consensusHash),
+    }),
+  },
+  blockResponses: {
+    forStacksBlock: (networkKey: string, blockHash: string) => ({
+      queryKey: [networkKey, blockHash],
+      queryFn: () => getBlockResponsesForBlock(networkKey, blockHash),
+    }),
+  },
+});

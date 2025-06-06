@@ -5,6 +5,7 @@ import {
   apiClient,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
+  queries,
 } from '@/lib/slots-api';
 import { type Atom, atom } from 'jotai';
 import { atomFamily, loadable } from 'jotai/utils';
@@ -19,11 +20,13 @@ import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';
 import {
+  blockResponsesForBlockQueryAtomFamily,
   miniResponsesForBlockFamily,
   setSignerLatestResponsesAtom,
   tenureChangesWriterAtom,
 } from './responses-store';
 import { ZERO_COST, type BlockCost } from '@/lib/costs';
+import { atomWithQuery, atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
 export const blockHashesAtom = atom<string[]>([]);
 
@@ -226,6 +229,14 @@ export const cumulativeBlockCostsAtom = atomFamily<
 export const maxProcessedStacksHeightAtom = atom(0);
 export const maxProposedAtAtom = atom(0);
 
+const stacksBlocksForBurnBlockQueryAtomFamily = atomFamily(
+  (consensusHash: string) => {
+    return atomWithSuspenseQuery((get) => ({
+      ...queries.stacksBlocks.forBurnBlock(get(networkIdAtom), consensusHash),
+    }));
+  },
+);
+
 export const [
   stacksBlocksForBurnBlockAtom,
   stacksBlocksFamily,
@@ -234,9 +245,10 @@ export const [
   setStacksBlocksForBurnBlockFamily,
 ] = listAtomFamilyWithInit(
   async (consensusHash: string, get) => {
-    const networkKey = get(networkIdAtom);
-    const blocks = await getBlocksForBurnBlock(networkKey, consensusHash);
-    return blocks;
+    const blocks = await get(
+      stacksBlocksForBurnBlockQueryAtomFamily(consensusHash),
+    );
+    return blocks.data;
   },
   (block) => {
     return block.blockHash;
@@ -361,9 +373,10 @@ export const [
   setResponseForBlockFamily, // writerAtom
 ] = listAtomFamilyWithInit(
   async (blockHash: string, get) => {
-    const networkKey = get(networkIdAtom);
-    const responses = await getBlockResponsesForBlock(networkKey, blockHash);
-    return responses;
+    const responses = await get(
+      blockResponsesForBlockQueryAtomFamily(blockHash),
+    );
+    return responses.data;
   },
   (response) => {
     return {
