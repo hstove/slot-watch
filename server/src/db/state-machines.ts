@@ -30,12 +30,14 @@ export function serializeStateMachineUpdate(
   const createdAt = getCreatedAt(update.id);
   const { updateContent, ...rest } = update;
   const content = superDeserialize(updateContent);
+  const replayTxs = 'replayTxs' in content ? content.replayTxs : null;
 
   return {
     ...rest,
     burnBlock: hex.encode(content.burnBlock),
     burnBlockHeight: Number(content.burnBlockHeight),
     minerState: serializeMinerState(content.minerState),
+    replayTxs,
     createdAt: createdAt.toISOString(),
   } satisfies ApiStateMachineUpdate;
 }

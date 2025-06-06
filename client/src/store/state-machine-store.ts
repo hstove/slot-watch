@@ -62,6 +62,7 @@ function getBaseStateMachine(stateMachine: ApiStateMachineUpdate) {
     burnBlockHeight: stateMachine.burnBlockHeight,
     burnBlock: stateMachine.burnBlock,
     minerState: stateMachine.minerState,
+    replayTxs: stateMachine.replayTxs,
     // chunkId: stateMachine.chunkId,
     // minerState: stateMachine.minerState,
   };
