@@ -76,16 +76,30 @@ export async function handleStackerDBChunk(
         version: chunk.slot_version,
         signature: hex.decode(chunk.sig),
       }).toHex();
-      await db.insert(stackerDbSlots).values({
-        slotId: chunk.slot_id,
-        version: chunk.slot_version,
-        contractId,
-        networkKey,
-        signature: hex.decode(chunk.sig),
-        data: hex.decode(chunk.data),
-        id,
-        publicKey,
-      });
+      try {
+        await db.insert(stackerDbSlots).values({
+          slotId: chunk.slot_id,
+          version: chunk.slot_version,
+          contractId,
+          networkKey,
+          signature: hex.decode(chunk.sig),
+          data: hex.decode(chunk.data),
+          id,
+          publicKey,
+        });
+      } catch (error) {
+        console.error(error);
+        log
+          .withError(error)
+          .withMetadata({
+            contractId,
+            chunkType,
+            chunkSize: chunk.data.length,
+            chunkId: id,
+          })
+          .error('Error inserting stacker db slot');
+      }
+
       const chunkId = id;
 
       let decoded: DecodedChunk;
