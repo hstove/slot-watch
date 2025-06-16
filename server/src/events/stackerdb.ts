@@ -64,9 +64,11 @@ export async function handleStackerDBChunk(
 
   const blockResponses: BlockResponseApi[] = [];
 
+  const promises: Promise<void>[] = [];
+
   // for (const chunk of payload.modified_slots) {
   await Promise.all(
-    payload.modified_slots.map(async (chunk) => {
+    payload.modified_slots.map((chunk) => {
       const chunkData = hex.decode(chunk.data);
       const chunkType = chunkTypeName(chunkData);
       const id = uuidv7({ msecs: receivedAt.getTime() });
@@ -76,29 +78,33 @@ export async function handleStackerDBChunk(
         version: chunk.slot_version,
         signature: hex.decode(chunk.sig),
       }).toHex();
-      try {
-        await db.insert(stackerDbSlots).values({
-          slotId: chunk.slot_id,
-          version: chunk.slot_version,
-          contractId,
-          networkKey,
-          signature: hex.decode(chunk.sig),
-          data: hex.decode(chunk.data),
-          id,
-          publicKey,
-        });
-      } catch (error) {
-        console.error(error);
-        log
-          .withError(error)
-          .withMetadata({
-            contractId,
-            chunkType,
-            chunkSize: chunk.data.length,
-            chunkId: id,
-          })
-          .error('Error inserting stacker db slot');
-      }
+      // promises.push(
+      //   (async () => {
+      //     try {
+      //       await db.insert(stackerDbSlots).values({
+      //         slotId: chunk.slot_id,
+      //         version: chunk.slot_version,
+      //         contractId,
+      //         networkKey,
+      //         signature: hex.decode(chunk.sig),
+      //         data: hex.decode(chunk.data),
+      //         id,
+      //         publicKey,
+      //       });
+      //     } catch (error) {
+      //       console.error(error);
+      //       log
+      //         .withError(error)
+      //         .withMetadata({
+      //           contractId,
+      //           chunkType,
+      //           chunkSize: chunk.data.length,
+      //           chunkId: id,
+      //         })
+      //         .error('Error inserting stacker db slot');
+      //     }
+      //   })(),
+      // );
 
       const chunkId = id;
 
@@ -115,47 +121,59 @@ export async function handleStackerDBChunk(
         return;
       }
       if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
-        await handleBlockProposal({
-          payload: decoded,
-          receivedAt,
-          networkKey,
-          publicKey,
-          chunkId,
-        });
-      } else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-        await handleBlockPush({
-          payload: decoded,
-          receivedAt,
-          networkKey,
-          publicKey,
-          chunkId,
-        });
-      } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-        const handleProposals = true;
-        if (handleProposals) {
-          const response = await handleBlockResponse({
-            chunk,
+        promises.push(
+          handleBlockProposal({
             payload: decoded,
             receivedAt,
             networkKey,
             publicKey,
             chunkId,
-          });
-          blockResponses.push(response);
+          }),
+        );
+      } else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
+        promises.push(
+          handleBlockPush({
+            payload: decoded,
+            receivedAt,
+            networkKey,
+            publicKey,
+            chunkId,
+          }),
+        );
+      } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
+        const handleProposals = true;
+        if (handleProposals) {
+          promises.push(
+            (async () => {
+              const response = await handleBlockResponse({
+                chunk,
+                payload: decoded,
+                receivedAt,
+                networkKey,
+                publicKey,
+                chunkId,
+              });
+              blockResponses.push(response);
+            })(),
+          );
         }
       } else if (
         decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate
       ) {
-        await handleStateMachineUpdate({
-          payload: decoded,
-          receivedAt,
-          networkKey,
-          chunkId,
-          publicKey,
-        });
+        promises.push(
+          handleStateMachineUpdate({
+            payload: decoded,
+            receivedAt,
+            networkKey,
+            chunkId,
+            publicKey,
+          }),
+        );
       }
     }),
   );
+
+  await Promise.all(promises);
 
   if (blockResponses.length > 0) {
     await publishWsEventToStreamer({
