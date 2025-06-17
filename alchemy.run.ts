@@ -32,11 +32,13 @@ await Exec('build-server', {
 
 const kv = await KVNamespace('cache', {
   title: 'slot-watch-cache',
+  adopt: true,
 });
 
 const d1 = await D1Database('slot-watch-db', {
   name: 'slot-watch-db',
   migrationsDir: 'server/drizzle',
+  adopt: true,
 });
 
 const website = await Website('slot-watch-website', {
@@ -49,11 +51,13 @@ const website = await Website('slot-watch-website', {
   bindings: {
     VITE_SLOTS_API_URL: 'https://slot-watch.fly.dev',
   },
+  adopt: true,
 });
 
 await WranglerJson('wrangler-website', {
   worker: website,
   path: 'client/wrangler.jsonc',
+  // adopt: true,
 });
 
 await CustomDomain('slot-watch-website-domain', {
@@ -85,6 +89,7 @@ export const worker = await Worker('slot-watch-worker', {
     ),
     OBSERVER_TOKEN: alchemy.secret(process.env.OBSERVER_TOKEN),
   },
+  adopt: true,
 });
 
 const domain = await CustomDomain('slot-watch-api-domain', {
