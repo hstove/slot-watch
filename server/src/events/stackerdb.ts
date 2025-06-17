@@ -45,6 +45,7 @@ import { setLatestBlockProposal } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import { sql } from 'drizzle-orm';
+import { DrizzleQueryError } from 'drizzle-orm/errors';
 import type {
   BlockResponseApi,
   ChunkType,
@@ -332,9 +333,28 @@ export async function handleBlockResponse({
     ...data,
     id,
   });
+  async function insertBlockResponse() {
+    try {
+      await db.insert(blockResponses).values(data);
+    } catch (error) {
+      if (error instanceof DrizzleQueryError) {
+        log
+          .withError(error.cause ?? error)
+          .withMetadata({
+            ...error,
+          })
+          .error('Error inserting block response');
+      } else {
+        log
+          .withError(error)
+          .error('Error inserting block response (not a drizzle error)');
+      }
+    }
+  }
   await Promise.all([
-    await db.insert(blockResponses).values(data),
-    await setLatestBlockResponse(blockResponse),
+    insertBlockResponse(),
+    // db.insert(blockResponses).values(data),
+    setLatestBlockResponse(blockResponse),
     // await publishWsEventToStreamer({
     //   type: BLOCK_RESPONSE_EVENT,
     //   networkKey,
