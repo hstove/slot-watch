@@ -1,26 +1,12 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1748717505961,
-      "tag": "0000_chubby_songbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1748873814223,
-      "tag": "0001_bouncy_thunderbolt",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1749049008481,
-      "tag": "0002_red_bruce_banner",
+      "version": "7",
+      "when": 1750170491488,
+      "tag": "0000_wet_the_stranger",
       "breakpoints": true
     }
   ]

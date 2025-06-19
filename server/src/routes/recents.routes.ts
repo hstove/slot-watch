@@ -9,13 +9,14 @@ import {
 } from 'slot-watch-common';
 import { signerDegradationRate, warmupMetrics } from '../metrics';
 import { getLatestResponses } from '../db/block-responses';
+import type { ServerType } from '../server-context';
 
-const getRecentsRoutes = new Hono()
+const getRecentsRoutes = new Hono<ServerType>()
   .get('/signer-recency/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
     const { responses, signers, totalWeight, poxInfo } =
       await getLatestResponses(networkKey);
-    await warmupMetrics();
+    await warmupMetrics(c.get('db'));
     const cycle = poxInfo.rewardCycleId;
 
     const signerDegradations = (await signerDegradationRate.get()).values;

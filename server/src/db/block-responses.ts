@@ -1,5 +1,5 @@
 import { type BlockResponseDb, stacksBlocks, blockResponses } from './schema';
-import { db } from './db';
+import type { Db } from './db';
 import {
   getLatestStackerSet,
   getPoxInfo,
@@ -222,7 +222,7 @@ export async function getCachedLatestBlockResponses(
   return blockResponses;
 }
 
-export async function getSignerLatencies(networkKey: string) {
+export async function getSignerLatencies(networkKey: string, db: Db) {
   const latestBlockHashes = db
     .$with('latest_block_hashes')
     .as(

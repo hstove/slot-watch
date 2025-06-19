@@ -1,5 +1,6 @@
 import type { HonoRequest } from 'hono';
 import { log } from './logger';
+import { env } from 'cloudflare:workers';
 
 export type BasicAuth = { username: string; password: string };
 export function getBasicAuth(request: Request): BasicAuth | null {
@@ -28,7 +29,7 @@ export function getNetworkKey(request: Request): string | null {
     return null;
   }
 
-  if (auth.password !== process.env.OBSERVER_TOKEN) {
+  if (auth.password !== env.OBSERVER_TOKEN) {
     return null;
   }
 
@@ -63,7 +64,7 @@ export function getNetworkKeyHono(request: HonoRequest): string | null {
     return null;
   }
 
-  if (auth.password !== process.env.OBSERVER_TOKEN) {
+  if (auth.password !== env.OBSERVER_TOKEN) {
     log
       .withMetadata({
         password: auth.password,

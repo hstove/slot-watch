@@ -1,4 +1,4 @@
-import { db } from './db';
+import type { Db } from './db';
 import {
   eq,
   desc,
@@ -152,7 +152,8 @@ export async function getRecentBlocksHealth({
   networkKey,
   from,
   to,
-}: { networkKey: string; from?: number; to?: number }) {
+  db,
+}: { networkKey: string; from?: number; to?: number; db: Db }) {
   const { rewardCycleId } = await getPoxInfo.get(networkKey);
   const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
@@ -240,8 +241,8 @@ export async function getRecentBlocksHealth({
 
 export const recentBlocksHealthCache = memoizeCache(
   () => 'recent-blocks-health:mainnet',
-  async () => {
-    return getRecentBlocksHealth({ networkKey: 'mainnet' });
+  async (db: Db) => {
+    return getRecentBlocksHealth({ networkKey: 'mainnet', db });
   },
   {
     ttl: 60 * 5,
@@ -249,7 +250,7 @@ export const recentBlocksHealthCache = memoizeCache(
   },
 );
 
-export async function _fetchRecentMinerBlocks(networkKey: string) {
+export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
   const recentBlocksDistinct = await db
     .selectDistinct({
       burnBlockHeight: blockProposals.burnBlockHeight,
@@ -335,13 +336,13 @@ export async function _fetchRecentMinerBlocks(networkKey: string) {
 
 export const fetchRecentMinerBlocksCache = memoizeCache(
   (networkKey: string) => `recent-miner-blocks-v2:${networkKey}`,
-  async (networkKey: string) => {
-    return _fetchRecentMinerBlocks(networkKey);
+  async (networkKey: string, db: Db) => {
+    return _fetchRecentMinerBlocks(networkKey, db);
   },
 );
 
-export const fetchRecentMinerStats = async (networkKey: string) => {
-  const recentBlocks = await fetchRecentMinerBlocksCache.get(networkKey);
+export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
+  const recentBlocks = await fetchRecentMinerBlocksCache.get(networkKey, db);
 
   const miners: Record<
     string,

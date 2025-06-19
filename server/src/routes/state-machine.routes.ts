@@ -1,17 +1,18 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { db } from '../db/db';
 import { stateMachineUpdates, type StateMachineUpdateDb } from '../db/schema';
 import { eq, desc, inArray, sql } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import * as R from 'remeda';
+import type { ServerType } from '../server-context';
 
-export const stateMachineRoutes = new Hono()
+export const stateMachineRoutes = new Hono<ServerType>()
   // .use('*', timeout(5000))
   .get(':networkKey/state-machines', async (c) => {
     const networkKey = c.req.param('networkKey');
-    const latestStateMachineUpdatesDistinct = await db
+    const latestStateMachineUpdatesDistinct = await c
+      .get('db')
       .select()
       .from(stateMachineUpdates)
       .where(eq(stateMachineUpdates.networkKey, networkKey))
@@ -50,18 +51,20 @@ export const stateMachineRoutes = new Hono()
     async (c) => {
       const networkKeyParam = c.req.param('networkKey');
       const { cursor } = c.req.valid('query');
-      const stateMachines = await db.query.stateMachineUpdates.findMany({
-        where({ networkKey, id }, { and, eq, lt }) {
-          return and(
-            eq(networkKey, networkKeyParam),
-            cursor ? lt(id, cursor) : undefined,
-          );
-        },
-        orderBy({ id }, { desc }) {
-          return desc(id);
-        },
-        limit: 200,
-      });
+      const stateMachines = await c
+        .get('db')
+        .query.stateMachineUpdates.findMany({
+          where({ networkKey, id }, { and, eq, lt }) {
+            return and(
+              eq(networkKey, networkKeyParam),
+              cursor ? lt(id, cursor) : undefined,
+            );
+          },
+          orderBy({ id }, { desc }) {
+            return desc(id);
+          },
+          limit: 200,
+        });
       const lastId = stateMachines.at(-1)?.id;
       return c.json({
         lastId,

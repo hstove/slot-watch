@@ -14,6 +14,7 @@ import {
   fetchRecentMinerStats,
   recentBlocksHealthCache,
 } from './db/block-proposals';
+import type { Db } from './db/db';
 
 export const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
@@ -116,14 +117,14 @@ export const getPoxInfo = memoizeCache(
 // 	return result;
 // }
 
-export async function warmCache(networkKey: string) {
+export async function warmCache(networkKey: string, db: Db) {
   const poxInfo = await getPoxInfo.warm(networkKey);
   const rewardCycle = poxInfo.rewardCycleId;
   await getStackerSetCache.warm(networkKey, rewardCycle);
   await Promise.all([
     stxCommittedCache.warm(),
-    fetchRecentMinerBlocksCache.warm(networkKey),
-    recentBlocksHealthCache.warmIfNeeded(),
+    fetchRecentMinerBlocksCache.warm(networkKey, db),
+    recentBlocksHealthCache.warmIfNeeded(db),
     // warmupMetrics(),
   ]);
 }

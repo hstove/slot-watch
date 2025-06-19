@@ -7,12 +7,11 @@
   "kv_namespaces": [
     { "binding": "CACHE", "id": "4d65a9f9771f4b2d8887dc2c89cf766f" }
   ],
-  "d1_databases": [
+  "hyperdrive": [
     {
       "binding": "DB",
-      "database_id": "d908479c-6b77-4d99-9890-47fcbae3788c",
-      "database_name": "slot-watch-db",
-      "migrations_dir": "server/drizzle"
+      "id": "3b34a58be42d431e93a3d7df2cf1dc18",
+      "localConnectionString": "postgres://postgres:o8tvpGyrr2ZWMiQ@db.gfbcmmnyivekyvrxdcul.supabase.co:5432/postgres"
     }
   ]
 }

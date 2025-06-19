@@ -12,8 +12,17 @@ import { metricsRoutes } from './routes/metrics.routes';
 import { signersRoutes } from './routes/signers.routes';
 // import workerRoutes from './routes/worker.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
+import { makeDb } from './db/db';
+import type { ServerType } from './server-context';
 
-export const app = new Hono()
+export const app = new Hono<ServerType>()
+  .use(async (c, next) => {
+    const db = makeDb();
+    await db.$client.connect();
+    c.set('db', db);
+    await next();
+    await db.$client.end();
+  })
   .use('*', requestId())
   .use(honoLogger)
   .use(prettyJSON())

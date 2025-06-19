@@ -4,6 +4,7 @@ import {
   Worker,
   D1Database,
   WranglerJson,
+  Hyperdrive,
   CustomDomain,
   Website,
   Vite,
@@ -35,11 +36,11 @@ const kv = await KVNamespace('cache', {
   adopt: true,
 });
 
-const d1 = await D1Database('slot-watch-db', {
-  name: 'slot-watch-db',
-  migrationsDir: 'server/drizzle',
-  adopt: true,
-});
+// const d1 = await D1Database('slot-watch-db', {
+//   name: 'slot-watch-db',
+//   migrationsDir: 'server/drizzle',
+//   adopt: true,
+// });
 
 const website = await Website('slot-watch-website', {
   name: 'slot-watch-website',
@@ -66,6 +67,20 @@ await CustomDomain('slot-watch-website-domain', {
   workerName: website.name,
 });
 
+const db = await Hyperdrive('slot-watch-pg', {
+  name: 'slot-watch-pg',
+  origin: {
+    host: 'db.gfbcmmnyivekyvrxdcul.supabase.co',
+    port: 5432,
+    user: 'postgres',
+    database: 'postgres',
+    password: alchemy.secret(process.env.DATABASE_PASSWORD),
+  },
+  caching: {
+    disabled: true,
+  },
+});
+
 export const worker = await Worker('slot-watch-worker', {
   name: 'slot-watch-worker',
   entrypoint: 'server/src/server.ts',
@@ -81,13 +96,14 @@ export const worker = await Worker('slot-watch-worker', {
   },
   bindings: {
     CACHE: kv,
-    DB: d1,
+    DB: db,
     STREAMER_URL: 'https://slot-watch-streamer.fly.dev',
-    UPSTASH_REDIS_REST_URL: alchemy.secret(process.env.UPSTASH_REDIS_REST_URL),
-    UPSTASH_REDIS_REST_TOKEN: alchemy.secret(
-      process.env.UPSTASH_REDIS_REST_TOKEN,
-    ),
+    // UPSTASH_REDIS_REST_URL: alchemy.secret(process.env.UPSTASH_REDIS_REST_URL),
+    // UPSTASH_REDIS_REST_TOKEN: alchemy.secret(
+    //   process.env.UPSTASH_REDIS_REST_TOKEN,
+    // ),
     OBSERVER_TOKEN: alchemy.secret(process.env.OBSERVER_TOKEN),
+    DATABASE_URL: alchemy.secret(process.env.DATABASE_URL),
   },
   adopt: true,
 });

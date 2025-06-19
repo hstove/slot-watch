@@ -1,13 +1,15 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
-import { db } from '../src/db/db';
+import { makeDb } from '../src/db/db';
 import { burnBlocks, stacksBlocks } from '../src/db/schema';
 import { eq, and, gt, asc } from 'drizzle-orm';
 import { subDays, format } from 'date-fns';
 import * as R from 'remeda';
 import { v7 as uuidv7 } from 'uuid';
 import { getCreatedAt } from '../src/utils';
+
+const db = makeDb();
 
 const csvStr = await readFile('../data/signer-health-l2.csv', 'utf-8');
 const [_, ...recordsRaw] = parse(csvStr, {

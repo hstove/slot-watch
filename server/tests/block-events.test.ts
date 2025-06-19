@@ -2,7 +2,7 @@ import { TenureChangeCause } from '@stacks/transactions';
 import { convertBlock } from '../src/events/block-events';
 import { tenureExtendBlock } from './fixtures';
 import { test, expect } from 'vitest';
-import { db } from '../src/db/db';
+import { makeDb } from '../src/db/db';
 import { stateMachineUpdates } from '../src/db/schema';
 import type { StateMachineUpdate } from 'slot-watch-common';
 import type { SuperJSON } from 'slot-watch-common';
@@ -20,6 +20,7 @@ test('inserting a state machine update', async () => {
     test: 'test',
   };
   // const updateContentSerialized = superSerialize(updateContent);
+  const db = makeDb();
   const [newRow] = await db
     .insert(stateMachineUpdates)
     .values({

@@ -28,11 +28,12 @@ import { convertBlock } from '../events/block-events';
 import { publishWsEventToStreamer } from '../streamer';
 import { warmCache } from '../stacks-api';
 import { recentBlocksHealthCache } from '../db/block-proposals';
+import type { ServerContext, ServerType } from '../server-context';
 
 type Env = {
   Variables: {
     networkKey: string;
-  };
+  } & ServerContext;
 };
 
 const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
@@ -77,25 +78,31 @@ const eventsRoutes = new Hono<Env>()
       })
       .debug(`Got ${data.modified_slots.length} stackerdb chunks`);
     const receivedAt = new Date();
-    const chunks: ChunkEvent[] = [];
-    for (const chunk of data.modified_slots) {
-      chunks.push({
-        slotId: chunk.slot_id,
-        version: chunk.slot_version,
-        contractId,
-        signature: chunk.sig,
-        data: chunk.data,
-        createdAt: receivedAt.toISOString(),
-      });
-    }
+    // const chunks: ChunkEvent[] = [];
+    // for (const chunk of data.modified_slots) {
+    //   chunks.push({
+    //     slotId: chunk.slot_id,
+    //     version: chunk.slot_version,
+    //     contractId,
+    //     signature: chunk.sig,
+    //     data: chunk.data,
+    //     createdAt: receivedAt.toISOString(),
+    //   });
+    // }
 
-    c.executionCtx.waitUntil(
-      Promise.all([
-        handleStackerDBChunk(data, receivedAt, networkKey),
-        // publishWsEventToStreamer(manyChunksPayload),
-        // publishWsEvent(manyChunksPayload),
-      ]),
-    );
+    // c.executionCtx.waitUntil(
+    //   (async () => {
+    //     // await db.$client.;
+    //     await handleStackerDBChunk(data, receivedAt, networkKey);
+    //     await db.$client.end();
+    //   })(),
+    //   // Promise.all([
+    //   //   handleStackerDBChunk(data, receivedAt, networkKey),
+    //   //   // publishWsEventToStreamer(manyChunksPayload),
+    //   //   // publishWsEvent(manyChunksPayload),
+    //   // ]),
+    // );
+    await handleStackerDBChunk(data, receivedAt, networkKey, c.get('db'));
     return new Response('OK', { status: 200 });
   })
 
@@ -121,10 +128,29 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
 
-    c.executionCtx.waitUntil(
-      Promise.all([
-        publishWsEventToStreamer(sharedPayload),
-        handleStacksBlockEvent({
+    // c.executionCtx.waitUntil(
+    //   Promise.all([
+    //     publishWsEventToStreamer(sharedPayload),
+    //     handleStacksBlockEvent({
+    //       type: NEW_BLOCK_EVENT,
+    //       networkKey,
+    //       receivedAt: receivedAt.toISOString(),
+    //       payload: {
+    //         ...block,
+    //         networkKey,
+    //         receivedAt: receivedAt.toISOString(),
+    //         blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+    //         burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+    //       },
+    //     }),
+    //     recentBlocksHealthCache.warmIfNeeded(),
+    //   ]),
+    // );
+
+    await Promise.all([
+      publishWsEventToStreamer(sharedPayload),
+      handleStacksBlockEvent(
+        {
           type: NEW_BLOCK_EVENT,
           networkKey,
           receivedAt: receivedAt.toISOString(),
@@ -135,10 +161,11 @@ const eventsRoutes = new Hono<Env>()
             blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
             burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
           },
-        }),
-        recentBlocksHealthCache.warmIfNeeded(),
-      ]),
-    );
+        },
+        c.get('db'),
+      ),
+      recentBlocksHealthCache.warmIfNeeded(c.get('db')),
+    ]);
 
     return new Response('OK', { status: 200 });
   })
@@ -166,13 +193,18 @@ const eventsRoutes = new Hono<Env>()
         consensusHash: burnBlock.consensus_hash,
       },
     };
-    c.executionCtx.waitUntil(
-      Promise.all([
-        handleBurnBlockEvent(payload),
-        publishWsEventToStreamer(payload),
-        warmCache(networkKey),
-      ]),
-    );
+    // c.executionCtx.waitUntil(
+    //   Promise.all([
+    //     handleBurnBlockEvent(payload),
+    //     publishWsEventToStreamer(payload),
+    //     warmCache(networkKey),
+    //   ]),
+    // );
+    await Promise.all([
+      handleBurnBlockEvent(payload, c.get('db')),
+      publishWsEventToStreamer(payload),
+      warmCache(networkKey, c.get('db')),
+    ]);
     return new Response('OK', { status: 200 });
   })
 

@@ -25,7 +25,7 @@ import {
   decodeChunk,
   MINI_BLOCK_RESPONSES_EVENT,
 } from 'slot-watch-common';
-import { db } from '../db/db';
+import type { Db } from '../db/db';
 import { getCreatedAt, getPayloadContractId } from '../utils';
 import {
   blockProposals,
@@ -55,13 +55,17 @@ import type {
 import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 import { v7 as uuidv7 } from 'uuid';
 import { publishWsEventToStreamer } from '../streamer';
+import { env } from 'cloudflare:workers';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
   receivedAt: Date,
   networkKey: string,
+  db: Db,
 ) {
   const contractId = getPayloadContractId(payload);
+
+  console.log(env.DATABASE_URL);
 
   const blockResponses: BlockResponseApi[] = [];
 
@@ -69,7 +73,7 @@ export async function handleStackerDBChunk(
 
   // for (const chunk of payload.modified_slots) {
   await Promise.all(
-    payload.modified_slots.map((chunk) => {
+    payload.modified_slots.map(async (chunk) => {
       const chunkData = hex.decode(chunk.data);
       const chunkType = chunkTypeName(chunkData);
       const id = uuidv7({ msecs: receivedAt.getTime() });
@@ -122,59 +126,73 @@ export async function handleStackerDBChunk(
         return;
       }
       if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
-        promises.push(
+        await Promise.all([
           handleBlockProposal({
             payload: decoded,
             receivedAt,
             networkKey,
             publicKey,
             chunkId,
+            db,
           }),
-        );
+        ]);
       } else if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-        promises.push(
+        await Promise.all([
           handleBlockPush({
             payload: decoded,
             receivedAt,
             networkKey,
             publicKey,
             chunkId,
+            db,
           }),
-        );
+        ]);
       } else if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
         const handleProposals = true;
         if (handleProposals) {
-          promises.push(
-            (async () => {
-              const response = await handleBlockResponse({
-                chunk,
-                payload: decoded,
-                receivedAt,
-                networkKey,
-                publicKey,
-                chunkId,
-              });
-              blockResponses.push(response);
-            })(),
-          );
+          const response = await handleBlockResponse({
+            chunk,
+            payload: decoded,
+            receivedAt,
+            networkKey,
+            publicKey,
+            chunkId,
+            db,
+          });
+          blockResponses.push(response);
+          // await Promise.all([
+          //   (async () => {
+          //     const response = await handleBlockResponse({
+          //       chunk,
+          //       payload: decoded,
+          //       receivedAt,
+          //       networkKey,
+          //       publicKey,
+          //       chunkId,
+          //     });
+          //     blockResponses.push(response);
+          //   })(),
+          // ]);
         }
       } else if (
         decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate
       ) {
-        promises.push(
+        await Promise.all([
           handleStateMachineUpdate({
             payload: decoded,
             receivedAt,
             networkKey,
             chunkId,
             publicKey,
+            db,
           }),
-        );
+        ]);
       }
     }),
   );
+  // }
 
-  await Promise.all(promises);
+  // await Promise.all(promises);
 
   if (blockResponses.length > 0) {
     await publishWsEventToStreamer({
@@ -197,12 +215,14 @@ export async function handleBlockProposal({
   networkKey,
   publicKey,
   chunkId,
+  db,
 }: {
   payload: BlockProposal;
   receivedAt: Date;
   networkKey: string;
   publicKey: string;
   chunkId: string | null;
+  db: Db;
 }) {
   const signerSignatureHash = makeSignerSignatureHash(payload);
   const id = uuidv7({ msecs: receivedAt.getTime() });
@@ -252,12 +272,14 @@ export async function handleBlockPush({
   networkKey,
   publicKey,
   chunkId,
+  db,
 }: {
   payload: BlockPushed;
   receivedAt: Date;
   networkKey: string;
   publicKey: string;
   chunkId: string | null;
+  db: Db;
 }) {
   const signerSignatureHash = makeSignerSignatureHash(payload);
   const id = uuidv7({ msecs: receivedAt.getTime() });
@@ -282,6 +304,7 @@ export async function handleBlockResponse({
   networkKey,
   publicKey,
   chunkId,
+  db,
 }: {
   chunk: ModifiedSlot;
   payload: BlockAccept | BlockReject;
@@ -289,21 +312,37 @@ export async function handleBlockResponse({
   networkKey: string;
   publicKey: string;
   chunkId: string | null;
+  db: Db;
 }) {
   const tenureExtendTimestamp = payload.data.tenureExtendTimestamp
     ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
     : null;
   const signerSignatureHash = hex.encode(payload.signerSignatureHash);
   let latencyMs: number | null = null;
-  const blockProposal = await db.query.blockProposals.findFirst({
-    where(fields, operators) {
-      return operators.eq(fields.signerSignatureHash, signerSignatureHash);
-    },
-  });
-  if (blockProposal) {
-    const createdAt = getCreatedAt(blockProposal.id);
-    latencyMs = receivedAt.getTime() - createdAt.getTime();
+  try {
+    const blockProposal = await db.query.blockProposals.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.signerSignatureHash, signerSignatureHash);
+      },
+    });
+    if (blockProposal) {
+      const createdAt = getCreatedAt(blockProposal.id);
+      latencyMs = receivedAt.getTime() - createdAt.getTime();
+    }
+  } catch (error) {
+    if (error instanceof DrizzleQueryError || error instanceof Error) {
+      log
+        .withError(error.cause ?? error)
+        .withMetadata({
+          ...error,
+        })
+        .error('Error finding block proposal');
+    } else {
+      log.withError(error).error('Error finding block proposal');
+    }
+    console.log(error);
   }
+
   const id = uuidv7({ msecs: receivedAt.getTime() });
   const data = {
     signerSignatureHash,
@@ -352,8 +391,10 @@ export async function handleBlockResponse({
     }
   }
   await Promise.all([
-    insertBlockResponse(),
-    // db.insert(blockResponses).values(data),
+    // insertBlockResponse(),
+    db
+      .insert(blockResponses)
+      .values(data),
     setLatestBlockResponse(blockResponse),
     // await publishWsEventToStreamer({
     //   type: BLOCK_RESPONSE_EVENT,
@@ -371,12 +412,14 @@ export async function handleStateMachineUpdate({
   networkKey,
   chunkId,
   publicKey,
+  db,
 }: {
   payload: StateMachineUpdate;
   receivedAt: Date;
   networkKey: string;
   publicKey: string;
   chunkId: string | null;
+  db: Db;
 }) {
   const updateContent = superSerialize(payload.stateMachineUpdate);
   const id = uuidv7({ msecs: receivedAt.getTime() });

@@ -3,8 +3,9 @@ import { getRecentBlocksHealth } from '../db/block-proposals';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { getCreatedAt } from '../utils';
+import type { ServerType } from '../server-context';
 
-export const healthRoutes = new Hono().get(
+export const healthRoutes = new Hono<ServerType>().get(
   '/recent-blocks/:networkKey',
   zValidator(
     'query',
@@ -16,7 +17,12 @@ export const healthRoutes = new Hono().get(
   async (c) => {
     const networkKey = c.req.param('networkKey');
     const { from, to } = c.req.valid('query');
-    const health = await getRecentBlocksHealth({ networkKey, from, to });
+    const health = await getRecentBlocksHealth({
+      networkKey,
+      from,
+      to,
+      db: c.get('db'),
+    });
     const blocks = health.blocks.map((b) => {
       const createdAt = getCreatedAt(b.id);
       return {

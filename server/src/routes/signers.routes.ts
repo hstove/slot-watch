@@ -5,13 +5,14 @@ import { z } from 'zod';
 import { timeout } from 'hono/timeout';
 import { log, logger } from '../logger';
 import { getSignerLatencies } from '../db/block-responses';
+import type { ServerType } from '../server-context';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
   networkKey: z.string(),
 });
 
-export const signersRoutes = new Hono()
+export const signersRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
   // .get(
   //   '/signers/:networkKey/:rewardCycleId',
@@ -68,6 +69,6 @@ export const signersRoutes = new Hono()
   })
   .get('/signers/:networkKey/signer-latencies', async (c) => {
     const networkKey = c.req.param('networkKey');
-    const latencies = await getSignerLatencies(networkKey);
+    const latencies = await getSignerLatencies(networkKey, c.get('db'));
     return c.json({ latencies });
   });

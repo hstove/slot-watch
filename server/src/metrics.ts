@@ -4,6 +4,7 @@ import { getLatestStackerSet } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
 import { getCreatedAt } from './utils';
+import type { Db } from './db/db';
 
 export const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -78,10 +79,10 @@ export const workerJobProcessingTimeSummary = new Summary({
 
 export const lastNs = [10, 25, 50];
 
-export async function warmupMetrics() {
+export async function warmupMetrics(db: Db) {
   const runStart = Date.now();
   const [recentBlocks, stackerSet, allCommits] = await Promise.all([
-    recentBlocksHealthCache.get(),
+    recentBlocksHealthCache.get(db),
     getLatestStackerSet('mainnet'),
     stxCommittedCache.get(),
   ]);
