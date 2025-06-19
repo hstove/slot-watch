@@ -1,2 +1,0 @@
-DROP INDEX `state_machine_updates_by_signer_latest_idx`;--> statement-breakpoint
-CREATE INDEX `state_machine_updates_by_signer_latest_id_network_key_idx` ON `state_machine_updates` (`signer_public_key`,`network_key`,`id`);

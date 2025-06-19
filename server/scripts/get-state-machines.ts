@@ -1,5 +1,5 @@
 import { and, gte, lte } from 'drizzle-orm';
-import { db } from '../src/db/db';
+import { makeDb } from '../src/db/db';
 import { stateMachineUpdates } from '../src/db/schema';
 import { serializeStateMachineUpdate } from '../src/db/state-machines';
 import { writeFile } from 'node:fs/promises';
@@ -10,6 +10,8 @@ const signers = await getStackerSet('mainnet', 111);
 
 const end = '2025-06-13T15:25:54.204Z';
 const start = '2025-06-13T15:00:54.204Z';
+
+const db = makeDb();
 
 const updates = await db
   .select()

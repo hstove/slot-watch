@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { db } from '../db/db';
 import { desc, eq, inArray, and, gte, lte, asc, sql, lt } from 'drizzle-orm';
 import { stackerDbSlots, type StackerDbSlotDb } from '../db/schema';
 import type {
@@ -12,8 +11,9 @@ import { getCreatedAt, serializeDbChunk } from '../utils';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { getLatestResponses } from '../db/block-responses';
+import type { ServerType } from '../server-context';
 
-const getChunksRoutes = new Hono()
+const getChunksRoutes = new Hono<ServerType>()
 
   .get(
     '/chunks/timeline',
@@ -26,14 +26,16 @@ const getChunksRoutes = new Hono()
         throw new Error('No network key provided');
       }
 
-      const firstChunks = await db
+      const firstChunks = await c
+        .get('db')
         .select()
         .from(stackerDbSlots)
         .where(eq(stackerDbSlots.networkKey, first))
         .orderBy(desc(stackerDbSlots.id))
         .limit(200);
 
-      const otherChunks = await db
+      const otherChunks = await c
+        .get('db')
         .select()
         .from(stackerDbSlots)
         .where(inArray(stackerDbSlots.networkKey, otherNetworks))
@@ -138,7 +140,8 @@ const getChunksRoutes = new Hono()
     zValidator('param', z.object({ id: z.string() })),
     async (c) => {
       const id = c.req.valid('param').id;
-      const [chunk] = await db
+      const [chunk] = await c
+        .get('db')
         .select()
         .from(stackerDbSlots)
         .where(eq(stackerDbSlots.id, id));

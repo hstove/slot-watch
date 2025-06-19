@@ -14,7 +14,7 @@ import {
   PayloadType,
   type TenureChangeCause,
 } from '@stacks/transactions';
-import { db } from '../db/db';
+import type { Db } from '../db/db';
 // import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
 import { fetchRecentMinerStats } from '../db/block-proposals';
@@ -72,7 +72,7 @@ export function convertBlock(
   };
 }
 
-export async function handleStacksBlockEvent(job: NewBlockJob) {
+export async function handleStacksBlockEvent(job: NewBlockJob, db: Db) {
   try {
     const block = job.payload;
     const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
@@ -118,7 +118,7 @@ export async function handleStacksBlockEvent(job: NewBlockJob) {
   }
 }
 
-export async function handleBurnBlockEvent(payload: WSBurnBlockV2) {
+export async function handleBurnBlockEvent(payload: WSBurnBlockV2, db: Db) {
   // const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
   const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
   const dbBurnBlock = {

@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { db } from '../db/db';
 import { and, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
@@ -24,8 +23,9 @@ import {
 import { log, logger } from '../logger';
 import { getPoolStatus } from '../db/db';
 import { timeout } from 'hono/timeout';
+import type { ServerType } from '../server-context';
 
-const blockRoutes = new Hono()
+const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
   .get('/get_block/:networkKey/:blockId', async (c) => {
     const networkKey = c.req.param('networkKey');
@@ -33,7 +33,8 @@ const blockRoutes = new Hono()
     const { rewardCycleId } = await getPoxInfo.get(networkKey);
     const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
-    const [pushes] = await db
+    const [pushes] = await c
+      .get('db')
       .select()
       .from(blockPushes)
       .where(
@@ -43,7 +44,8 @@ const blockRoutes = new Hono()
         ),
       )
       .limit(1);
-    const [proposal] = await db
+    const [proposal] = await c
+      .get('db')
       .select()
       .from(blockProposals)
       .where(
@@ -53,7 +55,8 @@ const blockRoutes = new Hono()
         ),
       )
       .limit(1);
-    const responses = await db
+    const responses = await c
+      .get('db')
       .select()
       .from(blockResponses)
       .where(
@@ -78,7 +81,8 @@ const blockRoutes = new Hono()
   .get('/blocks/:networkKey/:blockId/responses', async (c) => {
     const networkKey = c.req.param('networkKey');
     const blockId = c.req.param('blockId');
-    const responses = await db
+    const responses = await c
+      .get('db')
       .select()
       .from(blockResponses)
       .where(
@@ -101,7 +105,8 @@ const blockRoutes = new Hono()
     );
 
     try {
-      const btcBlocks = await db
+      const btcBlocks = await c
+        .get('db')
         .select()
         .from(burnBlocks)
         .where(eq(burnBlocks.networkKey, networkKey))
@@ -138,7 +143,8 @@ const blockRoutes = new Hono()
       const heightBn = BigInt(heightOrHash);
       heightMaybe = Number(heightBn);
     } catch (error) {}
-    const [btcBlock] = await db
+    const [btcBlock] = await c
+      .get('db')
       .select()
       .from(burnBlocks)
       .where(
@@ -163,7 +169,8 @@ const blockRoutes = new Hono()
       const { consensusHash, networkKey } = c.req.valid('param');
       // const networkKey = c.req.valid;
       // const burnBlockHeight = c.req.valid;
-      const blocks = await db
+      const blocks = await c
+        .get('db')
         .select()
         .from(blockProposals)
         .leftJoin(
@@ -202,7 +209,8 @@ const blockRoutes = new Hono()
       const networkKey = c.req.param('networkKey');
       const { cause } = c.req.valid('query');
       // const { id, ...tableColumns } = getTableColumns(stacksBlocks);
-      const tenureChanges = await db
+      const tenureChanges = await c
+        .get('db')
         .select()
         .from(stacksBlocks)
         .where(
@@ -253,7 +261,7 @@ const blockRoutes = new Hono()
   .get('/:networkKey/miners', async (c) => {
     const networkKey = c.req.param('networkKey');
     // const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
-    const minerStats = await fetchRecentMinerStats(networkKey);
+    const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));
     return c.json({
       // latestBlockProposals,
       minerStats,

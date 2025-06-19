@@ -1,19 +1,19 @@
 import {
-  // pgTable,
+  pgTable,
   // serial,
-  // varchar,
+  varchar as text,
   integer,
   // smallint,
   customType,
-  // timestamp,
+  timestamp,
   index,
-  // bigint,
-  // boolean,
+  bigint,
+  boolean,
   unique,
-  // json,
-  sqliteTable as pgTable,
-  text,
-} from 'drizzle-orm/sqlite-core';
+  json,
+  // sqliteTable as pgTable,
+  // text as,
+} from 'drizzle-orm/pg-core';
 import { eq, isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
 import { v7 as uuidv7 } from 'uuid';
@@ -70,10 +70,8 @@ export const blockProposals = pgTable(
     txCount: integer('tx_count').notNull(),
     burnBlockHeight: integer('burn_block_height').notNull(),
     serverVersion: text('server_version'),
-    blockTimestamp: integer('block_timestamp', {
-      mode: 'timestamp_ms',
-    }).notNull(),
-    txFees: integer('tx_fees', { mode: 'number' }).default(0).notNull(),
+    blockTimestamp: timestamp('block_timestamp').notNull(),
+    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
@@ -116,10 +114,8 @@ export const blockResponses = pgTable(
     networkKey: text('network_key', { length: 20 }).notNull(),
     chunkId: text('chunk_id'),
     signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
-    accepted: integer('accepted', { mode: 'boolean' }).notNull(),
-    tenureExtendTimestamp: integer('tenure_extend_timestamp', {
-      mode: 'timestamp_ms',
-    }),
+    accepted: boolean('accepted').notNull(),
+    tenureExtendTimestamp: timestamp('tenure_extend_timestamp'),
     version: text('version'),
     rejectCode: integer('reject_code'),
     validationCode: integer('validation_code'),
@@ -185,20 +181,16 @@ export const stacksBlocks = pgTable(
     // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: text('network_key', { length: 20 }).notNull(),
     tenureChangeCause: integer('tenure_change_cause'),
-    blockTimestamp: integer('block_timestamp', {
-      mode: 'timestamp_ms',
-    }).notNull(),
-    burnBlockTimestamp: integer('burn_block_timestamp', {
-      mode: 'timestamp_ms',
-    }).notNull(),
+    blockTimestamp: timestamp('block_timestamp').notNull(),
+    burnBlockTimestamp: timestamp('burn_block_timestamp').notNull(),
     indexBlockHash: text('index_block_hash', { length: 64 }).notNull(),
     txCount: integer('tx_count').notNull(),
-    txFees: integer('tx_fees', { mode: 'number' }).default(0).notNull(),
-    readCount: integer('read_count', { mode: 'number' }).notNull(),
-    readLength: integer('read_length', { mode: 'number' }).notNull(),
-    runtime: integer('runtime', { mode: 'number' }).notNull(),
-    writeCount: integer('write_count', { mode: 'number' }).notNull(),
-    writeLength: integer('write_length', { mode: 'number' }).notNull(),
+    txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
+    readCount: bigint('read_count', { mode: 'number' }).notNull(),
+    readLength: bigint('read_length', { mode: 'number' }).notNull(),
+    runtime: bigint('runtime', { mode: 'number' }).notNull(),
+    writeCount: bigint('write_count', { mode: 'number' }).notNull(),
+    writeLength: bigint('write_length', { mode: 'number' }).notNull(),
     consensusHash: text('consensus_hash', { length: 64 }).notNull(),
   },
   (table) => [
@@ -267,7 +259,7 @@ export const stateMachineUpdates = pgTable(
     activeSignerProtocolVersion: integer(
       'active_signer_protocol_version',
     ).notNull(),
-    updateContent: text('update_content', { mode: 'json' })
+    updateContent: json('update_content')
       .$type<SuperJSON<StateMachineUpdate['stateMachineUpdate']>>()
       .notNull(),
     chunkId: text('chunk_id'),

@@ -5,7 +5,7 @@ import {
   SignerMessageTypePrefix,
   TypeIdCoder,
 } from 'slot-watch-common';
-import { db } from '../src/db/db';
+import { makeDb } from '../src/db/db';
 import { and, eq, sql } from 'drizzle-orm';
 import { stackerDbSlots } from '../src/db/schema';
 import { hex } from '@scure/base';
@@ -18,6 +18,8 @@ import {
 } from '@stacks/transactions';
 
 const blocks: BlockListResponse['results'] = [];
+
+const db = makeDb();
 
 async function getBlocks(offset: number) {
   const url = `https://api.hiro.so/extended/v2/blocks?limit=30&offset=${offset}`;
