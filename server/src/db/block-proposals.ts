@@ -158,7 +158,7 @@ export async function getRecentBlocksHealth({
   const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
   const recentBlocks = await db
-    .select({
+    .selectDistinctOn([blockProposalsSchema.chainLength], {
       ...getTableColumns(blockProposalsSchema),
       pushedAt: blockPushes.id,
     })
@@ -184,6 +184,7 @@ export async function getRecentBlocksHealth({
       desc(blockProposalsSchema.chainLength),
       desc(blockProposalsSchema.id),
     )
+    .offset(50)
     .limit(50);
 
   const blockResponses = await db

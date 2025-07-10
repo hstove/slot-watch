@@ -1,0 +1,21 @@
+# fly.toml app configuration file generated for cf-exporter on 2025-06-19T14:41:58-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'cf-exporter'
+primary_region = 'iad'
+
+[build]
+  image = 'ghcr.io/lablabs/cloudflare_exporter'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = false
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  size = 'shared-cpu-1x'

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { and, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -24,6 +24,7 @@ import { log, logger } from '../logger';
 import { getPoolStatus } from '../db/db';
 import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
+import { getCreatedAt } from '../utils';
 
 const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -265,6 +266,32 @@ const blockRoutes = new Hono<ServerType>()
     return c.json({
       // latestBlockProposals,
       minerStats,
+    });
+  })
+  .get('/:networkKey/blocks/:blockHash/responses', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const blockHash = c.req.param('blockHash');
+    const blockProposal = await c.get('db').query.blockProposals.findFirst({
+      where: eq(blockProposals.signerSignatureHash, blockHash),
+    });
+    if (!blockProposal) {
+      return c.json({ error: 'Block not found' }, 404);
+    }
+    const proposedAt = getCreatedAt(blockProposal.id);
+    const responses = await c.get('db').query.blockResponses.findMany({
+      where: eq(blockResponses.signerSignatureHash, blockHash),
+      orderBy: [asc(blockResponses.id)],
+    });
+
+    console.log(`Proposed at ${proposedAt.toISOString()}`);
+    // responses.forEach((r) => {
+    for (const response of responses) {
+      const createdAt = getCreatedAt(response.id);
+      console.log(`Response at ${createdAt.toISOString()}`);
+    }
+    return c.json({
+      blockProposal: serializeBlockProposal(blockProposal),
+      responses: responses.map(serializeBlockResponse),
     });
   });
 
