@@ -29,6 +29,7 @@ import { publishWsEventToStreamer } from '../streamer';
 import { warmCache } from '../stacks-api';
 import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { ServerContext, ServerType } from '../server-context';
+import { makeDb } from '../db/db';
 
 type Env = {
   Variables: {
@@ -102,7 +103,16 @@ const eventsRoutes = new Hono<Env>()
     //   //   // publishWsEvent(manyChunksPayload),
     //   // ]),
     // );
-    await handleStackerDBChunk(data, receivedAt, networkKey, c.get('db'));
+    // handleStackerDBChunk(data, receivedAt, networkKey, c.get('db'));
+    c.executionCtx.waitUntil(
+      (async () => {
+        const db = makeDb();
+        await db.$client.connect();
+        await handleStackerDBChunk(data, receivedAt, networkKey, db);
+        await db.$client.end();
+      })(),
+    );
+    logger.info('Sending response for stackerdb event.');
     return new Response('OK', { status: 200 });
   })
 
