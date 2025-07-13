@@ -6,6 +6,7 @@ import { timeout } from 'hono/timeout';
 import { log, logger } from '../logger';
 import { getSignerLatencies } from '../db/block-responses';
 import type { ServerType } from '../server-context';
+import { stxCommittedCache } from '../pox-4';
 
 export const signersRequestSchema = z.object({
   rewardCycleId: z.coerce.number(),
@@ -71,4 +72,16 @@ export const signersRoutes = new Hono<ServerType>()
     const networkKey = c.req.param('networkKey');
     const latencies = await getSignerLatencies(networkKey, c.get('db'));
     return c.json({ latencies });
+  })
+  .get('/signers/:networkKey/stacked-next-cycle', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const poxInfo = await getPoxInfo.get(networkKey);
+    const cycle = poxInfo.rewardCycleId;
+    const stxCommitted = await stxCommittedCache.get();
+    return c.json({
+      stxCommitted: Object.entries(stxCommitted).map(([signer, stx]) => ({
+        signer,
+        stx: stx.toString(),
+      })),
+    });
   });
