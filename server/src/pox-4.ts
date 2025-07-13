@@ -21,7 +21,7 @@ async function getRewardSet(rewardCycle: bigint) {
   for (let i = 0; i < listLen; i++) {
     listItems.push(async () => {
       try {
-        return fetchMapGet(
+        return await fetchMapGet(
           pox4.identifier,
           pox4.maps.rewardCyclePoxAddressList,
           {
