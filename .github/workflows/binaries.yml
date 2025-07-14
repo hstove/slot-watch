@@ -9,7 +9,7 @@ on:
 
 jobs:
   release:
-    name: release
+    name: Rust Binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -22,3 +22,4 @@ jobs:
           SRC_DIR: ./proxy
           TOOLCHAIN_VERSION: 1.88.0
           ARCHIVE_TYPES: zip
+          UPLOAD_MODE: none
