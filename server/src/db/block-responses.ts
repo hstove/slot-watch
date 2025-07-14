@@ -17,6 +17,12 @@ import { parse, stringify } from 'superjson';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
 import { desc, eq, and, sql } from 'drizzle-orm';
+import Cloudflare from 'cloudflare';
+import * as R from 'remeda';
+
+const cloudflare = new Cloudflare({
+  apiToken: env.KV_API_TOKEN,
+});
 
 export function mapSignerDataToResponses({
   stackerSet,
@@ -196,6 +202,24 @@ export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
   );
   await env.CACHE.put(key, stringify(blockResponse));
   // await redisClient.set(key, stringify(blockResponse));
+}
+
+export async function setLatestBlockResponses(
+  blockResponses: BlockResponseApi[],
+) {
+  const responses = R.uniqueBy(blockResponses, (r) => r.signerPublicKey);
+  await cloudflare.kv.namespaces.bulkUpdate(env.KV_NAMESPACE_ID, {
+    account_id: env.CF_KV_ACCOUNT_ID,
+    body: responses.map((r) => {
+      return {
+        key: latestBlockResponseLookupKey({
+          signerPublicKey: r.signerPublicKey,
+          networkKey: r.networkKey,
+        }),
+        value: stringify(r),
+      };
+    }),
+  });
 }
 
 export async function getCachedLatestBlockResponses(
