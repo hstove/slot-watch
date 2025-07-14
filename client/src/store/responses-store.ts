@@ -32,6 +32,7 @@ export async function fetchRecentSignerResponses(
       signerSignatureHash: '',
       signerPublicKey: r.signerPublicKey,
       accepted: true,
+      id: r.id,
     };
   });
 }
