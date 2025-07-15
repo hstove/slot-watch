@@ -1,6 +1,12 @@
 import { hc } from 'hono/client';
 import type { SlotWatchServer } from 'slot-watch-api';
-import { strip0x, superDeserialize, type TypeMerge } from 'slot-watch-common';
+import {
+  type ApiBlockProposal,
+  type ApiStacksBlock,
+  strip0x,
+  superDeserialize,
+  type TypeMerge,
+} from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 import {
   createQueryKeys,
@@ -113,6 +119,54 @@ export type ApiBlockResponseForBlock = Omit<
   signerPublicKey: string;
 };
 
+export function mergeBlockData(
+  proposal: ApiBlockProposal,
+  stacksBlock: ApiStacksBlock | null,
+): ApiBlockForBurnBlock {
+  const blockTimestamp = stacksBlock?.blockTimestamp ?? proposal.blockTimestamp;
+  if (proposal && stacksBlock) {
+    return {
+      blockHash: proposal.signerSignatureHash,
+      blockHeight: proposal.chainLength,
+      minerPublicKey: proposal.minerPublicKey,
+      txCount: proposal.txCount ?? 0,
+      tenureChangeCause: proposal.tenureChangeCause,
+      consensusHash: proposal.consensusHash,
+      burnBlockHeight: stacksBlock.burnBlockHeight,
+      networkKey: proposal.networkKey,
+      proposedAt: proposal.createdAt,
+      processedAt: stacksBlock.processedAt,
+      burnBlockHash: stacksBlock.burnBlockHash,
+      readCount: stacksBlock.readCount,
+      readLength: stacksBlock.readLength,
+      runtime: stacksBlock.runtime,
+      writeCount: stacksBlock.writeCount,
+      writeLength: stacksBlock.writeLength,
+      blockTimestamp,
+      indexBlockHash: stacksBlock.indexBlockHash,
+      burnBlockTimestamp: stacksBlock.burnBlockTimestamp,
+      serverVersion: proposal.serverVersion,
+      serverVersionShort: proposal.serverVersionShort,
+      txFees: stacksBlock.txFees,
+    } satisfies AllInfoBlock;
+  }
+  return {
+    blockHash: proposal.signerSignatureHash,
+    blockHeight: proposal.chainLength,
+    minerPublicKey: proposal.minerPublicKey,
+    txCount: proposal.txCount ?? 0,
+    tenureChangeCause: proposal.tenureChangeCause,
+    consensusHash: proposal.consensusHash,
+    burnBlockHeight: proposal.burnBlockHeight ?? 0,
+    networkKey: proposal.networkKey,
+    proposedAt: proposal.createdAt,
+    blockTimestamp,
+    serverVersion: proposal.serverVersion,
+    serverVersionShort: proposal.serverVersionShort,
+    txFees: proposal.txFees,
+  } satisfies ProposalOnlyBlock;
+}
+
 export async function getBlocksForBurnBlock(
   networkKey: string,
   consensusHash: string,
@@ -124,51 +178,9 @@ export async function getBlocksForBurnBlock(
   });
   const data = await response.json();
 
-  return data.blocks.map(({ proposal, stacksBlock }) => {
-    const blockTimestamp =
-      stacksBlock?.blockTimestamp ?? proposal.blockTimestamp;
-    if (proposal && stacksBlock) {
-      return {
-        blockHash: proposal.signerSignatureHash,
-        blockHeight: proposal.chainLength,
-        minerPublicKey: proposal.minerPublicKey,
-        txCount: proposal.txCount ?? 0,
-        tenureChangeCause: proposal.tenureChangeCause,
-        consensusHash: proposal.consensusHash,
-        burnBlockHeight: stacksBlock.burnBlockHeight,
-        networkKey: proposal.networkKey,
-        proposedAt: proposal.createdAt,
-        processedAt: stacksBlock.processedAt,
-        burnBlockHash: stacksBlock.burnBlockHash,
-        readCount: stacksBlock.readCount,
-        readLength: stacksBlock.readLength,
-        runtime: stacksBlock.runtime,
-        writeCount: stacksBlock.writeCount,
-        writeLength: stacksBlock.writeLength,
-        blockTimestamp,
-        indexBlockHash: stacksBlock.indexBlockHash,
-        burnBlockTimestamp: stacksBlock.burnBlockTimestamp,
-        serverVersion: proposal.serverVersion,
-        serverVersionShort: proposal.serverVersionShort,
-        txFees: stacksBlock.txFees,
-      } satisfies AllInfoBlock;
-    }
-    return {
-      blockHash: proposal.signerSignatureHash,
-      blockHeight: proposal.chainLength,
-      minerPublicKey: proposal.minerPublicKey,
-      txCount: proposal.txCount ?? 0,
-      tenureChangeCause: proposal.tenureChangeCause,
-      consensusHash: proposal.consensusHash,
-      burnBlockHeight: proposal.burnBlockHeight ?? 0,
-      networkKey: proposal.networkKey,
-      proposedAt: proposal.createdAt,
-      blockTimestamp,
-      serverVersion: proposal.serverVersion,
-      serverVersionShort: proposal.serverVersionShort,
-      txFees: proposal.txFees,
-    } satisfies ProposalOnlyBlock;
-  });
+  return data.blocks.map(({ proposal, stacksBlock }) =>
+    mergeBlockData(proposal, stacksBlock),
+  );
 }
 
 type StacksBlockBase = {
@@ -306,3 +318,16 @@ export const queries = createQueryKeyStore({
     }),
   },
 });
+
+export async function getStacksBlock(networkKey: string, blockHash: string) {
+  const response = await apiClient.blocks[':networkKey']['stx-blocks'][
+    ':blockHash'
+  ].$get({
+    param: { networkKey, blockHash },
+  });
+  const data = await response.json();
+  if ('error' in data) {
+    throw new Error(data.error);
+  }
+  return mergeBlockData(data.proposal, data.stacksBlock);
+}
