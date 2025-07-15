@@ -18,6 +18,7 @@ import { Route as SignersImport } from './routes/signers'
 import { Route as MinersImport } from './routes/miners'
 import { Route as IndexImport } from './routes/index'
 import { Route as BlocksIndexImport } from './routes/blocks/index'
+import { Route as StxBlocksBlockHashImport } from './routes/stx-blocks/$blockHash'
 import { Route as BtcBlocksHeightOrHashImport } from './routes/btc-blocks/$heightOrHash'
 
 // Create/Update Routes
@@ -61,6 +62,12 @@ const IndexRoute = IndexImport.update({
 const BlocksIndexRoute = BlocksIndexImport.update({
   id: '/blocks/',
   path: '/blocks/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const StxBlocksBlockHashRoute = StxBlocksBlockHashImport.update({
+  id: '/stx-blocks/$blockHash',
+  path: '/stx-blocks/$blockHash',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -123,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BtcBlocksHeightOrHashImport
       parentRoute: typeof rootRoute
     }
+    '/stx-blocks/$blockHash': {
+      id: '/stx-blocks/$blockHash'
+      path: '/stx-blocks/$blockHash'
+      fullPath: '/stx-blocks/$blockHash'
+      preLoaderRoute: typeof StxBlocksBlockHashImport
+      parentRoute: typeof rootRoute
+    }
     '/blocks/': {
       id: '/blocks/'
       path: '/blocks'
@@ -143,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
 
@@ -154,6 +169,7 @@ export interface FileRoutesByTo {
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
 
@@ -166,6 +182,7 @@ export interface FileRoutesById {
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks/': typeof BlocksIndexRoute
 }
 
@@ -179,6 +196,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/stx-blocks/$blockHash'
     | '/blocks'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -189,6 +207,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/stx-blocks/$blockHash'
     | '/blocks'
   id:
     | '__root__'
@@ -199,6 +218,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/stx-blocks/$blockHash'
     | '/blocks/'
   fileRoutesById: FileRoutesById
 }
@@ -211,6 +231,7 @@ export interface RootRouteChildren {
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
+  StxBlocksBlockHashRoute: typeof StxBlocksBlockHashRoute
   BlocksIndexRoute: typeof BlocksIndexRoute
 }
 
@@ -222,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
   BtcBlocksHeightOrHashRoute: BtcBlocksHeightOrHashRoute,
+  StxBlocksBlockHashRoute: StxBlocksBlockHashRoute,
   BlocksIndexRoute: BlocksIndexRoute,
 }
 
@@ -242,6 +264,7 @@ export const routeTree = rootRoute
         "/ui-test",
         "/when-extend",
         "/btc-blocks/$heightOrHash",
+        "/stx-blocks/$blockHash",
         "/blocks/"
       ]
     },
@@ -265,6 +288,9 @@ export const routeTree = rootRoute
     },
     "/btc-blocks/$heightOrHash": {
       "filePath": "btc-blocks/$heightOrHash.tsx"
+    },
+    "/stx-blocks/$blockHash": {
+      "filePath": "stx-blocks/$blockHash.tsx"
     },
     "/blocks/": {
       "filePath": "blocks/index.tsx"

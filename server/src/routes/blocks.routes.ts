@@ -284,7 +284,6 @@ const blockRoutes = new Hono<ServerType>()
     });
 
     console.log(`Proposed at ${proposedAt.toISOString()}`);
-    // responses.forEach((r) => {
     for (const response of responses) {
       const createdAt = getCreatedAt(response.id);
       console.log(`Response at ${createdAt.toISOString()}`);
@@ -292,6 +291,29 @@ const blockRoutes = new Hono<ServerType>()
     return c.json({
       blockProposal: serializeBlockProposal(blockProposal),
       responses: responses.map(serializeBlockResponse),
+    });
+  })
+  .get('/blocks/:networkKey/stx-blocks/:blockHash', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const blockHash = c.req.param('blockHash');
+    const blockProposal = await c.get('db').query.blockProposals.findFirst({
+      where: eq(blockProposals.signerSignatureHash, blockHash),
+    });
+    if (!blockProposal) {
+      return c.json({ error: 'Block not found' }, 404);
+    }
+    const proposedAt = getCreatedAt(blockProposal.id);
+    const stxBlock = await c.get('db').query.stacksBlocks.findFirst({
+      where: eq(stacksBlocks.blockHash, blockHash),
+    });
+    if (!stxBlock) {
+      return c.json({ error: 'Block not found' }, 404);
+    }
+    const stxBlockData = serializeStacksBlock(stxBlock);
+    const proposalData = serializeBlockProposal(blockProposal);
+    return c.json({
+      stacksBlock: stxBlockData,
+      proposal: proposalData,
     });
   });
 
