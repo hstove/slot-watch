@@ -111,6 +111,12 @@ export const latestResponseTimeForSignerFamily = atomFamily(
   },
 );
 
+export const latestBlockHeightForSignerFamily = atomFamily(
+  (_signerPublicKey: string) => {
+    return atom<number>();
+  },
+);
+
 export const [
   fetchSignersLatestResponsesAtom,
   signerLatestResponseFamily,
@@ -128,6 +134,10 @@ export const [
     set(
       latestResponseTimeForSignerFamily(response.signerPublicKey),
       new Date(response.createdAt).getTime(),
+    );
+    set(
+      latestBlockHeightForSignerFamily(response.signerPublicKey),
+      response.blockHeight,
     );
   },
   'signer-latest-responses',
@@ -239,11 +249,16 @@ export const [
       return {
         ...latest,
         createdAt: new Date().toISOString(),
+        blockHeight: response.blockHeight,
       };
     });
     set(
       latestResponseTimeForSignerFamily(response.signerPublicKey),
       Date.now(),
+    );
+    set(
+      latestBlockHeightForSignerFamily(response.signerPublicKey),
+      response.blockHeight,
     );
   },
   'mini-block-responses',

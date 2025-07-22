@@ -56,6 +56,7 @@ const eventsRoutes = new Hono<Env>()
         path: c.req.path,
       })
       .error('Error in event routes');
+    console.error(err);
 
     return c.text('Internal Server Error', 200);
   })

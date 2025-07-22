@@ -19,6 +19,7 @@ export type RecentSigner = {
   degradation10: number;
   degradation25: number;
   degradation50: number;
+  blockHeight: number | undefined;
 };
 
 export type RecentSignersResponse = {
@@ -80,6 +81,7 @@ export const miniBlockResponseApiSchema = z.object({
   signerPublicKey: z.string(),
   accepted: z.boolean(),
   tenureExtendTimestamp: z.union([z.null(), z.string()]),
+  blockHeight: z.number().optional(),
 });
 
 export type MiniBlockResponseApi = z.infer<typeof miniBlockResponseApiSchema>;

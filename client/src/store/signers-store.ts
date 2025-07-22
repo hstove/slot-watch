@@ -12,6 +12,7 @@ import type { ChartConfig } from '@/components/ui/chart';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 import {
+  latestBlockHeightForSignerFamily,
   latestResponseTimeForSignerFamily,
   signerLatestResponseFamilyInner,
 } from './responses-store';
@@ -74,10 +75,12 @@ export const recentSignersWithLatestResponsesAtom = atom((get) => {
 
   return recentSigners.signers.map((signer) => {
     const response = get(latestResponseTimeForSignerFamily(signer.publicKey));
+    const blockHeight = get(latestBlockHeightForSignerFamily(signer.publicKey));
     return {
       ...signer,
       createdAt: response ? new Date(response).toISOString() : signer.createdAt,
       totalWeight: recentSigners.totalWeight,
+      blockHeight: blockHeight ?? undefined,
     };
   });
 });

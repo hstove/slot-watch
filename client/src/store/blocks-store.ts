@@ -356,9 +356,9 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
         accepted,
         percentAccept,
         percentReject,
-        displayPercent: percentString(displayPercent, 100),
-        acceptPercentString: percentString(percentAccept, 100),
-        rejectPercentString: percentString(percentReject, 100),
+        displayPercent: percentString(displayPercent, 1000),
+        acceptPercentString: percentString(percentAccept, 1000),
+        rejectPercentString: percentString(percentReject, 1000),
       };
     }),
 );
