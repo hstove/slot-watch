@@ -139,44 +139,31 @@ const eventsRoutes = new Hono<Env>()
       receivedAt: receivedAt.toISOString(),
     };
 
-    // c.executionCtx.waitUntil(
-    //   Promise.all([
-    //     publishWsEventToStreamer(sharedPayload),
-    //     handleStacksBlockEvent({
-    //       type: NEW_BLOCK_EVENT,
-    //       networkKey,
-    //       receivedAt: receivedAt.toISOString(),
-    //       payload: {
-    //         ...block,
-    //         networkKey,
-    //         receivedAt: receivedAt.toISOString(),
-    //         blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-    //         burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-    //       },
-    //     }),
-    //     recentBlocksHealthCache.warmIfNeeded(),
-    //   ]),
-    // );
-
-    await Promise.all([
-      publishWsEventToStreamer(sharedPayload),
-      handleStacksBlockEvent(
-        {
-          type: NEW_BLOCK_EVENT,
-          networkKey,
-          receivedAt: receivedAt.toISOString(),
-          payload: {
-            ...block,
-            networkKey,
-            receivedAt: receivedAt.toISOString(),
-            blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-            burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-          },
-        },
-        c.get('db'),
-      ),
-      recentBlocksHealthCache.warmIfNeeded(c.get('db')),
-    ]);
+    c.executionCtx.waitUntil(
+      (async () => {
+        const db = makeDb();
+        await db.$client.connect();
+        await Promise.all([
+          publishWsEventToStreamer(sharedPayload),
+          handleStacksBlockEvent(
+            {
+              type: NEW_BLOCK_EVENT,
+              networkKey,
+              receivedAt: receivedAt.toISOString(),
+              payload: {
+                ...block,
+                networkKey,
+                receivedAt: receivedAt.toISOString(),
+                blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+                burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+              },
+            },
+            db,
+          ),
+          recentBlocksHealthCache.warmIfNeeded(db),
+        ]);
+      })(),
+    );
 
     return new Response('OK', { status: 200 });
   })
@@ -204,18 +191,17 @@ const eventsRoutes = new Hono<Env>()
         consensusHash: burnBlock.consensus_hash,
       },
     };
-    // c.executionCtx.waitUntil(
-    //   Promise.all([
-    //     handleBurnBlockEvent(payload),
-    //     publishWsEventToStreamer(payload),
-    //     warmCache(networkKey),
-    //   ]),
-    // );
-    await Promise.all([
-      handleBurnBlockEvent(payload, c.get('db')),
-      publishWsEventToStreamer(payload),
-      warmCache(networkKey, c.get('db')),
-    ]);
+    c.executionCtx.waitUntil(
+      (async () => {
+        const db = makeDb();
+        await db.$client.connect();
+        await Promise.all([
+          handleBurnBlockEvent(payload, db),
+          publishWsEventToStreamer(payload),
+          warmCache(networkKey, db),
+        ]);
+      })(),
+    );
     return new Response('OK', { status: 200 });
   })
 
