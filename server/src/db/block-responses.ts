@@ -148,6 +148,7 @@ export function serializeBlockResponse(
     rejectCode: response.rejectCode ?? undefined,
     rejectReason: response.rejectReason ?? undefined,
     latencyMs: response.latencyMs ?? undefined,
+    blockHeight: response.blockHeight ?? undefined,
   };
 }
 

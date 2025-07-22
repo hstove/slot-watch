@@ -122,6 +122,7 @@ export const blockResponses = pgTable(
     reason: text('reason'),
     rejectReason: integer('reject_reason'),
     latencyMs: integer('latency_ms'),
+    blockHeight: integer('block_height'),
   },
   (table) => [
     index('block_responses_network_key_idx').on(table.networkKey),
