@@ -67,6 +67,7 @@ const getRecentsRoutes = new Hono<ServerType>()
           degradation25,
           degradation50,
           createdAt: response?.createdAt ?? null,
+          blockHeight: response?.blockHeight ?? undefined,
         };
         return common;
       },

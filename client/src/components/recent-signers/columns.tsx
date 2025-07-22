@@ -100,32 +100,19 @@ export const columns: ColumnDef<RecentSigner>[] = [
       );
     },
   },
-  {
-    header: 'Health (10)',
-    id: 'degradation10',
-    cell: ({ row }) => {
-      return (
-        <Degregation
-          degradation={row.original.degradation10}
-          lastNBlocks={10}
-          className="ml-0"
-        />
-      );
-    },
-  },
-  {
-    header: 'Health (25)',
-    id: 'degradation25',
-    cell: ({ row }) => {
-      return (
-        <Degregation
-          degradation={row.original.degradation25}
-          lastNBlocks={25}
-          className="ml-0 text-xs"
-        />
-      );
-    },
-  },
+  // {
+  //   header: 'Health (25)',
+  //   id: 'degradation25',
+  //   cell: ({ row }) => {
+  //     return (
+  //       <Degregation
+  //         degradation={row.original.degradation25}
+  //         lastNBlocks={25}
+  //         className="ml-0 text-xs"
+  //       />
+  //     );
+  //   },
+  // },
   {
     accessorKey: 'degradation50',
     invertSorting: true,
@@ -133,7 +120,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     header: ({ column }) => {
       return (
         <SortableHeader column={column}>
-          Health (50)
+          Health
           <SimpleTooltip content="Health of the signer over the last 50 block proposals">
             <InfoCircledIcon className="ml-2 h-3 w-3" />
           </SimpleTooltip>
@@ -176,6 +163,22 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
     header: ({ column }) => {
       return <SortableHeader column={column}>Last Seen</SortableHeader>;
+    },
+  },
+  {
+    accessorFn: (row) => {
+      return row.blockHeight;
+    },
+    id: 'blockHeight',
+    sortDescFirst: true,
+    sortUndefined: 'last',
+    cell: ({ row }) => {
+      return (
+        <div className="text-xs font-mono">{row.original.blockHeight}</div>
+      );
+    },
+    header: ({ column }) => {
+      return <SortableHeader column={column}>Block Height</SortableHeader>;
     },
   },
   {

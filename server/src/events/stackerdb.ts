@@ -178,10 +178,12 @@ export async function handleStackerDBChunk(
       const latencyMs = proposal
         ? receivedAt.getTime() - new Date(proposal.createdAt).getTime()
         : undefined;
+      const blockHeight = proposal?.chainLength;
       return {
         ...r,
         networkKey,
         latencyMs,
+        blockHeight,
       };
     });
 
