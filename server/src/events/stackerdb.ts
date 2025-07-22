@@ -42,7 +42,10 @@ import {
   setLatestBlockResponses,
 } from '../db/block-responses';
 // import { publishWsEvent } from '../redis';
-import { setLatestBlockProposal } from '../db/block-proposals';
+import {
+  fetchBlockProposalsByHash,
+  setLatestBlockProposal,
+} from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import { sql } from 'drizzle-orm';
@@ -57,6 +60,7 @@ import { stackerDbChunkProcessingTimeSummary } from '../metrics';
 import { v7 as uuidv7 } from 'uuid';
 import { publishWsEventToStreamer } from '../streamer';
 import { env } from 'cloudflare:workers';
+import * as R from 'remeda';
 
 export async function handleStackerDBChunk(
   payload: StackerDBPayload,
@@ -134,19 +138,6 @@ export async function handleStackerDBChunk(
             db,
           });
           blockResponses.push(response);
-          // await Promise.all([
-          //   (async () => {
-          //     const response = await handleBlockResponse({
-          //       chunk,
-          //       payload: decoded,
-          //       receivedAt,
-          //       networkKey,
-          //       publicKey,
-          //       chunkId,
-          //     });
-          //     blockResponses.push(response);
-          //   })(),
-          // ]);
         }
       } else if (
         decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate
@@ -170,11 +161,34 @@ export async function handleStackerDBChunk(
 
   if (blockResponses.length > 0) {
     logger.info(`Inserting ${blockResponses.length} block responses`);
+    const blockHashes = R.pipe(
+      blockResponses,
+      R.map((r) => r.signerSignatureHash),
+      R.unique(),
+    );
+    const blockProposalsList = await fetchBlockProposalsByHash(blockHashes, db);
+    const blockProposals = R.pipe(
+      blockProposalsList,
+      R.groupBy((r) => r.signerSignatureHash),
+      R.mapValues((v) => v[0]),
+    );
+
+    const blockResponsesWithData = blockResponses.map((r) => {
+      const proposal = blockProposals[r.signerSignatureHash];
+      const latencyMs = proposal
+        ? receivedAt.getTime() - new Date(proposal.createdAt).getTime()
+        : undefined;
+      return {
+        ...r,
+        networkKey,
+        latencyMs,
+      };
+    });
+
     await Promise.all([
       db.insert(blockResponsesTable).values(
-        blockResponses.map((r) => ({
+        blockResponsesWithData.map((r) => ({
           ...r,
-          networkKey,
           tenureExtendTimestamp: r.tenureExtendTimestamp
             ? new Date(r.tenureExtendTimestamp)
             : null,
@@ -185,14 +199,9 @@ export async function handleStackerDBChunk(
         type: MINI_BLOCK_RESPONSES_EVENT,
         networkKey,
         receivedAt: receivedAt.toISOString(),
-        payload: blockResponses.map((r) => ({
-          signerSignatureHash: r.signerSignatureHash,
-          signerPublicKey: r.signerPublicKey,
-          accepted: r.accepted,
-          tenureExtendTimestamp: r.tenureExtendTimestamp,
-        })),
+        payload: blockResponsesWithData,
       } satisfies WSMiniBlockResponses),
-      setLatestBlockResponses(blockResponses),
+      setLatestBlockResponses(blockResponsesWithData),
     ]);
   }
 }
@@ -306,30 +315,6 @@ export async function handleBlockResponse({
     ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
     : null;
   const signerSignatureHash = hex.encode(payload.signerSignatureHash);
-  const latencyMs: number | null = null;
-  // try {
-  //   const blockProposal = await db.query.blockProposals.findFirst({
-  //     where(fields, operators) {
-  //       return operators.eq(fields.signerSignatureHash, signerSignatureHash);
-  //     },
-  //   });
-  //   if (blockProposal) {
-  //     const createdAt = getCreatedAt(blockProposal.id);
-  //     latencyMs = receivedAt.getTime() - createdAt.getTime();
-  //   }
-  // } catch (error) {
-  //   if (error instanceof DrizzleQueryError || error instanceof Error) {
-  //     log
-  //       .withError(error.cause ?? error)
-  //       .withMetadata({
-  //         ...error,
-  //       })
-  //       .error('Error finding block proposal');
-  //   } else {
-  //     log.withError(error).error('Error finding block proposal');
-  //   }
-  //   console.log(error);
-  // }
 
   const id = uuidv7({ msecs: receivedAt.getTime() });
   const data = {
@@ -346,25 +331,13 @@ export async function handleBlockResponse({
     validationCode: payload.validationCode ?? null,
     version: payload.metadata ?? null,
     rejectReason: payload.data.rejectReason ?? null,
-    latencyMs,
+    latencyMs: null,
+    blockHeight: null,
   } satisfies InferInsertModel<typeof blockResponsesTable>;
   const blockResponse: BlockResponseApi = serializeBlockResponse({
     ...data,
     id,
   });
-  // await Promise.all([
-  // insertBlockResponse(),
-  // db
-  //   .insert(blockResponses)
-  //   .values(data),
-  // setLatestBlockResponse(blockResponse),
-  // await publishWsEventToStreamer({
-  //   type: BLOCK_RESPONSE_EVENT,
-  //   networkKey,
-  //   receivedAt: receivedAt.toISOString(),
-  //   payload: blockResponse,
-  // } satisfies WSBlockResponse),
-  // ]);
   return blockResponse;
 }
 

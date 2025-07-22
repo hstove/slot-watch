@@ -29,6 +29,7 @@ import { log, logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
+import * as R from 'remeda';
 
 export function serializeBlockProposal(
   block: BlockProposalDb,
@@ -376,3 +377,14 @@ export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
     // recentBlocks,
   };
 };
+
+export async function fetchBlockProposalsByHash(
+  signerSignatureHash: string[],
+  db: Db,
+) {
+  const blockProposalsList = await db.query.blockProposals.findMany({
+    where: (fields, operators) =>
+      operators.inArray(fields.signerSignatureHash, signerSignatureHash),
+  });
+  return R.map(blockProposalsList, serializeBlockProposal);
+}
