@@ -107,6 +107,7 @@ export const worker = await Worker('slot-watch-worker', {
     KV_API_TOKEN: alchemy.secret(process.env.KV_API_TOKEN),
     CF_KV_ACCOUNT_ID: alchemy.secret(process.env.CF_KV_ACCOUNT_ID),
     KV_NAMESPACE_ID: alchemy.secret(process.env.KV_NAMESPACE_ID),
+    HIRO_API_KEY: alchemy.secret(process.env.HIRO_API_KEY),
   },
   adopt: true,
 });
