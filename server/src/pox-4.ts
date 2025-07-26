@@ -7,8 +7,15 @@ import { getPoxInfo } from './stacks-api';
 import { stxCommittedNextCycle } from './metrics';
 import { memoizeCache } from './cache';
 import { logger as _logger, log } from './logger';
+import { env } from 'cloudflare:workers';
+import { STACKS_MAINNET } from '@stacks/network';
 
-export const client = new ClarigenClient('https://api.hiro.so');
+const network = {
+  ...STACKS_MAINNET,
+  url: 'https://api.hiro.so',
+};
+
+export const client = new ClarigenClient(network);
 const pox4 = mainnet.pox4;
 
 const logger = log.child().withContext({
@@ -29,7 +36,8 @@ async function getRewardSet(rewardCycle: bigint) {
             index: BigInt(i),
           },
           {
-            url: client.url,
+            network,
+            apiKey: env.HIRO_API_KEY,
           },
         );
       } catch (error) {
