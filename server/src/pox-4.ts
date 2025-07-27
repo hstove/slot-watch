@@ -46,7 +46,7 @@ async function getRewardSet(rewardCycle: bigint) {
       }
     });
   }
-  return (await pAll(listItems, { concurrency: 3 })).filter((n) => n !== null);
+  return (await pAll(listItems, { concurrency: 10 })).filter((n) => n !== null);
 }
 
 export async function getStxCommittedToSigner(
@@ -78,7 +78,7 @@ export async function getStxCommittedForCycle(rewardCycle: bigint) {
 }
 
 export const stxCommittedCache = memoizeCache(
-  () => 'stx_committed_cache',
+  () => 'stx_committed_cache_v2',
   async () => {
     const { rewardCycleId } = await getPoxInfo.get('mainnet');
     const allCommits = await getStxCommittedForCycle(BigInt(rewardCycleId + 1));
