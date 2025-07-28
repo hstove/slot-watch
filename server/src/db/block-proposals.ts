@@ -253,11 +253,13 @@ export const recentBlocksHealthCache = memoizeCache(
 );
 
 export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
-  const recentBlocksDistinct = await db
-    .selectDistinct({
+  const recentBlocks = await db
+    .selectDistinctOn([blockProposals.burnBlockHeight], {
       burnBlockHeight: blockProposals.burnBlockHeight,
       chainLength: blockProposals.chainLength,
       id: blockProposals.id,
+      minerPublicKey: blockProposals.minerPublicKey,
+      serverVersion: blockProposals.serverVersion,
     })
     // .selectDistinctOn([blockProposals.burnBlockHeight], {
     //   chainLength: blockProposals.chainLength,
@@ -286,31 +288,31 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
       desc(blockProposals.chainLength),
       desc(blockProposals.id),
     )
-    .limit(1000);
+    .limit(500);
 
-  const recentBlocks = await db
-    .select({
-      ...getTableColumns(blockProposalsSchema),
-      pushedAt: blockPushes.id,
-    })
-    .from(blockProposalsSchema)
-    .leftJoin(
-      blockPushes,
-      and(
-        eq(
-          blockProposalsSchema.signerSignatureHash,
-          blockPushes.signerSignatureHash,
-        ),
-        eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
-      ),
-    )
-    .where(eq(blockProposalsSchema.networkKey, networkKey))
-    .orderBy(
-      desc(blockProposalsSchema.burnBlockHeight),
-      desc(blockProposalsSchema.chainLength),
-      desc(blockProposalsSchema.id),
-    )
-    .limit(1000);
+  // const recentBlocks = await db
+  //   .select({
+  //     ...getTableColumns(blockProposalsSchema),
+  //     pushedAt: blockPushes.id,
+  //   })
+  //   .from(blockProposalsSchema)
+  //   .leftJoin(
+  //     blockPushes,
+  //     and(
+  //       eq(
+  //         blockProposalsSchema.signerSignatureHash,
+  //         blockPushes.signerSignatureHash,
+  //       ),
+  //       eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
+  //     ),
+  //   )
+  //   .where(eq(blockProposalsSchema.networkKey, networkKey))
+  //   .orderBy(
+  //     desc(blockProposalsSchema.burnBlockHeight),
+  //     desc(blockProposalsSchema.chainLength),
+  //     desc(blockProposalsSchema.id),
+  //   )
+  //   .limit(1000);
 
   // const recentBlocks = await db.execute<{
   //   consensus_hash: string;
@@ -337,7 +339,7 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
 }
 
 export const fetchRecentMinerBlocksCache = memoizeCache(
-  (networkKey: string) => `recent-miner-blocks-v2:${networkKey}`,
+  (networkKey: string) => `recent-miner-blocks-v3:${networkKey}`,
   async (networkKey: string, db: Db) => {
     return _fetchRecentMinerBlocks(networkKey, db);
   },
