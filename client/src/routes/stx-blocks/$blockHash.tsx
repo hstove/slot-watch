@@ -16,6 +16,7 @@ import {
 import { setSignersApiAtom } from '@/store/signers-store';
 import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
+import { StacksBlockDetail } from '@/components/stacks-block/stacks-block-detail';
 
 export const Route = createFileRoute('/stx-blocks/$blockHash')({
   component: RouteComponent,
@@ -55,5 +56,10 @@ function RouteComponent() {
     setSigners(loaderData.signers, loaderData.network ?? 'mainnet');
     setStacksBlock(loaderData.stacksBlock);
   }, [loaderData, setSigners, setStacksBlock]);
-  return <div>Hello "/stx-blocks/$blockHash"!</div>;
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <StacksBlockDetail block={loaderData.stacksBlock} />
+    </div>
+  );
 }
