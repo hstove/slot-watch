@@ -25,22 +25,20 @@ Slot-watch is a Stacks blockchain monitoring application built as a monorepo wit
 
 **Root level commands:**
 - `bun install` - Install all dependencies
-- `turbo dev` - Run development servers for all packages
-- `turbo build` - Build all packages
-- `turbo typecheck` - Run TypeScript checks across all packages
+- `bun dev:client` - Run the front-end server locally
+- `bun run build` - Build all packages
+- `bun typecheck` - Run TypeScript checks across all packages
 
 **Client development:**
-- `bun run dev:client` - Start Vite dev server
-- `bun run build:client` - Build React app for production
+- `bun dev:client` - Start Vite dev server
+- `bun build:client` - Build React app for production
 
 **Server development:**
-- `bun run dev:server` - Start API server with file watching
-- `bun run dev:worker` - Run Cloudflare worker locally
-- `bun run migrate` - Run database migrations
+- `bun dev:server` - Start API server with file watching
+- `bun dev:worker` - Run Cloudflare worker locally
+- `bun migrate` - Run database migrations
 
 **Package-specific commands:**
-- Client: `cd client && bun run lint` for ESLint checks
-- Server: `cd server && bun run test:watch` for Vitest testing
 - Common: `cd common && bun test` for shared utilities testing
 
 ## Database & Infrastructure
@@ -49,7 +47,6 @@ Slot-watch is a Stacks blockchain monitoring application built as a monorepo wit
 - Uses Drizzle ORM with PostgreSQL
 - Migrations in `server/drizzle/` directory
 - Schema defined in `server/src/db/schema.ts`
-- Run `bun run migrate` to apply migrations
 
 **Cloudflare Workers:**
 - Server configured for Cloudflare Workers deployment

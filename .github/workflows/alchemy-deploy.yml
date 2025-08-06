@@ -1,0 +1,36 @@
+name: Alchemy Deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy with Alchemy
+    runs-on: ubuntu-latest
+    concurrency: deploy-group
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun typecheck
+      - run: bun alchemy.run.ts
+        env:
+          ALCHEMY_PASSWORD: ${{ secrets.ALCHEMY_PASSWORD }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OBSERVER_TOKEN: ${{ secrets.OBSERVER_TOKEN }}
+          KV_API_TOKEN: ${{ secrets.KV_API_TOKEN }}
+          CF_KV_ACCOUNT_ID: ${{ secrets.CF_KV_ACCOUNT_ID }}
+          KV_NAMESPACE_ID: ${{ secrets.KV_NAMESPACE_ID }}
+          HIRO_API_KEY: ${{ secrets.HIRO_API_KEY }}
+
+      - name: pushover-actions
+        uses: umahmood/pushover-actions@main
+        env:
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+        with:
+          status: ${{ job.status }}
+          title: 'Slot Watch Deployed'
+          message: ''
