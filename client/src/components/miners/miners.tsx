@@ -16,7 +16,7 @@ const columns: ColumnDef<ApiMinerStat>[] = [
     },
   },
   {
-    header: 'Blocks won (last 1000)',
+    header: 'Blocks won (last 500)',
     accessorKey: 'blocksWon',
     accessorFn: (row) => {
       return percentString(row.count / 1000);
