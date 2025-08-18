@@ -13,7 +13,6 @@ import { env } from 'cloudflare:workers';
 // Postgres setup
 
 const dbUrl =
-  env.DB.connectionString ??
   env.DATABASE_URL ??
   // env.DB.connectionString ??
   'postgresql://hankstoever@localhost:5432/slot_watch_v2';
@@ -45,7 +44,7 @@ const dbUrl =
 // export const db = drizzlePg(pgClient, { schema });
 
 export function makeDb() {
-  const pgClient = new NodePgClient(dbUrl);
+  const pgClient = new NodePgClient(env.DB.connectionString ?? dbUrl);
   return drizzlePg(pgClient, { schema });
 }
 
