@@ -86,7 +86,6 @@ export function memoizeCache<Fn extends F.Function>(
           key: key(...args),
         })
         .debug(`Cache: getCache ${key(...args)}`);
-      // const cached = cache.get<F.Return<Fn>>(key(...args));
       const cached = await getCache<F.Return<Fn>>(key(...args));
       if (cached.value) {
         logger
@@ -95,28 +94,6 @@ export function memoizeCache<Fn extends F.Function>(
             ttl: cached.ttl,
           })
           .debug(`Cache: hit ${key(...args)}`);
-        // process.nextTick(async () => {
-        //   if (cached.ttl && cached.ttl < refreshTtl) {
-        //     const mutex = new Mutex(ioredisClient, mutexKey(key(...args)), {
-        //       lockTimeout: 60 * 1000,
-        //       refreshInterval: 0,
-        //     });
-        //     if (await mutex.tryAcquire()) {
-        //       logger.debug(
-        //         {
-        //           key: key(...args),
-        //         },
-        //         `Cache: refresh ${key(...args)}`,
-        //       );
-        //       try {
-        //         const result = (await fn(...args)) as F.Return<Fn>;
-        //         await setCache(key(...args), result, ttl);
-        //       } catch (error) {
-        //         await mutex.release();
-        //       }
-        //     }
-        //   }
-        // });
         return cached.value;
       }
       logger
