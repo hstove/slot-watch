@@ -18,6 +18,9 @@ export default defineConfig({
     }),
     TanStackRouterVite(),
   ],
+  build: {
+    chunkSizeWarningLimit: 1500,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

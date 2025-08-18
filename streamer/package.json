@@ -3,10 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "bun run --watch index.ts"
-  },
-  "dependencies": {
-    "hono": "4.7.11"
-  }
+  "scripts": {},
+  "dependencies": {}
 }
