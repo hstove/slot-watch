@@ -10,25 +10,17 @@ import {
   Vite,
 } from 'alchemy/cloudflare';
 import { Exec } from 'alchemy/os';
+import { CloudflareStateStore } from 'alchemy/state';
 
 const app = await alchemy('slot-watch', {
   stage: 'prod',
   phase: process.argv.includes('--destroy') ? 'destroy' : 'up',
   password: process.env.ALCHEMY_PASSWORD,
+  stateStore: (scope) => new CloudflareStateStore(scope),
 });
 
-await Exec('build-common', {
-  command: 'bun build:common',
-  memoize: {
-    patterns: ['./common/**/*'],
-  },
-});
-
-await Exec('build-server', {
-  command: 'bun build:server',
-  memoize: {
-    patterns: ['./server/**/*'],
-  },
+await Exec('build', {
+  command: 'bun run build',
 });
 
 const kv = await KVNamespace('cache', {
@@ -36,16 +28,9 @@ const kv = await KVNamespace('cache', {
   adopt: true,
 });
 
-// const d1 = await D1Database('slot-watch-db', {
-//   name: 'slot-watch-db',
-//   migrationsDir: 'server/drizzle',
-//   adopt: true,
-// });
-
 const website = await Website('slot-watch-website', {
   name: 'slot-watch-website',
   assets: 'client/dist',
-  command: 'bun build:client',
   wrangler: {
     main: 'client/worker.ts',
   },
@@ -67,10 +52,11 @@ await CustomDomain('slot-watch-website-domain', {
   name: 'slotwatch.dev',
   zoneId: '121c1d3bc83456fd77bf1957012e03bc',
   workerName: website.name,
+  adopt: true,
 });
 
 const db = await Hyperdrive('slot-watch-pg', {
-  name: 'slot-watch-pg',
+  name: 'slot-watch-pg-hyperdrive',
   origin: {
     host: 'db.gfbcmmnyivekyvrxdcul.supabase.co',
     port: 5432,
@@ -100,10 +86,6 @@ export const worker = await Worker('slot-watch-worker', {
     CACHE: kv,
     DB: db,
     STREAMER_URL: 'https://slot-watch-streamer.fly.dev',
-    // UPSTASH_REDIS_REST_URL: alchemy.secret(process.env.UPSTASH_REDIS_REST_URL),
-    // UPSTASH_REDIS_REST_TOKEN: alchemy.secret(
-    //   process.env.UPSTASH_REDIS_REST_TOKEN,
-    // ),
     OBSERVER_TOKEN: alchemy.secret(process.env.OBSERVER_TOKEN),
     DATABASE_URL: alchemy.secret(process.env.DATABASE_URL),
     KV_API_TOKEN: alchemy.secret(process.env.KV_API_TOKEN),
@@ -118,6 +100,7 @@ const domain = await CustomDomain('slot-watch-api-domain', {
   name: 'api.slotwatch.dev',
   zoneId: '121c1d3bc83456fd77bf1957012e03bc',
   workerName: worker.name,
+  adopt: true,
 });
 
 await WranglerJson('wrangler-worker', {
@@ -128,9 +111,11 @@ await WranglerJson('wrangler-worker', {
 await Exec('deploy-streamer', {
   command: 'fly deploy',
   cwd: 'streamer',
-  memoize: {
-    patterns: ['./streamer/**/*'],
-  },
+  memoize: process.env.CI
+    ? false
+    : {
+        patterns: ['./streamer/**/*.rs', './streamer/Cargo.toml'],
+      },
 });
 
 await app.finalize();

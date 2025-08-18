@@ -13,6 +13,7 @@ import { env } from 'cloudflare:workers';
 // Postgres setup
 
 const dbUrl =
+  env.DB.connectionString ??
   env.DATABASE_URL ??
   // env.DB.connectionString ??
   'postgresql://hankstoever@localhost:5432/slot_watch_v2';

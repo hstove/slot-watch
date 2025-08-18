@@ -14,7 +14,8 @@
     "dev:worker": "cd server && bun run worker",
     "migrate": "cd server && bun run migrate.ts",
     "typecheck": "turbo typecheck",
-    "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui"
+    "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui",
+    "deploy:alchemy": "bun alchemy deploy --env-file .env.local"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.2",
@@ -26,7 +27,7 @@
   "peerDependencies": {},
   "dependencies": {
     "@stacks/transactions": "^7.0.2",
-    "alchemy": "^0.57.0",
+    "alchemy": "^0.62.2",
     "caniuse-lite": "^1.0.30001720",
     "superjson": "^2.2.1",
     "turbo": "^2.4.4",
