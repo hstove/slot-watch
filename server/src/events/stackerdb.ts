@@ -1,5 +1,4 @@
 // Legacy imports - now using Effect-based implementation
-import { ServerRuntime } from '../effect/runtime';
 import { Effect } from 'effect';
 import { hex } from '@scure/base';
 import { v7 as uuidv7 } from 'uuid';
@@ -69,22 +68,6 @@ export type {
   BlockResponseApi,
   DecodedChunk,
 } from 'slot-watch-common';
-
-// Main handler function - now uses Effect-based implementation
-export async function handleStackerDBChunk(
-  payload: StackerDBPayload,
-  receivedAt: Date,
-  networkKey: string,
-) {
-  await Effect.runPromise(
-    handleStackerDBChunkE({ payload, receivedAt, networkKey }).pipe(
-      Effect.provide(ServerRuntime),
-      Effect.tapErrorCause((cause) =>
-        Effect.logError('Error processing StackerDB chunk', { cause }),
-      ),
-    ),
-  );
-}
 
 export const handleBlockProposalE = ({
   payload,
@@ -385,7 +368,7 @@ const processChunk = (
     return null;
   });
 
-export const handleStackerDBChunkE = ({
+export const handleStackerDBChunk = ({
   payload,
   receivedAt,
   networkKey,

@@ -14,14 +14,22 @@ import {
   PayloadType,
   type TenureChangeCause,
 } from '@stacks/transactions';
-import type { Db } from '../db/db';
+import type { Db as DbType } from '../db/db';
 // import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
-import { fetchRecentMinerStats } from '../db/block-proposals';
+import {
+  fetchRecentMinerStats,
+  recentBlocksHealthCache,
+} from '../db/block-proposals';
 import { getCreatedAt } from '../utils';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { log } from '../logger';
+import { Effect } from 'effect';
+import { Db, DbServiceTag, Streamer } from '../effect/tags';
+import { runWithServerRuntime, ServerRuntime } from '../effect/runtime';
+import { serializeBurnBlock } from '../db/blocks';
+import { warmCache } from '../stacks-api';
 
 export function convertBlock(
   block: unknown,
@@ -72,10 +80,12 @@ export function convertBlock(
   };
 }
 
-export async function handleStacksBlockEvent(job: NewBlockJob, db: Db) {
-  try {
+export const handleStacksBlockEvent = (job: NewBlockJob) =>
+  Effect.gen(function* () {
     const block = job.payload;
     const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
+    const db = yield* Db;
+    const streamer = yield* Streamer;
     const dbBlock = {
       ...block,
       id,
@@ -88,55 +98,46 @@ export async function handleStacksBlockEvent(job: NewBlockJob, db: Db) {
       consensusHash: block.consensusHash ?? '',
       indexBlockHash: block.indexBlockHash ?? '',
     } satisfies InferInsertModel<typeof stacksBlocks>;
-    // const _block = convertBlock(payload.payload);
-    await db.insert(stacksBlocks).values(dbBlock);
-    // .onConflictDoUpdate({
-    //   target: [stacksBlocks.blockHash, stacksBlocks.networkKey],
-    //   set: {
-    //     ...dbBlock,
-    //   },
-    // });
-    // await publishWsEvent({
-    //   type: NEW_BLOCK_V2_EVENT,
-    //   networkKey: block.networkKey,
-    //   receivedAt: block.receivedAt,
-    //   payload: {
-    //     ...dbBlock,
-    //     processedAt: block.receivedAt,
-    //     blockTimestamp: dbBlock.blockTimestamp.toISOString(),
-    //     burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
-    //   },
-    // } satisfies WSNewBlockV2);
-    // await fetchRecentMinerStats(block.networkKey);
-  } catch (error) {
-    log
-      .withError(error)
-      .withMetadata({
-        blockHash: job?.payload?.blockHash,
-      })
-      .error('Error handling stacks block event');
-  }
-}
 
-export async function handleBurnBlockEvent(payload: WSBurnBlockV2, db: Db) {
-  // const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
-  const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
-  const dbBurnBlock = {
-    id,
-    burnBlockHeight: payload.payload.burnBlockHeight,
-    burnBlockHash: payload.payload.burnBlockHash,
-    networkKey: payload.networkKey,
-    consensusHash: payload.payload.consensusHash,
-    createdAt: new Date(payload.receivedAt),
-  };
-  await db.insert(burnBlocks).values(dbBurnBlock);
-  // await publishWsEvent({
-  //   type: BURN_BLOCK_V2_EVENT,
-  //   networkKey: payload.networkKey,
-  //   receivedAt: payload.receivedAt,
-  //   payload: {
-  //     ...dbBurnBlock,
-  //     createdAt: dbBurnBlock.createdAt.toISOString(),
-  //   },
-  // } satisfies WSBurnBlockV2);
-}
+    yield* Effect.all([
+      streamer.publish({
+        type: NEW_BLOCK_V2_EVENT,
+        networkKey: job.networkKey,
+        receivedAt: job.receivedAt,
+        payload: {
+          ...dbBlock,
+          processedAt: job.receivedAt,
+          blockTimestamp: dbBlock.blockTimestamp.toISOString(),
+          burnBlockTimestamp: dbBlock.burnBlockTimestamp.toISOString(),
+        },
+      }),
+      db.withDb((db) => db.insert(stacksBlocks).values(dbBlock)),
+      db.withDb((db) => recentBlocksHealthCache.warmIfNeeded(db)),
+    ]);
+  });
+
+export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
+  Effect.gen(function* () {
+    // const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
+    const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
+    const dbBurnBlock = {
+      id,
+      burnBlockHeight: payload.payload.burnBlockHeight,
+      burnBlockHash: payload.payload.burnBlockHash,
+      networkKey: payload.networkKey,
+      consensusHash: payload.payload.consensusHash,
+      createdAt: new Date(payload.receivedAt),
+    };
+    const db = yield* Db;
+    const streamer = yield* Streamer;
+    yield* Effect.all([
+      db.withDb((db) => db.insert(burnBlocks).values(dbBurnBlock)),
+      streamer.publish({
+        type: BURN_BLOCK_V2_EVENT,
+        receivedAt: new Date().toISOString(),
+        networkKey: payload.networkKey,
+        payload: serializeBurnBlock(dbBurnBlock),
+      }),
+      db.withDb((db) => warmCache(payload.networkKey, db)),
+    ]);
+  });
