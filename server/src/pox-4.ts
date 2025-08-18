@@ -42,11 +42,18 @@ async function getRewardSet(rewardCycle: bigint) {
         );
       } catch (error) {
         logger.withError(error).error('Error fetching reward set item');
-        return null;
+        throw error;
       }
     });
   }
-  return (await pAll(listItems, { concurrency: 10 })).filter((n) => n !== null);
+  try {
+    const addressList = (await pAll(listItems, { concurrency: 10 })).filter(
+      (n) => n !== null,
+    );
+    return addressList;
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function getStxCommittedToSigner(
