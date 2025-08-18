@@ -46,7 +46,9 @@ const website = await Website('slot-watch-website', {
   name: 'slot-watch-website',
   assets: 'client/dist',
   command: 'bun build:client',
-  main: 'client/worker.ts',
+  wrangler: {
+    main: 'client/worker.ts',
+  },
   compatibilityFlags: ['nodejs_compat'],
   compatibilityDate: '2025-05-29',
   bindings: {
