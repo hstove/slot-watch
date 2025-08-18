@@ -1,5 +1,5 @@
 import { Layer, Effect } from 'effect';
-import { makeDb } from '../../db/db';
+import { makeDb, type Db } from '../../db/db';
 import * as schema from '../../db/schema';
 import { type DbService, DbServiceTag, DbError } from '../tags';
 import { fetchBlockProposalsByHash } from '../../db/block-proposals';
@@ -39,6 +39,12 @@ export const DbLive = Layer.scoped(
       fetchBlockProposalsByHash: (hashes) =>
         Effect.tryPromise({
           try: () => fetchBlockProposalsByHash(hashes, db),
+          catch: (e) => new DbError(e),
+        }),
+
+      withDb: <R>(f: (db: Db) => Promise<R>) =>
+        Effect.tryPromise({
+          try: () => f(db),
           catch: (e) => new DbError(e),
         }),
     };

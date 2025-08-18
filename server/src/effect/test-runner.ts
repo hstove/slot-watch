@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import { handleStackerDBChunkE } from '../events/stackerdb.effect';
+import { handleStackerDBChunk } from '../events/stackerdb';
 import { ServerRuntime } from './runtime';
 
 // Simple test to verify the Effect implementation works
@@ -13,7 +13,7 @@ const testPayload = {
 
 export const testStackerDbEffect = () => {
   return Effect.runPromise(
-    handleStackerDBChunkE({
+    handleStackerDBChunk({
       payload: testPayload,
       receivedAt: new Date(),
       networkKey: 'test',

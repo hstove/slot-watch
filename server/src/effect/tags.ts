@@ -2,6 +2,7 @@ import { Context } from 'effect';
 import type { Effect } from 'effect';
 import type { ApiBlockProposal, WSPayload } from 'slot-watch-common';
 import type { InferInsertModel } from 'drizzle-orm';
+import type { Db as DbType } from '../db/db';
 import type {
   blockProposals,
   blockPushes,
@@ -24,6 +25,7 @@ export interface DbService {
   fetchBlockProposalsByHash(
     hashes: string[],
   ): Effect.Effect<ApiBlockProposal[], DbError>;
+  withDb<R>(f: (db: DbType) => Promise<R>): Effect.Effect<R, DbError>;
 }
 
 export const DbServiceTag = Context.GenericTag<DbService>('DbService');

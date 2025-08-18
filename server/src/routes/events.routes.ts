@@ -22,14 +22,17 @@ import {
 import { getNetworkKeyHono } from '../auth';
 import { log, logger } from '../logger';
 import { handleStackerDBChunk } from '../events/stackerdb';
-import { handleBurnBlockEvent } from '../events/block-events';
-import { handleStacksBlockEvent } from '../events/block-events';
+import {
+  handleBurnBlockEvent,
+  handleStacksBlockEvent,
+} from '../events/block-events';
 import { convertBlock } from '../events/block-events';
 import { publishWsEventToStreamer } from '../streamer';
 import { warmCache } from '../stacks-api';
 import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { ServerContext, ServerType } from '../server-context';
 import { makeDb } from '../db/db';
+import { runWithServerRuntime } from '../effect/runtime';
 
 type Env = {
   Variables: {
@@ -81,9 +84,13 @@ const eventsRoutes = new Hono<Env>()
       .debug(`Got ${data.modified_slots.length} stackerdb chunks`);
     const receivedAt = new Date();
     c.executionCtx.waitUntil(
-      (async () => {
-        await handleStackerDBChunk(data, receivedAt, networkKey);
-      })(),
+      runWithServerRuntime(
+        handleStackerDBChunk({
+          payload: data,
+          receivedAt,
+          networkKey,
+        }),
+      ),
     );
     logger.info('Sending response for stackerdb event.');
     return new Response('OK', { status: 200 });
@@ -98,43 +105,22 @@ const eventsRoutes = new Hono<Env>()
     logger.info(`${networkKey}: Got new Block (${data.block_height})`);
     const receivedAt = new Date();
     const block = convertBlock(data);
-    const sharedPayload: WSNewBlockV2 = {
-      type: NEW_BLOCK_V2_EVENT,
-      networkKey,
-      payload: {
-        ...block,
-        networkKey,
-        processedAt: receivedAt.toISOString(),
-        blockTimestamp: block.blockTimestamp.toISOString(),
-        burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-      },
-      receivedAt: receivedAt.toISOString(),
-    };
 
     c.executionCtx.waitUntil(
-      (async () => {
-        const db = makeDb();
-        await db.$client.connect();
-        await Promise.all([
-          publishWsEventToStreamer(sharedPayload),
-          handleStacksBlockEvent(
-            {
-              type: NEW_BLOCK_EVENT,
-              networkKey,
-              receivedAt: receivedAt.toISOString(),
-              payload: {
-                ...block,
-                networkKey,
-                receivedAt: receivedAt.toISOString(),
-                blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-                burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
-              },
-            },
-            db,
-          ),
-          recentBlocksHealthCache.warmIfNeeded(db),
-        ]);
-      })(),
+      runWithServerRuntime(
+        handleStacksBlockEvent({
+          type: NEW_BLOCK_EVENT,
+          networkKey,
+          receivedAt: receivedAt.toISOString(),
+          payload: {
+            ...block,
+            networkKey,
+            receivedAt: receivedAt.toISOString(),
+            blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+            burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+          },
+        }),
+      ),
     );
 
     return new Response('OK', { status: 200 });
@@ -164,15 +150,7 @@ const eventsRoutes = new Hono<Env>()
       },
     };
     c.executionCtx.waitUntil(
-      (async () => {
-        const db = makeDb();
-        await db.$client.connect();
-        await Promise.all([
-          handleBurnBlockEvent(payload, db),
-          publishWsEventToStreamer(payload),
-          warmCache(networkKey, db),
-        ]);
-      })(),
+      runWithServerRuntime(handleBurnBlockEvent(payload)),
     );
     return new Response('OK', { status: 200 });
   })
