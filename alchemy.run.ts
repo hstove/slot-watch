@@ -109,7 +109,7 @@ await WranglerJson('wrangler-worker', {
 });
 
 await Exec('deploy-streamer', {
-  command: 'fly deploy',
+  command: 'flyctl deploy',
   cwd: 'streamer',
   memoize: process.env.CI
     ? false
