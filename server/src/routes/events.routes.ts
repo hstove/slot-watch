@@ -80,37 +80,9 @@ const eventsRoutes = new Hono<Env>()
       })
       .debug(`Got ${data.modified_slots.length} stackerdb chunks`);
     const receivedAt = new Date();
-    // const chunks: ChunkEvent[] = [];
-    // for (const chunk of data.modified_slots) {
-    //   chunks.push({
-    //     slotId: chunk.slot_id,
-    //     version: chunk.slot_version,
-    //     contractId,
-    //     signature: chunk.sig,
-    //     data: chunk.data,
-    //     createdAt: receivedAt.toISOString(),
-    //   });
-    // }
-
-    // c.executionCtx.waitUntil(
-    //   (async () => {
-    //     // await db.$client.;
-    //     await handleStackerDBChunk(data, receivedAt, networkKey);
-    //     await db.$client.end();
-    //   })(),
-    //   // Promise.all([
-    //   //   handleStackerDBChunk(data, receivedAt, networkKey),
-    //   //   // publishWsEventToStreamer(manyChunksPayload),
-    //   //   // publishWsEvent(manyChunksPayload),
-    //   // ]),
-    // );
-    // handleStackerDBChunk(data, receivedAt, networkKey, c.get('db'));
     c.executionCtx.waitUntil(
       (async () => {
-        const db = makeDb();
-        await db.$client.connect();
-        await handleStackerDBChunk(data, receivedAt, networkKey, db);
-        await db.$client.end();
+        await handleStackerDBChunk(data, receivedAt, networkKey);
       })(),
     );
     logger.info('Sending response for stackerdb event.');
