@@ -1,8 +1,8 @@
 {
   "name": "slot-watch-website",
-  "main": "client/worker.ts",
+  "main": "../.alchemy/local/worker.js",
   "compatibility_date": "2025-05-29",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": "client/dist", "binding": "ASSETS" },
+  "assets": { "directory": "dist", "binding": "ASSETS" },
   "vars": { "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev" }
 }

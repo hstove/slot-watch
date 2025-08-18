@@ -5,13 +5,11 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": { "STREAMER_URL": "https://slot-watch-streamer.fly.dev" },
   "kv_namespaces": [
-    { "binding": "CACHE", "id": "4d65a9f9771f4b2d8887dc2c89cf766f" }
-  ],
-  "hyperdrive": [
     {
-      "binding": "DB",
-      "id": "3b34a58be42d431e93a3d7df2cf1dc18",
-      "localConnectionString": "postgres://postgres:o8tvpGyrr2ZWMiQ@db.gfbcmmnyivekyvrxdcul.supabase.co:5432/postgres"
+      "binding": "CACHE",
+      "id": "4d65a9f9771f4b2d8887dc2c89cf766f",
+      "preview_id": "4d65a9f9771f4b2d8887dc2c89cf766f"
     }
-  ]
+  ],
+  "hyperdrive": [{ "binding": "DB", "id": "0d80e28aec7241daa9692ec6f7d0e409" }]
 }
