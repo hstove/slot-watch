@@ -9,7 +9,7 @@
   "types": "./dist/exports.d.ts",
   "scripts": {
     "dev:watch": "bun --watch src/app.ts",
-    "build": "tsup",
+    "build": "tsdown",
     "start": "bun src/app.ts",
     "typecheck": "tsc --noEmit",
     "generate-migrations": "drizzle-kit generate",
