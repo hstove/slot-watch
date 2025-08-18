@@ -14,8 +14,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: bun install
+        name: Install Dependencies
       - run: bun typecheck
+        name: Typecheck
       - run: bunx alchemy deploy
+        name: Deploy with Alchemy
         env:
           ALCHEMY_PASSWORD: ${{ secrets.ALCHEMY_PASSWORD }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
@@ -27,8 +30,9 @@ jobs:
           HIRO_API_KEY: ${{ secrets.HIRO_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: pushover-actions
+      - name: Send Pushover Notification
         uses: umahmood/pushover-actions@main
         env:
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
