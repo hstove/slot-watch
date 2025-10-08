@@ -89,6 +89,8 @@ export const SignerMessageTypePrefix = {
   MockSignatureOld: 3,
   /// StackerDB state machine update message
   StateMachineUpdate: 6,
+  /// Pre-commit messages
+  BlockPreCommit: 7,
 } as const;
 
 export type SignerMessageTypeId =
@@ -417,6 +419,11 @@ export const StackerDBStateMachineUpdateCoder = P.struct({
   stateMachineUpdate: StateMachineUpdateCoder,
 });
 
+export const BlockPreCommitCoder = P.struct({
+  typeId: TypeIdCoder(SignerMessageTypePrefix.BlockPreCommit),
+  blockHash: P.bytes(32),
+});
+
 export type MockBlock = Prettify<
   Omit<P.UnwrapCoder<typeof MockBlockCoder>, 'proposal'> & {
     proposal: MockProposalInner;
@@ -481,6 +488,8 @@ export type StackerDBStateMachineUpdate = Prettify<
     StackerDBStateMachineUpdateOuter['stateMachineUpdate']
 >;
 
+export type BlockPreCommit = Prettify<P.UnwrapCoder<typeof BlockPreCommitCoder>>;
+
 export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
 export function chunkTypeName(chunk: Uint8Array) {
@@ -506,6 +515,8 @@ export function chunkTypeName(chunk: Uint8Array) {
       return 'Mock Block';
     case SignerMessageTypePrefix.StateMachineUpdate:
       return 'State Machine Update';
+    case SignerMessageTypePrefix.BlockPreCommit:
+      return 'Block Pre-Commit';
     default:
       return 'Unknown';
   }
@@ -598,6 +609,9 @@ export function decodeChunk(chunk: Uint8Array) {
       ...rest,
       ...stateMachineUpdate,
     } satisfies StackerDBStateMachineUpdate;
+  }
+  if (type === SignerMessageTypePrefix.BlockPreCommit) {
+    return BlockPreCommitCoder.decode(chunk) as BlockPreCommit;
   }
   throw new Error(
     `Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
