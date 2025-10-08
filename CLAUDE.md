@@ -39,7 +39,7 @@ Slot-watch is a Stacks blockchain monitoring application built as a monorepo wit
 - `bun migrate` - Run database migrations
 
 **Package-specific commands:**
-- Common: `cd common && bun test` for shared utilities testing
+- Common: `bunx turbo run test --filter=slot-watch-common` to run unit tests in `slot-watch-common`
 
 ## Database & Infrastructure
 
