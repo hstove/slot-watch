@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:tee": "unbuffer bun dev | tee tmp/dev-server.log",
     "build": "bunx vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.3.1",
     "@fontsource-variable/public-sans": "^5.1.1",
-    "@fontsource/ibm-plex-mono": "^5.1.0",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
     "@lukemorales/query-key-factory": "^1.3.4",
     "@noble/hashes": "^1.5.0",
     "@radix-ui/react-collapsible": "^1.1.1",
