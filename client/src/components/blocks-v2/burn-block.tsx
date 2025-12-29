@@ -29,8 +29,9 @@ export const BurnBlock = ({
   if (!burnBlock) return null;
 
   return (
-    <div className="w-full border rounded-lg p-4 flex flex-col gap-2 container">
-      <div className="flex justify-between items-center sticky top-[60px] bg-background py-4 z-10 w-full">
+    <div className="w-full border border-border bg-card container">
+      {/* Header */}
+      <div className="flex justify-between items-center sticky top-[60px] z-10 w-full border-b border-border px-4 py-3 bg-muted/30">
         <div className="flex items-center gap-3">
           <BtcIcon />
           <Link
@@ -52,7 +53,10 @@ export const BurnBlock = ({
           <BurnBlockCosts consensusHash={consensusHash} />
         </div>
       </div>
-      <BurnBlockStacksBlocks consensusHash={consensusHash} />
+      {/* Content */}
+      <div className="p-4">
+        <BurnBlockStacksBlocks consensusHash={consensusHash} />
+      </div>
     </div>
   );
 };

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev:client": "turbo dev --filter=slot-watch-ui",
+    "dev:client:tee": "turbo dev:tee --filter=slot-watch-ui",
     "build:common": "turbo build --filter=slot-watch-common",
     "build:client": "turbo build --filter=slot-watch-ui",
     "build:server": "turbo build --filter=slot-watch-api",
@@ -14,6 +15,9 @@
     "dev:worker": "cd server && bun run worker",
     "migrate": "cd server && bun run migrate.ts",
     "typecheck": "turbo typecheck",
+    "check": "biome check",
+    "check:fix": "biome check --fix",
+    "check:all": "bun check:fix && bun typecheck",
     "dev": "turbo dev --filter=slot-watch-common --filter=slot-watch-ui",
     "deploy:alchemy": "bun alchemy deploy --env-file .env.local"
   },

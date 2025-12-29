@@ -14,15 +14,15 @@ export const Header = () => {
         {/* <NavLink to={'/stream'} className="hidden md:block">
           Stream
         </NavLink> */}
-        <NavLink to="/when-extend">Extend</NavLink>
-        <NavLink to={'/signers'}>Signers</NavLink>
+        <NavLink to="/when-extend">extend</NavLink>
+        <NavLink to={'/signers'}>signers</NavLink>
         <NavLink className="hidden md:block" to={'/miners'}>
-          Miners
+          miners
         </NavLink>
         <NavLink className="hidden md:block" to={'/state-machines'}>
-          State Machines
+          state machines
         </NavLink>
-        <NavLink to={'/'}>Blocks</NavLink>
+        <NavLink to={'/'}>blocks</NavLink>
         <NetworkPicker />
         <ModeToggle />
       </div>
