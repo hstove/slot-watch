@@ -27,6 +27,7 @@ export const BLOCK_PROPOSAL_EVENT = 'block_proposal';
 export const STATE_MACHINE_UPDATE_EVENT = 'state_machine_update';
 export const MINI_BLOCK_RESPONSES_EVENT = 'mini_block_responses';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type ChunkEvent = {
   contractId: string;
   slotId: number;
@@ -153,6 +154,7 @@ export const BlockResponseRejectReasons = {
 
 export type RejectReasonPrefix = keyof typeof BlockResponseRejectReasons;
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type WSBase<Type extends string, T> = {
   networkKey: string;
   type: Type;

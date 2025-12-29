@@ -19,7 +19,7 @@ import type { Db } from './db/db';
 export const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
     `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_v2`,
-  getStackerSetInner,
+  getStackerSetInner
 );
 
 export const getLatestStackerSetCache = memoizeCache(
@@ -27,7 +27,7 @@ export const getLatestStackerSetCache = memoizeCache(
   async (networkKey: string) => {
     const poxInfo = await getPoxInfo.get(networkKey);
     return getStackerSetCache.get(networkKey, poxInfo.rewardCycleId);
-  },
+  }
 );
 
 export type StackerSet = Awaited<ReturnType<typeof getStackerSet>>;
@@ -101,7 +101,7 @@ export async function getSmallPoxInfo(networkKey: string) {
 }
 export const getPoxInfo = memoizeCache(
   (networkKey: string) => `pox_info_${getApiUrl(networkKey)}`,
-  getSmallPoxInfo,
+  getSmallPoxInfo
 );
 
 // export async function getPoxInfo(networkKey: string) {

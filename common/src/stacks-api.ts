@@ -5,12 +5,14 @@ import type {
 } from '@stacks/stacks-blockchain-api-types';
 
 // import { Signer } from '@stacks/stacks-blockchain-api-types';
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StackerSetSigner = {
   signing_key: string;
   weight: number;
   stacked_amt: string;
 };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StackerSet = {
   stacker_set: {
     signers: StackerSetSigner[];
@@ -38,6 +40,7 @@ export async function getPoxInfo(networkKey: string) {
   return data;
 }
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type ConsensusBlockResponse = {
   burn_block_hash: string;
   burn_block_height: number;
@@ -51,7 +54,7 @@ export type ConsensusBlockResponse = {
 
 export async function getConsensusBlock(
   networkKey: string,
-  consensusHash: string,
+  consensusHash: string
 ) {
   const url = `${getApiUrl(networkKey)}/v3/sortitions/consensus/${consensusHash}`;
   const response = await fetch(url);

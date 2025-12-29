@@ -27,7 +27,7 @@ const updates = await db
 
 const stateMachines = updates.map(serializeStateMachineUpdate).map((update) => {
   const signer = signers.signers.find(
-    (signer) => signer.signing_key === update.signerPublicKey,
+    (signer) => signer.signing_key === update.signerPublicKey
   );
   return {
     ...update,
@@ -42,5 +42,5 @@ await writeFile(
   JSON.stringify(stateMachines, null, 2),
   {
     encoding: 'utf-8',
-  },
+  }
 );

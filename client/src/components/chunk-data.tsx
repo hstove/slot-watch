@@ -17,7 +17,7 @@ import { hex } from '@scure/base';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { serialize } from 'superjson';
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny:allowed
 function valueToString(value: any) {
   let valString = value;
   if (value instanceof Uint8Array) {

@@ -52,5 +52,5 @@ export const DbLive = Layer.scoped(
     yield* Effect.addFinalizer(() => Effect.promise(() => db.$client.end()));
 
     return service;
-  }),
+  })
 );

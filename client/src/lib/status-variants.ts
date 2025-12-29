@@ -20,7 +20,7 @@ export type StatusVariants = VariantProps<typeof statusVariants>;
 
 export const statusStyles = (
   status: StatusVariants['status'],
-  className?: string,
+  className?: string
 ) => {
   return cn(statusVariants({ status, className }));
 };

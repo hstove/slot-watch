@@ -41,8 +41,8 @@ const blockRoutes = new Hono<ServerType>()
       .where(
         and(
           eq(blockPushes.signerSignatureHash, blockId),
-          eq(blockPushes.networkKey, networkKey),
-        ),
+          eq(blockPushes.networkKey, networkKey)
+        )
       )
       .limit(1);
     const [proposal] = await c
@@ -52,8 +52,8 @@ const blockRoutes = new Hono<ServerType>()
       .where(
         and(
           eq(blockProposals.signerSignatureHash, blockId),
-          eq(blockProposals.networkKey, networkKey),
-        ),
+          eq(blockProposals.networkKey, networkKey)
+        )
       )
       .limit(1);
     const responses = await c
@@ -63,8 +63,8 @@ const blockRoutes = new Hono<ServerType>()
       .where(
         and(
           eq(blockResponses.signerSignatureHash, blockId),
-          eq(blockResponses.networkKey, networkKey),
-        ),
+          eq(blockResponses.networkKey, networkKey)
+        )
       );
 
     const responsesWithSigners = mapSignerDataToResponses({
@@ -89,8 +89,8 @@ const blockRoutes = new Hono<ServerType>()
       .where(
         and(
           eq(blockResponses.networkKey, networkKey),
-          eq(blockResponses.signerSignatureHash, blockId),
-        ),
+          eq(blockResponses.signerSignatureHash, blockId)
+        )
       );
     const serializedResponses = responses.map(serializeBlockResponse);
     return c.json({ responses: serializedResponses });
@@ -102,7 +102,7 @@ const blockRoutes = new Hono<ServerType>()
         route: c.req.path,
         networkKey,
       },
-      `Fetching burn blocks for ${networkKey}`,
+      `Fetching burn blocks for ${networkKey}`
     );
 
     try {
@@ -120,7 +120,7 @@ const blockRoutes = new Hono<ServerType>()
           networkKey,
           count: btcBlocks.length,
         },
-        `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`,
+        `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`
       );
 
       return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
@@ -143,6 +143,7 @@ const blockRoutes = new Hono<ServerType>()
     try {
       const heightBn = BigInt(heightOrHash);
       heightMaybe = Number(heightBn);
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: ignored using `--suppress`
     } catch (error) {}
     const [btcBlock] = await c
       .get('db')
@@ -153,8 +154,8 @@ const blockRoutes = new Hono<ServerType>()
           typeof heightMaybe === 'number'
             ? eq(burnBlocks.burnBlockHeight, heightMaybe)
             : eq(burnBlocks.burnBlockHash, heightOrHash),
-          eq(burnBlocks.networkKey, networkKey),
-        ),
+          eq(burnBlocks.networkKey, networkKey)
+        )
       )
       .orderBy(desc(burnBlocks.id))
       .limit(1);
@@ -164,7 +165,7 @@ const blockRoutes = new Hono<ServerType>()
     '/burn-blocks/:networkKey/:consensusHash/blocks',
     zValidator(
       'param',
-      z.object({ consensusHash: z.string(), networkKey: z.string() }),
+      z.object({ consensusHash: z.string(), networkKey: z.string() })
     ),
     async (c) => {
       const { consensusHash, networkKey } = c.req.valid('param');
@@ -178,14 +179,14 @@ const blockRoutes = new Hono<ServerType>()
           stacksBlocks,
           and(
             eq(blockProposals.signerSignatureHash, stacksBlocks.blockHash),
-            eq(stacksBlocks.networkKey, networkKey),
-          ),
+            eq(stacksBlocks.networkKey, networkKey)
+          )
         )
         .where(
           and(
             eq(blockProposals.consensusHash, consensusHash),
-            eq(blockProposals.networkKey, networkKey),
-          ),
+            eq(blockProposals.networkKey, networkKey)
+          )
         )
         .orderBy(desc(blockProposals.chainLength), desc(blockProposals.id));
       return c.json({
@@ -196,7 +197,7 @@ const blockRoutes = new Hono<ServerType>()
             : null,
         })),
       });
-    },
+    }
   )
   .get(
     '/tenure-changes/:networkKey',
@@ -204,7 +205,7 @@ const blockRoutes = new Hono<ServerType>()
       'query',
       z.object({
         cause: z.coerce.number().optional(),
-      }),
+      })
     ),
     async (c) => {
       const networkKey = c.req.param('networkKey');
@@ -219,13 +220,13 @@ const blockRoutes = new Hono<ServerType>()
             eq(stacksBlocks.networkKey, networkKey),
             typeof cause === 'number'
               ? eq(stacksBlocks.tenureChangeCause, cause)
-              : isNotNull(stacksBlocks.tenureChangeCause),
-          ),
+              : isNotNull(stacksBlocks.tenureChangeCause)
+          )
         )
         .orderBy(desc(stacksBlocks.id))
         .limit(5);
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
-    },
+    }
   )
   // .get('/db-health', async (c) => {
   //   try {

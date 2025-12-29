@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithLocation } from 'jotai-location';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type Network = {
   id: string;
   name: string;
@@ -40,7 +41,7 @@ export const networkAtom = atom<Network, [string | null], void>(
   (get) => get(currentNetworkAtom),
   (_get, set, networkId) => {
     set(currentNetworkAtom, getNetwork(networkId));
-  },
+  }
 );
 
 export const currentNetworkAtom = atom(DEFAULT_NETWORK);

@@ -33,7 +33,7 @@ export type HealthBlockSigner = HealthBlocksResponse[0]['signers'][0];
 export async function getHealthBlocks(
   networkKey: string,
   from?: string,
-  to?: string,
+  to?: string
 ) {
   console.log(`Fetching health blocks for ${networkKey}`);
   const response = await apiClient.health['recent-blocks'][':networkKey'].$get({
@@ -58,7 +58,7 @@ export type ApiRecentSigners = Awaited<ReturnType<typeof getRecentSigners>>;
 export async function getChunksByTime(
   networkId: string,
   start: string,
-  end: string,
+  end: string
 ) {
   const response = await apiClient.chunks[':networkKey'][':from'][':to'].$get({
     param: {
@@ -98,7 +98,7 @@ export async function getBtcBlock(networkKey: string, heightOrHash: string) {
 
 export async function getBlockResponsesForBlock(
   networkKey: string,
-  blockHash: string,
+  blockHash: string
 ) {
   if (!blockHash) return [];
   const response = await apiClient.blocks[':networkKey'][
@@ -121,7 +121,7 @@ export type ApiBlockResponseForBlock = Omit<
 
 export function mergeBlockData(
   proposal: ApiBlockProposal,
-  stacksBlock: ApiStacksBlock | null,
+  stacksBlock: ApiStacksBlock | null
 ): ApiBlockForBurnBlock {
   const blockTimestamp = stacksBlock?.blockTimestamp ?? proposal.blockTimestamp;
   if (proposal && stacksBlock) {
@@ -169,7 +169,7 @@ export function mergeBlockData(
 
 export async function getBlocksForBurnBlock(
   networkKey: string,
-  consensusHash: string,
+  consensusHash: string
 ): Promise<ApiBlockForBurnBlock[]> {
   const response = await apiClient['burn-blocks'][':networkKey'][
     ':consensusHash'
@@ -179,10 +179,11 @@ export async function getBlocksForBurnBlock(
   const data = await response.json();
 
   return data.blocks.map(({ proposal, stacksBlock }) =>
-    mergeBlockData(proposal, stacksBlock),
+    mergeBlockData(proposal, stacksBlock)
   );
 }
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type StacksBlockBase = {
   blockTimestamp: string;
   blockHash: string;

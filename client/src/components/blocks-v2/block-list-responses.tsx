@@ -32,7 +32,10 @@ import BigNumber from 'bignumber.js';
 export const BlockListResponse = ({
   blockHash,
   signerPublicKey,
-}: { blockHash: string; signerPublicKey: string }) => {
+}: {
+  blockHash: string;
+  signerPublicKey: string;
+}) => {
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const totalWeight = useAtomValue(totalWeightAtom);
   const entity = useEntity(signerPublicKey);
@@ -40,7 +43,7 @@ export const BlockListResponse = ({
     responseForBlockFamily({
       blockHash,
       signerPublicKey,
-    }),
+    })
   );
   const status = React.useMemo(() => {
     if (response?.accepted) return 'success';
@@ -56,7 +59,7 @@ export const BlockListResponse = ({
           // className="h-full box-border transition-colors"
           className={statusStyles(
             status,
-            'h-full box-border transition-colors duration-500',
+            'h-full box-border transition-colors duration-500'
           )}
           style={{
             flexGrow: signer.weight + totalWeight * 0.01,
@@ -161,12 +164,14 @@ export const BlockListResponse = ({
 
 export const BlockListResponsesInner = ({
   blockHash,
-}: { blockHash: string }) => {
+}: {
+  blockHash: string;
+}) => {
   // const stacksBlock = useAtomValue(stacksBlocksFamily(blockHash));
   // preload
   useAtomValue(loadable(responsesForBlockAtomFamily(blockHash)));
   const signers = useAtomValue(signersApiAtom);
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  // biome-ignore lint/style/noNonNullAssertion:allowed
   const contentRef = React.useRef<HTMLDivElement>(null!);
   const [styles, api] = useSpring(() => {
     return {
@@ -177,7 +182,7 @@ export const BlockListResponsesInner = ({
       // },
     };
   });
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies:allowed
   React.useEffect(() => {
     if (!contentRef.current) return;
     api.start({

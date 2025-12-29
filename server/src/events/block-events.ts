@@ -32,7 +32,7 @@ import { serializeBurnBlock } from '../db/blocks';
 import { warmCache } from '../stacks-api';
 
 export function convertBlock(
-  block: unknown,
+  block: unknown
 ): Omit<StacksBlockDb, 'id' | 'networkKey'> {
   const parsed = coreNodeBlockMessageSchema.parse(block);
   const cost = {

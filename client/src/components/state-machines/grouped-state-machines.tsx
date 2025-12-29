@@ -9,14 +9,14 @@ export function GroupedStateMachines() {
 
   console.log('Weighted State Machines', groupedStateMachines);
   const activeStateMachines = groupedStateMachines.filter(
-    (groupedStateMachine) => groupedStateMachine.stateMachine !== null,
+    (groupedStateMachine) => groupedStateMachine.stateMachine !== null
   );
 
   return (
     <div
       className={cn(
         'grid grid-cols-1 gap-4',
-        activeStateMachines.length > 1 ? 'md:grid-cols-2' : '',
+        activeStateMachines.length > 1 ? 'md:grid-cols-2' : ''
       )}
     >
       {groupedStateMachines.map((groupedStateMachine) => (

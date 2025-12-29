@@ -38,7 +38,7 @@ blocks.push(
       getBlocks(120),
       getBlocks(150),
     ])
-  ).flat(),
+  ).flat()
 );
 
 console.log('Fetched blocks');
@@ -62,8 +62,8 @@ const mocks = await db
   .where(
     and(
       eq(stackerDbSlots.networkKey, 'mainnet'),
-      sql.raw(`encode(data, 'hex') similar to '(${chunkQueries.join('|')})%'`),
-    ),
+      sql.raw(`encode(data, 'hex') similar to '(${chunkQueries.join('|')})%'`)
+    )
   );
 
 console.log(mocks.length);
@@ -91,13 +91,13 @@ for (const miner of upgradedMiners) {
     AddressVersion.MainnetSingleSig,
     AddressHashMode.P2PKH,
     1,
-    [createStacksPublicKey(miner)],
+    [createStacksPublicKey(miner)]
   );
   const btcAddr = addressFromPublicKeys(
     1 as AddressVersion,
     AddressHashMode.P2PKH,
     1,
-    [createStacksPublicKey(miner)],
+    [createStacksPublicKey(miner)]
   );
   console.log(addressToString(addr), miner);
 }

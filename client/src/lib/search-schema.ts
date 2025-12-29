@@ -9,6 +9,8 @@ export const validateSearch = zodValidator(basicSearchSchema);
 
 export const loaderDeps = ({
   search: { network },
-}: { search: { network: string } }) => {
+}: {
+  search: { network: string };
+}) => {
   return { network };
 };

@@ -30,7 +30,7 @@ export const NavLinkComponent = React.forwardRef<
       className={cn(
         textVariants({ variant: 'small' }),
         'font-normal [&:not(.active)]:text-muted-foreground',
-        className,
+        className
       )}
     />
   );

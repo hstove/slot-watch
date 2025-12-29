@@ -12,7 +12,7 @@ export const healthRoutes = new Hono<ServerType>().get(
     z.object({
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
-    }),
+    })
   ),
   async (c) => {
     const networkKey = c.req.param('networkKey');
@@ -35,5 +35,5 @@ export const healthRoutes = new Hono<ServerType>().get(
       ...health,
       blocks,
     });
-  },
+  }
 );

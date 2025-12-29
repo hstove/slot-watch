@@ -18,7 +18,7 @@ import { atomFamily } from 'jotai/utils';
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
 export async function fetchRecentSignerResponses(
-  networkKey: string,
+  networkKey: string
 ): Promise<ApiBlockResponseForBlock[]> {
   const response = await apiClient.chunks['signer-latest'][':networkKey'].$get({
     param: { networkKey },
@@ -66,17 +66,16 @@ export const sortedLatestResponsesAtom = atom((get) => {
   const zipped = R.map(signers.signers, (signer) => {
     const [response] = responsesBySigner[signer.publicKey] ?? [];
     if (response) {
-      if (response.tenureExtendTimestamp && recentTenureChange) {
-        if (
-          new Date(response.tenureExtendTimestamp).getTime() <
-          recentTenureChange
-        ) {
-          return {
-            ...signer,
-            ...response,
-            tenureExtendTimestamp: null,
-          };
-        }
+      if (
+        response.tenureExtendTimestamp &&
+        recentTenureChange &&
+        new Date(response.tenureExtendTimestamp).getTime() < recentTenureChange
+      ) {
+        return {
+          ...signer,
+          ...response,
+          tenureExtendTimestamp: null,
+        };
       }
       return {
         ...signer,
@@ -108,13 +107,13 @@ export const sortedLatestResponsesAtom = atom((get) => {
 export const latestResponseTimeForSignerFamily = atomFamily(
   (_signerPublicKey: string) => {
     return atom<number>();
-  },
+  }
 );
 
 export const latestBlockHeightForSignerFamily = atomFamily(
   (_signerPublicKey: string) => {
     return atom<number>();
-  },
+  }
 );
 
 export const [
@@ -133,14 +132,14 @@ export const [
   (_get, set, response) => {
     set(
       latestResponseTimeForSignerFamily(response.signerPublicKey),
-      new Date(response.createdAt).getTime(),
+      new Date(response.createdAt).getTime()
     );
     set(
       latestBlockHeightForSignerFamily(response.signerPublicKey),
-      response.blockHeight,
+      response.blockHeight
     );
   },
-  'signer-latest-responses',
+  'signer-latest-responses'
 );
 
 export const whenExtendAtom = atom((get) => {
@@ -152,13 +151,13 @@ export const whenExtendAtom = atom((get) => {
   // const signerMap = new Map(signers.signers.map((s) => [s.publicKey, s]));
   let sum = 0;
   for (const r of responses) {
-    if (r.tenureExtendTimestamp && mostRecentTenureChange) {
-      if (
-        new Date(r.tenureExtendTimestamp).getTime() <
+    if (
+      r.tenureExtendTimestamp &&
+      mostRecentTenureChange &&
+      new Date(r.tenureExtendTimestamp).getTime() <
         new Date(mostRecentTenureChange).getTime()
-      ) {
-        continue;
-      }
+    ) {
+      continue;
     }
     sum += r.weight ?? 0;
     if (sum >= threshold) {
@@ -206,7 +205,7 @@ export const [
   },
   (r) => r.blockHash,
   undefined,
-  'tenure-changes',
+  'tenure-changes'
 );
 
 export const mostRecentTenureChangeAtom = atom((get) => {
@@ -222,7 +221,7 @@ export const blockResponsesForBlockQueryAtomFamily = atomFamily(
     return atomWithSuspenseQuery((get) => ({
       ...queries.blockResponses.forStacksBlock(get(networkIdAtom), blockHash),
     }));
-  },
+  }
 );
 
 export const [
@@ -235,7 +234,7 @@ export const [
   async (signerSignatureHash: string, get) => {
     // const networkKey = get(networkIdAtom);
     const responses = await get(
-      blockResponsesForBlockQueryAtomFamily(signerSignatureHash),
+      blockResponsesForBlockQueryAtomFamily(signerSignatureHash)
     );
     return responses.data as MiniBlockResponseApi[];
   },
@@ -254,12 +253,12 @@ export const [
     });
     set(
       latestResponseTimeForSignerFamily(response.signerPublicKey),
-      Date.now(),
+      Date.now()
     );
     set(
       latestBlockHeightForSignerFamily(response.signerPublicKey),
-      response.blockHeight,
+      response.blockHeight
     );
   },
-  'mini-block-responses',
+  'mini-block-responses'
 );

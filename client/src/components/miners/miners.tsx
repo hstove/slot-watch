@@ -3,7 +3,12 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ApiMinerStat } from '@/lib/slots-api';
 import { Route } from '../../routes/miners';
 import { PublicKey } from '../public-key';
-import { getVersionFromString, percentString, getSortableVersion, versionSort } from 'slot-watch-common';
+import {
+  getVersionFromString,
+  percentString,
+  getSortableVersion,
+  versionSort,
+} from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { Text } from '../text';
 
@@ -38,9 +43,7 @@ const columns: ColumnDef<ApiMinerStat>[] = [
     sortDescFirst: true,
     header: ({ column }) => {
       return (
-        <SortableHeader column={column}>
-          Last tenure (BTC Block)
-        </SortableHeader>
+        <SortableHeader column={column}>Last tenure (BTC Block)</SortableHeader>
       );
     },
     cell: ({ row }) => {
@@ -58,9 +61,7 @@ const columns: ColumnDef<ApiMinerStat>[] = [
       return versionSort(aVersion, bVersion);
     },
     header: ({ column }) => {
-      return (
-        <SortableHeader column={column}>Version</SortableHeader>
-      );
+      return <SortableHeader column={column}>Version</SortableHeader>;
     },
     cell: ({ row }) => {
       return (

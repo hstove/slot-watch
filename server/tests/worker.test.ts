@@ -12,6 +12,7 @@ import { app } from '../src/server';
 const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
 describe('Hello World worker', () => {
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   it('responds with Hello World!', async () => {
     console.log('Hello World!');
     // const request = new IncomingRequest('http://localhost:3000/');

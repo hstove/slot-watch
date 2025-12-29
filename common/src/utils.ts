@@ -31,6 +31,7 @@ export type Version = [number, number, number, number, number, number];
 
 export function getVersionFromString(version: string) {
   // Handle `stacks-signer VERSION (...);`
+  // biome-ignore lint/performance/useTopLevelRegex: ignored using `--suppress`
   const match = version.match(/^stacks-[\w]+ ([^\s]*)/);
   if (match) {
     return match[1];
@@ -57,6 +58,7 @@ export function versionFromData(data: string | null): string {
 
 function getVersionPart(version: string | undefined): number {
   if (typeof version === 'undefined') return 0;
+  // biome-ignore lint/correctness/useParseIntRadix: ignored using `--suppress`
   const n = Number.parseInt(version);
   if (Number.isNaN(n)) return 0;
   return n;
@@ -83,7 +85,7 @@ export function versionSort(a: Version, b: Version) {
   return a[5] - b[5];
 }
 
-export function percentString(value: number, precision = 10000) {
+export function percentString(value: number, precision = 10_000) {
   const percent = value * precision;
   const percentString = Math.round(percent) / (precision / 100);
   return percentString.toString();
@@ -96,7 +98,7 @@ export function getStacksAddress(publicKey: string, networkKey: string) {
     mainnet ? AddressVersion.MainnetSingleSig : AddressVersion.TestnetSingleSig,
     AddressHashMode.P2PKH,
     1,
-    publicKeys,
+    publicKeys
   );
   return addressToString(address);
 }
@@ -137,6 +139,7 @@ export function strip0x(value: string) {
   return value.startsWith('0x') ? value.slice(2) : value;
 }
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type SuperJSON<T> = {
   _v?: T;
 };

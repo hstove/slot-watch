@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/performance/noBarrelFile: allowed here */
 export * from './codec';
 export * from './types';
 export * from './event-stream-types';

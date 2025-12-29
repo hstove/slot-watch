@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/useFilenamingConvention: allowed */
 import { createFileRoute } from '@tanstack/react-router';
 import {
   type ApiBlockForBurnBlock,
@@ -47,9 +48,9 @@ function RouteComponent() {
       set(
         setStacksBlocksForBurnBlockFamily(stacksBlock.consensusHash),
         stacksBlock.consensusHash,
-        stacksBlock,
+        stacksBlock
       );
-    }, []),
+    }, [])
   );
 
   React.useEffect(() => {

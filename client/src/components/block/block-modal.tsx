@@ -28,7 +28,7 @@ export const BlockModal = () => {
       <DialogTrigger>
         <div className="hidden" />
       </DialogTrigger>
-      <DialogContent 
+      <DialogContent
         className="max-w-[90vw] max-h-[90vh] overflow-y-scroll"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >

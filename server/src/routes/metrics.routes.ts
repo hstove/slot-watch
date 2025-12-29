@@ -7,9 +7,9 @@ export const metricsRoutes = new Hono<ServerType>().get(
   '/metrics',
   async (c) => {
     await warmupMetrics(c.get('db'));
-    // @ts-ignore
+    // @ts-expect-error
     register.setContentType(Registry.OPENMETRICS_CONTENT_TYPE);
     const metrics = await register.metrics();
     return c.text(metrics, 200);
-  },
+  }
 );

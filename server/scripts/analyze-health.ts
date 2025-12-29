@@ -41,8 +41,8 @@ const btcBlocks = await db
     and(
       eq(burnBlocks.networkKey, 'mainnet'),
       // created since at least 1.5 days ago
-      gt(burnBlocks.id, timeAgoV7),
-    ),
+      gt(burnBlocks.id, timeAgoV7)
+    )
   )
   .orderBy(asc(burnBlocks.id));
 
@@ -50,7 +50,7 @@ const stxBlocks = await db
   .select()
   .from(stacksBlocks)
   .where(
-    and(eq(stacksBlocks.networkKey, 'mainnet'), gt(stacksBlocks.id, timeAgoV7)),
+    and(eq(stacksBlocks.networkKey, 'mainnet'), gt(stacksBlocks.id, timeAgoV7))
   )
   .orderBy(asc(stacksBlocks.id));
 
@@ -59,12 +59,12 @@ const stxBlocks = await db
 const merged = records.map((r) => {
   const beforeTimeBtc = R.filter(
     btcBlocks,
-    (b) => getCreatedAt(b.id) <= r.timestamp,
+    (b) => getCreatedAt(b.id) <= r.timestamp
   );
   const btcBlock = beforeTimeBtc.at(-1);
   const beforeTimeStx = R.filter(
     stxBlocks,
-    (b) => getCreatedAt(b.id) <= r.timestamp,
+    (b) => getCreatedAt(b.id) <= r.timestamp
   );
   const stxBlock = beforeTimeStx.at(-1);
   return {

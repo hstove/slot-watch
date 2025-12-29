@@ -32,7 +32,7 @@ import { getCreatedAt } from '../utils';
 import * as R from 'remeda';
 
 export function serializeBlockProposal(
-  block: BlockProposalDb,
+  block: BlockProposalDb
 ): ApiBlockProposal {
   const createdAt = getCreatedAt(block.id);
   return {
@@ -55,12 +55,15 @@ const LAST_BLOCK_PROPOSAL_KEY = 'last-block-proposal';
 export function latestBlockProposalLookupKey({
   minerPublicKey,
   networkKey,
-}: { minerPublicKey: string; networkKey: string }) {
+}: {
+  minerPublicKey: string;
+  networkKey: string;
+}) {
   return `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:${minerPublicKey}`;
 }
 
 export async function getAllLatestBlockProposals(
-  networkKey: string,
+  networkKey: string
 ): Promise<ApiBlockProposal[]> {
   const keys = await env.CACHE.list({
     prefix: `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:`,
@@ -89,7 +92,7 @@ function parseBlockProposal(result: string) {
 
 export async function getLatestBlockProposal(
   minerPublicKey: string,
-  networkKey: string,
+  networkKey: string
 ) {
   const key = latestBlockProposalLookupKey({ minerPublicKey, networkKey });
   const result = await env.CACHE.get(key);
@@ -100,7 +103,7 @@ export async function getLatestBlockProposal(
       key,
       hasResult: result !== null,
     },
-    'getting latest block proposal',
+    'getting latest block proposal'
   );
   if (result === null) return null;
   return parseBlockProposal(result);
@@ -119,7 +122,7 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
       networkKey: blockProposal.networkKey,
       minerPublicKey: blockProposal.minerPublicKey,
     },
-    'setting latest block proposal',
+    'setting latest block proposal'
   );
   await env.CACHE.put(key, stringify(blockProposal));
   // await redisClient.set(key, stringify(blockProposal));
@@ -127,10 +130,10 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
 
 export async function getCachedLatestBlockProposals(
   networkKey: string,
-  minerPublicKeys: string[],
+  minerPublicKeys: string[]
 ) {
   const keys = minerPublicKeys.map((minerPublicKey) =>
-    latestBlockProposalLookupKey({ minerPublicKey, networkKey }),
+    latestBlockProposalLookupKey({ minerPublicKey, networkKey })
   );
   const results = await Promise.all(keys.map((key) => env.CACHE.get(key)));
   // const results = await redisClient.mGet(keys);
@@ -141,7 +144,7 @@ export async function getCachedLatestBlockProposals(
       keysLength: keys.length,
       networkKey,
     },
-    'getting latest block proposals',
+    'getting latest block proposals'
   );
   const blockProposals = results
     .map((result) => (result ? parseBlockProposal(result) : null))
@@ -154,7 +157,12 @@ export async function getRecentBlocksHealth({
   from,
   to,
   db,
-}: { networkKey: string; from?: number; to?: number; db: Db }) {
+}: {
+  networkKey: string;
+  from?: number;
+  to?: number;
+  db: Db;
+}) {
   const { rewardCycleId } = await getPoxInfo.get(networkKey);
   const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
@@ -168,22 +176,22 @@ export async function getRecentBlocksHealth({
       and(
         eq(blockProposalsSchema.networkKey, networkKey),
         from ? gte(blockProposalsSchema.chainLength, from) : undefined,
-        to ? lte(blockProposalsSchema.chainLength, to) : undefined,
-      ),
+        to ? lte(blockProposalsSchema.chainLength, to) : undefined
+      )
     )
     .leftJoin(
       blockPushes,
       and(
         eq(
           blockProposalsSchema.signerSignatureHash,
-          blockPushes.signerSignatureHash,
+          blockPushes.signerSignatureHash
         ),
-        eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
-      ),
+        eq(blockPushes.networkKey, blockProposalsSchema.networkKey)
+      )
     )
     .orderBy(
       desc(blockProposalsSchema.chainLength),
-      desc(blockProposalsSchema.id),
+      desc(blockProposalsSchema.id)
     )
     .offset(50)
     .limit(50);
@@ -196,9 +204,9 @@ export async function getRecentBlocksHealth({
         eq(blockResponsesSchema.networkKey, networkKey),
         inArray(
           blockResponsesSchema.signerSignatureHash,
-          recentBlocks.map((b) => b.signerSignatureHash),
-        ),
-      ),
+          recentBlocks.map((b) => b.signerSignatureHash)
+        )
+      )
     )
     .orderBy(desc(blockResponsesSchema.id));
 
@@ -213,7 +221,7 @@ export async function getRecentBlocksHealth({
   const blocksWithInfo = recentBlocks.map((b) => {
     const responses = responsesByBlock.get(b.signerSignatureHash) ?? [];
     const responseInfo = mapSignerDataToResponses({
-      stackerSet: stackerSet,
+      stackerSet,
       responses,
     });
     const weightPending =
@@ -243,13 +251,14 @@ export async function getRecentBlocksHealth({
 
 export const recentBlocksHealthCache = memoizeCache(
   () => 'recent-blocks-health:mainnet',
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (db: Db) => {
     return getRecentBlocksHealth({ networkKey: 'mainnet', db });
   },
   {
     ttl: 60 * 5,
     refreshTtl: 60 * 1,
-  },
+  }
 );
 
 export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
@@ -272,21 +281,21 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
       burnBlocks,
       and(
         eq(blockProposals.consensusHash, burnBlocks.consensusHash),
-        eq(burnBlocks.networkKey, networkKey),
-      ),
+        eq(burnBlocks.networkKey, networkKey)
+      )
     )
     .innerJoin(
       stacksBlocks,
       and(
         eq(blockProposals.consensusHash, stacksBlocks.consensusHash),
-        eq(stacksBlocks.networkKey, networkKey),
-      ),
+        eq(stacksBlocks.networkKey, networkKey)
+      )
     )
     .where(eq(blockProposals.networkKey, networkKey))
     .orderBy(
       desc(blockProposals.burnBlockHeight),
       desc(blockProposals.chainLength),
-      desc(blockProposals.id),
+      desc(blockProposals.id)
     )
     .limit(500);
 
@@ -340,9 +349,10 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
 
 export const fetchRecentMinerBlocksCache = memoizeCache(
   (networkKey: string) => `recent-miner-blocks-v3:${networkKey}`,
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (networkKey: string, db: Db) => {
     return _fetchRecentMinerBlocks(networkKey, db);
-  },
+  }
 );
 
 export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
@@ -382,7 +392,7 @@ export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
 
 export async function fetchBlockProposalsByHash(
   signerSignatureHash: string[],
-  db: Db,
+  db: Db
 ) {
   const blockProposalsList = await db.query.blockProposals.findMany({
     where: (fields, operators) =>

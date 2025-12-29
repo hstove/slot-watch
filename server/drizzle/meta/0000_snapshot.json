@@ -675,10 +675,7 @@
         "burn_blocks_network_key_burn_block_hash_idx": {
           "name": "burn_blocks_network_key_burn_block_hash_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "network_key",
-            "burn_block_hash"
-          ]
+          "columns": ["network_key", "burn_block_hash"]
         }
       },
       "policies": {},
@@ -1029,10 +1026,7 @@
         "stacks_blocks_network_key_block_hash_idx": {
           "name": "stacks_blocks_network_key_block_hash_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "network_key",
-            "block_hash"
-          ]
+          "columns": ["network_key", "block_hash"]
         }
       },
       "policies": {},

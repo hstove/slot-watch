@@ -16,6 +16,7 @@ import { hex } from '@scure/base';
 import { StateMachineUpdateCoder } from './state-machine';
 import { decodeTransactions } from './transactions';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type BitVec = {
   length: number;
   bytes: Uint8Array;
@@ -97,7 +98,7 @@ export type SignerMessageTypeId =
   (typeof SignerMessageTypePrefix)[keyof typeof SignerMessageTypePrefix];
 
 export function TypeIdCoder<T extends SignerMessageTypeId>(
-  id: T,
+  id: T
 ): P.CoderType<T> {
   return P.wrap({
     encodeStream: (w: P.Writer, value: T) => w.byte(value),
@@ -130,6 +131,7 @@ export const SignerMetadataCoder: P.CoderType<string | undefined> = P.wrap({
   },
 });
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type BlockResponseData = {
   version: number;
   tenureExtendTimestamp: bigint | null;
@@ -372,7 +374,7 @@ export const ValidationErrorCoder: P.CoderType<{
 }> = P.wrap({
   encodeStream: (
     w: P.Writer,
-    data: { reasonCode: number; validationCode: number | undefined },
+    data: { reasonCode: number; validationCode: number | undefined }
   ) => {
     P.U8.encodeStream(w, data.reasonCode);
     if (typeof data.validationCode === 'number') {
@@ -488,7 +490,9 @@ export type StackerDBStateMachineUpdate = Prettify<
     StackerDBStateMachineUpdateOuter['stateMachineUpdate']
 >;
 
-export type BlockPreCommit = Prettify<P.UnwrapCoder<typeof BlockPreCommitCoder>>;
+export type BlockPreCommit = Prettify<
+  P.UnwrapCoder<typeof BlockPreCommitCoder>
+>;
 
 export type ChunkIdKeys = keyof typeof SignerMessageTypePrefix;
 
@@ -526,6 +530,7 @@ export type ChunkType = ReturnType<typeof chunkTypeName>;
 
 export type DecodedChunk = ReturnType<typeof decodeChunk>;
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export function decodeChunk(chunk: Uint8Array) {
   const type = chunk[0];
   if (type === SignerMessageTypePrefix.MockBlock) {
@@ -562,7 +567,7 @@ export function decodeChunk(chunk: Uint8Array) {
     let tenureChangeCause: TenureChangeCause | null = null;
     let txFees = 0n;
     const { txs: txsArray, extraBytes } = decodeTransactions(
-      remaining.slice(0),
+      remaining.slice(0)
     );
     for (const tx of txsArray) {
       if (tx.payload.payloadType === PayloadType.TenureChange) {
@@ -614,7 +619,7 @@ export function decodeChunk(chunk: Uint8Array) {
     return BlockPreCommitCoder.decode(chunk) as BlockPreCommit;
   }
   throw new Error(
-    `Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`,
+    `Unknown type: ${type} (${Object.keys(SignerMessageTypePrefix)[type]})`
   );
 }
 
@@ -627,7 +632,7 @@ export function decodeChunkMaybe(chunk: Uint8Array): DecodedChunk | null {
 }
 
 export function makeSignerSignatureHash(
-  block: Omit<NakamotoBlock, 'signer_signature_hash'>,
+  block: Omit<NakamotoBlock, 'signer_signature_hash'>
 ) {
   const message = SignerSignatureHashCoder.encode(block);
   return sha512_256(message);
@@ -639,6 +644,7 @@ export const ChunkAuthDigestCoder = P.struct({
   dataHash: P.bytes(32),
 });
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type MinimalChunkData = {
   slotId: number;
   version: number;
@@ -650,7 +656,7 @@ export function chunkAuthDigest(chunk: MinimalChunkData) {
   const message = ChunkAuthDigestCoder.encode({
     slotId: chunk.slotId,
     version: chunk.version,
-    dataHash: dataHash,
+    dataHash,
   });
   return sha512_256(message);
 }
@@ -672,7 +678,7 @@ export function compactToSig(sig: Uint8Array) {
 }
 
 export function recoverChunkPublicKey(
-  chunk: MinimalChunkData & { signature: Uint8Array },
+  chunk: MinimalChunkData & { signature: Uint8Array }
 ) {
   const message = chunkAuthDigest(chunk);
   const sig = compactToSig(chunk.signature);

@@ -13,7 +13,7 @@ export function getPayloadContractId(payload: StackerDBPayload) {
       : AddressVersion.MainnetSingleSig;
   const address = addressFromVersionHash(
     version,
-    hex.encode(new Uint8Array(payload.contract_id.issuer[1])),
+    hex.encode(new Uint8Array(payload.contract_id.issuer[1]))
   );
   return `${addressToString(address)}.${payload.contract_id.name}`;
 }
@@ -22,6 +22,7 @@ export const string0x = z
   .string()
   .transform((s) => (s.startsWith('0x') ? s.slice(2) : s));
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type ModifiedSlot = {
   slot_id: number;
   slot_version: number;
@@ -29,6 +30,7 @@ export type ModifiedSlot = {
   sig: string;
 };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StackerDBPayload = {
   contract_id: {
     issuer: [number, Uint8Array];
@@ -122,7 +124,7 @@ export const coreNodeBlockMessageSchema = z.object({
         write_count: z.number(),
         write_length: z.number(),
       }),
-    }),
+    })
   ),
 });
 
@@ -157,7 +159,7 @@ export const coreNodeBurnBlockMessageSchema = z.object({
     z.object({
       recipient: z.string(),
       amt: z.number(),
-    }),
+    })
   ),
   reward_slot_holders: z.array(z.string()),
   consensus_hash: string0x,

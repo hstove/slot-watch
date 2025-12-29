@@ -39,7 +39,7 @@ const getRecentsRoutes = new Hono<ServerType>()
     const signersResponse: RecentSignersResponse['signers'] = signers.map(
       (signer, index) => {
         const response = responses.find(
-          (r) => r.signerPublicKey === signer.signing_key,
+          (r) => r.signerPublicKey === signer.signing_key
         );
         const percent = signer.weight / totalWeight;
 
@@ -70,7 +70,7 @@ const getRecentsRoutes = new Hono<ServerType>()
           blockHeight: response?.blockHeight ?? undefined,
         };
         return common;
-      },
+      }
     );
 
     const response: RecentSignersResponse = {

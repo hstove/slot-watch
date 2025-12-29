@@ -38,7 +38,7 @@ export const useWatchBlocks = () => {
         formatTimestamp(blockProposal.createdAt).timestamp,
         'Received block proposal',
         blockProposal.chainLength,
-        blockProposal.signerSignatureHash,
+        blockProposal.signerSignatureHash
       );
       const networkKey = get(networkIdAtom);
       const base = {
@@ -57,7 +57,7 @@ export const useWatchBlocks = () => {
         txFees: blockProposal.txFees,
       } satisfies ProposalOnlyBlock;
       const existing = get(
-        __stacksBlocksFamilyInner(blockProposal.signerSignatureHash),
+        __stacksBlocksFamilyInner(blockProposal.signerSignatureHash)
       );
       set(
         setStacksBlocksForBurnBlockFamily(base.consensusHash),
@@ -65,9 +65,9 @@ export const useWatchBlocks = () => {
         {
           ...existing,
           ...base,
-        },
+        }
       );
-    }, []),
+    }, [])
   );
 
   const handleStateMachineUpdate = useAtomCallback(
@@ -78,8 +78,8 @@ export const useWatchBlocks = () => {
           ...stateMachineUpdate,
         });
       },
-      [],
-    ),
+      []
+    )
   );
 
   const handleMiniBlockResponses = useAtomCallback(
@@ -87,22 +87,24 @@ export const useWatchBlocks = () => {
       (_get, set, miniBlockResponses: MiniBlockResponseApi[]) => {
         const byBlockHash = R.groupBy(
           miniBlockResponses,
-          (r) => r.signerSignatureHash,
+          (r) => r.signerSignatureHash
         );
         // console.log('Received mini block responses', byBlockHash);
+        // biome-ignore lint/suspicious/useGuardForIn: ignored using `--suppress`
         for (const blockHash in byBlockHash) {
           const responses = byBlockHash[blockHash];
           if (!responses) continue;
           set(setMiniResponsesAtom(blockHash), blockHash, responses);
         }
       },
-      [],
-    ),
+      []
+    )
   );
 
   const handleMessage = useAtomCallback(
     React.useCallback(
       // biome-ignore lint/suspicious/noExplicitAny: This is a websocket message event
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
       (get, set, message: MessageEvent<any> | null) => {
         if (message === null) return;
         const networkId = get(networkIdAtom);
@@ -110,7 +112,7 @@ export const useWatchBlocks = () => {
           const payload = JSON.parse(message.data) as WSPayload;
           if (payload.networkKey !== networkId) {
             console.warn(
-              `Websocket: Received unexpected networkKey: ${payload.networkKey}`,
+              `Websocket: Received unexpected networkKey: ${payload.networkKey}`
             );
             return;
           }
@@ -126,7 +128,7 @@ export const useWatchBlocks = () => {
               formatTimestamp(block.processedAt).timestamp,
               'Received block',
               block.blockHeight,
-              block.blockHash,
+              block.blockHash
             );
 
             const existing = get(__stacksBlocksFamilyInner(block.blockHash));
@@ -139,7 +141,7 @@ export const useWatchBlocks = () => {
               {
                 ...existing,
                 ...base,
-              },
+              }
             );
 
             // Once a block is "finalized" (arrives in new_block),
@@ -161,8 +163,8 @@ export const useWatchBlocks = () => {
           console.debug('Error parsing message', error);
         }
       },
-      [handleBlockProposal, handleMiniBlockResponses, handleStateMachineUpdate],
-    ),
+      [handleBlockProposal, handleMiniBlockResponses, handleStateMachineUpdate]
+    )
   );
 
   React.useEffect(() => {

@@ -4,7 +4,7 @@ import { hex } from '@scure/base';
 
 test('convert-addr', () => {
   const addrRegtest = BTC.Address(BTC.TEST_NETWORK).decode(
-    'tb1qxnzlc57krja4jzq6vq3fylll0rydxr2xjzv55p',
+    'tb1qxnzlc57krja4jzq6vq3fylll0rydxr2xjzv55p'
   );
   console.log(addrRegtest);
   if (addrRegtest?.type !== 'wpkh') {

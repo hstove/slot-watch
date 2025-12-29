@@ -27,7 +27,7 @@ export function WhenExtend() {
     setSigners(loaderData.signers, loaderData.network ?? 'mainnet');
     setTenureChanges(loaderData.tenureChanges);
   }, [loaderData, setSigners, setTenureChanges]);
-  // // biome-ignore lint/correctness/useExhaustiveDependencies(networkKey): <explanation>
+  // // biome-ignore lint/correctness/useExhaustiveDependencies(networkKey):allowed
   // React.useEffect(() => {
   //   init();
   // }, [init, networkKey]);

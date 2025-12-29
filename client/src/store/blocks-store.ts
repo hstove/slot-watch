@@ -32,12 +32,12 @@ export const blockHashesAtom = atom<string[]>([]);
 
 export const blockPushesAtoms = atomFamily(
   (_signerSignatureHash: string) => atom<HealthBlockBlock | null>(null),
-  dequal,
+  dequal
 );
 
 export const blockSignersAtoms = atomFamily(
   (_signerSignatureHash: string) => atom<HealthBlockSigner[]>([]),
-  dequal,
+  dequal
 );
 
 export const fetchBlockParamsAtom = atom((get) => {
@@ -59,15 +59,16 @@ export const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
   }
   set(
     blockHashesAtom,
-    blocks.map((b) => b.signerSignatureHash),
+    blocks.map((b) => b.signerSignatureHash)
   );
 });
 
 export const consensusBlockAtoms = atomFamily((consensusHash: string) =>
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   atom(async (get) => {
     const networkKey = get(networkIdAtom);
     return getConsensusBlock(networkKey, consensusHash);
-  }),
+  })
 );
 
 export async function fetchRecentSignerResponses(networkKey: string) {
@@ -101,21 +102,23 @@ export const sortedBurnBlocksAtom = atom((get) => {
 });
 
 export const burnBlocksAtomFamily = atomFamily((_burnBlockHash: string) =>
-  atom<ApiBurnBlock>(),
+  atom<ApiBurnBlock>()
 );
 
 export const setAllBurnBlocksAtom = atom(
   null,
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (_get, set, burnBlocks: ApiBurnBlock[]) => {
     for (const burnBlock of burnBlocks) {
       set(burnBlocksAtomFamily(burnBlock.burnBlockHash), burnBlock);
     }
     set(allBurnBlocksAtom, burnBlocks);
-  },
+  }
 );
 
 export const insertBurnBlockAtom = atom(
   null,
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (get, set, burnBlock: ApiBurnBlock) => {
     const existing = get(burnBlocksAtomFamily(burnBlock.burnBlockHash));
     set(burnBlocksAtomFamily(burnBlock.burnBlockHash), {
@@ -124,7 +127,7 @@ export const insertBurnBlockAtom = atom(
     });
     const burnBlocks = get(allBurnBlocksAtom);
     const existingIndex = burnBlocks.findIndex(
-      (b) => b.burnBlockHash === burnBlock.burnBlockHash,
+      (b) => b.burnBlockHash === burnBlock.burnBlockHash
     );
     if (existingIndex === -1) {
       set(allBurnBlocksAtom, (blocks) => {
@@ -134,13 +137,13 @@ export const insertBurnBlockAtom = atom(
       burnBlocks[existingIndex] = burnBlock;
       set(allBurnBlocksAtom, burnBlocks);
     }
-  },
+  }
 );
 
 export const blockTenureCostsAtom = atomFamily((consensusHash: string) =>
   atom((get) => {
     const stacksBlocks = get(
-      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash)),
+      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash))
     );
     const cost = {
       readCount: 0,
@@ -162,7 +165,7 @@ export const blockTenureCostsAtom = atomFamily((consensusHash: string) =>
       }
     }
     return cost;
-  }),
+  })
 );
 
 export const cumulativeBlockCostsAtom = atomFamily<
@@ -179,7 +182,7 @@ export const cumulativeBlockCostsAtom = atomFamily<
 >((consensusHash: string) => {
   return atom((get) => {
     const stacksBlocks = get(
-      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash)),
+      loadable(sortedStacksBlocksForBurnBlockAtom(consensusHash))
     );
     if (stacksBlocks.state !== 'hasData') return new Map();
     const blocks = R.reverse(stacksBlocks.data);
@@ -234,7 +237,7 @@ const stacksBlocksForBurnBlockQueryAtomFamily = atomFamily(
     return atomWithSuspenseQuery((get) => ({
       ...queries.stacksBlocks.forBurnBlock(get(networkIdAtom), consensusHash),
     }));
-  },
+  }
 );
 
 export const [
@@ -246,7 +249,7 @@ export const [
 ] = listAtomFamilyWithInit(
   async (consensusHash: string, get) => {
     const blocks = await get(
-      stacksBlocksForBurnBlockQueryAtomFamily(consensusHash),
+      stacksBlocksForBurnBlockQueryAtomFamily(consensusHash)
     );
     return blocks.data;
   },
@@ -283,7 +286,7 @@ export const [
       }
       const burnBlocks = get(allBurnBlocksAtom);
       const existingIndex = burnBlocks.findIndex(
-        (b) => b.burnBlockHash === block.burnBlockHash,
+        (b) => b.burnBlockHash === block.burnBlockHash
       );
       if (existingIndex === -1) {
         set(insertBurnBlockAtom, {
@@ -296,7 +299,7 @@ export const [
       }
     }
   },
-  'stacks-blocks-for-burn',
+  'stacks-blocks-for-burn'
 );
 
 export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
@@ -311,14 +314,15 @@ export const sortedStacksBlocksForBurnBlockAtom = atomFamily(
         R.uniqueBy((b) => b.blockHash),
         R.sortBy(
           [R.prop('blockHeight'), 'desc'],
-          [(b) => new Date(b.blockTimestamp).getTime(), 'desc'],
-        ),
+          [(b) => new Date(b.blockTimestamp).getTime(), 'desc']
+        )
       );
-    }),
+    })
 );
 
 export const responseOutcomeForBlockAtomFamily = atomFamily(
   (blockHash: string) =>
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
     atom((get) => {
       const responses = get(miniResponsesForBlockFamily(blockHash));
       const signers = get(signersApiAtom);
@@ -329,7 +333,7 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
       let weightReject = 0;
       const responsesBySigner = R.pipe(
         responses,
-        R.groupBy((r) => r.signerPublicKey ?? undefined),
+        R.groupBy((r) => r.signerPublicKey ?? undefined)
       );
       const threshold = Math.ceil(signers.totalWeight * 0.7);
       for (const signer of signers.signers) {
@@ -344,7 +348,8 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
       const accepted =
         weightAccept >= threshold
           ? true
-          : weightReject >= signers.totalWeight - threshold
+          : // biome-ignore lint/style/noNestedTernary: ignored using `--suppress`
+            weightReject >= signers.totalWeight - threshold
             ? false
             : null;
       const percentAccept = weightAccept / signers.totalWeight;
@@ -360,7 +365,7 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
         acceptPercentString: percentString(percentAccept, 1000),
         rejectPercentString: percentString(percentReject, 1000),
       };
-    }),
+    })
 );
 
 // The listAtomFamilyWithInit returns the following pattern:
@@ -374,7 +379,7 @@ export const [
 ] = listAtomFamilyWithInit(
   async (blockHash: string, get) => {
     const responses = await get(
-      blockResponsesForBlockQueryAtomFamily(blockHash),
+      blockResponsesForBlockQueryAtomFamily(blockHash)
     );
     return responses.data;
   },
@@ -387,7 +392,7 @@ export const [
   (_get, set, response) => {
     set(setSignerLatestResponsesAtom, response);
   },
-  'responses-for-block',
+  'responses-for-block'
 );
 
 // Helper for removing all responses for a given blockHash from the family
