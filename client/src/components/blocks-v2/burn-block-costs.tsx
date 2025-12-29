@@ -14,7 +14,11 @@ function CostUsed({
   used,
   name,
   showPercent = true,
-}: { used: number; name: string; showPercent?: boolean }) {
+}: {
+  used: number;
+  name: string;
+  showPercent?: boolean;
+}) {
   const status: StatusVariants['status'] = React.useMemo(() => {
     if (used < 0.5) return 'success';
     if (used < 0.9) return 'warning';
@@ -35,7 +39,7 @@ function CostUsed({
       <div
         className={statusStyles(
           status,
-          'w-3 h-3 rounded-full transition-all duration-1000',
+          'w-3 h-3 rounded-full transition-all duration-1000'
         )}
         style={{
           background: `conic-gradient(${color} 0% ${usedPercent}%, hsl(var(--secondary)) ${usedPercent}% 100%)`,
@@ -48,7 +52,11 @@ function CostUsed({
 export const CostUsedBar = ({
   used,
   name,
-}: { used: number; name: string; className?: string }) => {
+}: {
+  used: number;
+  name: string;
+  className?: string;
+}) => {
   const status: StatusVariants['status'] = React.useMemo(() => {
     if (used < 0.5) return 'success';
     if (used < 0.9) return 'warning';
@@ -69,7 +77,7 @@ export const CostUsedBar = ({
         <div
           className={statusStyles(
             status,
-            'w-full transition-all duration-1000',
+            'w-full transition-all duration-1000'
           )}
           style={{
             flexGrow: used,
@@ -82,7 +90,9 @@ export const CostUsedBar = ({
 
 export const BurnBlockCosts = ({
   consensusHash,
-}: { consensusHash: string }) => {
+}: {
+  consensusHash: string;
+}) => {
   const cost = useAtomValue(blockTenureCostsAtom(consensusHash));
   // const used = costLimitsUsed(cost);
   return <BlockCosts costs={cost} />;
@@ -115,7 +125,10 @@ export const BlockCosts = ({ costs, className }: BlockCostsProps) => {
 export const CumulativeBlockCosts = ({
   blockHash,
   consensusHash,
-}: { blockHash: string; consensusHash: string }) => {
+}: {
+  blockHash: string;
+  consensusHash: string;
+}) => {
   const cost = useAtomValue(cumulativeBlockCostsAtom(consensusHash));
   const blockCost = cost.get(blockHash);
   if (blockCost === undefined) {

@@ -37,7 +37,9 @@ interface StacksBlockDetailProps {
 
 function TenureCauseBadge({
   tenureCause,
-}: { tenureCause: TenureChangeCause | null }) {
+}: {
+  tenureCause: TenureChangeCause | null;
+}) {
   if (tenureCause === null) return null;
   if (tenureCause === TenureChangeCause.Extended) {
     return (
@@ -62,14 +64,15 @@ function TenureCauseBadge({
   return null;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
   useAtomValue(miniResponsesAtomFamilyWithLoader(block.blockHash));
   useAtomValue(responsesForBlockAtomFamily(block.blockHash));
   const responseOutcome = useAtomValue(
-    responseOutcomeForBlockAtomFamily(block.blockHash),
+    responseOutcomeForBlockAtomFamily(block.blockHash)
   );
   const cumulativeCosts = useAtomValue(
-    cumulativeBlockCostsAtom(block.consensusHash),
+    cumulativeBlockCostsAtom(block.consensusHash)
   );
   const blockCosts = cumulativeCosts.get(block.blockHash);
 
@@ -89,7 +92,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
           <Link
             to={getStacksExplorerUrl(
               `/block/${prefix0x(block.blockHash)}`,
-              block.networkKey,
+              block.networkKey
             )}
             target="_blank"
           >
@@ -260,7 +263,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
                     <span>
                       (
                       {percentString(
-                        block.readCount / MAINNET_COST_LIMITS.readCount,
+                        block.readCount / MAINNET_COST_LIMITS.readCount
                       )}
                       %)
                     </span>
@@ -274,7 +277,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
                     <span>
                       (
                       {percentString(
-                        block.readLength / MAINNET_COST_LIMITS.readLength,
+                        block.readLength / MAINNET_COST_LIMITS.readLength
                       )}
                       %)
                     </span>
@@ -288,7 +291,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
                     <span>
                       (
                       {percentString(
-                        block.writeCount / MAINNET_COST_LIMITS.writeCount,
+                        block.writeCount / MAINNET_COST_LIMITS.writeCount
                       )}
                       %)
                     </span>
@@ -303,7 +306,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
                       (
                       {percentString(
                         block.writeLength / MAINNET_COST_LIMITS.writeLength,
-                        10000,
+                        10_000
                       )}
                       %)
                     </span>
@@ -317,7 +320,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
                     <span>
                       (
                       {percentString(
-                        block.runtime / MAINNET_COST_LIMITS.runtime,
+                        block.runtime / MAINNET_COST_LIMITS.runtime
                       )}
                       %)
                     </span>

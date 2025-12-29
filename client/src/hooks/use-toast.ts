@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 1_000_000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -61,7 +61,7 @@ const addToRemoveQueue = (toastId: string) => {
     toastTimeouts.delete(toastId);
     dispatch({
       type: 'REMOVE_TOAST',
-      toastId: toastId,
+      toastId,
     });
   }, TOAST_REMOVE_DELAY);
 
@@ -69,6 +69,7 @@ const addToRemoveQueue = (toastId: string) => {
 };
 
 export const reducer = (state: State, action: Action): State => {
+  // biome-ignore lint/style/useDefaultSwitchClause: ignored using `--suppress`
   switch (action.type) {
     case 'ADD_TOAST':
       return {
@@ -80,7 +81,7 @@ export const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t,
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
         ),
       };
 
@@ -105,7 +106,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t,
+            : t
         ),
       };
     }
@@ -159,7 +160,7 @@ function toast({ ...props }: Toast) {
   });
 
   return {
-    id: id,
+    id,
     dismiss,
     update,
   };
@@ -168,7 +169,7 @@ function toast({ ...props }: Toast) {
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(state): <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies(state):allowed
   React.useEffect(() => {
     listeners.push(setState);
     return () => {

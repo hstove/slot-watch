@@ -9,6 +9,7 @@ import type { StacksBlockDb } from '../db/schema';
 
 export const QUEUE_NAME = 'worker';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type WorkerJobBase<Type extends string, Payload> = {
   receivedAt: string;
   networkKey: string;

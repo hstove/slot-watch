@@ -24,7 +24,7 @@ export const RecentSigners = () => {
   const loaderData = Route.useLoaderData();
   const [recentSigners, setRecentSigners] = useAtom(recentSignersAtom);
   const recentSignersWithLatestResponses = useAtomValue(
-    recentSignersWithLatestResponsesAtom,
+    recentSignersWithLatestResponsesAtom
   );
   const [useWeighted, setUseWeighted] = useAtom(useSignerVersionsWeightedAtom);
   const showCustom = !MAINNET_LAUNCHED && networkId === 'mainnet';

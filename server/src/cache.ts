@@ -70,7 +70,7 @@ export function memoizeCache<Fn extends F.Function>(
      * it will be refreshed
      */
     refreshTtl?: number;
-  } = {},
+  } = {}
 ): {
   get: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;
   warm: F.Function<F.Parameters<Fn>, A.Promise<F.Return<Fn>>>;

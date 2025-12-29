@@ -4,8 +4,10 @@ import { signerStateMachineFamily } from '@/store/state-machine-store';
 
 export function SignerStateMachine({
   signerPublicKey,
-}: { signerPublicKey: string }) {
+}: {
+  signerPublicKey: string;
+}) {
   const signerStateMachine = useAtomValue(
-    signerStateMachineFamily(signerPublicKey),
+    signerStateMachineFamily(signerPublicKey)
   );
 }

@@ -9,7 +9,7 @@ import { hex } from '@scure/base';
 import { getCreatedAt } from '../utils';
 
 export function serializeMinerState(
-  minerState: StateMachineUpdateMinerState,
+  minerState: StateMachineUpdateMinerState
 ): ApiStateMachineMinerState {
   if (minerState.variant === 0) {
     return minerState;
@@ -25,7 +25,7 @@ export function serializeMinerState(
 }
 
 export function serializeStateMachineUpdate(
-  update: StateMachineUpdateDb,
+  update: StateMachineUpdateDb
 ): ApiStateMachineUpdate {
   const createdAt = getCreatedAt(update.id);
   const { updateContent, ...rest } = update;

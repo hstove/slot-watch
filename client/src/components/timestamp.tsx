@@ -13,7 +13,7 @@ export const Timestamp = React.forwardRef<HTMLDivElement, TimestampProps>(
       useTimestamp(timestamp);
     const [textColor, setTextColor] = React.useState<string | undefined>();
     const [hasRendered, setHasRendered] = React.useState(false);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+    // biome-ignore lint/correctness/useExhaustiveDependencies:allowed
     React.useEffect(() => {
       if (hasRendered) {
         setTextColor('text-green-500');
@@ -35,12 +35,12 @@ export const Timestamp = React.forwardRef<HTMLDivElement, TimestampProps>(
           className={cn(
             className,
             'transition-colors duration-500 hidden md:block',
-            textColor,
+            textColor
           )}
         >
           {showMillis ? formattedTimestamp : timestampWithoutMillis}
         </span>
       </div>
     );
-  },
+  }
 );

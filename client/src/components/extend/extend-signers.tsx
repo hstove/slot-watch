@@ -26,19 +26,22 @@ const naColor = colord('#52525b');
 function ExtendSigner({
   signerPublicKey,
   threshold: _threshold,
-}: { signerPublicKey: string; threshold: boolean }) {
+}: {
+  signerPublicKey: string;
+  threshold: boolean;
+}) {
   const totalWeight = useAtomValue(totalWeightAtom);
   const name = useEntity(signerPublicKey);
   const bounds = useAtomValue(extendBoundsAtom);
   const response = useAtomValue(
-    signerLatestResponseFamilyInner(signerPublicKey),
+    signerLatestResponseFamilyInner(signerPublicKey)
   );
   const mostRecentTenureChange = useAtomValue(mostRecentTenureChangeAtom);
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const color = React.useMemo(() => {
     const ts = response?.tenureExtendTimestamp ?? undefined;
     if (typeof ts === 'undefined') return naColor.toHex();
-    if (!ts || !bounds.min) return naColor.toHex();
+    if (!(ts && bounds.min)) return naColor.toHex();
     if (!bounds.diff) return minColor.toHex();
     if (
       mostRecentTenureChange &&
@@ -91,7 +94,8 @@ function ExtendSigner({
           <DataValue>
             {typeof response === 'undefined'
               ? null
-              : response?.tenureExtendTimestamp
+              : // biome-ignore lint/style/noNestedTernary: ignored using `--suppress`
+                response?.tenureExtendTimestamp
                 ? new Date(response.tenureExtendTimestamp).toLocaleString()
                 : 'N/A'}
           </DataValue>

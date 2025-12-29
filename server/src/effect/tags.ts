@@ -20,10 +20,10 @@ export interface DbService {
   insertBlockPush(input: DbBlockPush): Effect.Effect<void, DbError>;
   insertBlockResponses(input: DbBlockResponse[]): Effect.Effect<void, DbError>;
   insertStateMachineUpdate(
-    input: DbStateMachineUpdate,
+    input: DbStateMachineUpdate
   ): Effect.Effect<void, DbError>;
   fetchBlockProposalsByHash(
-    hashes: string[],
+    hashes: string[]
   ): Effect.Effect<ApiBlockProposal[], DbError>;
   withDb<R>(f: (db: DbType) => Promise<R>): Effect.Effect<R, DbError>;
 }
@@ -43,10 +43,12 @@ export const Streamer = StreamerServiceTag;
 // Error types
 export class DbError {
   readonly _tag = 'DbError';
+  // biome-ignore lint/style/noParameterProperties: ignored using `--suppress`
   constructor(readonly cause: unknown) {}
 }
 
 export class StreamerError {
   readonly _tag = 'StreamerError';
+  // biome-ignore lint/style/noParameterProperties: ignored using `--suppress`
   constructor(readonly cause: unknown) {}
 }

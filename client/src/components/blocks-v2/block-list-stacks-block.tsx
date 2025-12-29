@@ -40,7 +40,9 @@ import { DataLabel, DataValue } from '../data-group';
 
 function TenureCauseBadge({
   tenureCause,
-}: { tenureCause: TenureChangeCause | null }) {
+}: {
+  tenureCause: TenureChangeCause | null;
+}) {
   if (tenureCause === null) return null;
   if (tenureCause === TenureChangeCause.Extended) {
     return (
@@ -65,13 +67,14 @@ function TenureCauseBadge({
 
 function ResponseOutcome({ blockHash }: { blockHash: string }) {
   const responseOutcome = useAtomValue(
-    responseOutcomeForBlockAtomFamily(blockHash),
+    responseOutcomeForBlockAtomFamily(blockHash)
   );
   if (!responseOutcome) return null;
   const status =
     responseOutcome.accepted === false
       ? 'error'
-      : responseOutcome.accepted
+      : // biome-ignore lint/style/noNestedTernary: ignored using `--suppress`
+        responseOutcome.accepted
         ? 'success'
         : 'pending';
   if (status === 'pending') {
@@ -140,7 +143,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
             <div
               className={statusStyles(
                 blockStatus,
-                'w-2 h-2 absolute rounded-full',
+                'w-2 h-2 absolute rounded-full'
               )}
             />
           </div>
@@ -169,7 +172,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
                 <Link
                   to={getStacksExplorerUrl(
                     `/block/${prefix0x(blockHash)}`,
-                    block.networkKey,
+                    block.networkKey
                   )}
                   target="_blank"
                 >

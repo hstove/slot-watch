@@ -17,6 +17,7 @@ export interface StateMachineUpdateMinerStateActive {
   variant: 1;
 }
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StateMachineUpdateMinerStateInactive = {
   variant: 0;
 };
@@ -94,6 +95,7 @@ export type StateMachineUpdateContentUnknown = P.UnwrapCoder<
   typeof StateMachineUpdateContentUnknownCoder
 >;
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type StateMachine<V, C> = {
   activeSignerProtocolVersion: V;
   localSignerProtocolVersion: bigint;
@@ -139,7 +141,7 @@ export const StateMachineUpdateCoder = P.wrap({
       const stateMachineUpdate =
         StateMachineUpdateContentV1Coder.decodeStream(r);
       const { txs, extraBytes } = decodeTransactions(
-        stateMachineUpdate.remainingBytes,
+        stateMachineUpdate.remainingBytes
       );
       return {
         activeSignerProtocolVersion,

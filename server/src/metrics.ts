@@ -79,6 +79,7 @@ export const workerJobProcessingTimeSummary = new Summary({
 
 export const lastNs = [10, 25, 50];
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export async function warmupMetrics(db: Db) {
   const runStart = Date.now();
   const [recentBlocks, stackerSet, allCommits] = await Promise.all([
@@ -106,25 +107,25 @@ export async function warmupMetrics(db: Db) {
     const acceptedBlocks = lastNBlocks.filter((b) => b.accepted);
     acceptanceRateLastBlocks.set(
       { last_n_blocks: n },
-      acceptedBlocks.length / lastNBlocks.length,
+      acceptedBlocks.length / lastNBlocks.length
     );
 
     const sumWeight = lastNBlocks.reduce((acc, b) => acc + b.totalWeight, 0);
     const sumWeightAccepted = acceptedBlocks.reduce(
       (acc, b) => acc + (b.accepted ? b.weightAccept : 0),
-      0,
+      0
     );
     const sumWeightAcceptedBlocks = acceptedBlocks.reduce(
       (acc, b) => acc + b.totalWeight,
-      0,
+      0
     );
     averageAcceptanceRateLastBlocks.set(
       { last_n_blocks: n },
-      sumWeightAccepted / sumWeightAcceptedBlocks,
+      sumWeightAccepted / sumWeightAcceptedBlocks
     );
 
     const blocksWithPush = lastNBlocks.filter(
-      (b) => b.pushedAt !== null && b.accepted === true,
+      (b) => b.pushedAt !== null && b.accepted === true
     );
     let sumTimeToPushed = 0;
     for (const b of blocksWithPush) {
@@ -135,7 +136,7 @@ export async function warmupMetrics(db: Db) {
     }
     averageTimeToPushedLastBlocks.set(
       { last_n_blocks: n },
-      sumTimeToPushed / 1000 / blocksWithPush.length,
+      sumTimeToPushed / 1000 / blocksWithPush.length
     );
 
     let sumWeightDegraded = 0;
@@ -146,7 +147,7 @@ export async function warmupMetrics(db: Db) {
       let blocksDegraded = 0;
       for (const block of lastNBlocks) {
         const foundSigner = block.signers.find(
-          (s) => s.signing_key === signer.signing_key,
+          (s) => s.signing_key === signer.signing_key
         );
         if (!foundSigner) continue;
         if (foundSigner.accepted !== null) {
@@ -163,17 +164,17 @@ export async function warmupMetrics(db: Db) {
       }
       signerParticipationRate.set(
         { last_n_blocks: n, signer_key: signer.signing_key },
-        blocksSigned / lastNBlocks.length,
+        blocksSigned / lastNBlocks.length
       );
       const percentageDegraded = blocksDegraded / lastNBlocks.length;
       signerDegradationRate.set(
         { last_n_blocks: n, signer_key: signer.signing_key },
-        percentageDegraded,
+        percentageDegraded
       );
     }
     weightDegradedLastBlocks.set(
       { last_n_blocks: n },
-      sumWeightDegraded / sumWeight,
+      sumWeightDegraded / sumWeight
     );
   }
 
@@ -186,7 +187,7 @@ export async function warmupMetrics(db: Db) {
   for (const signer of stackerSet.signers) {
     signingPowerThisCycle.set(
       { signer_key: signer.signing_key },
-      signer.weight,
+      signer.weight
     );
   }
 

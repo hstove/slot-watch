@@ -20,7 +20,7 @@ export const stateMachineRoutes = new Hono<ServerType>()
       .limit(1000);
     const bySignerKey = R.groupBy(
       latestStateMachineUpdatesDistinct,
-      R.prop('signerPublicKey'),
+      R.prop('signerPublicKey')
     );
 
     const stateMachines: StateMachineUpdateDb[] = [];
@@ -46,7 +46,7 @@ export const stateMachineRoutes = new Hono<ServerType>()
       'query',
       z.object({
         cursor: z.string().optional(),
-      }),
+      })
     ),
     async (c) => {
       const networkKeyParam = c.req.param('networkKey');
@@ -57,7 +57,7 @@ export const stateMachineRoutes = new Hono<ServerType>()
           where({ networkKey, id }, { and, eq, lt }) {
             return and(
               eq(networkKey, networkKeyParam),
-              cursor ? lt(id, cursor) : undefined,
+              cursor ? lt(id, cursor) : undefined
             );
           },
           orderBy({ id }, { desc }) {
@@ -71,5 +71,5 @@ export const stateMachineRoutes = new Hono<ServerType>()
         next: `/${networkKeyParam}/state-machine-updates?cursor=${lastId}`,
         stateMachines: stateMachines.map(serializeStateMachineUpdate),
       });
-    },
+    }
   );

@@ -20,11 +20,12 @@ export function getPayloadContractId(payload: StackerDBPayload) {
       : AddressVersion.MainnetSingleSig;
   const address = addressFromVersionHash(
     version,
-    hex.encode(new Uint8Array(payload.contract_id.issuer[1])),
+    hex.encode(new Uint8Array(payload.contract_id.issuer[1]))
   );
   return `${addressToString(address)}.${payload.contract_id.name}`;
 }
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type DbChunk = {
   id: string;
   slotId: number;
@@ -57,6 +58,7 @@ export function getCreatedAt(uuid: string): Date {
 
   // Basic validation: Check if the cleaned string has the correct length (32 hex chars)
   // and contains only hex characters.
+  // biome-ignore lint/performance/useTopLevelRegex: ignored using `--suppress`
   if (cleanUuid.length !== 32 || !/^[0-9a-f]+$/i.test(cleanUuid)) {
     log.withMetadata({ uuid }).error('Invalid UUID format');
     throw new Error('Invalid UUID format');

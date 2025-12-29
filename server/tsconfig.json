@@ -20,7 +20,7 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@cloudflare/vitest-pool-workers", "./worker-configuration.d.ts"]
+    "types": ["./worker-configuration.d.ts"]
   },
   "include": ["src/**/*.ts"]
 }

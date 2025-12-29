@@ -7,7 +7,7 @@ export function setDebugLabel(
   atom: Atom<unknown>,
   label: string | undefined,
   name: string,
-  key?: unknown,
+  key?: unknown
 ) {
   if (import.meta.env.PROD || !label) return;
   let debugLabel = `${label}-${name}`;
@@ -26,7 +26,7 @@ type Read<Value, SetSelf = never> = (
   options?: {
     readonly signal: AbortSignal;
     readonly setSelf: SetSelf;
-  },
+  }
 ) => Value;
 
 export function listAtomWithInit<T, K>(
@@ -34,7 +34,7 @@ export function listAtomWithInit<T, K>(
   initFn: Read<Promise<T[]>, SetAtom<[T[] | T], void>>,
   keyFn: (item: T) => K,
   onItemSet?: (get: Getter, set: Setter, item: T) => void,
-  debugLabel?: string,
+  debugLabel?: string
 ) {
   const initAtom = atom<Promise<T[]>, [T[] | T], void>(
     async (get, options) => {
@@ -44,7 +44,7 @@ export function listAtomWithInit<T, K>(
     },
     (_get, set, listOrItem: T[] | T) => {
       set(writerAtom, listOrItem);
-    },
+    }
   );
   setDebugLabel(initAtom, debugLabel, 'init');
   const writerAtom = atom(null, (get, set, listOrItem: T[] | T) => {
@@ -60,7 +60,7 @@ export function listAtomWithInit<T, K>(
       set(itemAtomFamilyInner(key), listOrItem);
       const existingList = get(listAtomInner);
       const existingIndex = existingList.findIndex((item) =>
-        dequal(keyFn(item), key),
+        dequal(keyFn(item), key)
       );
       if (existingIndex === -1) {
         set(listAtomInner, (list) => {
@@ -119,14 +119,14 @@ type ReadOuter<Value, OKey, SetSelf = never> = (
   options?: {
     readonly signal: AbortSignal;
     readonly setSelf: SetSelf;
-  },
+  }
 ) => Value;
 
 export function listAtomFamilyWithInit<OKey, T, K>(
   initFn: ReadOuter<Promise<T[]>, OKey, SetAtom<[OKey, T[] | T], void>>,
   keyFn: (item: T) => K,
   onItemSet?: (get: Getter, set: Setter, item: T) => void,
-  debugLabel?: string,
+  debugLabel?: string
 ) {
   const initAtom = atomFamily((outerKey: OKey) => {
     const a = atom<Promise<T[]>, [OKey, T[] | T], void>(
@@ -138,7 +138,7 @@ export function listAtomFamilyWithInit<OKey, T, K>(
       },
       (_get, set, outerKey: OKey, listOrItem: T[] | T) => {
         set(writerAtom(outerKey), outerKey, listOrItem);
-      },
+      }
     );
     setDebugLabel(a, debugLabel, 'init', outerKey);
     return a;
@@ -146,13 +146,14 @@ export function listAtomFamilyWithInit<OKey, T, K>(
   const writerAtom = atomFamily((_outerKey: OKey) => {
     const a = atom(null, (get, set, outerKey: OKey, listOrItem: T[] | T) => {
       if (Array.isArray(listOrItem)) {
+        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
         set(listAtomFamilyInner(outerKey), (existingList) => {
           if (existingList.length === 0) {
             return listOrItem;
           }
           for (const item of existingList) {
             const existingIndex = existingList.findIndex((item) =>
-              dequal(keyFn(item), keyFn(item)),
+              dequal(keyFn(item), keyFn(item))
             );
             if (existingIndex === -1) {
               existingList.push(item);
@@ -171,7 +172,7 @@ export function listAtomFamilyWithInit<OKey, T, K>(
         set(itemAtomFamilyInner(key), listOrItem);
         const existingList = get(listAtomFamilyInner(outerKey));
         const existingIndex = existingList.findIndex((item) =>
-          dequal(keyFn(item), key),
+          dequal(keyFn(item), key)
         );
         if (existingIndex === -1) {
           set(listAtomFamilyInner(outerKey), (list) => {

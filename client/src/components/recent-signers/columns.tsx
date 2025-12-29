@@ -20,7 +20,11 @@ function Degregation({
   degradation,
   lastNBlocks,
   className,
-}: { degradation: number; lastNBlocks: number; className?: string }) {
+}: {
+  degradation: number;
+  lastNBlocks: number;
+  className?: string;
+}) {
   const status = React.useMemo(() => {
     if (degradation > 0.6) return 'error';
     if (degradation > 0.2) return 'warning';

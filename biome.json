@@ -1,39 +1,98 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.2/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["dist", ".turbo", "routeTree.gen.ts", "server/drizzle/meta"]
+    "maxSize": 2000000
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "space"
-  },
-  "organizeImports": {
-    "enabled": false
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "includes": [
+      "**",
+      "!**/node_modules/",
+      "!dist/",
+      "!server/drizzle/meta",
+      "!routeTree.gen.ts",
+      "!.turbo"
+    ]
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "recommended": false,
+      "style": {
+        "useBlockStatements": "off",
+        "useTrimStartEnd": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off"
+      },
+      "suspicious": {
+        "useIterableCallbackReturn": "off",
+        "noArrayIndexKey": "off"
+      },
       "correctness": {
-        "noUnusedImports": "off"
-      }
-    }
+        "noUnusedImports": "off",
+        "noUnusedVariables": "off"
+      },
+      "nursery": "off"
+    },
+    "includes": [
+      "**",
+      "!**/node_modules/",
+      "!dist/",
+      "!server/drizzle/meta",
+      "!routeTree.gen.ts",
+      "!.turbo"
+    ]
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "always"
+      "quoteStyle": "single"
+    }
+  },
+  "json": {
+    "parser": {
+      "allowComments": true,
+      "allowTrailingCommas": true
     }
   },
   "css": {
-    "linter": {
-      "enabled": true
+    "parser": {
+      "tailwindDirectives": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["*.ts", "*.tsx"]
+    },
+    {
+      "includes": ["tools/src/routes/**/*.ts", "tools/src/routes/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "off",
+        "useSortedAttributes": "off",
+        "useSortedKeys": "off",
+        "useSortedProperties": "off"
+      }
+    }
+  },
+  "extends": ["ultracite/core", "ultracite/react"]
 }

@@ -18,13 +18,13 @@ export const TimeAgo = React.forwardRef<HTMLSpanElement, TimeAgoProps>(
       formatDistanceToNow(new Date(date), {
         addSuffix: true,
         includeSeconds: true,
-      }),
+      })
     );
 
     const updateTimeAgo = useCallback(() => {
       setTimeAgo(formatDistanceToNow(new Date(date), { addSuffix: true }));
     }, [date]);
-    useInterval(updateTimeAgo, 10000);
+    useInterval(updateTimeAgo, 10_000);
 
     const handleClick = useCallback(() => {
       copy(Date.parse(date).toString());
@@ -44,5 +44,5 @@ export const TimeAgo = React.forwardRef<HTMLSpanElement, TimeAgoProps>(
         </span>
       </SimpleTooltip>
     );
-  },
+  }
 );

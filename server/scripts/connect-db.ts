@@ -17,7 +17,7 @@ console.log('DB URL', dbUrl);
 // });
 
 const client = new Client({
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10_000,
   connectionString: dbUrl,
 });
 

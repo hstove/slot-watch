@@ -24,6 +24,7 @@ const logger = log.child().withContext({
 
 async function getRewardSet(rewardCycle: bigint) {
   const listLen = await client.ro(pox4.getRewardSetSize(rewardCycle));
+  // biome-ignore lint/suspicious/noEvolvingTypes: ignored using `--suppress`
   const listItems = [];
   for (let i = 0; i < listLen; i++) {
     listItems.push(async () => {
@@ -38,7 +39,7 @@ async function getRewardSet(rewardCycle: bigint) {
           {
             network,
             apiKey: env.HIRO_API_KEY,
-          },
+          }
         );
       } catch (error) {
         logger.withError(error).error('Error fetching reward set item');
@@ -48,7 +49,7 @@ async function getRewardSet(rewardCycle: bigint) {
   }
   try {
     const addressList = (await pAll(listItems, { concurrency: 10 })).filter(
-      (n) => n !== null,
+      (n) => n !== null
     );
     return addressList;
   } catch (error) {
@@ -58,7 +59,7 @@ async function getRewardSet(rewardCycle: bigint) {
 
 export async function getStxCommittedToSigner(
   signerPublicKey: string,
-  rewardCycle: bigint,
+  rewardCycle: bigint
 ) {
   const rewardSet = await getRewardSet(rewardCycle);
   let sum = 0n;
@@ -93,5 +94,5 @@ export const stxCommittedCache = memoizeCache(
   },
   {
     ttl: 120 * 60,
-  },
+  }
 );

@@ -27,9 +27,10 @@ export const [
     return update.signerPublicKey;
   },
   undefined,
-  'state-machine-updates',
+  'state-machine-updates'
 );
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type FullSignerStateMachine = {
   signer: ApiRecentSigners['signers'][0];
   stateMachine: ApiStateMachineUpdate | undefined;
@@ -42,7 +43,7 @@ export const allSignersStateMachinesAtom = atom<FullSignerStateMachine[]>(
 
     const signerStateMachines = signers.signers.map((signer) => {
       const signerStateMachine = stateMachines.find(
-        (stateMachine) => stateMachine.signerPublicKey === signer.publicKey,
+        (stateMachine) => stateMachine.signerPublicKey === signer.publicKey
       );
       return {
         signer,
@@ -51,7 +52,7 @@ export const allSignersStateMachinesAtom = atom<FullSignerStateMachine[]>(
     });
 
     return signerStateMachines;
-  },
+  }
 );
 
 function getBaseStateMachine(stateMachine: ApiStateMachineUpdate) {
@@ -70,6 +71,7 @@ function getBaseStateMachine(stateMachine: ApiStateMachineUpdate) {
 
 export type BaseStateMachine = ReturnType<typeof getBaseStateMachine>;
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type GroupedStateMachine = {
   stateMachine: BaseStateMachine | null;
   signers: FullSignerStateMachine['signer'][];
@@ -85,7 +87,7 @@ export const groupedStateMachinesAtom = atom((get) => {
       ? getBaseStateMachine(signerStateMachine.stateMachine)
       : null;
     const existingGroup = grouped.find(([base]) =>
-      dequal(base, baseStateMachine),
+      dequal(base, baseStateMachine)
     );
     if (existingGroup) {
       existingGroup[1].push(signerStateMachine);
@@ -97,7 +99,7 @@ export const groupedStateMachinesAtom = atom((get) => {
   const mappedGroups: GroupedStateMachine[] = grouped.map(([base, signers]) => {
     const signerWeightPercent = signers.reduce(
       (acc, signer) => acc + signer.signer.weightPercent,
-      0,
+      0
     );
     const signerWeightPercentStr = percentString(signerWeightPercent);
     return {
@@ -110,7 +112,7 @@ export const groupedStateMachinesAtom = atom((get) => {
 
   return R.sort(
     mappedGroups,
-    (a, b) => b.signerWeightPercent - a.signerWeightPercent,
+    (a, b) => b.signerWeightPercent - a.signerWeightPercent
   );
   // const grouped = R.groupBy(allSignersStateMachines, ({ signer, stateMachine }) => {
   //   if (!stateMachine) return null;

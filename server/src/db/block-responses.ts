@@ -27,7 +27,10 @@ const cloudflare = new Cloudflare({
 export function mapSignerDataToResponses({
   stackerSet,
   responses,
-}: { stackerSet: StackerSet; responses: BlockResponseDb[] }) {
+}: {
+  stackerSet: StackerSet;
+  responses: BlockResponseDb[];
+}) {
   const blockSigners: Record<
     string,
     BlockResponseDb & { accepted: boolean | null }
@@ -40,7 +43,7 @@ export function mapSignerDataToResponses({
   const { totalWeight } = stackerSet;
   for (const response of responses) {
     const signer = stackerSet.signersByKey.get(response.signerPublicKey ?? '');
-    if (!signer || !response.signerPublicKey) {
+    if (!(signer && response.signerPublicKey)) {
       continue;
     }
     const { weight } = signer;
@@ -83,6 +86,7 @@ export function mapSignerDataToResponses({
   const rejectRatio = weightReject / totalWeight;
   const acceptRatio = weightAccept / totalWeight;
   const accepted =
+    // biome-ignore lint/style/noNestedTernary: ignored using `--suppress`
     acceptRatio >= 0.7 ? true : rejectRatio >= 0.3 ? false : null;
   return {
     signers: signersArr,
@@ -131,7 +135,7 @@ export async function getLatestResponses(networkKey: string) {
 }
 
 export function serializeBlockResponse(
-  response: BlockResponseDb,
+  response: BlockResponseDb
 ): BlockResponseApi {
   const createdAt = getCreatedAt(response.id);
   return {
@@ -155,7 +159,10 @@ export function serializeBlockResponse(
 export function latestBlockResponseLookupKey({
   signerPublicKey,
   networkKey,
-}: { signerPublicKey: string; networkKey: string }) {
+}: {
+  signerPublicKey: string;
+  networkKey: string;
+}) {
   return `latest-block-response:${signerPublicKey}-${networkKey}`;
 }
 
@@ -169,7 +176,7 @@ function parseBlockResponse(result: string) {
 
 export async function getLatestBlockResponse(
   signerPublicKey: string,
-  networkKey: string,
+  networkKey: string
 ) {
   const key = latestBlockResponseLookupKey({ signerPublicKey, networkKey });
   const result = await env.CACHE.get(key);
@@ -180,7 +187,7 @@ export async function getLatestBlockResponse(
       key,
       hasResult: result !== null,
     },
-    'getting latest block response',
+    'getting latest block response'
   );
   if (result === null) return null;
   return parseBlockResponse(result);
@@ -199,14 +206,14 @@ export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
       networkKey: blockResponse.networkKey,
       signerPublicKey: blockResponse.signerPublicKey,
     },
-    'setting latest block response',
+    'setting latest block response'
   );
   await env.CACHE.put(key, stringify(blockResponse));
   // await redisClient.set(key, stringify(blockResponse));
 }
 
 export async function setLatestBlockResponses(
-  blockResponses: BlockResponseApi[],
+  blockResponses: BlockResponseApi[]
 ) {
   const responses = R.uniqueBy(blockResponses, (r) => r.signerPublicKey);
   await cloudflare.kv.namespaces.bulkUpdate(env.KV_NAMESPACE_ID, {
@@ -225,10 +232,10 @@ export async function setLatestBlockResponses(
 
 export async function getCachedLatestBlockResponses(
   networkKey: string,
-  signerPublicKeys: string[],
+  signerPublicKeys: string[]
 ) {
   const keys = signerPublicKeys.map((signerPublicKey) =>
-    latestBlockResponseLookupKey({ signerPublicKey, networkKey }),
+    latestBlockResponseLookupKey({ signerPublicKey, networkKey })
   );
   const results = await Promise.all(keys.map((key) => env.CACHE.get(key)));
   // const results = await redisClient.mGet(keys);
@@ -239,7 +246,7 @@ export async function getCachedLatestBlockResponses(
       keysLength: keys.length,
       networkKey,
     },
-    'getting latest block responses',
+    'getting latest block responses'
   );
   const blockResponses = results
     .map((result) => (result ? parseBlockResponse(result) : null))
@@ -247,6 +254,7 @@ export async function getCachedLatestBlockResponses(
   return blockResponses;
 }
 
+// biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
 export async function getSignerLatencies(networkKey: string, db: Db) {
   const latestBlockHashes = db
     .$with('latest_block_hashes')
@@ -256,7 +264,7 @@ export async function getSignerLatencies(networkKey: string, db: Db) {
         .from(stacksBlocks)
         .where(eq(stacksBlocks.networkKey, networkKey))
         .orderBy(desc(stacksBlocks.blockHeight))
-        .limit(1),
+        .limit(1)
     );
 
   const latestResponses = db
@@ -271,10 +279,10 @@ export async function getSignerLatencies(networkKey: string, db: Db) {
       and(
         eq(
           blockResponses.signerSignatureHash,
-          latestBlockHashes.signerSignatureHash,
+          latestBlockHashes.signerSignatureHash
         ),
-        eq(blockResponses.networkKey, networkKey),
-      ),
+        eq(blockResponses.networkKey, networkKey)
+      )
     )
     .groupBy(blockResponses.signerSignatureHash);
 

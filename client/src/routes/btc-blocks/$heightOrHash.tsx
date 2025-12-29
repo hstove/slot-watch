@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/useFilenamingConvention: allowed */
 import { getBtcBlock, getSigners } from '@/lib/slots-api';
 import { createFileRoute } from '@tanstack/react-router';
 import { BtcBlock } from '@/components/btc-block/btc-block';

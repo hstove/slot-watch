@@ -34,6 +34,7 @@ import type { ServerContext, ServerType } from '../server-context';
 import { makeDb } from '../db/db';
 import { runWithServerRuntime } from '../effect/runtime';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type Env = {
   Variables: {
     networkKey: string;
@@ -89,8 +90,8 @@ const eventsRoutes = new Hono<Env>()
           payload: data,
           receivedAt,
           networkKey,
-        }),
-      ),
+        })
+      )
     );
     logger.info('Sending response for stackerdb event.');
     return new Response('OK', { status: 200 });
@@ -119,8 +120,8 @@ const eventsRoutes = new Hono<Env>()
             blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
             burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
           },
-        }),
-      ),
+        })
+      )
     );
 
     return new Response('OK', { status: 200 });
@@ -133,7 +134,7 @@ const eventsRoutes = new Hono<Env>()
     }
     const data = await c.req.json<CoreNodeBurnBlockMessage>();
     logger.info(
-      `${networkKey}: Got new Burn Block (${data.burn_block_height})`,
+      `${networkKey}: Got new Burn Block (${data.burn_block_height})`
     );
     const burnBlock = coreNodeBurnBlockMessageSchema.parse(data);
     const payload: WSBurnBlockV2 = {
@@ -150,7 +151,7 @@ const eventsRoutes = new Hono<Env>()
       },
     };
     c.executionCtx.waitUntil(
-      runWithServerRuntime(handleBurnBlockEvent(payload)),
+      runWithServerRuntime(handleBurnBlockEvent(payload))
     );
     return new Response('OK', { status: 200 });
   })
@@ -161,7 +162,7 @@ const eventsRoutes = new Hono<Env>()
       {
         response: await c.req.json(),
       },
-      `${networkKey}: Got proposal response`,
+      `${networkKey}: Got proposal response`
     );
     return new Response('OK', { status: 200 });
   });

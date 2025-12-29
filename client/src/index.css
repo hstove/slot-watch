@@ -1,5 +1,8 @@
+/* biome-ignore lint/suspicious/noUnknownAtRules: ignored using `--suppress` */
 @tailwind base;
+/* biome-ignore lint/suspicious/noUnknownAtRules: ignored using `--suppress` */
 @tailwind components;
+/* biome-ignore lint/suspicious/noUnknownAtRules: ignored using `--suppress` */
 @tailwind utilities;
 
 @layer base {

@@ -20,12 +20,12 @@ export const testStackerDbEffect = () => {
     }).pipe(
       Effect.provide(ServerRuntime),
       Effect.tapErrorCause((cause) =>
-        Effect.logError('Test failed', { cause }),
+        Effect.logError('Test failed', { cause })
       ),
       Effect.tap(() =>
-        Effect.logInfo('Effect implementation test completed successfully'),
-      ),
-    ),
+        Effect.logInfo('Effect implementation test completed successfully')
+      )
+    )
   );
 };
 

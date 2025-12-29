@@ -22,7 +22,7 @@ extend([mixPlugin]);
 export const signersAtomFamilyInner = atomFamily(
   (_lookup: { publicKey: string; networkKey: string }) =>
     atom<ApiSigner | null>(null),
-  dequal,
+  dequal
 );
 
 export const signersAtomFamily = atomFamily((publicKey: string) => {
@@ -36,15 +36,16 @@ export const signersAtomFamily = atomFamily((publicKey: string) => {
 
 export const setSignersApiAtom = atom(
   null,
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (_get, set, signers: ApiSigners, networkKey: string) => {
     for (const signer of signers.signers) {
       set(
         signersAtomFamilyInner({ publicKey: signer.publicKey, networkKey }),
-        signer,
+        signer
       );
     }
     set(signersApiAtom, signers);
-  },
+  }
 );
 
 export const signersApiAtom = atom<ApiSigners>();
@@ -96,7 +97,7 @@ export const totalRecentSignersAtom = atom((get) => {
     total += signer.weight;
     numSigners++;
   }
-  const percent = (total / recentSigners.totalWeight) * 10000;
+  const percent = (total / recentSigners.totalWeight) * 10_000;
   const percentString = Math.round(percent) / 100;
   return {
     percentStr: percentString,
@@ -116,7 +117,7 @@ export const totalUpatedSignersAtom = atom((get) => {
     total += signer.weight;
     numSigners++;
   }
-  const percent = (total / recentSigners.totalWeight) * 10000;
+  const percent = (total / recentSigners.totalWeight) * 10_000;
   const percentString = Math.round(percent) / 100;
   return {
     percentStr: percentString,
@@ -141,7 +142,7 @@ export const signerVersionsAtom = atom((get) => {
     if (useWeighted) {
       const totalWeight = signers.reduce(
         (acc, s) => acc + s.weightPercent * 100,
-        0,
+        0
       );
       return {
         version,

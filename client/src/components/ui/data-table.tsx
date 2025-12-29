@@ -70,7 +70,7 @@ export function DataTableWithTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 );
@@ -109,6 +109,7 @@ export function DataTableWithTable<TData, TValue>({
 }
 
 // type ColumnGeneric = SortingColumn<unknown>;
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type ColumnGeneric = {
   getIsSorted: () => false | SortDirection;
   toggleSorting: (ascending: boolean) => void;

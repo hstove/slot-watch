@@ -24,8 +24,8 @@ export const NetworkPicker = () => {
         set(networkAtom, networkId);
         navigate({ to: '.', search: { network: networkId } });
       },
-      [navigate],
-    ),
+      [navigate]
+    )
   );
   return (
     <DropdownMenu>

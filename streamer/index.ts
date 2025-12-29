@@ -19,7 +19,7 @@ const app = new Hono()
   })
   .get('/stream/:networkKey', (c) => {
     const networkKey = c.req.param('networkKey');
-    return streamSSE(c, async (stream) => {
+    return streamSSE(c, (stream) => {
       console.debug(`Starting stream for ${networkKey}`);
       function handler(message: unknown) {
         console.debug(`Sending message to stream for ${networkKey}`);
@@ -28,13 +28,10 @@ const app = new Hono()
           data: JSON.stringify(message),
         });
       }
-      // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         ee.on(networkKey, handler);
-        // await client.pSubscribe('*', handler);
-        stream.onAbort(async () => {
+        stream.onAbort(() => {
           console.debug(`Aborting stream for ${networkKey}`);
-          // await client.pUnsubscribe('*', handler);
           ee.off(networkKey, handler);
           resolve();
         });

@@ -116,7 +116,7 @@ export const handleBlockProposalE = ({
       serverVersion: dbBlockProposal.serverVersion ?? null,
       blockTimestamp: dbBlockProposal.blockTimestamp.toISOString(),
       serverVersionShort: getVersionFromString(
-        dbBlockProposal.serverVersion ?? '',
+        dbBlockProposal.serverVersion ?? ''
       ),
       txFees: dbBlockProposal.txFees ?? 0,
     };
@@ -149,7 +149,7 @@ export const handleBlockProposalE = ({
           catch: (e) => new DecodeError(e),
         }),
       ],
-      { concurrency: 'unbounded' },
+      { concurrency: 'unbounded' }
     );
   });
 
@@ -201,7 +201,7 @@ export const handleBlockResponseE = ({
   publicKey: string;
   chunkId: string | null;
 }) =>
-  // biome-ignore lint/correctness/useYield: <explanation>
+  // biome-ignore lint/correctness/useYield:allowed
   Effect.gen(function* () {
     const tenureExtendTimestamp = payload.data.tenureExtendTimestamp
       ? new Date(Number(payload.data.tenureExtendTimestamp) * 1000)
@@ -280,14 +280,14 @@ export const handleStateMachineUpdateE = ({
         db.insertStateMachineUpdate(dbStateMachineUpdate),
         streamer.publish(wsPayload),
       ],
-      { concurrency: 'unbounded' },
+      { concurrency: 'unbounded' }
     );
   });
 
 const processChunk = (
   chunk: ModifiedSlot,
   receivedAt: Date,
-  networkKey: string,
+  networkKey: string
 ): Effect.Effect<
   BlockResponseApi | null,
   ChunkPipelineError,
@@ -382,23 +382,23 @@ export const handleStackerDBChunk = ({
     const results = yield* Effect.forEach(
       payload.modified_slots,
       (chunk) => processChunk(chunk, receivedAt, networkKey),
-      { concurrency: 'unbounded' },
+      { concurrency: 'unbounded' }
     );
 
     // Filter out null results to get only block responses
     const blockResponses: BlockResponseApi[] = results.filter(
-      (r): r is BlockResponseApi => r !== null,
+      (r): r is BlockResponseApi => r !== null
     );
 
     if (blockResponses.length > 0) {
       yield* Effect.logInfo(
-        `Inserting ${blockResponses.length} block responses`,
+        `Inserting ${blockResponses.length} block responses`
       );
 
       const blockHashes = R.pipe(
         blockResponses,
         R.map((r) => r.signerSignatureHash),
-        R.unique(),
+        R.unique()
       );
 
       const db = yield* DbServiceTag;
@@ -407,7 +407,7 @@ export const handleStackerDBChunk = ({
       const blockProposals = R.pipe(
         blockProposalsList,
         R.groupBy((r: ApiBlockProposal) => r.signerSignatureHash),
-        R.mapValues((v: ApiBlockProposal[]) => v[0]),
+        R.mapValues((v: ApiBlockProposal[]) => v[0])
       );
 
       const blockResponsesWithData = blockResponses.map((r) => {
@@ -432,7 +432,7 @@ export const handleStackerDBChunk = ({
             ? new Date(r.tenureExtendTimestamp)
             : null,
           createdAt: new Date(r.createdAt),
-        }),
+        })
       );
 
       const wsPayload: WSMiniBlockResponses = {
@@ -453,7 +453,7 @@ export const handleStackerDBChunk = ({
             catch: (e) => new DecodeError(e),
           }),
         ],
-        { concurrency: 'unbounded' },
+        { concurrency: 'unbounded' }
       );
     }
   });

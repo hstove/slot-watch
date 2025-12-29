@@ -19,7 +19,7 @@ export function StacksBlock() {
   useAtomValue(miniResponsesAtomFamilyWithLoader(block?.blockHash ?? ''));
   useAtomValue(responsesForBlockAtomFamily(block?.blockHash ?? ''));
   const responseOutcome = useAtomValue(
-    responseOutcomeForBlockAtomFamily(block?.blockHash ?? ''),
+    responseOutcomeForBlockAtomFamily(block?.blockHash ?? '')
   );
 
   const minerPkHash = React.useMemo(() => {
@@ -27,7 +27,7 @@ export function StacksBlock() {
     return hex.encode(ripemd160(sha256(hex.decode(block.minerPublicKey))));
   }, [block?.minerPublicKey]);
 
-  if (!block || !minerPkHash || !responseOutcome) return null;
+  if (!(block && minerPkHash && responseOutcome)) return null;
   return (
     <div className="flex flex-col gap-4">
       <h2 className={textStyles('h2', 'pb-0 mb-0')}>

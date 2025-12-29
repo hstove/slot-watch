@@ -34,7 +34,7 @@ export function StateMachineCard({
     <Card
       className={cn(
         'overflow-hidden',
-        isConsensus ? 'border-green-500 border-2' : '',
+        isConsensus ? 'border-green-500 border-2' : ''
       )}
     >
       <CardHeader className="pb-2">

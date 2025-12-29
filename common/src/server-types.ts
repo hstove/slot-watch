@@ -5,6 +5,7 @@ import type {
 } from './codec/state-machine';
 import type { SuperJSON } from './utils';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type RecentSigner = {
   publicKey: string;
   createdAt: string | null;
@@ -22,6 +23,7 @@ export type RecentSigner = {
   blockHeight: number | undefined;
 };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type RecentSignersResponse = {
   networkKey: string;
   rewardCycle: number;
@@ -29,6 +31,7 @@ export type RecentSignersResponse = {
   signers: RecentSigner[];
 };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type TimelineChunk = {
   slotId: number;
   version: number;
@@ -47,6 +50,7 @@ export type TimelineChunk = {
   >;
 };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type TimelineResponse = {
   chunks: TimelineChunk[];
 };
@@ -150,6 +154,7 @@ export type ApiStateMachineMinerState =
       currentMinerPkh: string;
     };
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type ApiStateMachineUpdate = {
   burnBlock: string;
   burnBlockHeight: number;

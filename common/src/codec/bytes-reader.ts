@@ -8,11 +8,11 @@ import {
 function createEnumChecker<T extends string, TEnumValue extends number>(
   enumVariable: {
     [key in T]: TEnumValue;
-  },
+  }
 ): (value: number) => value is TEnumValue {
   // Create a set of valid enum number values.
   const enumValues = Object.values<number>(enumVariable).filter(
-    (v) => typeof v === 'number',
+    (v) => typeof v === 'number'
   );
   const enumValueSet = new Set<number>(enumValues);
   return (value: number): value is TEnumValue => enumValueSet.has(value);
@@ -40,7 +40,7 @@ const enumCheckFunctions = new Map<object, (value: number) => boolean>();
  */
 export function isEnum<T extends string, TEnumValue extends number>(
   enumVariable: { [key in T]: TEnumValue },
-  value: number,
+  value: number
 ): value is TEnumValue {
   const checker = enumCheckFunctions.get(enumVariable);
   if (checker !== undefined) {
@@ -110,7 +110,7 @@ export class BytesReader {
 
   readUInt8Enum<T extends string, TEnumValue extends number>(
     enumVariable: { [key in T]: TEnumValue },
-    invalidEnumErrorFormatter: (val: number) => Error,
+    invalidEnumErrorFormatter: (val: number) => Error
   ): TEnumValue {
     const num = this.readUInt8();
     if (isEnum(enumVariable, num)) {

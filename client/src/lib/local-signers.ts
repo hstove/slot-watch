@@ -11,5 +11,5 @@ export function saveSigner(signingKey: string, entity: string) {
   window.localStorage.setItem(`signer-${signingKey}`, entity);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny:allowed
 (window as any).saveSigner = saveSigner;

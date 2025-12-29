@@ -2,11 +2,13 @@ import type { HonoRequest } from 'hono';
 import { log } from './logger';
 import { env } from 'cloudflare:workers';
 
+// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type BasicAuth = { username: string; password: string };
 export function getBasicAuth(request: Request): BasicAuth | null {
   const authHeader = request.headers.get('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
+  // biome-ignore lint/complexity/useOptionalChain: ignored using `--suppress`
+  if (!(authHeader && authHeader.startsWith('Basic '))) {
     return null;
   }
 
@@ -16,7 +18,7 @@ export function getBasicAuth(request: Request): BasicAuth | null {
   }
   const credentials = atob(base64Credentials);
   const [username, password] = credentials.split(':');
-  if (!username || !password) {
+  if (!(username && password)) {
     return null;
   }
 
@@ -39,7 +41,8 @@ export function getNetworkKey(request: Request): string | null {
 export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   const authHeader = request.header('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
+  // biome-ignore lint/complexity/useOptionalChain: ignored using `--suppress`
+  if (!(authHeader && authHeader.startsWith('Basic '))) {
     log.debug('No auth (missing header)');
     return null;
   }
@@ -50,7 +53,7 @@ export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   }
   const credentials = atob(base64Credentials);
   const [username, password] = credentials.split(':');
-  if (!username || !password) {
+  if (!(username && password)) {
     return null;
   }
 

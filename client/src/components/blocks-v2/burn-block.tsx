@@ -20,7 +20,10 @@ import { Badge } from '../ui/badge';
 export const BurnBlock = ({
   consensusHash,
   burnBlockHash,
-}: { consensusHash: string; burnBlockHash: string }) => {
+}: {
+  consensusHash: string;
+  burnBlockHash: string;
+}) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
 
   if (!burnBlock) return null;
@@ -56,9 +59,11 @@ export const BurnBlock = ({
 
 export const BurnBlockStacksBlocksInner = ({
   consensusHash,
-}: { consensusHash: string }) => {
+}: {
+  consensusHash: string;
+}) => {
   const stacksBlocks = useAtomValue(
-    sortedStacksBlocksForBurnBlockAtom(consensusHash),
+    sortedStacksBlocksForBurnBlockAtom(consensusHash)
   );
   const maxBurnBlockConsensusHash = useAtomValue(maxBurnBlockConsensusHashAtom);
   const [viewBlocks, setViewBlocks] = React.useState(false);
@@ -90,6 +95,7 @@ export const BurnBlockStacksBlocksInner = ({
   }
 
   return (
+    // biome-ignore lint/complexity/noUselessFragments: ignored using `--suppress`
     <>
       <div className="grid grid-cols-[1fr_1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 auto-cols-max">
         <div className="block-list-col">
@@ -129,7 +135,9 @@ export const BurnBlockStacksBlocksInner = ({
 
 export const BurnBlockStacksBlocks = ({
   consensusHash,
-}: { consensusHash: string }) => {
+}: {
+  consensusHash: string;
+}) => {
   return (
     <React.Suspense>
       <BurnBlockStacksBlocksInner consensusHash={consensusHash} />
@@ -139,9 +147,11 @@ export const BurnBlockStacksBlocks = ({
 
 export const BurnBlockTxFees = ({
   consensusHash,
-}: { consensusHash: string }) => {
+}: {
+  consensusHash: string;
+}) => {
   const stacksBlocks = useAtomValue(
-    sortedStacksBlocksForBurnBlockAtom(consensusHash),
+    sortedStacksBlocksForBurnBlockAtom(consensusHash)
   );
 
   const totalFees = useMemo(() => {

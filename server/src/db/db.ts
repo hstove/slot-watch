@@ -59,7 +59,7 @@ export const getPoolStatus = () => {
     idle: 0,
     waiting: 0,
   };
-  // // @ts-ignore - accessing internal properties
+  // // @ts-expect-error - accessing internal properties
   // const pool = sql.pool;
   // return {
   //   total: pool?.total ?? 0,

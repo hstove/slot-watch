@@ -18,7 +18,7 @@ const connectionStatusVariants = cva(
     defaultVariants: {
       readyState: ReadyState.UNINSTANTIATED,
     },
-  },
+  }
 );
 
 const connectionStatus = {

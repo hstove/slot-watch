@@ -68,7 +68,7 @@ const getChunksRoutes = new Hono<ServerType>()
               networkKey,
               { createdAt: foundCreatedAt.toISOString(), diffSeconds },
             ];
-          }),
+          })
         );
 
         const chunkEvent = serializeDbChunk(chunk);
@@ -82,7 +82,7 @@ const getChunksRoutes = new Hono<ServerType>()
       return c.json<TimelineResponse>({
         chunks: groupedChunks,
       });
-    },
+    }
   )
 
   .get(
@@ -93,8 +93,9 @@ const getChunksRoutes = new Hono<ServerType>()
         networkKey: z.string(),
         from: z.coerce.number().int().positive(),
         to: z.coerce.number().int().positive(),
-      }),
+      })
     ),
+    // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
     async (c) => {
       const networkKey = c.req.valid('param').networkKey;
       function getDate(key: 'from' | 'to') {
@@ -132,7 +133,7 @@ const getChunksRoutes = new Hono<ServerType>()
         // chunks: chunks.map(serializeDbChunk),
         chunks: [],
       });
-    },
+    }
   )
 
   .get(
@@ -149,9 +150,10 @@ const getChunksRoutes = new Hono<ServerType>()
         throw new Error('Chunk not found');
       }
       return c.json(serializeDbChunk(chunk));
-    },
+    }
   )
 
+  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   .get('/chunks/:networkKey', async (c) => {
     const networkKey = c.req.param('networkKey');
 

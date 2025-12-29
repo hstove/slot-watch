@@ -16,7 +16,7 @@ const Text = React.forwardRef<HTMLSpanElement, TextProps>(
         {...props}
       />
     );
-  },
+  }
 );
 Text.displayName = 'Text';
 
