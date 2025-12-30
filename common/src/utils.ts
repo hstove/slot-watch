@@ -29,11 +29,11 @@ export type TypeMerge<T extends object, U extends object> = Prettify<
 
 export type Version = [number, number, number, number, number, number];
 
-export function getVersionFromString(version: string) {
+export function getVersionFromString(version: string): string {
   // Handle `stacks-signer VERSION (...);`
   // biome-ignore lint/performance/useTopLevelRegex: ignored using `--suppress`
   const match = version.match(/^stacks-[\w]+ ([^\s]*)/);
-  if (match) {
+  if (match?.[1]) {
     return match[1];
   }
   return '';

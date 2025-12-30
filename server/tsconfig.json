@@ -1,25 +1,7 @@
 {
+  "extends": "@total-typescript/tsconfig/bundler/no-dom",
   "compilerOptions": {
-    "lib": ["ESNext", "ESNext.AsyncIterable"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "noUncheckedIndexedAccess": true,
-    "preserveSymlinks": true,
-
-    /* Linting */
-    "skipLibCheck": true,
-    "strict": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": false,
     "types": ["./worker-configuration.d.ts"]
   },
   "include": ["src/**/*.ts"]

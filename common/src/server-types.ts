@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import type {
-  StateMachineUpdate,
-  StateMachineUpdateMinerStateInactive,
-} from './codec/state-machine';
-import type { SuperJSON } from './utils';
+import type { StateMachineUpdateMinerStateInactive } from './codec/state-machine';
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type RecentSigner = {
