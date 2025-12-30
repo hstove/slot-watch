@@ -5,6 +5,7 @@ import {
   apiClient,
   getBlocksForBurnBlock,
   getBlockResponsesForBlock,
+  getBtcBlock,
   queries,
 } from '@/lib/slots-api';
 import { type Atom, atom } from 'jotai';
@@ -115,6 +116,42 @@ export const setAllBurnBlocksAtom = atom(
     set(allBurnBlocksAtom, burnBlocks);
   }
 );
+
+const mergeBurnBlocks = (
+  existing: ApiBurnBlock[],
+  incoming: ApiBurnBlock[]
+) => {
+  const merged = new Map<string, ApiBurnBlock>();
+  for (const block of [...existing, ...incoming]) {
+    merged.set(block.burnBlockHash, block);
+  }
+  return Array.from(merged.values()).sort(
+    (a, b) => b.burnBlockHeight - a.burnBlockHeight
+  );
+};
+
+export const loadMoreBurnBlocksAtom = atom(null, async (get, set) => {
+  const networkKey = get(networkIdAtom);
+  const burnBlocks = get(sortedBurnBlocksAtom);
+  const minHeight = burnBlocks.at(-1)?.burnBlockHeight;
+  if (!minHeight) return;
+
+  const burnBlocksToFetch = 2;
+  const heights = Array.from({ length: burnBlocksToFetch }, (_value, index) => {
+    return minHeight - (index + 1);
+  }).filter((height) => height > 0);
+  if (heights.length === 0) return;
+
+  const responses = await Promise.all(
+    heights.map((height) => getBtcBlock(networkKey, height.toString()))
+  );
+  const newBlocks = responses
+    .map((response) => response.btcBlock)
+    .filter((block) => block !== null);
+  if (newBlocks.length > 0) {
+    set(setAllBurnBlocksAtom, mergeBurnBlocks(burnBlocks, newBlocks));
+  }
+});
 
 export const insertBurnBlockAtom = atom(
   null,
