@@ -92,3 +92,7 @@ The primary color is amber/orange. Use semantic colors:
 - `text-destructive` for errors
 - `bg-muted/10`, `bg-muted/20`, `bg-muted/30` for subtle backgrounds
 - `border-border` for all borders
+
+## Text Data
+
+For Hexadecimal values, refer to the [`Hex` component](src/components/hex.tsx). For truncated text, see [`PublicKey`](src/components/public-key.tsx).

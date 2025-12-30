@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { activeBlockHashAtom } from '@/store/blocks-store';
 import { activeBlockAtom } from '@/store/blocks-store';
@@ -29,14 +34,20 @@ export const BlockModal = () => {
         <div className="hidden" />
       </DialogTrigger>
       <DialogContent
-        className="max-w-[90vw] max-h-[90vh] overflow-y-scroll"
+        className="max-w-3xl max-h-[90vh] overflow-y-auto border-border bg-card"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        {/* <ScrollArea className="max-h-dvh"> */}
-        <DialogTitle className="sr-only">Block details</DialogTitle>
-        {/* </ScrollArea> */}
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <StacksBlock />
+        <DialogTitle className="sr-only">block details</DialogTitle>
+        <React.Suspense
+          fallback={
+            <div className="font-mono text-xs text-muted-foreground">
+              loading...
+            </div>
+          }
+        >
+          <DialogDescription>
+            <StacksBlock />
+          </DialogDescription>
         </React.Suspense>
       </DialogContent>
     </Dialog>
