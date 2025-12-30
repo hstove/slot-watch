@@ -34,6 +34,7 @@
     "@tanstack/react-router": "^1.87.1",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/zod-adapter": "^1.87.1",
+    "arktype": "^2.1.29",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",

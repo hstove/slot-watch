@@ -1,25 +1,7 @@
 {
+  "extends": "@total-typescript/tsconfig/bundler/no-dom",
   "compilerOptions": {
-    "lib": ["ESNext"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "outDir": "./dist",
-    "declaration": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    // "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "emitDeclarationOnly": false,
-
-    /* Linting */
-    "skipLibCheck": true,
-    "strict": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*"]
 }

@@ -1,11 +1,11 @@
 {
   "name": "slot-watch-common",
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "module": "./dist/index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "test:watch": "bun test --watch",
     "test": "bun test"
@@ -25,6 +25,7 @@
     "@scure/btc-signer": "^1.4.0",
     "@stacks/stacks-blockchain-api-types": "^7.14.1",
     "@stacks/transactions": "^7.0.2",
+    "arktype": "^2.1.29",
     "bignumber.js": "^9.1.2",
     "micro-packed": "^0.6.3",
     "remeda": "^2.17.4",

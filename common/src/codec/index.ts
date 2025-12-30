@@ -186,14 +186,13 @@ export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
     }
     const innerBytes = P.bytes(P.U32BE).decodeStream(r);
     const tenureExtendTimestamp = P.U64BE.decode(innerBytes.slice(0, 8));
-    let rejectReason = 254;
-    if (innerBytes.length > 8) {
-      rejectReason = innerBytes[8];
-    }
+    // biome-ignore lint/style/noNonNullAssertion: length checked above
+    const rejectReason = innerBytes.length > 8 ? innerBytes[8]! : 254;
     let validationCode: number | null = null;
     let unknownBytes = innerBytes.slice(9);
     if (rejectReason === 0) {
-      validationCode = innerBytes[9];
+      // biome-ignore lint/style/noNonNullAssertion: length checked above
+      validationCode = innerBytes[9]!;
       unknownBytes = innerBytes.slice(10);
     }
     return {
@@ -532,7 +531,8 @@ export type DecodedChunk = ReturnType<typeof decodeChunk>;
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export function decodeChunk(chunk: Uint8Array) {
-  const type = chunk[0];
+  // biome-ignore lint/style/noNonNullAssertion: caller ensures non-empty
+  const type = chunk[0]!;
   if (type === SignerMessageTypePrefix.MockBlock) {
     return MockBlockCoder.decode(chunk) as MockBlock;
   }
@@ -666,13 +666,15 @@ export function vrsToRsv(sig: Uint8Array) {
 }
 
 export function rsvToVrs(sig: Uint8Array) {
-  return new Uint8Array([...sig.slice(1, 64), sig[0]]);
+  // biome-ignore lint/style/noNonNullAssertion: signature guaranteed to have bytes
+  return new Uint8Array([...sig.slice(1, 64), sig[0]!]);
 }
 
 // Sig is in VRS
 export function compactToSig(sig: Uint8Array) {
   const base = vrsToRsv(sig);
-  const recovery = sig[0];
+  // biome-ignore lint/style/noNonNullAssertion: signature guaranteed to have bytes
+  const recovery = sig[0]!;
   const signature = secp256k1.Signature.fromCompact(base);
   return signature.addRecoveryBit(recovery);
 }
