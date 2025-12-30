@@ -13,9 +13,3 @@ When discussing the "Slot Watch UI" project, which lives in `./client`, you shou
 
 It's important to include solid context when generating tasks. If you think more context is needed, please ask for it.
 
-Note: The `beads_*` MCP tools currently do not support managing labels. To add or remove labels, you must use the `bd` CLI via the `bash` tool:
-
-```bash
-bd label add <id> <label>
-bd label remove <id> <label>
-```

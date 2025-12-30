@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { statusStyles } from '@/lib/status-variants';
 import { SimpleTooltip } from '../simple-tooltip';
-import { BlockListResponses } from './block-list-responses';
 import { CumulativeBlockCosts } from './burn-block-costs';
 import { textStyles } from '@/lib/text-variants';
 import { PublicKey } from '../public-key';

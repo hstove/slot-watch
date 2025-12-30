@@ -228,38 +228,6 @@ const blockRoutes = new Hono<ServerType>()
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     }
   )
-  // .get('/db-health', async (c) => {
-  //   try {
-  //     const timeoutPromise = new Promise<void>((_, reject) => {
-  //       setTimeout(() => reject(new Error('Query timeout after 3000ms')), 3000);
-  //     });
-  //     logger.debug({ module: 'db-health' }, 'Starting DB health check');
-  //     const dbPromise = db
-  //       .select()
-  //       .from(burnBlocks)
-  //       .where(eq(burnBlocks.networkKey, 'mainnet'))
-  //       .limit(1);
-  //     const poolStatus = getPoolStatus();
-  //     logger.debug(
-  //       {
-  //         ...poolStatus,
-  //         module: 'db-health',
-  //       },
-  //       'DB health check',
-  //     );
-  //     await Promise.race([dbPromise, timeoutPromise]);
-  //     logger.info({ module: 'db-health' }, 'DB health check complete');
-  //     return c.json({ status: 'healthy', pool: poolStatus });
-  //   } catch (error) {
-  //     log
-  //       .withError(error)
-  //       .withMetadata({
-  //         module: 'db-health',
-  //       })
-  //       .error('Error fetching db health');
-  //     return c.json({ status: 'unhealthy', error: String(error) }, 500);
-  //   }
-  // })
   .get('/:networkKey/miners', async (c) => {
     const networkKey = c.req.param('networkKey');
     // const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
