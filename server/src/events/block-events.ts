@@ -1,11 +1,8 @@
 import {
   BURN_BLOCK_V2_EVENT,
   coreNodeBlockMessageSchema,
-  coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
-  type WSBurnBlock,
   type WSBurnBlockV2,
-  type WSNewBlockV2,
 } from 'slot-watch-common';
 import { burnBlocks, stacksBlocks, type StacksBlockDb } from '../db/schema';
 import {
@@ -14,20 +11,13 @@ import {
   PayloadType,
   type TenureChangeCause,
 } from '@stacks/transactions';
-import type { Db as DbType } from '../db/db';
 // import { publishWsEvent } from '../redis';
 import type { NewBlockJob } from '../worker/types';
-import {
-  fetchRecentMinerStats,
-  recentBlocksHealthCache,
-} from '../db/block-proposals';
-import { getCreatedAt } from '../utils';
+import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
-import { log } from '../logger';
 import { Effect } from 'effect';
-import { Db, DbServiceTag, Streamer } from '../effect/tags';
-import { runWithServerRuntime, ServerRuntime } from '../effect/runtime';
+import { Db, Streamer } from '../effect/tags';
 import { serializeBurnBlock } from '../db/blocks';
 import { warmCache } from '../stacks-api';
 

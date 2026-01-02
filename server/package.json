@@ -36,6 +36,8 @@
   "dependencies": {
     "@clarigen/boot": "3.0.0",
     "@clarigen/core": "3.0.0",
+    "@effect/platform": "^0.94.0",
+    "@effect/platform-node": "^0.104.0",
     "@hono/zod-validator": "^0.4.1",
     "@noble/hashes": "^1.5.0",
     "@scure/base": "^1.1.9",

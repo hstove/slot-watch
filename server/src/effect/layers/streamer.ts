@@ -1,25 +1,25 @@
-import { Layer, Effect } from 'effect';
+import { Effect, Layer, pipe } from 'effect';
 import { env } from 'cloudflare:workers';
-import type { StreamerService } from '../tags';
 import { StreamerServiceTag, StreamerError } from '../tags';
+import type { WSPayload } from 'slot-watch-common';
+import { HttpClient, HttpClientRequest } from '@effect/platform';
 
-export const StreamerLive = Layer.succeed(StreamerServiceTag, {
-  publish: (payload: import('slot-watch-common').WSPayload) =>
-    Effect.tryPromise({
-      try: async () => {
-        const url = env.STREAMER_URL;
-        const res = await fetch(`${url}/${payload.networkKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          throw new Error(`Streamer HTTP ${res.status}: ${res.statusText}`);
-        }
-      },
-      catch: (e) => new StreamerError(e),
-    }),
-});
+export const StreamerLive = Layer.effect(
+  StreamerServiceTag,
+  Effect.gen(function* () {
+    const client = yield* HttpClient.HttpClient;
+    return {
+      publish: (payload: WSPayload) =>
+        Effect.gen(function* () {
+          yield* HttpClientRequest.post(
+            `${env.STREAMER_URL}/${payload.networkKey}`
+          ).pipe(
+            HttpClientRequest.bodyJson(payload),
+            Effect.flatMap(client.execute)
+          );
+        }).pipe(
+          Effect.catchAllCause((cause) => Effect.fail(new StreamerError(cause)))
+        ),
+    };
+  })
+);
