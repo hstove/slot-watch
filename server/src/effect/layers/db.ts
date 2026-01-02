@@ -4,6 +4,18 @@ import * as schema from '../../db/schema';
 import { type DbService, DbServiceTag, DbError } from '../tags';
 import { fetchBlockProposalsByHash } from '../../db/block-proposals';
 
+const withDb = <T>(fn: () => Promise<T>) =>
+  Effect.gen(function* () {
+    return yield* Effect.tryPromise({
+      try: () => fn(),
+      catch: (cause) =>
+        new DbError({
+          message: 'Failed to call function with database',
+          cause,
+        }),
+    });
+  });
+
 export const DbLive = Layer.scoped(
   DbServiceTag,
   Effect.gen(function* () {
@@ -13,40 +25,21 @@ export const DbLive = Layer.scoped(
 
     const service: DbService = {
       insertBlockProposal: (input) =>
-        Effect.tryPromise({
-          try: () => db.insert(schema.blockProposals).values(input),
-          catch: (e) => new DbError(e),
-        }),
+        withDb(() => db.insert(schema.blockProposals).values(input)),
 
       insertBlockPush: (input) =>
-        Effect.tryPromise({
-          try: () => db.insert(schema.blockPushes).values(input),
-          catch: (e) => new DbError(e),
-        }),
+        withDb(() => db.insert(schema.blockPushes).values(input)),
 
       insertBlockResponses: (input) =>
-        Effect.tryPromise({
-          try: () => db.insert(schema.blockResponses).values(input),
-          catch: (e) => new DbError(e),
-        }),
+        withDb(() => db.insert(schema.blockResponses).values(input)),
 
       insertStateMachineUpdate: (input) =>
-        Effect.tryPromise({
-          try: () => db.insert(schema.stateMachineUpdates).values(input),
-          catch: (e) => new DbError(e),
-        }),
+        withDb(() => db.insert(schema.stateMachineUpdates).values(input)),
 
       fetchBlockProposalsByHash: (hashes) =>
-        Effect.tryPromise({
-          try: () => fetchBlockProposalsByHash(hashes, db),
-          catch: (e) => new DbError(e),
-        }),
+        withDb(() => fetchBlockProposalsByHash(hashes, db)),
 
-      withDb: <R>(f: (db: Db) => Promise<R>) =>
-        Effect.tryPromise({
-          try: () => f(db),
-          catch: (e) => new DbError(e),
-        }),
+      withDb: <R>(f: (db: Db) => Promise<R>) => withDb(() => f(db)),
     };
 
     yield* Effect.addFinalizer(() => Effect.promise(() => db.$client.end()));
