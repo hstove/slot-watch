@@ -17,6 +17,7 @@ import { Route as MinersRouteImport } from './routes/miners'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
 import { Route as StxBlocksBlockHashRouteImport } from './routes/stx-blocks/$blockHash'
+import { Route as MinersPublicKeyRouteImport } from './routes/miners/$publicKey'
 import { Route as BtcBlocksHeightOrHashRouteImport } from './routes/btc-blocks/$heightOrHash'
 
 const WhenExtendRoute = WhenExtendRouteImport.update({
@@ -59,6 +60,11 @@ const StxBlocksBlockHashRoute = StxBlocksBlockHashRouteImport.update({
   path: '/stx-blocks/$blockHash',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MinersPublicKeyRoute = MinersPublicKeyRouteImport.update({
+  id: '/$publicKey',
+  path: '/$publicKey',
+  getParentRoute: () => MinersRoute,
+} as any)
 const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
   id: '/btc-blocks/$heightOrHash',
   path: '/btc-blocks/$heightOrHash',
@@ -67,35 +73,38 @@ const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/miners': typeof MinersRoute
+  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/miners': typeof MinersRoute
+  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/miners': typeof MinersRoute
+  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
+  '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks/': typeof BlocksIndexRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks'
   id:
@@ -131,13 +142,14 @@ export interface FileRouteTypes {
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
+    | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MinersRoute: typeof MinersRoute
+  MinersRoute: typeof MinersRouteWithChildren
   SignersRoute: typeof SignersRoute
   StateMachinesRoute: typeof StateMachinesRoute
   UiTestRoute: typeof UiTestRoute
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StxBlocksBlockHashRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/miners/$publicKey': {
+      id: '/miners/$publicKey'
+      path: '/$publicKey'
+      fullPath: '/miners/$publicKey'
+      preLoaderRoute: typeof MinersPublicKeyRouteImport
+      parentRoute: typeof MinersRoute
+    }
     '/btc-blocks/$heightOrHash': {
       id: '/btc-blocks/$heightOrHash'
       path: '/btc-blocks/$heightOrHash'
@@ -215,9 +234,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MinersRouteChildren {
+  MinersPublicKeyRoute: typeof MinersPublicKeyRoute
+}
+
+const MinersRouteChildren: MinersRouteChildren = {
+  MinersPublicKeyRoute: MinersPublicKeyRoute,
+}
+
+const MinersRouteWithChildren =
+  MinersRoute._addFileChildren(MinersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MinersRoute: MinersRoute,
+  MinersRoute: MinersRouteWithChildren,
   SignersRoute: SignersRoute,
   StateMachinesRoute: StateMachinesRoute,
   UiTestRoute: UiTestRoute,

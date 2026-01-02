@@ -10,6 +10,7 @@ import {
   versionSort,
 } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
+import { Link } from '@tanstack/react-router';
 
 const BLOCKS_WON_COUNT = 500;
 
@@ -19,7 +20,15 @@ const columns: ColumnDef<ApiMinerStat>[] = [
     accessorKey: 'publicKey',
     enableSorting: false,
     cell: ({ row }) => {
-      return <PublicKey publicKey={row.original.publicKey} />;
+      return (
+        <Link
+          to="/miners/$publicKey"
+          params={{ publicKey: row.original.publicKey }}
+          className="hover:underline"
+        >
+          <PublicKey publicKey={row.original.publicKey} />
+        </Link>
+      );
     },
   },
   {

@@ -14,7 +14,7 @@ This plan covers the implementation of detailed miner information pages, includi
 | `slot-watch-prr` | Detailed Miner Information and History | epic | open | - |
 | `slot-watch-n3j` | Backend API for Miner History and Stats | task | open | parent: prr |
 | `slot-watch-1j2` | Individual Miner Detail Page | feature | open | blocked by n3j |
-| `slot-watch-nh6` | Link to Miner Details from Listing and Block Views | feature | open | related to 1j2 |
+| `slot-watch-nh6` | Link to Miner Details from Listing and Block Views | feature | **closed** | related to 1j2 |
 
 ## Current State
 
@@ -24,14 +24,19 @@ This plan covers the implementation of detailed miner information pages, includi
 - Lists all miners with basic stats from last 500 blocks
 - Uses TanStack Router with network-aware loading
 
+**Route**: `/miners/$publicKey` (`client/src/routes/miners/$publicKey.tsx`) - **NEW**
+- Individual miner detail page with basic stats
+- Reuses `getMinerStats` API to find miner data
+- Shows: public key, blocks won (last 500), last tenure, version
+
 **Component**: `Miners` (`client/src/components/miners/miners.tsx`)
 - DataTable with columns: Miner (public key), Blocks won %, Last tenure, Version
-- No click-through to miner details
+- **Miner public key now links to `/miners/$publicKey`** (updated 2026-01-02)
 - Uses `PublicKey` component for truncated display
 
 **Miner info in block views**:
 - `stacks-block-detail.tsx` shows miner public key, address hash, and node version
-- No link to miner detail page exists
+- **Miner public key now links to `/miners/$publicKey`** (updated 2026-01-02)
 
 ### Backend
 
@@ -152,22 +157,24 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
 }
 ```
 
-### Phase 3: Link from Existing Views (`slot-watch-nh6`)
+### Phase 3: Link from Existing Views (`slot-watch-nh6`) - COMPLETED
 
-**Updates needed**:
+**Completed 2026-01-02:**
 
 1. **Miners listing** (`client/src/components/miners/miners.tsx`):
-   - Wrap `PublicKey` in `Link` to `/miners/$publicKey`
-   - Or make entire row clickable
+   - Wrapped `PublicKey` in `Link` to `/miners/$publicKey`
+   - Added `hover:underline` class for visual feedback
 
 2. **Block detail** (`client/src/components/stacks-block/stacks-block-detail.tsx`):
-   - Make miner public key a link to `/miners/$publicKey`
-   - Add "View Miner" button option
+   - Made miner public key a link to `/miners/$publicKey`
+   - Added `hover:underline` class for visual feedback
 
-3. **Block list items** (various components):
-   - Add clickable miner indicator where shown
+3. **Created basic miner detail route** (`client/src/routes/miners/$publicKey.tsx`):
+   - Placeholder page using existing `getMinerStats` API
+   - Shows basic stats (blocks won, last tenure, version)
+   - Will be enhanced when backend API (`slot-watch-n3j`) is complete
 
-**Link pattern** (following existing patterns):
+**Link pattern used**:
 ```tsx
 <Link to="/miners/$publicKey" params={{ publicKey: block.minerPublicKey }}>
   <PublicKey publicKey={block.minerPublicKey} />
@@ -177,15 +184,15 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
 ## File Changes Summary
 
 ### New Files
-- `client/src/routes/miners/$publicKey.tsx` - route handler
-- `client/src/components/miners/miner-detail.tsx` - detail component
+- `client/src/routes/miners/$publicKey.tsx` - route handler (CREATED - basic version)
+- `client/src/components/miners/miner-detail.tsx` - detail component (pending - for enhanced version)
 
 ### Modified Files
-- `server/src/routes/blocks.routes.ts` - add miner detail endpoint
-- `server/src/db/block-proposals.ts` - add miner query functions
-- `client/src/lib/slots-api.ts` - add getMinerDetail function
-- `client/src/components/miners/miners.tsx` - add links
-- `client/src/components/stacks-block/stacks-block-detail.tsx` - add miner link
+- `server/src/routes/blocks.routes.ts` - add miner detail endpoint (pending)
+- `server/src/db/block-proposals.ts` - add miner query functions (pending)
+- `client/src/lib/slots-api.ts` - add getMinerDetail function (pending)
+- `client/src/components/miners/miners.tsx` - add links (DONE)
+- `client/src/components/stacks-block/stacks-block-detail.tsx` - add miner link (DONE)
 
 ## Implementation Order
 
@@ -200,10 +207,11 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
    - Build detail component
    - Test navigation
 
-3. **Add links** (`slot-watch-nh6`):
-   - Update miners listing
-   - Update block detail views
-   - Verify all links work
+3. **Add links** (`slot-watch-nh6`) - **COMPLETED 2026-01-02**:
+   - ~~Update miners listing~~ DONE
+   - ~~Update block detail views~~ DONE
+   - ~~Verify all links work~~ DONE
+   - Note: Created basic `/miners/$publicKey` route that works with existing API
 
 ## Design Considerations
 

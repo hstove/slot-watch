@@ -222,7 +222,13 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
             <>
               <DataLabel>Miner Public Key</DataLabel>
               <DataValue>
-                <PublicKey publicKey={block.minerPublicKey} />
+                <Link
+                  to="/miners/$publicKey"
+                  params={{ publicKey: block.minerPublicKey }}
+                  className="hover:underline"
+                >
+                  <PublicKey publicKey={block.minerPublicKey} />
+                </Link>
               </DataValue>
             </>
           )}
