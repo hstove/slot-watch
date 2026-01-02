@@ -3,7 +3,7 @@
   "module": "src/run.ts",
   "type": "module",
   "scripts": {
-    "dev:client": "turbo dev --filter=slot-watch-ui",
+    "dev:client": "bun run --cwd client dev:tee",
     "dev:client:tee": "turbo dev:tee --filter=slot-watch-ui",
     "build:client": "turbo build --filter=slot-watch-ui",
     "build:server": "turbo build --filter=slot-watch-api",
