@@ -1,7 +1,22 @@
 import { ModeToggle } from '@/components/theme-toggle';
 import { NetworkPicker } from './network-picker';
 import { NavLink } from './link';
-import { BlocksIcon } from 'lucide-react';
+import { BlocksIcon, MenuIcon } from 'lucide-react';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+
+const navItems = [
+  { to: '/', label: 'blocks' },
+  { to: '/when-extend', label: 'extend' },
+  { to: '/signers', label: 'signers' },
+  { to: '/miners', label: 'miners' },
+  { to: '/state-machines', label: 'state machines' },
+] as const;
 
 export const Header = () => {
   return (
@@ -11,18 +26,33 @@ export const Header = () => {
         <BlocksIcon className="w-5 h-5 hidden md:block" />
       </div>
       <div className="flex gap-5 items-center">
-        {/* <NavLink to={'/stream'} className="hidden md:block">
-          Stream
-        </NavLink> */}
-        <NavLink to="/when-extend">extend</NavLink>
-        <NavLink to={'/signers'}>signers</NavLink>
-        <NavLink className="hidden md:block" to={'/miners'}>
-          miners
-        </NavLink>
-        <NavLink className="hidden md:block" to={'/state-machines'}>
-          state machines
-        </NavLink>
-        <NavLink to={'/'}>blocks</NavLink>
+        {/* Desktop nav */}
+        <nav className="hidden md:flex gap-5 items-center">
+          {navItems.map((item) => (
+            <NavLink key={item.to} to={item.to}>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Mobile hamburger menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="md:hidden">
+            <Button variant="ghost" size="icon" aria-label="menu">
+              <MenuIcon className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="rounded-none">
+            {navItems.map((item) => (
+              <DropdownMenuItem key={item.to} asChild>
+                <NavLink to={item.to} className="w-full font-mono text-sm">
+                  {item.label}
+                </NavLink>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <NetworkPicker />
         <ModeToggle />
       </div>
