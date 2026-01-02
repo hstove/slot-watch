@@ -1,7 +1,5 @@
-import type { ApiStateMachineUpdate } from 'slot-watch-common';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PublicKey } from '../public-key';
-import { hex } from '@scure/base';
 import type { FullSignerStateMachine } from '@/store/state-machine-store';
 import { Text } from '@/components/text';
 import { useEntity } from '@/hooks/use-entity';

@@ -3,7 +3,6 @@ import {
   type ApiBlockResponseForBlock,
   apiClient,
   type ApiSigner,
-  getBlockResponsesForBlock,
   getTenureChanges,
   type ProcessedStacksBlock,
   queries,
@@ -24,17 +23,7 @@ export async function fetchRecentSignerResponses(
     param: { networkKey },
   });
   const data = await response.json();
-  return data.responses.map((r) => {
-    return {
-      tenureExtendTimestamp: r.tenureExtendTimestamp,
-      createdAt: r.createdAt,
-      networkKey,
-      signerSignatureHash: '',
-      signerPublicKey: r.signerPublicKey,
-      accepted: true,
-      id: r.id,
-    };
-  });
+  return data.responses;
 }
 
 export type SignerLatestResponses = ApiBlockResponseForBlock[];

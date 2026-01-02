@@ -14,9 +14,8 @@ import {
   // sqliteTable as pgTable,
   // text as,
 } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, type InferSelectModel } from 'drizzle-orm';
+import { isNotNull, type InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
-import { v7 as uuidv7 } from 'uuid';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
   dataType() {

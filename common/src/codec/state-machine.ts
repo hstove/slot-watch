@@ -1,4 +1,3 @@
-import type { StacksTransactionWire } from '@stacks/transactions/dist/transaction';
 import * as P from 'micro-packed';
 import { decodeTransactions } from './transactions';
 

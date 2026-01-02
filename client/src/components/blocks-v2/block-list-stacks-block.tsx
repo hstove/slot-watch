@@ -4,7 +4,6 @@ import { Text } from '@/components/text';
 import {
   activeBlockHashAtom,
   maxProcessedStacksHeightAtom,
-  maxProposedAtAtom,
   responseOutcomeForBlockAtomFamily,
   stacksBlocksFamily,
 } from '@/store/blocks-store';

@@ -14,7 +14,6 @@ import mixPlugin from 'colord/plugins/mix';
 import {
   latestBlockHeightForSignerFamily,
   latestResponseTimeForSignerFamily,
-  signerLatestResponseFamilyInner,
 } from './responses-store';
 
 extend([mixPlugin]);

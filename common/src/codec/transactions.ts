@@ -1,7 +1,6 @@
 import * as P from 'micro-packed';
 import {
   deserializeTransaction,
-  serializeTransaction,
   type StacksTransactionWire,
 } from '@stacks/transactions/dist/transaction';
 import { BytesReader } from '@stacks/transactions/dist/BytesReader';

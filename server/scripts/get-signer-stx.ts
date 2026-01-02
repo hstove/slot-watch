@@ -1,4 +1,4 @@
-import { getStxCommittedForCycle, getStxCommittedToSigner } from '../src/pox-4';
+import { getStxCommittedForCycle } from '../src/pox-4';
 import { getPoxInfo } from '../src/stacks-api';
 
 const poxInfo = await getPoxInfo.get('mainnet');

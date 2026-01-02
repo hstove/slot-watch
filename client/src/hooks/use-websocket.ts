@@ -1,10 +1,7 @@
-import type { WSPayload } from 'slot-watch-common';
-import { useEffect } from 'react';
 import { useEventSource } from 'react-use-websocket';
-import { useAtomCallback } from 'jotai/utils';
 import React from 'react';
 import { networkIdAtom } from '@/store/network';
-import { slotsApiUrl, slotsStreamerUrl } from '@/lib/slots-api';
+import { slotsStreamerUrl } from '@/lib/slots-api';
 import { useAtomValue } from 'jotai';
 
 export const useWebSocket = () => {

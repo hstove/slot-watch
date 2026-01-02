@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
-import { logger, honoLogger, log } from './logger';
+import { honoLogger, log } from './logger';
 import eventsRoutes from './routes/events.routes';
 import { cors } from 'hono/cors';
 import { blockRoutes } from './routes/blocks.routes';
@@ -10,10 +10,19 @@ import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
 import { signersRoutes } from './routes/signers.routes';
-// import workerRoutes from './routes/worker.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
 import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
+import { openAPIRouteHandler } from 'hono-openapi';
+
+const api = new Hono<ServerType>()
+  .route('/', blockRoutes)
+  .route('/', getChunksRoutes)
+  .route('/', getRecentsRoutes)
+  .route('/', signersRoutes)
+  .route('/', stateMachineRoutes)
+  .route('/health', healthRoutes)
+  .route('/', metricsRoutes);
 
 export const app = new Hono<ServerType>()
   .use(async (c, next) => {
@@ -30,15 +39,23 @@ export const app = new Hono<ServerType>()
 
   .get('/', (c) => c.text('Hello World'))
 
-  .route('/', eventsRoutes)
+  .get(
+    '/openapi.json',
+    openAPIRouteHandler(api, {
+      documentation: {
+        info: {
+          title: 'SlotWatch API',
+          version: '1.0.0',
+          description:
+            'API for monitoring Stacks blockchain signers and blocks',
+        },
+      },
+    })
+  )
 
-  .route('/', blockRoutes)
-  .route('/', getChunksRoutes)
-  .route('/', getRecentsRoutes)
-  .route('/', signersRoutes)
-  .route('/', stateMachineRoutes)
-  .route('/health', healthRoutes)
-  .route('/', metricsRoutes)
+  .route('/', eventsRoutes)
+  .route('/', api)
+
   // .route('/', workerRoutes)
   .onError((err, c) => {
     console.error(err, 'Error handling request');

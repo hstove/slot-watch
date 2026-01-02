@@ -1,7 +1,4 @@
-import {
-  type GroupedStateMachine,
-  groupedStateMachinesAtom,
-} from '@/store/state-machine-store';
+import type { GroupedStateMachine } from '@/store/state-machine-store';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -11,12 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 export function StateMachineCard({

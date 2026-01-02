@@ -1,8 +1,4 @@
-// import { drizzle as drizzleBun } from 'drizzle-orm/bun-sql';
-// import { SQL as BunSQL } from 'bun';
-import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import postgres from 'postgres';
 import { Client as NodePgClient } from 'pg';
 
 // import { drizzle as drizzleD1 } from 'drizzle-orm/d1';

@@ -1,4 +1,4 @@
-import { logger as _logger, log } from './logger';
+import { log } from './logger';
 import type { WSPayload } from 'slot-watch-common';
 import { env } from 'cloudflare:workers';
 

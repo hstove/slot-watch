@@ -1,4 +1,3 @@
-import type { RecentSigner } from 'slot-watch-common';
 import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import mixPlugin from 'colord/plugins/mix';

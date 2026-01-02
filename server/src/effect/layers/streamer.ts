@@ -1,4 +1,4 @@
-import { Effect, Layer, pipe } from 'effect';
+import { Effect, Layer } from 'effect';
 import { env } from 'cloudflare:workers';
 import { StreamerServiceTag, StreamerError } from '../tags';
 import type { WSPayload } from 'slot-watch-common';

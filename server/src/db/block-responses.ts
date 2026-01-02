@@ -3,14 +3,30 @@ import type { Db } from './db';
 import {
   getLatestStackerSet,
   getPoxInfo,
-  getStackerSet,
   type StackerSet,
 } from '../stacks-api';
-import {
-  knownSigners,
-  blockResponseApiSchema,
-  type BlockResponseApi,
-} from 'slot-watch-common';
+import { knownSigners, type BlockResponseApi } from 'slot-watch-common';
+import { Schema, Either } from 'effect';
+
+// Local schema definition to avoid cross-package type issues
+const BlockResponseApiSchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  slotId: Schema.Number,
+  createdAt: Schema.String,
+  networkKey: Schema.String,
+  chunkId: Schema.NullOr(Schema.String),
+  signerPublicKey: Schema.String,
+  accepted: Schema.Boolean,
+  tenureExtendTimestamp: Schema.NullOr(Schema.String),
+  version: Schema.optional(Schema.String),
+  rejectCode: Schema.optional(Schema.Number),
+  validationCode: Schema.optional(Schema.Number),
+  reason: Schema.optional(Schema.String),
+  rejectReason: Schema.optional(Schema.Number),
+  latencyMs: Schema.optional(Schema.Number),
+  id: Schema.String,
+  blockHeight: Schema.optional(Schema.Number),
+});
 import { logger } from '../logger';
 // import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
@@ -166,12 +182,15 @@ export function latestBlockResponseLookupKey({
   return `latest-block-response:${signerPublicKey}-${networkKey}`;
 }
 
-function parseBlockResponse(result: string) {
-  const parseResult = blockResponseApiSchema.safeParse(parse(result));
-  if (!parseResult.success) {
+const decodeBlockResponse = Schema.decodeUnknownEither(BlockResponseApiSchema);
+
+function parseBlockResponse(result: string): BlockResponseApi | null {
+  const parsed = parse(result);
+  const result2 = decodeBlockResponse(parsed);
+  if (Either.isLeft(result2)) {
     return null;
   }
-  return parseResult.data;
+  return result2.right;
 }
 
 export async function getLatestBlockResponse(

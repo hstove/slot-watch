@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { stateMachineUpdates, type StateMachineUpdateDb } from '../db/schema';
-import { eq, desc, inArray, sql } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { serializeStateMachineUpdate } from '../db/state-machines';
 import * as R from 'remeda';
 import type { ServerType } from '../server-context';

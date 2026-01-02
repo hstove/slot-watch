@@ -1,11 +1,4 @@
-import {
-  env,
-  createExecutionContext,
-  waitOnExecutionContext,
-} from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
-// Import your worker so you can unit test it
-import { app } from '../src/server';
+import { describe, it } from 'vitest';
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.

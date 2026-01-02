@@ -3,8 +3,6 @@ import {
   type HealthBlockBlock,
   type HealthBlockSigner,
   apiClient,
-  getBlocksForBurnBlock,
-  getBlockResponsesForBlock,
   getBtcBlock,
   queries,
 } from '@/lib/slots-api';
@@ -27,7 +25,7 @@ import {
   tenureChangesWriterAtom,
 } from './responses-store';
 import { ZERO_COST, type BlockCost } from '@/lib/costs';
-import { atomWithQuery, atomWithSuspenseQuery } from 'jotai-tanstack-query';
+import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
 export const blockHashesAtom = atom<string[]>([]);
 

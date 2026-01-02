@@ -10,7 +10,6 @@ import {
   versionSort,
 } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
-import { Text } from '../text';
 
 const BLOCKS_WON_COUNT = 500;
 

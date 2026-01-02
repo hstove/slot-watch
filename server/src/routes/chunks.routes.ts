@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { desc, eq, inArray, and, gte, lte, asc, sql, lt } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 import { stackerDbSlots, type StackerDbSlotDb } from '../db/schema';
 import type {
   ChunkEventParsed,

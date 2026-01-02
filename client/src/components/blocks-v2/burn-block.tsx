@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai';
 import {
   burnBlocksAtomFamily,
   maxBurnBlockConsensusHashAtom,
-  maxBurnBlockHeightAtom,
   sortedStacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
 import { Text } from '../text';

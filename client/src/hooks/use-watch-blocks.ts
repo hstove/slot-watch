@@ -5,8 +5,6 @@ import {
   BLOCK_PROPOSAL_EVENT,
   type WSPayload,
   type ApiBlockProposal,
-  BLOCK_RESPONSE_EVENT,
-  type BlockResponseApi,
   type ApiStateMachineUpdate,
   STATE_MACHINE_UPDATE_EVENT,
   type MiniBlockResponseApi,
@@ -20,7 +18,6 @@ import {
   insertBurnBlockAtom,
   removeResponsesForBlock,
   responseOutcomeForBlockAtomFamily,
-  setResponseForBlockFamily,
   setStacksBlocksForBurnBlockFamily,
 } from '@/store/blocks-store';
 import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';

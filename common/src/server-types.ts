@@ -1,144 +1,179 @@
-import { z } from 'zod';
+import { Schema } from 'effect';
 import type { StateMachineUpdateMinerStateInactive } from './codec/state-machine';
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type RecentSigner = {
-  publicKey: string;
-  createdAt: string | null;
-  data: string | null;
-  weight: number;
-  slotId: number;
-  versionShort: string;
-  version: string;
-  weightPercent: number;
-  weightPercentStr: string;
-  name: string | null;
-  degradation10: number;
-  degradation25: number;
-  degradation50: number;
-  blockHeight: number | undefined;
-};
+// RecentSigner schema
+export const RecentSignerSchema = Schema.Struct({
+  publicKey: Schema.String,
+  createdAt: Schema.NullOr(Schema.String),
+  data: Schema.NullOr(Schema.String),
+  weight: Schema.Number,
+  slotId: Schema.Number,
+  versionShort: Schema.String,
+  version: Schema.String,
+  weightPercent: Schema.Number,
+  weightPercentStr: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  degradation10: Schema.Number,
+  degradation25: Schema.Number,
+  degradation50: Schema.Number,
+  blockHeight: Schema.optional(Schema.Number),
+});
+export interface RecentSigner
+  extends Schema.Schema.Type<typeof RecentSignerSchema> {}
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type RecentSignersResponse = {
-  networkKey: string;
-  rewardCycle: number;
-  totalWeight: number;
-  signers: RecentSigner[];
-};
+// RecentSignersResponse schema
+export const RecentSignersResponseSchema = Schema.Struct({
+  networkKey: Schema.String,
+  rewardCycle: Schema.Number,
+  totalWeight: Schema.Number,
+  signers: Schema.mutable(Schema.Array(RecentSignerSchema)),
+});
+export interface RecentSignersResponse
+  extends Schema.Schema.Type<typeof RecentSignersResponseSchema> {}
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type TimelineChunk = {
-  slotId: number;
-  version: number;
-  contractId: string;
-  signature: string;
-  data: string;
-  createdAt: string;
-  publicKey: string | null;
-  entity: string | null;
-  others: Record<
-    string,
-    null | {
-      createdAt: string;
-      diffSeconds: number;
-    }
-  >;
-};
-
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type TimelineResponse = {
-  chunks: TimelineChunk[];
-};
-
-export const paginationSchema = z.object({
-  offset: z.coerce.number().optional(),
+// TimelineChunk schema - others field requires special handling
+const TimelineChunkOtherSchema = Schema.Struct({
+  createdAt: Schema.String,
+  diffSeconds: Schema.Number,
 });
 
-export const blockResponseApiSchema = z.object({
-  signerSignatureHash: z.string(),
-  slotId: z.number(),
-  createdAt: z.string(),
-  networkKey: z.string(),
-  chunkId: z.string().nullable(),
-  signerPublicKey: z.string(),
-  accepted: z.boolean(),
-  tenureExtendTimestamp: z.union([z.null(), z.string()]),
-  version: z.string().optional(),
-  rejectCode: z.number().optional(),
-  validationCode: z.number().optional(),
-  reason: z.string().optional(),
-  rejectReason: z.number().optional(),
-  latencyMs: z.number().optional(),
-  id: z.string(),
-  blockHeight: z.number().optional(),
+export const TimelineChunkSchema = Schema.Struct({
+  slotId: Schema.Number,
+  version: Schema.Number,
+  contractId: Schema.String,
+  signature: Schema.String,
+  data: Schema.String,
+  createdAt: Schema.String,
+  publicKey: Schema.NullOr(Schema.String),
+  entity: Schema.NullOr(Schema.String),
+  others: Schema.Record({
+    key: Schema.String,
+    value: Schema.NullOr(TimelineChunkOtherSchema),
+  }),
+});
+export interface TimelineChunk
+  extends Schema.Schema.Type<typeof TimelineChunkSchema> {}
+
+// TimelineResponse schema
+export const TimelineResponseSchema = Schema.Struct({
+  chunks: Schema.mutable(Schema.Array(TimelineChunkSchema)),
+});
+export interface TimelineResponse
+  extends Schema.Schema.Type<typeof TimelineResponseSchema> {}
+
+// Pagination schema - coerces number from string query params
+export const PaginationSchema = Schema.Struct({
+  offset: Schema.optional(Schema.NumberFromString),
+});
+export interface Pagination
+  extends Schema.Schema.Type<typeof PaginationSchema> {}
+
+// BlockResponseApi schema
+export const BlockResponseApiSchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  slotId: Schema.Number,
+  createdAt: Schema.String,
+  networkKey: Schema.String,
+  chunkId: Schema.NullOr(Schema.String),
+  signerPublicKey: Schema.String,
+  accepted: Schema.Boolean,
+  tenureExtendTimestamp: Schema.NullOr(Schema.String),
+  version: Schema.optional(Schema.String),
+  rejectCode: Schema.optional(Schema.Number),
+  validationCode: Schema.optional(Schema.Number),
+  reason: Schema.optional(Schema.String),
+  rejectReason: Schema.optional(Schema.Number),
+  latencyMs: Schema.optional(Schema.Number),
+  id: Schema.String,
+  blockHeight: Schema.optional(Schema.Number),
+});
+export interface BlockResponseApi
+  extends Schema.Schema.Type<typeof BlockResponseApiSchema> {}
+
+// MiniBlockResponseApi schema
+export const MiniBlockResponseApiSchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  signerPublicKey: Schema.String,
+  accepted: Schema.Boolean,
+  tenureExtendTimestamp: Schema.NullOr(Schema.String),
+  blockHeight: Schema.optional(Schema.Number),
+});
+export interface MiniBlockResponseApi
+  extends Schema.Schema.Type<typeof MiniBlockResponseApiSchema> {}
+
+// ApiBurnBlock schema
+export const ApiBurnBlockSchema = Schema.Struct({
+  networkKey: Schema.String,
+  burnBlockHeight: Schema.Number,
+  burnBlockHash: Schema.String,
+  createdAt: Schema.String,
+  consensusHash: Schema.String,
+});
+export interface ApiBurnBlock
+  extends Schema.Schema.Type<typeof ApiBurnBlockSchema> {}
+
+// ApiStacksBlock schema
+export const ApiStacksBlockSchema = Schema.Struct({
+  blockTimestamp: Schema.String,
+  blockHash: Schema.String,
+  blockHeight: Schema.Number,
+  tenureChangeCause: Schema.NullOr(Schema.Number),
+  txCount: Schema.Number,
+  burnBlockHeight: Schema.Number,
+  networkKey: Schema.String,
+  processedAt: Schema.String,
+  burnBlockHash: Schema.String,
+  readCount: Schema.Number,
+  readLength: Schema.Number,
+  runtime: Schema.Number,
+  writeCount: Schema.Number,
+  writeLength: Schema.Number,
+  indexBlockHash: Schema.String,
+  burnBlockTimestamp: Schema.String,
+  consensusHash: Schema.String,
+  txFees: Schema.Number,
+});
+export interface ApiStacksBlock
+  extends Schema.Schema.Type<typeof ApiStacksBlockSchema> {}
+
+// ApiBlockProposal schema
+export const ApiBlockProposalSchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  chainLength: Schema.Number,
+  createdAt: Schema.String,
+  networkKey: Schema.String,
+  chunkId: Schema.NullOr(Schema.String),
+  minerPublicKey: Schema.String,
+  consensusHash: Schema.String,
+  tenureChangeCause: Schema.NullOr(Schema.Number),
+  txCount: Schema.Number,
+  burnBlockHeight: Schema.Number,
+  serverVersion: Schema.NullOr(Schema.String),
+  blockTimestamp: Schema.String,
+  serverVersionShort: Schema.NullOr(Schema.String),
+  txFees: Schema.Number,
+});
+export interface ApiBlockProposal
+  extends Schema.Schema.Type<typeof ApiBlockProposalSchema> {}
+
+// ApiStateMachineMinerState - union type
+const StateMachineUpdateMinerStateInactiveSchema = Schema.Struct({
+  variant: Schema.Literal(0),
 });
 
-export type BlockResponseApi = z.infer<typeof blockResponseApiSchema>;
-
-export const miniBlockResponseApiSchema = z.object({
-  signerSignatureHash: z.string(),
-  signerPublicKey: z.string(),
-  accepted: z.boolean(),
-  tenureExtendTimestamp: z.union([z.null(), z.string()]),
-  blockHeight: z.number().optional(),
+const StateMachineUpdateMinerStateActiveSchema = Schema.Struct({
+  variant: Schema.Literal(1),
+  tenureId: Schema.String,
+  parentTenureId: Schema.String,
+  parentTenureLastBlock: Schema.String,
+  parentTenureLastBlockHeight: Schema.Number,
+  currentMinerPkh: Schema.String,
 });
 
-export type MiniBlockResponseApi = z.infer<typeof miniBlockResponseApiSchema>;
-
-export const apiBurnBlockSchema = z.object({
-  // id: z.number(),
-  networkKey: z.string(),
-  burnBlockHeight: z.number(),
-  burnBlockHash: z.string(),
-  createdAt: z.string(),
-  consensusHash: z.string(),
-});
-
-export type ApiBurnBlock = z.infer<typeof apiBurnBlockSchema>;
-
-export const apiStacksBlockSchema = z.object({
-  blockTimestamp: z.string(),
-  blockHash: z.string(),
-  blockHeight: z.number(),
-  tenureChangeCause: z.number().nullable(),
-  txCount: z.number(),
-  burnBlockHeight: z.number(),
-  networkKey: z.string(),
-  processedAt: z.string(),
-  burnBlockHash: z.string(),
-  readCount: z.number(),
-  readLength: z.number(),
-  runtime: z.number(),
-  writeCount: z.number(),
-  writeLength: z.number(),
-  indexBlockHash: z.string(),
-  burnBlockTimestamp: z.string(),
-  consensusHash: z.string(),
-  txFees: z.number(),
-});
-
-export type ApiStacksBlock = z.infer<typeof apiStacksBlockSchema>;
-
-export const apiBlockProposalSchema = z.object({
-  signerSignatureHash: z.string(),
-  chainLength: z.number(),
-  createdAt: z.string(),
-  networkKey: z.string(),
-  chunkId: z.string().nullable(),
-  minerPublicKey: z.string(),
-  consensusHash: z.string(),
-  tenureChangeCause: z.number().nullable(),
-  txCount: z.number(),
-  burnBlockHeight: z.number(),
-  serverVersion: z.string().nullable(),
-  blockTimestamp: z.string(),
-  serverVersionShort: z.string().nullable(),
-  txFees: z.number(),
-});
-
-export type ApiBlockProposal = z.infer<typeof apiBlockProposalSchema>;
-
+export const ApiStateMachineMinerStateSchema = Schema.Union(
+  StateMachineUpdateMinerStateInactiveSchema,
+  StateMachineUpdateMinerStateActiveSchema
+);
 export type ApiStateMachineMinerState =
   | StateMachineUpdateMinerStateInactive
   | {
@@ -150,16 +185,112 @@ export type ApiStateMachineMinerState =
       currentMinerPkh: string;
     };
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type ApiStateMachineUpdate = {
-  burnBlock: string;
-  burnBlockHeight: number;
-  minerState: ApiStateMachineMinerState;
-  activeSignerProtocolVersion: number;
-  localSignerProtocolVersion: number;
-  signerPublicKey: string;
-  networkKey: string;
-  chunkId: string | null;
-  createdAt: string;
-  replayTxs: string[] | null;
-};
+// ApiStateMachineUpdate schema
+export const ApiStateMachineUpdateSchema = Schema.Struct({
+  burnBlock: Schema.String,
+  burnBlockHeight: Schema.Number,
+  minerState: ApiStateMachineMinerStateSchema,
+  activeSignerProtocolVersion: Schema.Number,
+  localSignerProtocolVersion: Schema.Number,
+  signerPublicKey: Schema.String,
+  networkKey: Schema.String,
+  chunkId: Schema.NullOr(Schema.String),
+  createdAt: Schema.String,
+  replayTxs: Schema.NullOr(Schema.mutable(Schema.Array(Schema.String))),
+});
+export interface ApiStateMachineUpdate
+  extends Schema.Schema.Type<typeof ApiStateMachineUpdateSchema> {}
+
+// SignerLatency schema
+export const SignerLatencySchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  latencyMs: Schema.Number,
+}).annotations({ identifier: 'SignerLatency' });
+export interface SignerLatency
+  extends Schema.Schema.Type<typeof SignerLatencySchema> {}
+
+// SignerLatenciesResponse schema
+export const SignerLatenciesResponseSchema = Schema.Struct({
+  latencies: Schema.mutable(Schema.Array(SignerLatencySchema)),
+}).annotations({ identifier: 'SignerLatenciesResponse' });
+export interface SignerLatenciesResponse
+  extends Schema.Schema.Type<typeof SignerLatenciesResponseSchema> {}
+
+// PoxInfo schema
+export const PoxInfoSchema = Schema.Struct({
+  firstBurnchainBlockHeight: Schema.Number,
+  rewardCycleLength: Schema.Number,
+  rewardCycleId: Schema.Number,
+}).annotations({ identifier: 'PoxInfo' });
+export interface PoxInfo extends Schema.Schema.Type<typeof PoxInfoSchema> {}
+
+// StackerSetSigner schema
+export const StackerSetSignerSchema = Schema.Struct({
+  signing_key: Schema.String,
+  weight: Schema.Number,
+  stacked_amt: Schema.String,
+  publicKey: Schema.String,
+  weightPercent: Schema.Number,
+  weightPercentStr: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  label: Schema.String,
+}).annotations({ identifier: 'StackerSetSigner' });
+export interface ApiStackerSetSigner
+  extends Schema.Schema.Type<typeof StackerSetSignerSchema> {}
+
+// SignersResponse schema
+export const SignersResponseSchema = Schema.extend(
+  PoxInfoSchema,
+  Schema.Struct({
+    signers: Schema.mutable(Schema.Array(StackerSetSignerSchema)),
+    totalWeight: Schema.Number,
+  })
+).annotations({ identifier: 'SignersResponse' });
+export interface SignersResponse
+  extends Schema.Schema.Type<typeof SignersResponseSchema> {}
+
+// StxCommittedItem schema
+export const StxCommittedItemSchema = Schema.Struct({
+  signer: Schema.String,
+  stx: Schema.String,
+}).annotations({ identifier: 'StxCommittedItem' });
+
+// StackedNextCycleResponse schema
+export const StackedNextCycleResponseSchema = Schema.Struct({
+  stxCommitted: Schema.mutable(Schema.Array(StxCommittedItemSchema)),
+}).annotations({ identifier: 'StackedNextCycleResponse' });
+export interface StackedNextCycleResponse
+  extends Schema.Schema.Type<typeof StackedNextCycleResponseSchema> {}
+
+// API Response schemas for OpenAPI documentation
+export const BurnBlocksResponseSchema = Schema.Struct({
+  burnBlocks: Schema.mutable(Schema.Array(ApiBurnBlockSchema)),
+}).annotations({ identifier: 'BurnBlocksResponse' });
+export interface BurnBlocksResponse
+  extends Schema.Schema.Type<typeof BurnBlocksResponseSchema> {}
+
+export const TenureChangesResponseSchema = Schema.Struct({
+  tenureChanges: Schema.mutable(Schema.Array(ApiStacksBlockSchema)),
+}).annotations({ identifier: 'TenureChangesResponse' });
+export interface TenureChangesResponse
+  extends Schema.Schema.Type<typeof TenureChangesResponseSchema> {}
+
+export const BlockResponsesResponseSchema = Schema.Struct({
+  responses: Schema.mutable(Schema.Array(BlockResponseApiSchema)),
+}).annotations({ identifier: 'BlockResponsesResponse' });
+export interface BlockResponsesResponse
+  extends Schema.Schema.Type<typeof BlockResponsesResponseSchema> {}
+
+export const BlockProposalWithResponsesSchema = Schema.Struct({
+  blockProposal: ApiBlockProposalSchema,
+  responses: Schema.mutable(Schema.Array(BlockResponseApiSchema)),
+}).annotations({ identifier: 'BlockProposalWithResponses' });
+export interface BlockProposalWithResponses
+  extends Schema.Schema.Type<typeof BlockProposalWithResponsesSchema> {}
+
+export const StxBlockResponseSchema = Schema.Struct({
+  stacksBlock: ApiStacksBlockSchema,
+  proposal: ApiBlockProposalSchema,
+}).annotations({ identifier: 'StxBlockResponse' });
+export interface StxBlockResponse
+  extends Schema.Schema.Type<typeof StxBlockResponseSchema> {}

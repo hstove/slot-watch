@@ -1,4 +1,3 @@
-import { and, gte, lte } from 'drizzle-orm';
 import { makeDb } from '../src/db/db';
 import { stateMachineUpdates } from '../src/db/schema';
 import { serializeStateMachineUpdate } from '../src/db/state-machines';

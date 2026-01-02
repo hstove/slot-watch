@@ -27,7 +27,6 @@ import { ExternalLinkIcon, ArrowRightFromLine, BlocksIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { SimpleTooltip } from '@/components/simple-tooltip';
 import { BlockCosts } from '@/components/blocks-v2/burn-block-costs';
-import { BlockResponseChart } from '@/components/block/block-response-chart';
 import { MAINNET_COST_LIMITS } from '@/lib/costs';
 import { percentString } from 'slot-watch-common';
 

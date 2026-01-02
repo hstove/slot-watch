@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAtomValue } from 'jotai';
 import { groupedStateMachinesAtom } from '@/store/state-machine-store';
 import { StateMachineCard } from './state-machine-card';
