@@ -4,6 +4,7 @@ import { atomFamily } from 'jotai/utils';
 import {
   burnBlocksAtomFamily,
   maxBurnBlockConsensusHashAtom,
+  recentlyActiveBurnBlockAtom,
   sortedStacksBlocksForBurnBlockAtom,
 } from '@/store/blocks-store';
 import { Text } from '../text';
@@ -78,21 +79,24 @@ export const BurnBlockStacksBlocksInner = ({
     sortedStacksBlocksForBurnBlockAtom(consensusHash)
   );
   const maxBurnBlockConsensusHash = useAtomValue(maxBurnBlockConsensusHashAtom);
+  const recentlyActiveBurnBlock = useAtomValue(recentlyActiveBurnBlockAtom);
   const [viewBlocks, setViewBlocks] = React.useState(false);
   const [isExpanded, setIsExpanded] = useAtom(
     expandedBurnBlocksAtom(consensusHash)
   );
 
   const isMaxBurnBlock = consensusHash === maxBurnBlockConsensusHash;
+  const isRecentlyActive = consensusHash === recentlyActiveBurnBlock;
+  const isActiveBurnBlock = isMaxBurnBlock || isRecentlyActive;
   const needsTruncation = stacksBlocks.length > DEFAULT_STACKS_BLOCKS_LIMIT;
   const hiddenCount = stacksBlocks.length - DEFAULT_STACKS_BLOCKS_LIMIT;
 
   const visibleBlocks = useMemo(() => {
-    if (!isMaxBurnBlock || isExpanded || !needsTruncation) {
+    if (!isActiveBurnBlock || isExpanded || !needsTruncation) {
       return stacksBlocks;
     }
     return stacksBlocks.slice(0, DEFAULT_STACKS_BLOCKS_LIMIT);
-  }, [stacksBlocks, isMaxBurnBlock, isExpanded, needsTruncation]);
+  }, [stacksBlocks, isActiveBurnBlock, isExpanded, needsTruncation]);
 
   if (stacksBlocks.length === 0)
     return (
@@ -103,7 +107,7 @@ export const BurnBlockStacksBlocksInner = ({
       </div>
     );
 
-  if (!(isMaxBurnBlock || viewBlocks)) {
+  if (!(isActiveBurnBlock || viewBlocks)) {
     return (
       <div className="flex items-center mt-4">
         <Text variant="small" className="text-muted-foreground font-normal">
@@ -145,7 +149,7 @@ export const BurnBlockStacksBlocksInner = ({
           </React.Suspense>
         ))}
       </div>
-      {isMaxBurnBlock && needsTruncation && (
+      {isActiveBurnBlock && needsTruncation && (
         <div className="flex items-center gap-2 mt-2">
           <Text variant="small" className="text-muted-foreground font-normal">
             <button
@@ -160,7 +164,7 @@ export const BurnBlockStacksBlocksInner = ({
           </Text>
         </div>
       )}
-      {!isMaxBurnBlock && (
+      {!isActiveBurnBlock && (
         <div className="flex items-center gap-2 mt-2">
           <Text variant="small" className="text-muted-foreground font-normal">
             <button type="reset" onClick={() => setViewBlocks(false)}>

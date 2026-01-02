@@ -267,6 +267,12 @@ export const cumulativeBlockCostsAtom = atomFamily<
 export const maxProcessedStacksHeightAtom = atom(0);
 export const maxProposedAtAtom = atom(0);
 
+/**
+ * Tracks the consensus hash of the burn block that most recently received a new stacks block.
+ * Used to auto-expand burn blocks when they receive new activity.
+ */
+export const recentlyActiveBurnBlockAtom = atom<string | null>(null);
+
 const stacksBlocksForBurnBlockQueryAtomFamily = atomFamily(
   (consensusHash: string) => {
     return atomWithSuspenseQuery((get) => ({
@@ -306,6 +312,10 @@ export const [
       typeof block.proposedAt !== 'string'
     ) {
       set(tenureChangesWriterAtom, block);
+    }
+    // Mark this burn block as recently active (for auto-expansion)
+    if (block.consensusHash) {
+      set(recentlyActiveBurnBlockAtom, block.consensusHash);
     }
     // we might need to insert a burn block if we missed it
     if (block.burnBlockHash && block.burnBlockHeight) {
