@@ -10,7 +10,7 @@
         "arktype": "^2.1.29",
         "caniuse-lite": "^1.0.30001720",
         "superjson": "^2.2.1",
-        "turbo": "^2.5.6",
+        "turbo": "^2.7.2",
         "usehooks-ts": "^3.1.0",
       },
       "devDependencies": {
