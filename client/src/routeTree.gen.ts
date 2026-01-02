@@ -8,146 +8,62 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhenExtendRouteImport } from './routes/when-extend'
+import { Route as UiTestRouteImport } from './routes/ui-test'
+import { Route as StateMachinesRouteImport } from './routes/state-machines'
+import { Route as SignersRouteImport } from './routes/signers'
+import { Route as MinersRouteImport } from './routes/miners'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
+import { Route as StxBlocksBlockHashRouteImport } from './routes/stx-blocks/$blockHash'
+import { Route as BtcBlocksHeightOrHashRouteImport } from './routes/btc-blocks/$heightOrHash'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as WhenExtendImport } from './routes/when-extend'
-import { Route as UiTestImport } from './routes/ui-test'
-import { Route as StateMachinesImport } from './routes/state-machines'
-import { Route as SignersImport } from './routes/signers'
-import { Route as MinersImport } from './routes/miners'
-import { Route as IndexImport } from './routes/index'
-import { Route as BlocksIndexImport } from './routes/blocks/index'
-import { Route as StxBlocksBlockHashImport } from './routes/stx-blocks/$blockHash'
-import { Route as BtcBlocksHeightOrHashImport } from './routes/btc-blocks/$heightOrHash'
-
-// Create/Update Routes
-
-const WhenExtendRoute = WhenExtendImport.update({
+const WhenExtendRoute = WhenExtendRouteImport.update({
   id: '/when-extend',
   path: '/when-extend',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const UiTestRoute = UiTestImport.update({
+const UiTestRoute = UiTestRouteImport.update({
   id: '/ui-test',
   path: '/ui-test',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const StateMachinesRoute = StateMachinesImport.update({
+const StateMachinesRoute = StateMachinesRouteImport.update({
   id: '/state-machines',
   path: '/state-machines',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SignersRoute = SignersImport.update({
+const SignersRoute = SignersRouteImport.update({
   id: '/signers',
   path: '/signers',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const MinersRoute = MinersImport.update({
+const MinersRoute = MinersRouteImport.update({
   id: '/miners',
   path: '/miners',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const BlocksIndexRoute = BlocksIndexImport.update({
+const BlocksIndexRoute = BlocksIndexRouteImport.update({
   id: '/blocks/',
   path: '/blocks/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const StxBlocksBlockHashRoute = StxBlocksBlockHashImport.update({
+const StxBlocksBlockHashRoute = StxBlocksBlockHashRouteImport.update({
   id: '/stx-blocks/$blockHash',
   path: '/stx-blocks/$blockHash',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashImport.update({
+const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
   id: '/btc-blocks/$heightOrHash',
   path: '/btc-blocks/$heightOrHash',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/miners': {
-      id: '/miners'
-      path: '/miners'
-      fullPath: '/miners'
-      preLoaderRoute: typeof MinersImport
-      parentRoute: typeof rootRoute
-    }
-    '/signers': {
-      id: '/signers'
-      path: '/signers'
-      fullPath: '/signers'
-      preLoaderRoute: typeof SignersImport
-      parentRoute: typeof rootRoute
-    }
-    '/state-machines': {
-      id: '/state-machines'
-      path: '/state-machines'
-      fullPath: '/state-machines'
-      preLoaderRoute: typeof StateMachinesImport
-      parentRoute: typeof rootRoute
-    }
-    '/ui-test': {
-      id: '/ui-test'
-      path: '/ui-test'
-      fullPath: '/ui-test'
-      preLoaderRoute: typeof UiTestImport
-      parentRoute: typeof rootRoute
-    }
-    '/when-extend': {
-      id: '/when-extend'
-      path: '/when-extend'
-      fullPath: '/when-extend'
-      preLoaderRoute: typeof WhenExtendImport
-      parentRoute: typeof rootRoute
-    }
-    '/btc-blocks/$heightOrHash': {
-      id: '/btc-blocks/$heightOrHash'
-      path: '/btc-blocks/$heightOrHash'
-      fullPath: '/btc-blocks/$heightOrHash'
-      preLoaderRoute: typeof BtcBlocksHeightOrHashImport
-      parentRoute: typeof rootRoute
-    }
-    '/stx-blocks/$blockHash': {
-      id: '/stx-blocks/$blockHash'
-      path: '/stx-blocks/$blockHash'
-      fullPath: '/stx-blocks/$blockHash'
-      preLoaderRoute: typeof StxBlocksBlockHashImport
-      parentRoute: typeof rootRoute
-    }
-    '/blocks/': {
-      id: '/blocks/'
-      path: '/blocks'
-      fullPath: '/blocks'
-      preLoaderRoute: typeof BlocksIndexImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,7 +76,6 @@ export interface FileRoutesByFullPath {
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/miners': typeof MinersRoute
@@ -172,9 +87,8 @@ export interface FileRoutesByTo {
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/miners': typeof MinersRoute
   '/signers': typeof SignersRoute
@@ -185,7 +99,6 @@ export interface FileRoutesById {
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks/': typeof BlocksIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -222,7 +135,6 @@ export interface FileRouteTypes {
     | '/blocks/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MinersRoute: typeof MinersRoute
@@ -233,6 +145,74 @@ export interface RootRouteChildren {
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
   StxBlocksBlockHashRoute: typeof StxBlocksBlockHashRoute
   BlocksIndexRoute: typeof BlocksIndexRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/when-extend': {
+      id: '/when-extend'
+      path: '/when-extend'
+      fullPath: '/when-extend'
+      preLoaderRoute: typeof WhenExtendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ui-test': {
+      id: '/ui-test'
+      path: '/ui-test'
+      fullPath: '/ui-test'
+      preLoaderRoute: typeof UiTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/state-machines': {
+      id: '/state-machines'
+      path: '/state-machines'
+      fullPath: '/state-machines'
+      preLoaderRoute: typeof StateMachinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signers': {
+      id: '/signers'
+      path: '/signers'
+      fullPath: '/signers'
+      preLoaderRoute: typeof SignersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/miners': {
+      id: '/miners'
+      path: '/miners'
+      fullPath: '/miners'
+      preLoaderRoute: typeof MinersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blocks/': {
+      id: '/blocks/'
+      path: '/blocks'
+      fullPath: '/blocks'
+      preLoaderRoute: typeof BlocksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stx-blocks/$blockHash': {
+      id: '/stx-blocks/$blockHash'
+      path: '/stx-blocks/$blockHash'
+      fullPath: '/stx-blocks/$blockHash'
+      preLoaderRoute: typeof StxBlocksBlockHashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/btc-blocks/$heightOrHash': {
+      id: '/btc-blocks/$heightOrHash'
+      path: '/btc-blocks/$heightOrHash'
+      fullPath: '/btc-blocks/$heightOrHash'
+      preLoaderRoute: typeof BtcBlocksHeightOrHashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -246,55 +226,6 @@ const rootRouteChildren: RootRouteChildren = {
   StxBlocksBlockHashRoute: StxBlocksBlockHashRoute,
   BlocksIndexRoute: BlocksIndexRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/miners",
-        "/signers",
-        "/state-machines",
-        "/ui-test",
-        "/when-extend",
-        "/btc-blocks/$heightOrHash",
-        "/stx-blocks/$blockHash",
-        "/blocks/"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/miners": {
-      "filePath": "miners.tsx"
-    },
-    "/signers": {
-      "filePath": "signers.tsx"
-    },
-    "/state-machines": {
-      "filePath": "state-machines.tsx"
-    },
-    "/ui-test": {
-      "filePath": "ui-test.tsx"
-    },
-    "/when-extend": {
-      "filePath": "when-extend.tsx"
-    },
-    "/btc-blocks/$heightOrHash": {
-      "filePath": "btc-blocks/$heightOrHash.tsx"
-    },
-    "/stx-blocks/$blockHash": {
-      "filePath": "stx-blocks/$blockHash.tsx"
-    },
-    "/blocks/": {
-      "filePath": "blocks/index.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

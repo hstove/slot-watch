@@ -3,17 +3,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   type ApiBlockForBurnBlock,
   getBlockResponsesForBlock,
-  getBtcBlock,
   getSigners,
   getStacksBlock,
 } from '@/lib/slots-api';
-import { BtcBlock } from '@/components/btc-block/btc-block';
 import { validateSearch } from '@/lib/search-schema';
 import { useSetAtom } from 'jotai';
-import {
-  setAllBurnBlocksAtom,
-  setStacksBlocksForBurnBlockFamily,
-} from '@/store/blocks-store';
+import { setStacksBlocksForBurnBlockFamily } from '@/store/blocks-store';
 import { setSignersApiAtom } from '@/store/signers-store';
 import { useAtomCallback } from 'jotai/utils';
 import React from 'react';

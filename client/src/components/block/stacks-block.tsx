@@ -115,7 +115,7 @@ export function StacksBlock() {
       <div className="flex w-full justify-end gap-3">
         <Button variant="ghost" size="sm" asChild>
           <Link
-            to={`/stx-blocks/${block.blockHash}`}
+            to="/stx-blocks/$blockHash"
             params={{ blockHash: block.blockHash }}
           >
             <ExternalLinkIcon className="w-3 h-3" />

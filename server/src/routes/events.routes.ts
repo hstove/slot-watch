@@ -1,20 +1,11 @@
 import { createMiddleware } from 'hono/factory';
-import { Hono, type Context } from 'hono';
+import { Hono } from 'hono';
 import { getPayloadContractId } from '../utils';
 import {
-  BURN_BLOCKS_EVENT,
   type StackerDBPayload,
-  type ChunkEvent,
-  type WSNewBlock,
   type CoreNodeBlockMessage,
   NEW_BLOCK_EVENT,
   type CoreNodeBurnBlockMessage,
-  type WSBurnBlock,
-  MANY_CHUNKS_EVENT,
-  type WSManyChunks,
-  type WSPayload,
-  type WSNewBlockV2,
-  NEW_BLOCK_V2_EVENT,
   type WSBurnBlockV2,
   BURN_BLOCK_V2_EVENT,
   coreNodeBurnBlockMessageSchema,
@@ -27,11 +18,7 @@ import {
   handleStacksBlockEvent,
 } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
-import { publishWsEventToStreamer } from '../streamer';
-import { warmCache } from '../stacks-api';
-import { recentBlocksHealthCache } from '../db/block-proposals';
-import type { ServerContext, ServerType } from '../server-context';
-import { makeDb } from '../db/db';
+import type { ServerContext } from '../server-context';
 import { runWithServerRuntime } from '../effect/runtime';
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`

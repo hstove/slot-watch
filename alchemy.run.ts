@@ -2,12 +2,10 @@ import alchemy from 'alchemy';
 import {
   KVNamespace,
   Worker,
-  D1Database,
   WranglerJson,
   Hyperdrive,
   CustomDomain,
   Website,
-  Vite,
 } from 'alchemy/cloudflare';
 import { Exec } from 'alchemy/os';
 import { CloudflareStateStore } from 'alchemy/state';

@@ -8,8 +8,6 @@ import {
 } from '@/store/responses-store';
 import { ExtendSigners } from './extend-signers';
 import { ExtendSignersTable } from './extend-signers-table';
-import { ConnectionStatus } from '../connection-status';
-import { Clock } from '../clock';
 import { Route } from '@/routes/when-extend';
 import { setSignersApiAtom } from '@/store/signers-store';
 import { loadable } from 'jotai/utils';

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { and, asc, desc, eq, getTableColumns, isNotNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals,
@@ -13,18 +13,49 @@ import {
   serializeBlockResponse,
 } from '../db/block-responses';
 import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import {
   fetchRecentMinerStats,
-  getAllLatestBlockProposals,
   serializeBlockProposal,
 } from '../db/block-proposals';
 import { log, logger } from '../logger';
-import { getPoolStatus } from '../db/db';
 import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
-import { getCreatedAt } from '../utils';
+import { Schema } from 'effect';
+import { describeRoute, resolver, validator } from 'hono-openapi';
+import {
+  BurnBlocksResponseSchema,
+  TenureChangesResponseSchema,
+  BlockResponsesResponseSchema,
+  BlockProposalWithResponsesSchema,
+  StxBlockResponseSchema,
+} from 'slot-watch-common';
+
+// Request param/query schemas (local to routes)
+const ConsensusHashParamSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    consensusHash: Schema.String,
+    networkKey: Schema.String,
+  }).annotations({ identifier: 'ConsensusHashParam' })
+);
+
+const TenureChangesQuerySchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    cause: Schema.optional(Schema.NumberFromString),
+  }).annotations({ identifier: 'TenureChangesQuery' })
+);
+
+// Standard Schema wrappers for OpenAPI resolver
+const burnBlocksResponse = Schema.standardSchemaV1(BurnBlocksResponseSchema);
+const tenureChangesResponse = Schema.standardSchemaV1(
+  TenureChangesResponseSchema
+);
+const blockResponsesResponse = Schema.standardSchemaV1(
+  BlockResponsesResponseSchema
+);
+const blockProposalWithResponses = Schema.standardSchemaV1(
+  BlockProposalWithResponsesSchema
+);
+const stxBlockResponse = Schema.standardSchemaV1(StxBlockResponseSchema);
 
 const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -79,63 +110,91 @@ const blockRoutes = new Hono<ServerType>()
     };
     return c.json(response);
   })
-  .get('/blocks/:networkKey/:blockId/responses', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const blockId = c.req.param('blockId');
-    const responses = await c
-      .get('db')
-      .select()
-      .from(blockResponses)
-      .where(
-        and(
-          eq(blockResponses.networkKey, networkKey),
-          eq(blockResponses.signerSignatureHash, blockId)
-        )
-      );
-    const serializedResponses = responses.map(serializeBlockResponse);
-    return c.json({ responses: serializedResponses });
-  })
-  .get('/burn-blocks/:networkKey', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    logger.debug(
-      {
-        route: c.req.path,
-        networkKey,
+  .get(
+    '/blocks/:networkKey/:blockId/responses',
+    describeRoute({
+      description: 'Get signer responses for a block',
+      responses: {
+        200: {
+          description: 'List of signer responses',
+          content: {
+            'application/json': { schema: resolver(blockResponsesResponse) },
+          },
+        },
       },
-      `Fetching burn blocks for ${networkKey}`
-    );
-
-    try {
-      const btcBlocks = await c
+    }),
+    async (c) => {
+      const networkKey = c.req.param('networkKey');
+      const blockId = c.req.param('blockId');
+      const responses = await c
         .get('db')
         .select()
-        .from(burnBlocks)
-        .where(eq(burnBlocks.networkKey, networkKey))
-        .orderBy(desc(burnBlocks.id))
-        .limit(3);
-
+        .from(blockResponses)
+        .where(
+          and(
+            eq(blockResponses.networkKey, networkKey),
+            eq(blockResponses.signerSignatureHash, blockId)
+          )
+        );
+      const serializedResponses = responses.map(serializeBlockResponse);
+      return c.json({ responses: serializedResponses });
+    }
+  )
+  .get(
+    '/burn-blocks/:networkKey',
+    describeRoute({
+      description: 'Get recent burn blocks for a network',
+      responses: {
+        200: {
+          description: 'List of recent burn blocks',
+          content: {
+            'application/json': { schema: resolver(burnBlocksResponse) },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      const networkKey = c.req.param('networkKey');
       logger.debug(
         {
           route: c.req.path,
           networkKey,
-          count: btcBlocks.length,
         },
-        `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`
+        `Fetching burn blocks for ${networkKey}`
       );
 
-      return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
-    } catch (error) {
-      log
-        .withError(error)
-        .withMetadata({
-          route: c.req.path,
-          networkKey,
-        })
-        .error('Error fetching burn blocks');
+      try {
+        const btcBlocks = await c
+          .get('db')
+          .select()
+          .from(burnBlocks)
+          .where(eq(burnBlocks.networkKey, networkKey))
+          .orderBy(desc(burnBlocks.id))
+          .limit(3);
 
-      return c.json({ error: 'Database query failed' }, 500);
+        logger.debug(
+          {
+            route: c.req.path,
+            networkKey,
+            count: btcBlocks.length,
+          },
+          `Fetched ${btcBlocks.length} burn blocks for ${networkKey}`
+        );
+
+        return c.json({ burnBlocks: btcBlocks.map(serializeBurnBlock) });
+      } catch (error) {
+        log
+          .withError(error)
+          .withMetadata({
+            route: c.req.path,
+            networkKey,
+          })
+          .error('Error fetching burn blocks');
+
+        return c.json({ error: 'Database query failed' }, 500);
+      }
     }
-  })
+  )
   .get('/burn-blocks/:networkKey/:heightOrHash', async (c) => {
     const networkKey = c.req.param('networkKey');
     const heightOrHash = c.req.param('heightOrHash');
@@ -163,10 +222,7 @@ const blockRoutes = new Hono<ServerType>()
   })
   .get(
     '/burn-blocks/:networkKey/:consensusHash/blocks',
-    zValidator(
-      'param',
-      z.object({ consensusHash: z.string(), networkKey: z.string() })
-    ),
+    validator('param', ConsensusHashParamSchema),
     async (c) => {
       const { consensusHash, networkKey } = c.req.valid('param');
       // const networkKey = c.req.valid;
@@ -201,16 +257,21 @@ const blockRoutes = new Hono<ServerType>()
   )
   .get(
     '/tenure-changes/:networkKey',
-    zValidator(
-      'query',
-      z.object({
-        cause: z.coerce.number().optional(),
-      })
-    ),
+    describeRoute({
+      description: 'Get recent tenure changes for a network',
+      responses: {
+        200: {
+          description: 'List of recent tenure changes',
+          content: {
+            'application/json': { schema: resolver(tenureChangesResponse) },
+          },
+        },
+      },
+    }),
+    validator('query', TenureChangesQuerySchema),
     async (c) => {
       const networkKey = c.req.param('networkKey');
       const { cause } = c.req.valid('query');
-      // const { id, ...tableColumns } = getTableColumns(stacksBlocks);
       const tenureChanges = await c
         .get('db')
         .select()
@@ -237,53 +298,76 @@ const blockRoutes = new Hono<ServerType>()
       minerStats,
     });
   })
-  .get('/:networkKey/blocks/:blockHash/responses', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const blockHash = c.req.param('blockHash');
-    const blockProposal = await c.get('db').query.blockProposals.findFirst({
-      where: eq(blockProposals.signerSignatureHash, blockHash),
-    });
-    if (!blockProposal) {
-      return c.json({ error: 'Block not found' }, 404);
-    }
-    const proposedAt = getCreatedAt(blockProposal.id);
-    const responses = await c.get('db').query.blockResponses.findMany({
-      where: eq(blockResponses.signerSignatureHash, blockHash),
-      orderBy: [asc(blockResponses.id)],
-    });
+  .get(
+    '/:networkKey/blocks/:blockHash/responses',
+    describeRoute({
+      description: 'Get block proposal with signer responses',
+      responses: {
+        200: {
+          description: 'Block proposal and responses',
+          content: {
+            'application/json': {
+              schema: resolver(blockProposalWithResponses),
+            },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      const networkKey = c.req.param('networkKey');
+      const blockHash = c.req.param('blockHash');
+      const blockProposal = await c.get('db').query.blockProposals.findFirst({
+        where: eq(blockProposals.signerSignatureHash, blockHash),
+      });
+      if (!blockProposal) {
+        return c.json({ error: 'Block not found' }, 404);
+      }
+      const responses = await c.get('db').query.blockResponses.findMany({
+        where: eq(blockResponses.signerSignatureHash, blockHash),
+        orderBy: [asc(blockResponses.id)],
+      });
 
-    console.log(`Proposed at ${proposedAt.toISOString()}`);
-    for (const response of responses) {
-      const createdAt = getCreatedAt(response.id);
-      console.log(`Response at ${createdAt.toISOString()}`);
+      return c.json({
+        blockProposal: serializeBlockProposal(blockProposal),
+        responses: responses.map(serializeBlockResponse),
+      });
     }
-    return c.json({
-      blockProposal: serializeBlockProposal(blockProposal),
-      responses: responses.map(serializeBlockResponse),
-    });
-  })
-  .get('/blocks/:networkKey/stx-blocks/:blockHash', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const blockHash = c.req.param('blockHash');
-    const blockProposal = await c.get('db').query.blockProposals.findFirst({
-      where: eq(blockProposals.signerSignatureHash, blockHash),
-    });
-    if (!blockProposal) {
-      return c.json({ error: 'Block not found' }, 404);
+  )
+  .get(
+    '/blocks/:networkKey/stx-blocks/:blockHash',
+    describeRoute({
+      description: 'Get a Stacks block by hash',
+      responses: {
+        200: {
+          description: 'Stacks block with proposal',
+          content: {
+            'application/json': { schema: resolver(stxBlockResponse) },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      const networkKey = c.req.param('networkKey');
+      const blockHash = c.req.param('blockHash');
+      const blockProposal = await c.get('db').query.blockProposals.findFirst({
+        where: eq(blockProposals.signerSignatureHash, blockHash),
+      });
+      if (!blockProposal) {
+        return c.json({ error: 'Block not found' }, 404);
+      }
+      const stxBlock = await c.get('db').query.stacksBlocks.findFirst({
+        where: eq(stacksBlocks.blockHash, blockHash),
+      });
+      if (!stxBlock) {
+        return c.json({ error: 'Block not found' }, 404);
+      }
+      const stxBlockData = serializeStacksBlock(stxBlock);
+      const proposalData = serializeBlockProposal(blockProposal);
+      return c.json({
+        stacksBlock: stxBlockData,
+        proposal: proposalData,
+      });
     }
-    const proposedAt = getCreatedAt(blockProposal.id);
-    const stxBlock = await c.get('db').query.stacksBlocks.findFirst({
-      where: eq(stacksBlocks.blockHash, blockHash),
-    });
-    if (!stxBlock) {
-      return c.json({ error: 'Block not found' }, 404);
-    }
-    const stxBlockData = serializeStacksBlock(stxBlock);
-    const proposalData = serializeBlockProposal(blockProposal);
-    return c.json({
-      stacksBlock: stxBlockData,
-      proposal: proposalData,
-    });
-  });
+  );
 
 export { blockRoutes };

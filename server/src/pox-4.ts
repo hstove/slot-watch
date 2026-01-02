@@ -1,12 +1,10 @@
 import { mainnet } from '@clarigen/boot';
 import { ClarigenClient, fetchMapGet } from '@clarigen/core';
 import pAll from 'p-all';
-import BigNumber from 'bignumber.js';
 import { hex } from '@scure/base';
 import { getPoxInfo } from './stacks-api';
-import { stxCommittedNextCycle } from './metrics';
 import { memoizeCache } from './cache';
-import { logger as _logger, log } from './logger';
+import { log } from './logger';
 import { env } from 'cloudflare:workers';
 import { STACKS_MAINNET } from '@stacks/network';
 

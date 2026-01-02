@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock } from './clock';
 import { useWatchBlocks } from '@/hooks/use-watch-blocks';
 import { ConnectionStatus } from './connection-status';

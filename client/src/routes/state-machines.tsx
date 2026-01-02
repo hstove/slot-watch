@@ -1,9 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import {
-  getMinerStats,
-  getRecentSigners,
-  getStateMachineUpdates,
-} from '@/lib/slots-api';
+import { getRecentSigners, getStateMachineUpdates } from '@/lib/slots-api';
 import { validateSearch } from '@/lib/search-schema';
 import { StateMachines } from '@/components/state-machines/state-machines';
 

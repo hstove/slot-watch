@@ -7,11 +7,9 @@ import {
   knownSigners,
 } from 'slot-watch-common';
 import { memoizeCache } from './cache';
-import { warmupMetrics } from './metrics';
 import { stxCommittedCache } from './pox-4';
 import {
   fetchRecentMinerBlocksCache,
-  fetchRecentMinerStats,
   recentBlocksHealthCache,
 } from './db/block-proposals';
 import type { Db } from './db/db';

@@ -1,5 +1,4 @@
 import type { ChunkType } from './codec';
-import type { StateMachineUpdate } from './codec/state-machine';
 import type {
   CoreNodeBlockMessage,
   CoreNodeBurnBlockMessage,

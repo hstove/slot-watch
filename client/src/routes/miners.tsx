@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { getMinerStats, getRecentSigners } from '@/lib/slots-api';
+import { getMinerStats } from '@/lib/slots-api';
 import { validateSearch } from '@/lib/search-schema';
 import { Miners } from '@/components/miners/miners';
 

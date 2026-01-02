@@ -4,14 +4,14 @@ import {
   type ApiBlockProposal,
   type ApiStacksBlock,
   strip0x,
-  superDeserialize,
   type TypeMerge,
+  type BurnBlocksResponse,
+  type SignersResponse,
+  type RecentSignersResponse,
+  type BlockResponsesResponse,
 } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
-import {
-  createQueryKeys,
-  createQueryKeyStore,
-} from '@lukemorales/query-key-factory';
+import { createQueryKeyStore } from '@lukemorales/query-key-factory';
 
 export const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
@@ -46,14 +46,16 @@ export async function getHealthBlocks(
   return response.json();
 }
 
-export async function getRecentSigners(networkKey: string) {
+export async function getRecentSigners(
+  networkKey: string
+): Promise<RecentSignersResponse> {
   const response = await apiClient['signer-recency'][':networkKey'].$get({
     param: { networkKey },
   });
   return response.json();
 }
 
-export type ApiRecentSigners = Awaited<ReturnType<typeof getRecentSigners>>;
+export type ApiRecentSigners = RecentSignersResponse;
 
 export async function getChunksByTime(
   networkId: string,
@@ -77,7 +79,9 @@ export async function getChunkById(id: string) {
   return response.json();
 }
 
-export async function getBurnBlocks(networkKey: string) {
+export async function getBurnBlocks(
+  networkKey: string
+): Promise<BurnBlocksResponse> {
   const response = await apiClient['burn-blocks'][':networkKey'].$get({
     param: { networkKey },
   });
@@ -99,7 +103,7 @@ export async function getBtcBlock(networkKey: string, heightOrHash: string) {
 export async function getBlockResponsesForBlock(
   networkKey: string,
   blockHash: string
-) {
+): Promise<BlockResponsesResponse['responses']> {
   if (!blockHash) return [];
   const response = await apiClient.blocks[':networkKey'][
     ':blockId'
@@ -107,10 +111,7 @@ export async function getBlockResponsesForBlock(
     param: { networkKey, blockId: blockHash },
   });
   const data = await response.json();
-  return data.responses.map((r) => {
-    const { chunkId, slotId, ...rest } = r;
-    return rest;
-  });
+  return data.responses;
 }
 export type ApiBlockResponseForBlock = Omit<
   Awaited<ReturnType<typeof getBlockResponsesForBlock>>[0],
@@ -230,38 +231,19 @@ export type ApiBlockForBurnBlock =
   | ProcessedStacksBlock
   | AllInfoBlock;
 
-// export type ApiBlockForBurnBlock = {
-//   blockHash: string;
-//   blockHeight: number;
-//   minerPublicKey: string | null;
-//   txCount: number;
-//   tenureChangeCause: number | null;
-//   consensusHash: string | null;
-//   burnBlockHeight: number | null;
-//   networkKey: string;
-//   proposedAt?: string;
-//   processedAt?: string;
-//   burnBlockHash?: string;
-//   blockTimestamp?: string;
-//   readCount?: number;
-//   readLength?: number;
-//   runtime?: number;
-//   writeCount?: number;
-//   writeLength?: number;
-//   timestamp: string;
-// };
-
-export async function getSigners(networkKey: string) {
+export async function getSigners(networkKey: string): Promise<SignersResponse> {
   const response = await apiClient.signers[':networkKey'].$get({
     param: { networkKey },
   });
-  return response.json();
+  return await response.json();
 }
 
-export type ApiSigners = Awaited<ReturnType<typeof getSigners>>;
+export type ApiSigners = SignersResponse;
 export type ApiSigner = ApiSigners['signers'][0];
 
-export async function getTenureChanges(networkKey: string) {
+export async function getTenureChanges(
+  networkKey: string
+): Promise<ProcessedStacksBlock[]> {
   const response = await apiClient['tenure-changes'][':networkKey'].$get({
     param: { networkKey },
     query: {
@@ -320,7 +302,10 @@ export const queries = createQueryKeyStore({
   },
 });
 
-export async function getStacksBlock(networkKey: string, blockHash: string) {
+export async function getStacksBlock(
+  networkKey: string,
+  blockHash: string
+): Promise<ApiBlockForBurnBlock> {
   const response = await apiClient.blocks[':networkKey']['stx-blocks'][
     ':blockHash'
   ].$get({

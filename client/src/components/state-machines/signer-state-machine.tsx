@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAtomValue } from 'jotai';
 import { signerStateMachineFamily } from '@/store/state-machine-store';
 

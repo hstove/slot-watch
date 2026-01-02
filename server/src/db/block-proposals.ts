@@ -1,14 +1,5 @@
 import type { Db } from './db';
-import {
-  eq,
-  desc,
-  and,
-  inArray,
-  getTableColumns,
-  gte,
-  lte,
-  sql,
-} from 'drizzle-orm';
+import { eq, desc, and, inArray, getTableColumns, gte, lte } from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals as blockProposalsSchema,
@@ -18,7 +9,6 @@ import {
   blockProposals,
   burnBlocks,
   stacksBlocks,
-  blockResponses,
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';

@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest';
+import { test } from 'vitest';
 import * as BTC from '@scure/btc-signer';
 import { hex } from '@scure/base';
 

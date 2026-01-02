@@ -1,6 +1,3 @@
-import { TenureChangeCause } from '@stacks/transactions';
-import { convertBlock } from '../src/events/block-events';
-import { tenureExtendBlock } from './fixtures';
 import { test, expect } from 'vitest';
 import { makeDb } from '../src/db/db';
 import { stateMachineUpdates } from '../src/db/schema';

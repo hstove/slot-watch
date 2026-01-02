@@ -1,4 +1,4 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { makeDb } from '../src/db/db';
 import { blockProposals, blockResponses } from '../src/db/schema';
 import { getCreatedAt } from '../src/utils';

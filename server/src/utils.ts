@@ -11,7 +11,7 @@ import {
   type ChunkEventParsed,
   type StackerDBPayload,
 } from 'slot-watch-common';
-import { log, logger } from './logger';
+import { log } from './logger';
 
 export function getPayloadContractId(payload: StackerDBPayload) {
   const version =
