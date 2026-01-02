@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useAtom, atom } from 'jotai';
+import { atomFamily } from 'jotai/utils';
 import {
   burnBlocksAtomFamily,
   maxBurnBlockConsensusHashAtom,
@@ -15,6 +16,14 @@ import { Link } from '@tanstack/react-router';
 import { microStxToStx } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
+
+/** Default number of stacks blocks to show per burn block before truncation */
+export const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
+
+/** Tracks which burn blocks have expanded their stacks blocks list */
+const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
+  atom(false)
+);
 
 export const BurnBlock = ({
   consensusHash,
@@ -70,6 +79,20 @@ export const BurnBlockStacksBlocksInner = ({
   );
   const maxBurnBlockConsensusHash = useAtomValue(maxBurnBlockConsensusHashAtom);
   const [viewBlocks, setViewBlocks] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useAtom(
+    expandedBurnBlocksAtom(consensusHash)
+  );
+
+  const isMaxBurnBlock = consensusHash === maxBurnBlockConsensusHash;
+  const needsTruncation = stacksBlocks.length > DEFAULT_STACKS_BLOCKS_LIMIT;
+  const hiddenCount = stacksBlocks.length - DEFAULT_STACKS_BLOCKS_LIMIT;
+
+  const visibleBlocks = useMemo(() => {
+    if (!isMaxBurnBlock || isExpanded || !needsTruncation) {
+      return stacksBlocks;
+    }
+    return stacksBlocks.slice(0, DEFAULT_STACKS_BLOCKS_LIMIT);
+  }, [stacksBlocks, isMaxBurnBlock, isExpanded, needsTruncation]);
 
   if (stacksBlocks.length === 0)
     return (
@@ -80,7 +103,7 @@ export const BurnBlockStacksBlocksInner = ({
       </div>
     );
 
-  if (consensusHash !== maxBurnBlockConsensusHash && !viewBlocks) {
+  if (!(isMaxBurnBlock || viewBlocks)) {
     return (
       <div className="flex items-center mt-4">
         <Text variant="small" className="text-muted-foreground font-normal">
@@ -98,7 +121,6 @@ export const BurnBlockStacksBlocksInner = ({
   }
 
   return (
-    // biome-ignore lint/complexity/noUselessFragments: ignored using `--suppress`
     <>
       <div className="grid grid-cols-[1fr_1fr_1.5fr] md:grid-cols-[repeat(4,minmax(min-content,1fr))] gap-y-0 auto-cols-max">
         <div className="block-list-col">
@@ -117,21 +139,36 @@ export const BurnBlockStacksBlocksInner = ({
         <div className="block-list-col">
           <Text variant="small">Info</Text>
         </div>
-        {stacksBlocks.map((block) => (
+        {visibleBlocks.map((block) => (
           <React.Suspense key={block.blockHash}>
             <BlockListStacksBlock blockHash={block.blockHash} />
           </React.Suspense>
         ))}
-        {consensusHash !== maxBurnBlockConsensusHash && (
-          <div className="flex items-center gap-2 mt-2">
-            <Text variant="small" className="text-muted-foreground font-normal">
-              <button type="reset" onClick={() => setViewBlocks(false)}>
-                Hide {stacksBlocks.length} Stacks blocks
-              </button>
-            </Text>
-          </div>
-        )}
       </div>
+      {isMaxBurnBlock && needsTruncation && (
+        <div className="flex items-center gap-2 mt-2">
+          <Text variant="small" className="text-muted-foreground font-normal">
+            <button
+              type="button"
+              className="text-primary"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded
+                ? 'Show less'
+                : `Show ${hiddenCount} more block${hiddenCount > 1 ? 's' : ''}`}
+            </button>
+          </Text>
+        </div>
+      )}
+      {!isMaxBurnBlock && (
+        <div className="flex items-center gap-2 mt-2">
+          <Text variant="small" className="text-muted-foreground font-normal">
+            <button type="reset" onClick={() => setViewBlocks(false)}>
+              Hide {stacksBlocks.length} Stacks blocks
+            </button>
+          </Text>
+        </div>
+      )}
     </>
   );
 };

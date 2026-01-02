@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:tee": "unbuffer bun dev | tee tmp/dev-server.log",
+    "dev:tee": "unbuffer bun dev --host 0.0.0.0 | tee tmp/dev-server.log",
     "build": "bunx vite build",
     "preview": "vite preview",
     "typecheck": "tsgo --noEmit -p tsconfig.app.json"
