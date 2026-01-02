@@ -18,7 +18,7 @@ const app = await alchemy('slot-watch', {
 });
 
 await Exec('build', {
-  command: 'bun run build',
+  command: 'bun run build:client',
 });
 
 const kv = await KVNamespace('cache', {
