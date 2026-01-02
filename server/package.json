@@ -1,17 +1,15 @@
 {
   "name": "slot-watch-api",
-  "module": "src/server.ts",
   "main": "src/server.ts",
   "type": "module",
   "exports": {
-    ".": "./dist/exports.js"
+    ".": "./src/exports.ts"
   },
-  "types": "./dist/exports.d.ts",
   "scripts": {
     "dev:watch": "bun --watch src/app.ts",
     "build": "tsdown",
     "start": "bun src/app.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "generate-migrations": "drizzle-kit generate",
     "migrate": "bun migrate.ts",
     "test:watch": "vitest",

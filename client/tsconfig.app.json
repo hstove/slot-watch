@@ -4,10 +4,10 @@
     "jsx": "react-jsx",
     "noUncheckedIndexedAccess": false,
     "allowImportingTsExtensions": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["../server/worker-configuration.d.ts"]
   },
   "include": ["src"]
 }
