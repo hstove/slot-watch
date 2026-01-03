@@ -11,7 +11,7 @@
     "start": "bun src/app.ts",
     "typecheck": "tsgo --noEmit",
     "generate-migrations": "drizzle-kit generate",
-    "migrate": "bun migrate.ts",
+    "migrate": "bunx --bun drizzle-kit migrate",
     "test:watch": "vitest",
     "dev": "wrangler dev --config ../server-wrangler.jsonc",
     "dev:remote": "wrangler dev --remote --config ../server-wrangler.jsonc",

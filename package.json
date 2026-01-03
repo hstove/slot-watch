@@ -9,7 +9,7 @@
     "build:server": "turbo build --filter=slot-watch-api",
     "dev:server": "cd server && bun run dev:watch",
     "dev:worker": "cd server && bun run worker",
-    "migrate": "cd server && bun run migrate.ts",
+    "migrate": "bun run --cwd server --bun --env-file=../.env.local migrate",
     "typecheck": "turbo typecheck",
     "check": "biome check",
     "check:fix": "biome check --fix",
