@@ -153,25 +153,95 @@ import { openAPIRouteHandler } from 'hono-openapi';
 
 .get(
   '/openapi.json',
-  openAPIRouteHandler(blockRoutes, {
+  openAPIRouteHandler(api, {
     documentation: {
       info: {
         title: 'SlotWatch API',
         version: '1.0.0',
         description: 'API for monitoring Stacks blockchain signers and blocks',
       },
+      tags: [
+        { name: 'Burn Blocks', description: 'Bitcoin burn block operations' },
+        { name: 'Stacks Blocks', description: 'Stacks block proposals and responses' },
+        { name: 'Signers', description: 'Signer information and statistics' },
+        { name: 'State Machines', description: 'Signer state machine updates' },
+        { name: 'Miners', description: 'Miner statistics and activity' },
+      ],
     },
   })
 )
 ```
 
-**Note:** Currently only `blockRoutes` is passed to `openAPIRouteHandler`. To include all routes, you may need to combine them or pass the full app.
+### 10. Complete OpenAPI Documentation for All Routes
+
+All API routes now have complete OpenAPI documentation with:
+- **Summary**: Short description for API listings
+- **Description**: Detailed explanation of the endpoint
+- **Tags**: Categorization for API documentation UI
+- **Response schemas**: Typed response bodies using Effect Schema
+
+Routes converted:
+- `blocks.routes.ts` - All endpoints documented with tags: Burn Blocks, Stacks Blocks, Miners
+- `signers.routes.ts` - All endpoints documented with tag: Signers
+- `recents.routes.ts` - All endpoints documented with tag: Signers
+- `state-machine.routes.ts` - All endpoints documented with tag: State Machines
+
+### 11. Additional Response Schemas Added
+
+New schemas added to `common/src/server-types.ts`:
+
+```typescript
+// SignerDashboardItem for signers-dashboard response
+export const SignerDashboardItemSchema = Schema.Struct({
+  publicKey: Schema.String,
+  weight: Schema.Number,
+  weightPercent: Schema.Number,
+  weightPercentStr: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  stackedAmount: Schema.String,
+  stackedAmountStx: Schema.Number,
+  label: Schema.String,
+}).annotations({ identifier: 'SignerDashboardItem' });
+
+// StateMachinesResponse
+export const StateMachinesResponseSchema = Schema.Struct({
+  latestStateMachineUpdates: Schema.mutable(Schema.Array(ApiStateMachineUpdateSchema)),
+}).annotations({ identifier: 'StateMachinesResponse' });
+
+// StateMachineUpdatesResponse (paginated)
+export const StateMachineUpdatesResponseSchema = Schema.Struct({
+  lastId: Schema.optional(Schema.String),
+  next: Schema.String,
+  stateMachines: Schema.mutable(Schema.Array(ApiStateMachineUpdateSchema)),
+}).annotations({ identifier: 'StateMachineUpdatesResponse' });
+
+// MinersResponse
+export const MinersResponseSchema = Schema.Struct({
+  minerStats: Schema.mutable(Schema.Array(MinerStatsSchema)),
+}).annotations({ identifier: 'MinersResponse' });
+
+// BurnBlockBlocksResponse (blocks in a tenure)
+export const BurnBlockBlocksResponseSchema = Schema.Struct({
+  blocks: Schema.mutable(Schema.Array(Schema.Struct({
+    proposal: ApiBlockProposalSchema,
+    stacksBlock: Schema.NullOr(ApiStacksBlockSchema),
+  }))),
+}).annotations({ identifier: 'BurnBlockBlocksResponse' });
+
+// BurnBlockResponse (single burn block)
+export const BurnBlockResponseSchema = Schema.Struct({
+  btcBlock: Schema.NullOr(ApiBurnBlockSchema),
+}).annotations({ identifier: 'BurnBlockResponse' });
+```
 
 ## Key Files
 
 - `common/src/server-types.ts` - All API schemas (Effect Schema) + response schemas
-- `server/src/routes/blocks.routes.ts` - Converted to hono-openapi
-- `server/src/server.ts` - OpenAPI endpoint added
+- `server/src/routes/blocks.routes.ts` - Block and burn block endpoints
+- `server/src/routes/signers.routes.ts` - Signer endpoints
+- `server/src/routes/recents.routes.ts` - Recent signer activity endpoints
+- `server/src/routes/state-machine.routes.ts` - State machine endpoints
+- `server/src/server.ts` - OpenAPI endpoint and Scalar docs UI
 - `client/src/lib/slots-api.ts` - Add return types (remaining work)
 
 ## Reference Docs
@@ -186,19 +256,27 @@ import { openAPIRouteHandler } from 'hono-openapi';
 - [x] Zod schemas converted to Effect Schema
 - [x] Type errors fixed
 - [x] Response schemas added to common package
-- [x] Routes refactored to use hono-openapi (blocks.routes.ts done)
+- [x] Routes refactored to use hono-openapi
+  - [x] blocks.routes.ts
+  - [x] signers.routes.ts
+  - [x] recents.routes.ts
+  - [x] state-machine.routes.ts
 - [x] OpenAPI endpoint added
-- [ ] Convert remaining route files (signers.routes.ts, etc.)
+- [x] All routes have summary, description, and tags
+- [x] Scalar docs UI added at /docs
 - [ ] Client return types added
+
+## Endpoints NOT documented (by design)
+
+The following route files are excluded from OpenAPI documentation:
+- `chunks.routes.ts` - Internal/debug endpoints
+- `events.routes.ts` - SSE streaming endpoints
+- `health.routes.ts` - Infrastructure health checks
+- `metrics.routes.ts` - Prometheus metrics
 
 ## Next Steps
 
-### 1. Convert Remaining Route Files
-
-The following files still use Zod validators that should be converted to Effect Schema:
-- `server/src/routes/signers.routes.ts` - has `signersRequestSchema` with Zod
-
-### 2. Add Explicit Return Types to `client/src/lib/slots-api.ts`
+### 1. Add Explicit Return Types to `client/src/lib/slots-api.ts`
 
 Functions need explicit return types using types from common package. Example:
 
@@ -208,16 +286,4 @@ import type { BurnBlocksResponse, BlockProposalWithResponses } from 'slot-watch-
 export async function getBurnBlocks(networkKey: string): Promise<BurnBlocksResponse> {
   // ...
 }
-```
-
-### 3. Consider Adding OpenAPI UI
-
-Could add Swagger UI or Scalar for interactive API documentation:
-
-```typescript
-import { apiReference } from '@scalar/hono-api-reference';
-
-app.get('/docs', apiReference({
-  spec: { url: '/openapi.json' },
-}));
 ```

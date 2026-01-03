@@ -24,13 +24,43 @@ import { Schema } from 'effect';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import {
   BurnBlocksResponseSchema,
+  BurnBlockResponseSchema,
+  BurnBlockBlocksResponseSchema,
   TenureChangesResponseSchema,
   BlockResponsesResponseSchema,
   BlockProposalWithResponsesSchema,
   StxBlockResponseSchema,
+  MinersResponseSchema,
 } from 'slot-watch-common';
 
 // Request param/query schemas (local to routes)
+const NetworkKeyParamSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    networkKey: Schema.String,
+  }).annotations({ identifier: 'NetworkKeyParam' })
+);
+
+const BlockHashParamSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    networkKey: Schema.String,
+    blockHash: Schema.String,
+  }).annotations({ identifier: 'BlockHashParam' })
+);
+
+const BlockIdParamSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    networkKey: Schema.String,
+    blockId: Schema.String,
+  }).annotations({ identifier: 'BlockIdParam' })
+);
+
+const HeightOrHashParamSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    networkKey: Schema.String,
+    heightOrHash: Schema.String,
+  }).annotations({ identifier: 'HeightOrHashParam' })
+);
+
 const ConsensusHashParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
     consensusHash: Schema.String,
@@ -46,6 +76,10 @@ const TenureChangesQuerySchema = Schema.standardSchemaV1(
 
 // Standard Schema wrappers for OpenAPI resolver
 const burnBlocksResponse = Schema.standardSchemaV1(BurnBlocksResponseSchema);
+const burnBlockResponse = Schema.standardSchemaV1(BurnBlockResponseSchema);
+const burnBlockBlocksResponse = Schema.standardSchemaV1(
+  BurnBlockBlocksResponseSchema
+);
 const tenureChangesResponse = Schema.standardSchemaV1(
   TenureChangesResponseSchema
 );
@@ -56,64 +90,86 @@ const blockProposalWithResponses = Schema.standardSchemaV1(
   BlockProposalWithResponsesSchema
 );
 const stxBlockResponse = Schema.standardSchemaV1(StxBlockResponseSchema);
+const minersResponse = Schema.standardSchemaV1(MinersResponseSchema);
 
 const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
-  .get('/get_block/:networkKey/:blockId', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const blockId = c.req.param('blockId');
-    const { rewardCycleId } = await getPoxInfo.get(networkKey);
-    const stackerSet = await getStackerSet(networkKey, rewardCycleId);
+  .get(
+    '/get_block/:networkKey/:blockHash',
+    describeRoute({
+      summary: 'Get block details',
+      description:
+        'Get detailed block information including proposal, responses, and pushes',
+      tags: ['Stacks Blocks'],
+      responses: {
+        200: {
+          description: 'Block details with proposal and responses',
+          content: {
+            'application/json': {
+              schema: resolver(blockProposalWithResponses),
+            },
+          },
+        },
+      },
+    }),
+    validator('param', BlockHashParamSchema),
+    async (c) => {
+      const { networkKey, blockHash } = c.req.valid('param');
+      const { rewardCycleId } = await getPoxInfo.get(networkKey);
+      const stackerSet = await getStackerSet(networkKey, rewardCycleId);
 
-    const [pushes] = await c
-      .get('db')
-      .select()
-      .from(blockPushes)
-      .where(
-        and(
-          eq(blockPushes.signerSignatureHash, blockId),
-          eq(blockPushes.networkKey, networkKey)
+      const [pushes] = await c
+        .get('db')
+        .select()
+        .from(blockPushes)
+        .where(
+          and(
+            eq(blockPushes.signerSignatureHash, blockHash),
+            eq(blockPushes.networkKey, networkKey)
+          )
         )
-      )
-      .limit(1);
-    const [proposal] = await c
-      .get('db')
-      .select()
-      .from(blockProposals)
-      .where(
-        and(
-          eq(blockProposals.signerSignatureHash, blockId),
-          eq(blockProposals.networkKey, networkKey)
+        .limit(1);
+      const [proposal] = await c
+        .get('db')
+        .select()
+        .from(blockProposals)
+        .where(
+          and(
+            eq(blockProposals.signerSignatureHash, blockHash),
+            eq(blockProposals.networkKey, networkKey)
+          )
         )
-      )
-      .limit(1);
-    const responses = await c
-      .get('db')
-      .select()
-      .from(blockResponses)
-      .where(
-        and(
-          eq(blockResponses.signerSignatureHash, blockId),
-          eq(blockResponses.networkKey, networkKey)
-        )
-      );
+        .limit(1);
+      const responses = await c
+        .get('db')
+        .select()
+        .from(blockResponses)
+        .where(
+          and(
+            eq(blockResponses.signerSignatureHash, blockHash),
+            eq(blockResponses.networkKey, networkKey)
+          )
+        );
 
-    const responsesWithSigners = mapSignerDataToResponses({
-      stackerSet,
-      responses,
-    });
+      const responsesWithSigners = mapSignerDataToResponses({
+        stackerSet,
+        responses,
+      });
 
-    const response = {
-      proposal,
-      responses: responsesWithSigners,
-      pushes,
-    };
-    return c.json(response);
-  })
+      const response = {
+        proposal,
+        responses: responsesWithSigners,
+        pushes,
+      };
+      return c.json(response);
+    }
+  )
   .get(
     '/blocks/:networkKey/:blockId/responses',
     describeRoute({
-      description: 'Get signer responses for a block',
+      summary: 'Get block responses by ID',
+      description: 'Get signer responses for a specific block by block ID',
+      tags: ['Stacks Blocks'],
       responses: {
         200: {
           description: 'List of signer responses',
@@ -123,9 +179,9 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
+    validator('param', BlockIdParamSchema),
     async (c) => {
-      const networkKey = c.req.param('networkKey');
-      const blockId = c.req.param('blockId');
+      const { networkKey, blockId } = c.req.valid('param');
       const responses = await c
         .get('db')
         .select()
@@ -143,7 +199,9 @@ const blockRoutes = new Hono<ServerType>()
   .get(
     '/burn-blocks/:networkKey',
     describeRoute({
-      description: 'Get recent burn blocks for a network',
+      summary: 'Get recent burn blocks',
+      description: 'Get the most recent burn blocks for a network',
+      tags: ['Burn Blocks'],
       responses: {
         200: {
           description: 'List of recent burn blocks',
@@ -153,8 +211,9 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
+    validator('param', NetworkKeyParamSchema),
     async (c) => {
-      const networkKey = c.req.param('networkKey');
+      const { networkKey } = c.req.valid('param');
       logger.debug(
         {
           route: c.req.path,
@@ -195,38 +254,68 @@ const blockRoutes = new Hono<ServerType>()
       }
     }
   )
-  .get('/burn-blocks/:networkKey/:heightOrHash', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    const heightOrHash = c.req.param('heightOrHash');
-    let heightMaybe: number | null = null;
-    try {
-      const heightBn = BigInt(heightOrHash);
-      heightMaybe = Number(heightBn);
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: ignored using `--suppress`
-    } catch (error) {}
-    const [btcBlock] = await c
-      .get('db')
-      .select()
-      .from(burnBlocks)
-      .where(
-        and(
-          typeof heightMaybe === 'number'
-            ? eq(burnBlocks.burnBlockHeight, heightMaybe)
-            : eq(burnBlocks.burnBlockHash, heightOrHash),
-          eq(burnBlocks.networkKey, networkKey)
+  .get(
+    '/burn-blocks/:networkKey/:heightOrHash',
+    describeRoute({
+      summary: 'Get burn block by height or hash',
+      description: 'Get a specific burn block by its height or hash identifier',
+      tags: ['Burn Blocks'],
+      responses: {
+        200: {
+          description: 'Burn block details',
+          content: {
+            'application/json': { schema: resolver(burnBlockResponse) },
+          },
+        },
+      },
+    }),
+    validator('param', HeightOrHashParamSchema),
+    async (c) => {
+      const { networkKey, heightOrHash } = c.req.valid('param');
+      let heightMaybe: number | null = null;
+      try {
+        const heightBn = BigInt(heightOrHash);
+        heightMaybe = Number(heightBn);
+        // biome-ignore lint/suspicious/noEmptyBlockStatements: ignored using `--suppress`
+      } catch (error) {}
+      const [btcBlock] = await c
+        .get('db')
+        .select()
+        .from(burnBlocks)
+        .where(
+          and(
+            typeof heightMaybe === 'number'
+              ? eq(burnBlocks.burnBlockHeight, heightMaybe)
+              : eq(burnBlocks.burnBlockHash, heightOrHash),
+            eq(burnBlocks.networkKey, networkKey)
+          )
         )
-      )
-      .orderBy(desc(burnBlocks.id))
-      .limit(1);
-    return c.json({ btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null });
-  })
+        .orderBy(desc(burnBlocks.id))
+        .limit(1);
+      return c.json({
+        btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null,
+      });
+    }
+  )
   .get(
     '/burn-blocks/:networkKey/:consensusHash/blocks',
+    describeRoute({
+      summary: 'Get blocks in a tenure',
+      description:
+        'Get all Stacks blocks proposed during a specific burn block tenure',
+      tags: ['Burn Blocks'],
+      responses: {
+        200: {
+          description: 'List of blocks in the tenure',
+          content: {
+            'application/json': { schema: resolver(burnBlockBlocksResponse) },
+          },
+        },
+      },
+    }),
     validator('param', ConsensusHashParamSchema),
     async (c) => {
       const { consensusHash, networkKey } = c.req.valid('param');
-      // const networkKey = c.req.valid;
-      // const burnBlockHeight = c.req.valid;
       const blocks = await c
         .get('db')
         .select()
@@ -258,7 +347,10 @@ const blockRoutes = new Hono<ServerType>()
   .get(
     '/tenure-changes/:networkKey',
     describeRoute({
-      description: 'Get recent tenure changes for a network',
+      summary: 'Get recent tenure changes',
+      description:
+        'Get recent tenure change blocks, optionally filtered by cause',
+      tags: ['Stacks Blocks'],
       responses: {
         200: {
           description: 'List of recent tenure changes',
@@ -268,9 +360,10 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
+    validator('param', NetworkKeyParamSchema),
     validator('query', TenureChangesQuerySchema),
     async (c) => {
-      const networkKey = c.req.param('networkKey');
+      const { networkKey } = c.req.valid('param');
       const { cause } = c.req.valid('query');
       const tenureChanges = await c
         .get('db')
@@ -289,19 +382,37 @@ const blockRoutes = new Hono<ServerType>()
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
     }
   )
-  .get('/:networkKey/miners', async (c) => {
-    const networkKey = c.req.param('networkKey');
-    // const latestBlockProposals = await getAllLatestBlockProposals(networkKey);
-    const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));
-    return c.json({
-      // latestBlockProposals,
-      minerStats,
-    });
-  })
+  .get(
+    '/:networkKey/miners',
+    describeRoute({
+      summary: 'Get miner statistics',
+      description: 'Get recent mining statistics for all active miners',
+      tags: ['Miners'],
+      responses: {
+        200: {
+          description: 'Miner statistics',
+          content: {
+            'application/json': { schema: resolver(minersResponse) },
+          },
+        },
+      },
+    }),
+    validator('param', NetworkKeyParamSchema),
+    async (c) => {
+      const { networkKey } = c.req.valid('param');
+      const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));
+      return c.json({
+        minerStats,
+      });
+    }
+  )
   .get(
     '/:networkKey/blocks/:blockHash/responses',
     describeRoute({
-      description: 'Get block proposal with signer responses',
+      summary: 'Get block proposal with responses',
+      description:
+        'Get a block proposal and all signer responses for a specific block',
+      tags: ['Stacks Blocks'],
       responses: {
         200: {
           description: 'Block proposal and responses',
@@ -313,9 +424,9 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
+    validator('param', BlockHashParamSchema),
     async (c) => {
-      const networkKey = c.req.param('networkKey');
-      const blockHash = c.req.param('blockHash');
+      const { networkKey, blockHash } = c.req.valid('param');
       const blockProposal = await c.get('db').query.blockProposals.findFirst({
         where: eq(blockProposals.signerSignatureHash, blockHash),
       });
@@ -336,7 +447,9 @@ const blockRoutes = new Hono<ServerType>()
   .get(
     '/blocks/:networkKey/stx-blocks/:blockHash',
     describeRoute({
-      description: 'Get a Stacks block by hash',
+      summary: 'Get Stacks block by hash',
+      description: 'Get a specific Stacks block and its proposal by block hash',
+      tags: ['Stacks Blocks'],
       responses: {
         200: {
           description: 'Stacks block with proposal',
@@ -346,9 +459,9 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
+    validator('param', BlockHashParamSchema),
     async (c) => {
-      const networkKey = c.req.param('networkKey');
-      const blockHash = c.req.param('blockHash');
+      const { networkKey, blockHash } = c.req.valid('param');
       const blockProposal = await c.get('db').query.blockProposals.findFirst({
         where: eq(blockProposals.signerSignatureHash, blockHash),
       });
