@@ -1,5 +1,15 @@
 import type { Db } from './db';
-import { eq, desc, and, inArray, getTableColumns, gte, lte } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  and,
+  exists,
+  inArray,
+  getTableColumns,
+  gte,
+  lte,
+  sql,
+} from 'drizzle-orm';
 import {
   blockPushes,
   blockProposals as blockProposalsSchema,
@@ -260,28 +270,34 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
       minerPublicKey: blockProposals.minerPublicKey,
       serverVersion: blockProposals.serverVersion,
     })
-    // .selectDistinctOn([blockProposals.burnBlockHeight], {
-    //   chainLength: blockProposals.chainLength,
-    //   minerPublicKey: blockProposals.minerPublicKey,
-    //   serverVersion: blockProposals.serverVersion,
-    //   burnBlockHeight: burnBlocks.burnBlockHeight,
-    // })
     .from(blockProposals)
-    .innerJoin(
-      burnBlocks,
+    .where(
       and(
-        eq(blockProposals.consensusHash, burnBlocks.consensusHash),
-        eq(burnBlocks.networkKey, networkKey)
+        eq(blockProposals.networkKey, networkKey),
+        exists(
+          db
+            .select({ one: sql`1` })
+            .from(burnBlocks)
+            .where(
+              and(
+                eq(burnBlocks.consensusHash, blockProposals.consensusHash),
+                eq(burnBlocks.networkKey, networkKey)
+              )
+            )
+        ),
+        exists(
+          db
+            .select({ one: sql`1` })
+            .from(stacksBlocks)
+            .where(
+              and(
+                eq(stacksBlocks.consensusHash, blockProposals.consensusHash),
+                eq(stacksBlocks.networkKey, networkKey)
+              )
+            )
+        )
       )
     )
-    .innerJoin(
-      stacksBlocks,
-      and(
-        eq(blockProposals.consensusHash, stacksBlocks.consensusHash),
-        eq(stacksBlocks.networkKey, networkKey)
-      )
-    )
-    .where(eq(blockProposals.networkKey, networkKey))
     .orderBy(
       desc(blockProposals.burnBlockHeight),
       desc(blockProposals.chainLength),
@@ -289,51 +305,6 @@ export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
     )
     .limit(500);
 
-  // const recentBlocks = await db
-  //   .select({
-  //     ...getTableColumns(blockProposalsSchema),
-  //     pushedAt: blockPushes.id,
-  //   })
-  //   .from(blockProposalsSchema)
-  //   .leftJoin(
-  //     blockPushes,
-  //     and(
-  //       eq(
-  //         blockProposalsSchema.signerSignatureHash,
-  //         blockPushes.signerSignatureHash,
-  //       ),
-  //       eq(blockPushes.networkKey, blockProposalsSchema.networkKey),
-  //     ),
-  //   )
-  //   .where(eq(blockProposalsSchema.networkKey, networkKey))
-  //   .orderBy(
-  //     desc(blockProposalsSchema.burnBlockHeight),
-  //     desc(blockProposalsSchema.chainLength),
-  //     desc(blockProposalsSchema.id),
-  //   )
-  //   .limit(1000);
-
-  // const recentBlocks = await db.execute<{
-  //   consensus_hash: string;
-  //   burn_block_height: number;
-  //   chain_length: number;
-  //   signer_signature_hash: string;
-  //   miner_public_key: string;
-  //   server_version: string;
-  // }>(sql`
-  //   select
-  //     distinct on (bb.burn_block_height) bb.consensus_hash
-  //     , bp.chain_length
-  //     , bp.signer_signature_hash
-  //     , bb.burn_block_height
-  //     , bp.miner_public_key
-  //     , bp.server_version
-  //   from block_proposals bp
-  //   join burn_blocks bb on bb.consensus_hash = bp.consensus_hash and bb.network_key = ${networkKey}
-  //   join stacks_blocks sb on sb.consensus_hash = bp.consensus_hash and sb.network_key = ${networkKey}
-  //   order by bb.burn_block_height desc, bp.chain_length desc
-  //   limit 1000;
-  //   `);
   return recentBlocks;
 }
 

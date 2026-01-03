@@ -26,33 +26,6 @@ const kv = await KVNamespace('cache', {
   adopt: true,
 });
 
-const website = await Website('slot-watch-website', {
-  name: 'slot-watch-website',
-  assets: 'client/dist',
-  wrangler: {
-    main: 'client/worker.ts',
-  },
-  compatibilityFlags: ['nodejs_compat'],
-  compatibilityDate: '2025-05-29',
-  bindings: {
-    VITE_SLOTS_API_URL: 'https://slot-watch.fly.dev',
-  },
-  adopt: true,
-});
-
-await WranglerJson('wrangler-website', {
-  worker: website,
-  path: 'client/wrangler.jsonc',
-  // adopt: true,
-});
-
-await CustomDomain('slot-watch-website-domain', {
-  name: 'slotwatch.dev',
-  zoneId: '121c1d3bc83456fd77bf1957012e03bc',
-  workerName: website.name,
-  adopt: true,
-});
-
 const db = await Hyperdrive('slot-watch-pg', {
   name: 'slot-watch-pg-hyperdrive',
   origin: {
@@ -61,6 +34,9 @@ const db = await Hyperdrive('slot-watch-pg', {
     user: 'postgres',
     database: 'postgres',
     password: alchemy.secret(process.env.DATABASE_PASSWORD),
+  },
+  dev: {
+    origin: alchemy.secret(process.env.DATABASE_URL),
   },
   caching: {
     disabled: true,
@@ -94,16 +70,44 @@ export const worker = await Worker('slot-watch-worker', {
   adopt: true,
 });
 
-const domain = await CustomDomain('slot-watch-api-domain', {
+const apiDomain = await CustomDomain('slot-watch-api-domain', {
   name: 'api.slotwatch.dev',
   zoneId: '121c1d3bc83456fd77bf1957012e03bc',
   workerName: worker.name,
   adopt: true,
 });
 
-await WranglerJson('wrangler-worker', {
+await WranglerJson({
   worker,
   path: 'server-wrangler.jsonc',
+});
+
+const website = await Website('slot-watch-website', {
+  name: 'slot-watch-website',
+  assets: 'client/dist',
+  wrangler: {
+    main: 'client/worker.ts',
+  },
+  compatibilityFlags: ['nodejs_compat'],
+  compatibilityDate: '2025-05-29',
+  bindings: {
+    VITE_SLOTS_API_URL: 'https://api.slotwatch.dev',
+    API_WORKER: worker,
+  },
+  adopt: true,
+});
+
+await WranglerJson({
+  worker: website,
+  path: 'client/wrangler.jsonc',
+  // adopt: true,
+});
+
+await CustomDomain('slot-watch-website-domain', {
+  name: 'slotwatch.dev',
+  zoneId: '121c1d3bc83456fd77bf1957012e03bc',
+  workerName: website.name,
+  adopt: true,
 });
 
 await Exec('deploy-streamer', {

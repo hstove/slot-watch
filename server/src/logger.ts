@@ -34,46 +34,24 @@ const _log = {
 
 export const logger = _log;
 
-// export let logger: Logger;
-
-// if (process.env.NODE_ENV === 'development') {
-//   logger = pino({
-//     level: 'info',
-//     transport: {
-//       target: 'pino-pretty',
-//     },
-//   });
-// } else {
-//   logger = pino({
-//     level: 'debug',
-//     formatters: {
-//       level: (label) => {
-//         return { level: label };
-//       },
-//     },
-//     mixin() {
-//       return {
-//         fly_process_group: process.env.FLY_PROCESS_GROUP,
-//       };
-//     },
-//     browser: {
-//       asObject: true,
-//     },
-//   });
-// }
-
 export const honoLogger: MiddlewareHandler = async (c, next) => {
   const path = getPath(c.req.raw);
   const method = c.req.method;
   const requestId = c.get('requestId');
 
-  log
-    .withMetadata({
-      requestId,
-      path,
-      method,
-    })
-    .debug('Request received');
+  const doLog = (() => {
+    if (path.includes('favicon.ico')) return false;
+    return true;
+  })();
+
+  doLog &&
+    log
+      .withMetadata({
+        requestId,
+        path,
+        method,
+      })
+      .debug('Request received');
 
   const start = Date.now();
 
@@ -81,15 +59,16 @@ export const honoLogger: MiddlewareHandler = async (c, next) => {
 
   const duration = Date.now() - start;
 
-  log
-    .withMetadata({
-      requestId,
-      path,
-      method,
-      duration,
-      durationHumanized: time(duration),
-    })
-    .debug('Request completed');
+  doLog &&
+    log
+      .withMetadata({
+        requestId,
+        path,
+        method,
+        duration,
+        durationHumanized: time(duration),
+      })
+      .debug('Request completed');
 };
 
 function time(delta: number): string {
