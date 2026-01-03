@@ -117,46 +117,53 @@ interface MinerDetailResponse {
    - `MinerWindowStatsSchema` - stats for time windows
    - Updated `MinersResponseSchema` to match actual API output
 
-### Phase 2: Individual Miner Detail Page (`slot-watch-1j2`)
+### Phase 2: Individual Miner Detail Page (`slot-watch-1j2`) - COMPLETED
 
-**New route**: `/miners/$publicKey` (`client/src/routes/miners/$publicKey.tsx`)
+**Completed 2026-01-03:**
 
-Following the pattern from `stx-blocks/$blockHash.tsx`:
+**Route**: `/miners/$publicKey` (`client/src/routes/miners/$publicKey.tsx`)
 - TanStack Router file-based routing
-- Network-aware loader
-- Fetch miner detail + recent blocks in parallel
+- Network-aware loader using `getMinerDetail` API
+- Clean, simple route that delegates to `MinerDetail` component
 
-**New component**: `MinerDetail` (`client/src/components/miners/miner-detail.tsx`)
+**Component**: `MinerDetail` (`client/src/components/miners/miner-detail.tsx`)
+- Shows miner public key and current version
+- Performance statistics: blocks won (last 500 with %), all-time blocks, first seen date
+- Version history table with version, first/last seen dates, block count
+- Recent blocks table with BTC/STX heights, block hash (links to detail), timestamp, tx count, version
+- Follows TUI design system from `UI-DESIGN.md`
 
-Layout (following TUI design system from `UI-DESIGN.md`):
+Layout:
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Miner: [truncated public key]                           │
-│ Version: stacks-node 3.1.0.0.0                          │
+│ Miner                                                   │
+├─────────────────────────────────────────────────────────┤
+│ Public Key:         [truncated public key]              │
+│ Current Version:    3.1.0.0.0                           │
 ├─────────────────────────────────────────────────────────┤
 │ Performance Statistics                                   │
 │ ───────────────────────────────────────────────────────  │
 │ Blocks Won (last 500)    45 (9.0%)                       │
-│ Blocks Won (last 1000)   87 (8.7%)                       │
+│ Blocks Won (all time)    1,234                           │
 │ First Seen               2024-06-15                      │
-│ Total Blocks             1,234                           │
 ├─────────────────────────────────────────────────────────┤
 │ Version History                                          │
-│ ───────────────────────────────────────────────────────  │
-│ [DataTable: version, first seen, last seen]              │
+│ [DataTable: version, first seen, last seen, blocks]      │
 ├─────────────────────────────────────────────────────────┤
 │ Recent Blocks                                            │
-│ ───────────────────────────────────────────────────────  │
-│ [DataTable: BTC height, STX height, timestamp, link]     │
+│ [DataTable: BTC height, STX height, hash, time, txs, ver]│
 └─────────────────────────────────────────────────────────┘
 ```
 
-**API client addition** (`client/src/lib/slots-api.ts`):
+**API client** (`client/src/lib/slots-api.ts`):
 ```typescript
 export async function getMinerDetail(networkKey: string, publicKey: string) {
   const response = await apiClient[':networkKey'].miners[':publicKey'].$get({
     param: { networkKey, publicKey },
   });
+  if (!response.ok) {
+    throw new Error('Miner not found');
+  }
   return response.json();
 }
 ```
@@ -188,8 +195,8 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
 ## File Changes Summary
 
 ### New Files
-- `client/src/routes/miners/$publicKey.tsx` - route handler (CREATED - basic version)
-- `client/src/components/miners/miner-detail.tsx` - detail component (pending - for enhanced version)
+- `client/src/routes/miners/$publicKey.tsx` - route handler (DONE)
+- `client/src/components/miners/miner-detail.tsx` - detail component (DONE)
 - `server/src/routes/miners.routes.ts` - dedicated miners routes with OpenAPI docs (DONE)
 
 ### Modified Files
@@ -197,7 +204,7 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
 - `common/src/server-types.ts` - add miner detail types (DONE)
 - `server/src/server.ts` - mount miners routes (DONE)
 - `server/src/routes/blocks.routes.ts` - removed miners endpoint (moved to miners.routes.ts) (DONE)
-- `client/src/lib/slots-api.ts` - add getMinerDetail function (pending)
+- `client/src/lib/slots-api.ts` - add getMinerDetail function (DONE)
 - `client/src/components/miners/miners.tsx` - add links (DONE)
 - `client/src/components/stacks-block/stacks-block-detail.tsx` - add miner link (DONE)
 
@@ -209,11 +216,11 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
    - ~~Add OpenAPI documentation~~ DONE
    - Test with manual API calls (pending deployment)
 
-2. **Frontend detail page** (`slot-watch-1j2`):
-   - Add API client function
-   - Update route file to use new endpoint
-   - Build enhanced detail component with version history and recent blocks
-   - Test navigation
+2. **Frontend detail page** (`slot-watch-1j2`) - **COMPLETED 2026-01-03**:
+   - ~~Add API client function~~ DONE
+   - ~~Update route file to use new endpoint~~ DONE
+   - ~~Build enhanced detail component with version history and recent blocks~~ DONE
+   - Test navigation (pending deployment)
 
 3. **Add links** (`slot-watch-nh6`) - **COMPLETED 2026-01-02**:
    - ~~Update miners listing~~ DONE

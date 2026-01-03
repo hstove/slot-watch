@@ -2,7 +2,9 @@
   "name": "slot-watch-worker",
   "main": "server/src/server.ts",
   "compatibility_date": "2025-05-29",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "vars": {
     "STREAMER_URL": "https://slot-watch-streamer.fly.dev"
   },

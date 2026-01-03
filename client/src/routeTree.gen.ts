@@ -13,8 +13,8 @@ import { Route as WhenExtendRouteImport } from './routes/when-extend'
 import { Route as UiTestRouteImport } from './routes/ui-test'
 import { Route as StateMachinesRouteImport } from './routes/state-machines'
 import { Route as SignersRouteImport } from './routes/signers'
-import { Route as MinersRouteImport } from './routes/miners'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MinersIndexRouteImport } from './routes/miners/index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
 import { Route as StxBlocksBlockHashRouteImport } from './routes/stx-blocks/$blockHash'
 import { Route as MinersPublicKeyRouteImport } from './routes/miners/$publicKey'
@@ -40,14 +40,14 @@ const SignersRoute = SignersRouteImport.update({
   path: '/signers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MinersRoute = MinersRouteImport.update({
-  id: '/miners',
-  path: '/miners',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinersIndexRoute = MinersIndexRouteImport.update({
+  id: '/miners/',
+  path: '/miners/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlocksIndexRoute = BlocksIndexRouteImport.update({
@@ -61,9 +61,9 @@ const StxBlocksBlockHashRoute = StxBlocksBlockHashRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MinersPublicKeyRoute = MinersPublicKeyRouteImport.update({
-  id: '/$publicKey',
-  path: '/$publicKey',
-  getParentRoute: () => MinersRoute,
+  id: '/miners/$publicKey',
+  path: '/miners/$publicKey',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
   id: '/btc-blocks/$heightOrHash',
@@ -73,7 +73,6 @@ const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -82,10 +81,10 @@ export interface FileRoutesByFullPath {
   '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
+  '/miners': typeof MinersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -94,11 +93,11 @@ export interface FileRoutesByTo {
   '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
+  '/miners': typeof MinersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/miners': typeof MinersRouteWithChildren
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -107,12 +106,12 @@ export interface FileRoutesById {
   '/miners/$publicKey': typeof MinersPublicKeyRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks/': typeof BlocksIndexRoute
+  '/miners/': typeof MinersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/miners'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -121,10 +120,10 @@ export interface FileRouteTypes {
     | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks'
+    | '/miners'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/miners'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -133,10 +132,10 @@ export interface FileRouteTypes {
     | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks'
+    | '/miners'
   id:
     | '__root__'
     | '/'
-    | '/miners'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -145,18 +144,20 @@ export interface FileRouteTypes {
     | '/miners/$publicKey'
     | '/stx-blocks/$blockHash'
     | '/blocks/'
+    | '/miners/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MinersRoute: typeof MinersRouteWithChildren
   SignersRoute: typeof SignersRoute
   StateMachinesRoute: typeof StateMachinesRoute
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
+  MinersPublicKeyRoute: typeof MinersPublicKeyRoute
   StxBlocksBlockHashRoute: typeof StxBlocksBlockHashRoute
   BlocksIndexRoute: typeof BlocksIndexRoute
+  MinersIndexRoute: typeof MinersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -189,18 +190,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/miners': {
-      id: '/miners'
-      path: '/miners'
-      fullPath: '/miners'
-      preLoaderRoute: typeof MinersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/miners/': {
+      id: '/miners/'
+      path: '/miners'
+      fullPath: '/miners'
+      preLoaderRoute: typeof MinersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blocks/': {
@@ -219,10 +220,10 @@ declare module '@tanstack/react-router' {
     }
     '/miners/$publicKey': {
       id: '/miners/$publicKey'
-      path: '/$publicKey'
+      path: '/miners/$publicKey'
       fullPath: '/miners/$publicKey'
       preLoaderRoute: typeof MinersPublicKeyRouteImport
-      parentRoute: typeof MinersRoute
+      parentRoute: typeof rootRouteImport
     }
     '/btc-blocks/$heightOrHash': {
       id: '/btc-blocks/$heightOrHash'
@@ -234,27 +235,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface MinersRouteChildren {
-  MinersPublicKeyRoute: typeof MinersPublicKeyRoute
-}
-
-const MinersRouteChildren: MinersRouteChildren = {
-  MinersPublicKeyRoute: MinersPublicKeyRoute,
-}
-
-const MinersRouteWithChildren =
-  MinersRoute._addFileChildren(MinersRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MinersRoute: MinersRouteWithChildren,
   SignersRoute: SignersRoute,
   StateMachinesRoute: StateMachinesRoute,
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
   BtcBlocksHeightOrHashRoute: BtcBlocksHeightOrHashRoute,
+  MinersPublicKeyRoute: MinersPublicKeyRoute,
   StxBlocksBlockHashRoute: StxBlocksBlockHashRoute,
   BlocksIndexRoute: BlocksIndexRoute,
+  MinersIndexRoute: MinersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
