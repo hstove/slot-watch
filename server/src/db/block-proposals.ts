@@ -361,3 +361,124 @@ export async function fetchBlockProposalsByHash(
   });
   return R.map(blockProposalsList, serializeBlockProposal);
 }
+
+function buildVersionHistory(
+  minerBlocks: Array<{ serverVersion: string | null; blockTimestamp: Date }>
+) {
+  const versionMap = new Map<
+    string,
+    { firstSeen: Date; lastSeen: Date; blockCount: number }
+  >();
+  for (const block of minerBlocks) {
+    const version = block.serverVersion ?? 'Unknown';
+    const existing = versionMap.get(version);
+    const timestamp = block.blockTimestamp;
+    if (existing) {
+      existing.blockCount++;
+      if (timestamp < existing.firstSeen) existing.firstSeen = timestamp;
+      if (timestamp > existing.lastSeen) existing.lastSeen = timestamp;
+    } else {
+      versionMap.set(version, {
+        firstSeen: timestamp,
+        lastSeen: timestamp,
+        blockCount: 1,
+      });
+    }
+  }
+
+  return Array.from(versionMap.entries())
+    .map(([version, data]) => ({
+      version,
+      versionShort: getVersionFromString(version),
+      firstSeen: data.firstSeen.toISOString(),
+      lastSeen: data.lastSeen.toISOString(),
+      blockCount: data.blockCount,
+    }))
+    .sort(
+      (a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime()
+    );
+}
+
+export async function fetchMinerDetail(
+  networkKey: string,
+  publicKey: string,
+  db: Db
+) {
+  const minerBlocks = await db
+    .select({
+      burnBlockHeight: blockProposals.burnBlockHeight,
+      chainLength: blockProposals.chainLength,
+      signerSignatureHash: blockProposals.signerSignatureHash,
+      blockTimestamp: blockProposals.blockTimestamp,
+      serverVersion: blockProposals.serverVersion,
+      txCount: blockProposals.txCount,
+      id: blockProposals.id,
+    })
+    .from(blockProposals)
+    .where(
+      and(
+        eq(blockProposals.networkKey, networkKey),
+        eq(blockProposals.minerPublicKey, publicKey)
+      )
+    )
+    .orderBy(desc(blockProposals.id))
+    .limit(500);
+
+  if (minerBlocks.length === 0) {
+    return null;
+  }
+
+  const recentMinerBlocks = await fetchRecentMinerBlocksCache.get(
+    networkKey,
+    db
+  );
+  const totalRecentBlocks = recentMinerBlocks.length;
+  const minerRecentCount = recentMinerBlocks.filter(
+    (b) => b.minerPublicKey === publicKey
+  ).length;
+
+  const versionHistory = buildVersionHistory(minerBlocks);
+
+  const latestBlock = minerBlocks[0];
+  const currentVersion = latestBlock?.serverVersion ?? null;
+
+  const recentBlocks = minerBlocks.slice(0, 50).map((block) => ({
+    burnBlockHeight: block.burnBlockHeight,
+    chainLength: block.chainLength,
+    signerSignatureHash: block.signerSignatureHash,
+    blockTimestamp: block.blockTimestamp.toISOString(),
+    serverVersion: block.serverVersion,
+    serverVersionShort: block.serverVersion
+      ? getVersionFromString(block.serverVersion)
+      : null,
+    txCount: block.txCount,
+  }));
+
+  const oldestBlock = minerBlocks.at(-1);
+  const firstSeen = oldestBlock?.blockTimestamp.toISOString() ?? null;
+
+  return {
+    miner: {
+      publicKey,
+      stats: {
+        last500: {
+          blocksWon: minerRecentCount,
+          percentage:
+            totalRecentBlocks > 0
+              ? (minerRecentCount / totalRecentBlocks) * 100
+              : 0,
+        },
+        allTime: {
+          blocksWon: minerBlocks.length,
+          firstSeen,
+        },
+      },
+      currentVersion,
+      currentVersionShort: currentVersion
+        ? getVersionFromString(currentVersion)
+        : null,
+      versionHistory,
+    },
+    recentBlocks,
+  };
+}

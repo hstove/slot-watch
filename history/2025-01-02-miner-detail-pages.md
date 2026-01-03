@@ -12,7 +12,7 @@ This plan covers the implementation of detailed miner information pages, includi
 | ID | Title | Type | Status | Dependencies |
 |----|-------|------|--------|--------------|
 | `slot-watch-prr` | Detailed Miner Information and History | epic | open | - |
-| `slot-watch-n3j` | Backend API for Miner History and Stats | task | open | parent: prr |
+| `slot-watch-n3j` | Backend API for Miner History and Stats | task | **closed** | parent: prr |
 | `slot-watch-1j2` | Individual Miner Detail Page | feature | open | blocked by n3j |
 | `slot-watch-nh6` | Link to Miner Details from Listing and Block Views | feature | **closed** | related to 1j2 |
 
@@ -61,7 +61,9 @@ Also in `block_pushes`:
 
 ## Implementation Plan
 
-### Phase 1: Backend API for Miner History (`slot-watch-n3j`)
+### Phase 1: Backend API for Miner History (`slot-watch-n3j`) - COMPLETED
+
+**Completed 2026-01-03:**
 
 **New endpoint**: `GET /:networkKey/miners/:publicKey`
 
@@ -70,48 +72,50 @@ Returns:
 interface MinerDetailResponse {
   miner: {
     publicKey: string;
-    // Stats for different time windows
     stats: {
       last500: { blocksWon: number; percentage: number };
-      last1000: { blocksWon: number; percentage: number };
-      allTime: { blocksWon: number; firstSeen: string };
+      allTime: { blocksWon: number; firstSeen: string | null };
     };
-    // Latest version info
-    currentVersion: string;
-    currentVersionShort: string;
-    // Historical versions used
+    currentVersion: string | null;
+    currentVersionShort: string | null;
     versionHistory: Array<{
       version: string;
+      versionShort: string | null;
       firstSeen: string;
       lastSeen: string;
+      blockCount: number;
     }>;
   };
-  // Recent blocks won by this miner
   recentBlocks: Array<{
     burnBlockHeight: number;
     chainLength: number;
     signerSignatureHash: string;
     blockTimestamp: string;
-    serverVersion: string;
+    serverVersion: string | null;
+    serverVersionShort: string | null;
+    txCount: number;
   }>;
 }
 ```
 
-**Implementation location**: `server/src/db/block-proposals.ts`
+**Implementation details:**
 
-New functions:
-- `fetchMinerDetail(networkKey, publicKey, db)` - main data fetcher
-- `fetchMinerRecentBlocks(networkKey, publicKey, limit, db)` - paginated block list
-- `fetchMinerVersionHistory(networkKey, publicKey, db)` - version timeline
+1. **New routes file**: `server/src/routes/miners.routes.ts`
+   - Dedicated routes file for miner endpoints
+   - Full OpenAPI documentation with Effect Schema
+   - Moved `/:networkKey/miners` listing endpoint here
+   - Added `/:networkKey/miners/:publicKey` detail endpoint
 
-**Route addition**: `server/src/routes/blocks.routes.ts`
-```typescript
-.get('/:networkKey/miners/:publicKey', async (c) => {
-  const { networkKey, publicKey } = c.req.param();
-  const minerDetail = await fetchMinerDetail(networkKey, publicKey, c.get('db'));
-  return c.json(minerDetail);
-})
-```
+2. **New query function**: `server/src/db/block-proposals.ts`
+   - `fetchMinerDetail(networkKey, publicKey, db)` - fetches miner stats, version history, and recent blocks
+   - `buildVersionHistory()` - helper to aggregate version usage over time
+
+3. **New types**: `common/src/server-types.ts`
+   - `MinerDetailResponseSchema` - full miner detail response
+   - `MinerVersionHistorySchema` - version history entry
+   - `MinerRecentBlockSchema` - recent block entry
+   - `MinerWindowStatsSchema` - stats for time windows
+   - Updated `MinersResponseSchema` to match actual API output
 
 ### Phase 2: Individual Miner Detail Page (`slot-watch-1j2`)
 
@@ -186,25 +190,29 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
 ### New Files
 - `client/src/routes/miners/$publicKey.tsx` - route handler (CREATED - basic version)
 - `client/src/components/miners/miner-detail.tsx` - detail component (pending - for enhanced version)
+- `server/src/routes/miners.routes.ts` - dedicated miners routes with OpenAPI docs (DONE)
 
 ### Modified Files
-- `server/src/routes/blocks.routes.ts` - add miner detail endpoint (pending)
-- `server/src/db/block-proposals.ts` - add miner query functions (pending)
+- `server/src/db/block-proposals.ts` - add miner query functions (DONE)
+- `common/src/server-types.ts` - add miner detail types (DONE)
+- `server/src/server.ts` - mount miners routes (DONE)
+- `server/src/routes/blocks.routes.ts` - removed miners endpoint (moved to miners.routes.ts) (DONE)
 - `client/src/lib/slots-api.ts` - add getMinerDetail function (pending)
 - `client/src/components/miners/miners.tsx` - add links (DONE)
 - `client/src/components/stacks-block/stacks-block-detail.tsx` - add miner link (DONE)
 
 ## Implementation Order
 
-1. **Backend first** (`slot-watch-n3j`):
-   - Add database query functions
-   - Add API endpoint
-   - Test with manual API calls
+1. **Backend first** (`slot-watch-n3j`) - **COMPLETED 2026-01-03**:
+   - ~~Add database query functions~~ DONE
+   - ~~Add API endpoint~~ DONE
+   - ~~Add OpenAPI documentation~~ DONE
+   - Test with manual API calls (pending deployment)
 
 2. **Frontend detail page** (`slot-watch-1j2`):
    - Add API client function
-   - Create route file
-   - Build detail component
+   - Update route file to use new endpoint
+   - Build enhanced detail component with version history and recent blocks
    - Test navigation
 
 3. **Add links** (`slot-watch-nh6`) - **COMPLETED 2026-01-02**:

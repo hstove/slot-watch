@@ -334,20 +334,21 @@ export const StateMachineUpdatesResponseSchema = Schema.Struct({
 export interface StateMachineUpdatesResponse
   extends Schema.Schema.Type<typeof StateMachineUpdatesResponseSchema> {}
 
-// MinerStats schema
-export const MinerStatsSchema = Schema.Struct({
-  minerPublicKey: Schema.String,
-  blockCount: Schema.Number,
-  avgTxCount: Schema.Number,
-  avgTxFees: Schema.Number,
-  latestBlock: Schema.optional(ApiBlockProposalSchema),
-}).annotations({ identifier: 'MinerStats' });
-export interface MinerStats
-  extends Schema.Schema.Type<typeof MinerStatsSchema> {}
+// MinerSummary schema (for list view)
+export const MinerSummarySchema = Schema.Struct({
+  publicKey: Schema.String,
+  count: Schema.Number,
+  latestBlock: Schema.Number,
+  version: Schema.String,
+}).annotations({ identifier: 'MinerSummary' });
+export interface MinerSummary
+  extends Schema.Schema.Type<typeof MinerSummarySchema> {}
 
 // MinersResponse schema
 export const MinersResponseSchema = Schema.Struct({
-  minerStats: Schema.mutable(Schema.Array(MinerStatsSchema)),
+  minerStats: Schema.Struct({
+    miners: Schema.mutable(Schema.Array(MinerSummarySchema)),
+  }),
 }).annotations({ identifier: 'MinersResponse' });
 export interface MinersResponse
   extends Schema.Schema.Type<typeof MinersResponseSchema> {}
@@ -372,3 +373,55 @@ export const BurnBlockResponseSchema = Schema.Struct({
 }).annotations({ identifier: 'BurnBlockResponse' });
 export interface BurnBlockResponse
   extends Schema.Schema.Type<typeof BurnBlockResponseSchema> {}
+
+// Miner version history entry
+export const MinerVersionHistorySchema = Schema.Struct({
+  version: Schema.String,
+  versionShort: Schema.NullOr(Schema.String),
+  firstSeen: Schema.String,
+  lastSeen: Schema.String,
+  blockCount: Schema.Number,
+}).annotations({ identifier: 'MinerVersionHistory' });
+export interface MinerVersionHistory
+  extends Schema.Schema.Type<typeof MinerVersionHistorySchema> {}
+
+// Miner recent block entry
+export const MinerRecentBlockSchema = Schema.Struct({
+  burnBlockHeight: Schema.Number,
+  chainLength: Schema.Number,
+  signerSignatureHash: Schema.String,
+  blockTimestamp: Schema.String,
+  serverVersion: Schema.NullOr(Schema.String),
+  serverVersionShort: Schema.NullOr(Schema.String),
+  txCount: Schema.Number,
+}).annotations({ identifier: 'MinerRecentBlock' });
+export interface MinerRecentBlock
+  extends Schema.Schema.Type<typeof MinerRecentBlockSchema> {}
+
+// Miner stats for different time windows
+export const MinerWindowStatsSchema = Schema.Struct({
+  blocksWon: Schema.Number,
+  percentage: Schema.Number,
+}).annotations({ identifier: 'MinerWindowStats' });
+export interface MinerWindowStats
+  extends Schema.Schema.Type<typeof MinerWindowStatsSchema> {}
+
+// Full miner detail response
+export const MinerDetailResponseSchema = Schema.Struct({
+  miner: Schema.Struct({
+    publicKey: Schema.String,
+    stats: Schema.Struct({
+      last500: MinerWindowStatsSchema,
+      allTime: Schema.Struct({
+        blocksWon: Schema.Number,
+        firstSeen: Schema.NullOr(Schema.String),
+      }),
+    }),
+    currentVersion: Schema.NullOr(Schema.String),
+    currentVersionShort: Schema.NullOr(Schema.String),
+    versionHistory: Schema.mutable(Schema.Array(MinerVersionHistorySchema)),
+  }),
+  recentBlocks: Schema.mutable(Schema.Array(MinerRecentBlockSchema)),
+}).annotations({ identifier: 'MinerDetailResponse' });
+export interface MinerDetailResponse
+  extends Schema.Schema.Type<typeof MinerDetailResponseSchema> {}
