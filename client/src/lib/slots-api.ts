@@ -272,6 +272,18 @@ export async function getMinerStats(networkKey: string) {
 export type ApiMinerStats = Awaited<ReturnType<typeof getMinerStats>>;
 export type ApiMinerStat = ApiMinerStats['miners'][0];
 
+export async function getMinerDetail(networkKey: string, publicKey: string) {
+  const response = await apiClient[':networkKey'].miners[':publicKey'].$get({
+    param: { networkKey, publicKey },
+  });
+  if (!response.ok) {
+    throw new Error('Miner not found');
+  }
+  return response.json();
+}
+
+export type ApiMinerDetail = Awaited<ReturnType<typeof getMinerDetail>>;
+
 export async function getStateMachineUpdates(networkKey: string) {
   const response = await apiClient[':networkKey']['state-machines'].$get({
     param: { networkKey },

@@ -3,7 +3,7 @@ import { getMinerStats } from '@/lib/slots-api';
 import { validateSearch } from '@/lib/search-schema';
 import { Miners } from '@/components/miners/miners';
 
-export const Route = createFileRoute('/miners')({
+export const Route = createFileRoute('/miners/')({
   component: Miners,
   validateSearch,
   loaderDeps: ({ search: { network } }) => {

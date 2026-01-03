@@ -27,12 +27,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   columnVisibility?: VisibilityState;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   columnVisibility,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
@@ -47,15 +49,23 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  return <DataTableWithTable table={table} columns={columns} />;
+  return (
+    <DataTableWithTable
+      table={table}
+      columns={columns}
+      onRowClick={onRowClick}
+    />
+  );
 }
 
 export function DataTableWithTable<TData, TValue>({
   table,
   columns,
+  onRowClick,
 }: {
   table: ReactTable<TData>;
   columns: ColumnDef<TData, TValue>[];
+  onRowClick?: (row: TData) => void;
 }) {
   return (
     <div className="rounded-md border">
@@ -84,6 +94,12 @@ export function DataTableWithTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && 'selected'}
+                onClick={
+                  onRowClick ? () => onRowClick(row.original) : undefined
+                }
+                className={
+                  onRowClick ? 'cursor-pointer hover:bg-muted/50' : undefined
+                }
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
