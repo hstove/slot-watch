@@ -294,3 +294,81 @@ export const StxBlockResponseSchema = Schema.Struct({
 }).annotations({ identifier: 'StxBlockResponse' });
 export interface StxBlockResponse
   extends Schema.Schema.Type<typeof StxBlockResponseSchema> {}
+
+// SignerDashboardItem schema for signers-dashboard response
+export const SignerDashboardItemSchema = Schema.Struct({
+  publicKey: Schema.String,
+  weight: Schema.Number,
+  weightPercent: Schema.Number,
+  weightPercentStr: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  stackedAmount: Schema.String,
+  stackedAmountStx: Schema.Number,
+  label: Schema.String,
+}).annotations({ identifier: 'SignerDashboardItem' });
+export interface SignerDashboardItem
+  extends Schema.Schema.Type<typeof SignerDashboardItemSchema> {}
+
+// SignersDashboardResponse schema
+export const SignersDashboardResponseSchema = Schema.mutable(
+  Schema.Array(SignerDashboardItemSchema)
+).annotations({ identifier: 'SignersDashboardResponse' });
+export interface SignersDashboardResponse
+  extends Schema.Schema.Type<typeof SignersDashboardResponseSchema> {}
+
+// StateMachinesResponse schema
+export const StateMachinesResponseSchema = Schema.Struct({
+  latestStateMachineUpdates: Schema.mutable(
+    Schema.Array(ApiStateMachineUpdateSchema)
+  ),
+}).annotations({ identifier: 'StateMachinesResponse' });
+export interface StateMachinesResponse
+  extends Schema.Schema.Type<typeof StateMachinesResponseSchema> {}
+
+// StateMachineUpdatesResponse schema (paginated)
+export const StateMachineUpdatesResponseSchema = Schema.Struct({
+  lastId: Schema.optional(Schema.String),
+  next: Schema.String,
+  stateMachines: Schema.mutable(Schema.Array(ApiStateMachineUpdateSchema)),
+}).annotations({ identifier: 'StateMachineUpdatesResponse' });
+export interface StateMachineUpdatesResponse
+  extends Schema.Schema.Type<typeof StateMachineUpdatesResponseSchema> {}
+
+// MinerStats schema
+export const MinerStatsSchema = Schema.Struct({
+  minerPublicKey: Schema.String,
+  blockCount: Schema.Number,
+  avgTxCount: Schema.Number,
+  avgTxFees: Schema.Number,
+  latestBlock: Schema.optional(ApiBlockProposalSchema),
+}).annotations({ identifier: 'MinerStats' });
+export interface MinerStats
+  extends Schema.Schema.Type<typeof MinerStatsSchema> {}
+
+// MinersResponse schema
+export const MinersResponseSchema = Schema.Struct({
+  minerStats: Schema.mutable(Schema.Array(MinerStatsSchema)),
+}).annotations({ identifier: 'MinersResponse' });
+export interface MinersResponse
+  extends Schema.Schema.Type<typeof MinersResponseSchema> {}
+
+// BurnBlockBlocksResponse schema (blocks in a burn block/tenure)
+export const BurnBlockBlocksResponseSchema = Schema.Struct({
+  blocks: Schema.mutable(
+    Schema.Array(
+      Schema.Struct({
+        proposal: ApiBlockProposalSchema,
+        stacksBlock: Schema.NullOr(ApiStacksBlockSchema),
+      })
+    )
+  ),
+}).annotations({ identifier: 'BurnBlockBlocksResponse' });
+export interface BurnBlockBlocksResponse
+  extends Schema.Schema.Type<typeof BurnBlockBlocksResponseSchema> {}
+
+// Single burn block response
+export const BurnBlockResponseSchema = Schema.Struct({
+  btcBlock: Schema.NullOr(ApiBurnBlockSchema),
+}).annotations({ identifier: 'BurnBlockResponse' });
+export interface BurnBlockResponse
+  extends Schema.Schema.Type<typeof BurnBlockResponseSchema> {}

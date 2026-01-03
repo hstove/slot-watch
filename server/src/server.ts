@@ -14,6 +14,7 @@ import { stateMachineRoutes } from './routes/state-machine.routes';
 import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
 import { openAPIRouteHandler } from 'hono-openapi';
+import { Scalar } from '@scalar/hono-api-reference';
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
@@ -49,12 +50,30 @@ export const app = new Hono<ServerType>()
           description:
             'API for monitoring Stacks blockchain signers and blocks',
         },
+        servers: [
+          { url: 'https://api.slotwatch.dev', description: 'Slot Watch API' },
+        ],
+        tags: [
+          { name: 'Burn Blocks', description: 'Bitcoin burn block operations' },
+          {
+            name: 'Stacks Blocks',
+            description: 'Stacks block proposals and responses',
+          },
+          { name: 'Signers', description: 'Signer information and statistics' },
+          {
+            name: 'State Machines',
+            description: 'Signer state machine updates',
+          },
+          { name: 'Miners', description: 'Miner statistics and activity' },
+        ],
       },
     })
   )
 
   .route('/', eventsRoutes)
   .route('/', api)
+
+  .get('/docs', Scalar({ url: '/openapi.json' }))
 
   // .route('/', workerRoutes)
   .onError((err, c) => {

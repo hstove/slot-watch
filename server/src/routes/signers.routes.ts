@@ -32,7 +32,10 @@ export const signersRoutes = new Hono<ServerType>()
   .get(
     '/signers/:networkKey',
     describeRoute({
-      description: 'Get signers for a network',
+      summary: 'Get signers for network',
+      description:
+        'Get all signers for a network including their weights and PoX info',
+      tags: ['Signers'],
       responses: {
         200: {
           description: 'Signers and PoX info',
@@ -58,7 +61,10 @@ export const signersRoutes = new Hono<ServerType>()
   .get(
     '/signers-health-check',
     describeRoute({
-      description: 'Health check for signers',
+      summary: 'Signers health check',
+      description:
+        'Health check endpoint that verifies signers data can be fetched',
+      tags: ['Signers'],
       responses: {
         200: {
           description: 'Health status',
@@ -121,7 +127,9 @@ export const signersRoutes = new Hono<ServerType>()
   .get(
     '/signers/:networkKey/signer-latencies',
     describeRoute({
-      description: 'Get signer latencies',
+      summary: 'Get signer latencies',
+      description: 'Get response latency statistics for each signer',
+      tags: ['Signers'],
       responses: {
         200: {
           description: 'Signer latencies',
@@ -146,7 +154,10 @@ export const signersRoutes = new Hono<ServerType>()
   .get(
     '/signers/:networkKey/stacked-next-cycle',
     describeRoute({
-      description: 'Get STX committed for next cycle',
+      summary: 'Get STX committed for next cycle',
+      description:
+        'Get the amount of STX committed by each signer for the next reward cycle',
+      tags: ['Signers'],
       responses: {
         200: {
           description: 'STX committed per signer',
