@@ -15,6 +15,13 @@
       "when": 1753193421768,
       "tag": "0001_nasty_doorman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767463443599,
+      "tag": "0002_famous_the_renegades",
+      "breakpoints": true
     }
   ]
 }

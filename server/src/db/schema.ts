@@ -38,14 +38,7 @@ export const stackerDbSlots = pgTable(
     networkKey: text('network_key', { length: 20 }).notNull(),
     publicKey: text('public_key', { length: 66 }).notNull(),
   },
-  (table) => [
-    index('network_key_idx').on(table.networkKey),
-    index('public_key_idx').on(table.publicKey),
-    index('stackerdb_slots_created_at_network_key_idx').on(
-      table.id,
-      table.networkKey
-    ),
-  ]
+  (_table) => []
 );
 
 export type StackerDbSlotDb = InferSelectModel<typeof stackerDbSlots>;
@@ -78,8 +71,6 @@ export const blockProposals = pgTable(
       table.signerSignatureHash
     ),
     index('block_proposals_chain_length_idx').on(table.chainLength),
-    index('block_proposals_chunk_id_idx').on(table.chunkId),
-    index('block_proposals_miner_public_key_idx').on(table.minerPublicKey),
     index('block_proposals_burn_block_height_idx').on(
       table.burnBlockHeight,
       table.networkKey
@@ -128,13 +119,6 @@ export const blockResponses = pgTable(
     index('block_responses_signer_signature_hash_idx').on(
       table.signerSignatureHash
     ),
-    index('slot_id_idx').on(table.slotId),
-    index('block_responses_chunk_id_idx').on(table.chunkId),
-    index('block_responses_signer_public_key_idx').on(table.signerPublicKey),
-    index('block_responses_max_created_by_signer_idx').on(
-      table.signerPublicKey,
-      table.id
-    ),
   ]
 );
 
@@ -160,9 +144,6 @@ export const blockPushes = pgTable(
     index('block_pushes_signer_signature_hash_idx').on(
       table.signerSignatureHash
     ),
-    index('block_pushes_chain_length_idx').on(table.chainLength),
-    index('block_pushes_chunk_id_idx').on(table.chunkId),
-    index('block_pushes_miner_public_key_idx').on(table.minerPublicKey),
   ]
 );
 
@@ -194,18 +175,12 @@ export const stacksBlocks = pgTable(
     consensusHash: text('consensus_hash', { length: 64 }).notNull(),
   },
   (table) => [
-    index('stacks_blocks_network_key_idx').on(table.networkKey),
     index('stacks_blocks_block_height_idx').on(table.blockHeight),
-    // index('stacks_blocks_created_at_idx').on(table.createdAt),
     index('stacks_blocks_block_hash_idx').on(table.blockHash),
-    index('stacks_blocks_burn_block_hash_idx').on(table.burnBlockHash),
     unique('stacks_blocks_network_key_block_hash_idx').on(
       table.networkKey,
       table.blockHash
     ),
-    index('stacks_blocks_tenure_change_recent_idx')
-      .on(table.tenureChangeCause, table.id, table.networkKey)
-      .where(isNotNull(table.tenureChangeCause)),
     index('stacks_blocks_consensus_hash_network_key_idx').on(
       table.consensusHash,
       table.networkKey
@@ -230,8 +205,6 @@ export const burnBlocks = pgTable(
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),
     index('burn_blocks_burn_block_height_idx').on(table.burnBlockHeight),
-    // index('burn_blocks_created_at_idx').on(table.createdAt),
-    index('burn_blocks_burn_block_hash_idx').on(table.burnBlockHash),
     unique('burn_blocks_network_key_burn_block_hash_idx').on(
       table.networkKey,
       table.burnBlockHash
@@ -248,9 +221,7 @@ export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
 export const stateMachineUpdates = pgTable(
   'state_machine_updates',
   {
-    id: text()
-      // .$defaultFn(() => uuidv7())
-      .primaryKey(),
+    id: text().primaryKey(),
     signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
     networkKey: text('network_key', { length: 20 }).notNull(),
     localSignerProtocolVersion: integer(
@@ -263,13 +234,9 @@ export const stateMachineUpdates = pgTable(
       .$type<SuperJSON<StateMachineUpdate['stateMachineUpdate']>>()
       .notNull(),
     chunkId: text('chunk_id'),
-    // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
   },
   (table) => [
     index('state_machine_updates_network_key_idx').on(table.networkKey),
-    index('state_machine_updates_signer_public_key_idx').on(
-      table.signerPublicKey
-    ),
     index('state_machine_updates_by_signer_latest_id_network_key_idx').on(
       table.signerPublicKey,
       table.networkKey,
