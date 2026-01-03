@@ -13,10 +13,7 @@ import {
   serializeBlockResponse,
 } from '../db/block-responses';
 import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
-import {
-  fetchRecentMinerStats,
-  serializeBlockProposal,
-} from '../db/block-proposals';
+import { serializeBlockProposal } from '../db/block-proposals';
 import { log, logger } from '../logger';
 import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
@@ -30,7 +27,6 @@ import {
   BlockResponsesResponseSchema,
   BlockProposalWithResponsesSchema,
   StxBlockResponseSchema,
-  MinersResponseSchema,
 } from 'slot-watch-common';
 
 // Request param/query schemas (local to routes)
@@ -90,7 +86,6 @@ const blockProposalWithResponses = Schema.standardSchemaV1(
   BlockProposalWithResponsesSchema
 );
 const stxBlockResponse = Schema.standardSchemaV1(StxBlockResponseSchema);
-const minersResponse = Schema.standardSchemaV1(MinersResponseSchema);
 
 const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -380,30 +375,6 @@ const blockRoutes = new Hono<ServerType>()
         .orderBy(desc(stacksBlocks.id))
         .limit(5);
       return c.json({ tenureChanges: tenureChanges.map(serializeStacksBlock) });
-    }
-  )
-  .get(
-    '/:networkKey/miners',
-    describeRoute({
-      summary: 'Get miner statistics',
-      description: 'Get recent mining statistics for all active miners',
-      tags: ['Miners'],
-      responses: {
-        200: {
-          description: 'Miner statistics',
-          content: {
-            'application/json': { schema: resolver(minersResponse) },
-          },
-        },
-      },
-    }),
-    validator('param', NetworkKeyParamSchema),
-    async (c) => {
-      const { networkKey } = c.req.valid('param');
-      const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));
-      return c.json({
-        minerStats,
-      });
     }
   )
   .get(

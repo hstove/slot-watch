@@ -11,6 +11,7 @@ import { healthRoutes } from './routes/health.routes';
 import { metricsRoutes } from './routes/metrics.routes';
 import { signersRoutes } from './routes/signers.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
+import { minersRoutes } from './routes/miners.routes';
 import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
 import { openAPIRouteHandler } from 'hono-openapi';
@@ -22,6 +23,7 @@ const api = new Hono<ServerType>()
   .route('/', getRecentsRoutes)
   .route('/', signersRoutes)
   .route('/', stateMachineRoutes)
+  .route('/', minersRoutes)
   .route('/health', healthRoutes)
   .route('/', metricsRoutes);
 
