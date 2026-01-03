@@ -11,6 +11,7 @@
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "prettier.enable": false,
   "editor.defaultFormatter": "biomejs.biome",
   "typescript.tsdk": "node_modules/typescript/lib",
   "css.customData": [".vscode/tailwind.json"],

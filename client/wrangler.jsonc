@@ -2,7 +2,20 @@
   "name": "slot-watch-website",
   "main": "../.alchemy/local/worker.js",
   "compatibility_date": "2025-05-29",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": "dist", "binding": "ASSETS" },
-  "vars": { "VITE_SLOTS_API_URL": "https://slot-watch.fly.dev" }
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "VITE_SLOTS_API_URL": "https://api.slotwatch.dev"
+  },
+  "services": [
+    {
+      "binding": "API_WORKER",
+      "service": "slot-watch-worker"
+    }
+  ]
 }

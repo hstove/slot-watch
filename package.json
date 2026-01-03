@@ -30,7 +30,7 @@
   "peerDependencies": {},
   "dependencies": {
     "@stacks/transactions": "^7.0.2",
-    "alchemy": "^0.62.2",
+    "alchemy": "^0.82.2",
     "arktype": "^2.1.29",
     "caniuse-lite": "^1.0.30001720",
     "superjson": "^2.2.1",
@@ -48,6 +48,7 @@
     "whatwg-url": "^14.0.0"
   },
   "overrides": {
-    "whatwg-url": "^14.0.0"
+    "whatwg-url": "^14.0.0",
+    "libsodium-wrappers": "0.7.15"
   }
 }
