@@ -37,9 +37,6 @@ export interface StreamerService {
 export const StreamerServiceTag =
   Context.GenericTag<StreamerService>('StreamerService');
 
-// Export service accessors for convenience
-export const Db = DbServiceTag;
-export const Streamer = StreamerServiceTag;
 // Error types
 export class DbError {
   readonly _tag = 'DbError';

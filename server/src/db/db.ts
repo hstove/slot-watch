@@ -49,7 +49,7 @@ export type Db = ReturnType<typeof makeDb>;
 // export const db = drizzleD1(env.DB, { schema });
 
 // Add this function to check pool status
-export const getPoolStatus = () => {
+const getPoolStatus = () => {
   return {
     total: 0,
     idle: 0,

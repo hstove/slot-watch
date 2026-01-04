@@ -19,7 +19,7 @@ import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
 
 /** Default number of stacks blocks to show per burn block before truncation */
-export const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
+const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
 
 /** Tracks which burn blocks have expanded their stacks blocks list */
 const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
@@ -70,7 +70,7 @@ export const BurnBlock = ({
   );
 };
 
-export const BurnBlockStacksBlocksInner = ({
+const BurnBlockStacksBlocksInner = ({
   consensusHash,
 }: {
   consensusHash: string;
@@ -177,7 +177,7 @@ export const BurnBlockStacksBlocksInner = ({
   );
 };
 
-export const BurnBlockStacksBlocks = ({
+const BurnBlockStacksBlocks = ({
   consensusHash,
 }: {
   consensusHash: string;
@@ -189,7 +189,7 @@ export const BurnBlockStacksBlocks = ({
   );
 };
 
-export const BurnBlockTxFees = ({
+const BurnBlockTxFees = ({
   consensusHash,
 }: {
   consensusHash: string;

@@ -27,26 +27,26 @@ import {
 import { ZERO_COST, type BlockCost } from '@/lib/costs';
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
-export const blockHashesAtom = atom<string[]>([]);
+const blockHashesAtom = atom<string[]>([]);
 
-export const blockPushesAtoms = atomFamily(
+const blockPushesAtoms = atomFamily(
   (_signerSignatureHash: string) => atom<HealthBlockBlock | null>(null),
   dequal
 );
 
-export const blockSignersAtoms = atomFamily(
+const blockSignersAtoms = atomFamily(
   (_signerSignatureHash: string) => atom<HealthBlockSigner[]>([]),
   dequal
 );
 
-export const fetchBlockParamsAtom = atom((get) => {
+const fetchBlockParamsAtom = atom((get) => {
   const loc = get(locationStore);
   const from = loc.searchParams?.get('from') ?? undefined;
   const to = loc.searchParams?.get('to') ?? undefined;
   return { from, to };
 });
 
-export const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
+const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
   const networkKey = get(networkIdAtom);
   const { from, to } = get(fetchBlockParamsAtom);
   const { blocks } = await getHealthBlocks(networkKey, from, to);
@@ -62,7 +62,7 @@ export const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
   );
 });
 
-export const consensusBlockAtoms = atomFamily((consensusHash: string) =>
+const consensusBlockAtoms = atomFamily((consensusHash: string) =>
   // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   atom(async (get) => {
     const networkKey = get(networkIdAtom);
@@ -70,22 +70,9 @@ export const consensusBlockAtoms = atomFamily((consensusHash: string) =>
   })
 );
 
-export async function fetchRecentSignerResponses(networkKey: string) {
-  const response = await apiClient.chunks['signer-latest'][':networkKey'].$get({
-    param: { networkKey },
-  });
-  return response.json();
-}
+const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
 
-export type SignerLatestResponses = Awaited<
-  ReturnType<typeof fetchRecentSignerResponses>
->;
-
-export type SignerLatestResponse = SignerLatestResponses['responses'][number];
-
-export const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
-
-export const maxBurnBlockHeightAtom = atom((get) => {
+const maxBurnBlockHeightAtom = atom((get) => {
   const all = get(allBurnBlocksAtom);
   return all[0]?.burnBlockHeight ?? 0;
 });
@@ -265,7 +252,7 @@ export const cumulativeBlockCostsAtom = atomFamily<
 });
 
 export const maxProcessedStacksHeightAtom = atom(0);
-export const maxProposedAtAtom = atom(0);
+const maxProposedAtAtom = atom(0);
 
 /**
  * Tracks the consensus hash of the burn block that most recently received a new stacks block.
@@ -285,7 +272,7 @@ export const [
   stacksBlocksForBurnBlockAtom,
   stacksBlocksFamily,
   __stacksBlocksFamilyInner,
-  __stacksBlocksForBurnBlockFamilyInner,
+  ,
   setStacksBlocksForBurnBlockFamily,
 ] = listAtomFamilyWithInit(
   async (consensusHash: string, get) => {
@@ -416,11 +403,16 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
 // The listAtomFamilyWithInit returns the following pattern:
 // [listAtom, itemAtomFamily, itemAtomFamilyInner, listAtomFamilyInner, writerAtom]
 export const [
-  responsesForBlockAtomFamily, // This is the "listAtom" (an atomFamily)
-  _responseForBlockFamily, // itemAtomFamily (unused externally)
-  responseForBlockFamily, // itemAtomFamilyInner
-  responsesForBlockFamilyInner, // listAtomFamilyInner
-  setResponseForBlockFamily, // writerAtom
+  responsesForBlockAtomFamily,
+  // This is the "listAtom" (an atomFamily)
+  // itemAtomFamily (unused externally)
+  ,
+  responseForBlockFamily,
+  // itemAtomFamilyInner
+  ,
+  // listAtomFamilyInner
+  // writerAtom
+  ,
 ] = listAtomFamilyWithInit(
   async (blockHash: string, get) => {
     const responses = await get(
@@ -453,7 +445,7 @@ export const activeBlockAtom = atom((get) => {
   return get(stacksBlocksFamily(activeHash));
 });
 
-export const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
+const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
   return atom(async (get) => {
     const responses = await get(responsesForBlockAtomFamily(blockHash));
     const signers = get(signersApiAtom);

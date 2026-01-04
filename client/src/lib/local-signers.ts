@@ -7,7 +7,7 @@ export function getEntity(signingKey: string) {
   return local ?? undefined;
 }
 
-export function saveSigner(signingKey: string, entity: string) {
+function saveSigner(signingKey: string, entity: string) {
   window.localStorage.setItem(`signer-${signingKey}`, entity);
 }
 

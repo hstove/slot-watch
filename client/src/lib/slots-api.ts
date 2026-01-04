@@ -13,7 +13,7 @@ import {
 import type { O } from 'ts-toolbelt';
 import { createQueryKeyStore } from '@lukemorales/query-key-factory';
 
-export const slotsApiUrl =
+const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
 
 export const slotsStreamerUrl =
@@ -57,28 +57,6 @@ export async function getRecentSigners(
 
 export type ApiRecentSigners = RecentSignersResponse;
 
-export async function getChunksByTime(
-  networkId: string,
-  start: string,
-  end: string
-) {
-  const response = await apiClient.chunks[':networkKey'][':from'][':to'].$get({
-    param: {
-      networkKey: networkId,
-      from: start,
-      to: end,
-    },
-  });
-  return response.json();
-}
-
-export async function getChunkById(id: string) {
-  const response = await apiClient.chunks.id[':id'].$get({
-    param: { id },
-  });
-  return response.json();
-}
-
 export async function getBurnBlocks(
   networkKey: string
 ): Promise<BurnBlocksResponse> {
@@ -120,7 +98,7 @@ export type ApiBlockResponseForBlock = Omit<
   signerPublicKey: string;
 };
 
-export function mergeBlockData(
+function mergeBlockData(
   proposal: ApiBlockProposal,
   stacksBlock: ApiStacksBlock | null
 ): ApiBlockForBurnBlock {
@@ -168,7 +146,7 @@ export function mergeBlockData(
   } satisfies ProposalOnlyBlock;
 }
 
-export async function getBlocksForBurnBlock(
+async function getBlocksForBurnBlock(
   networkKey: string,
   consensusHash: string
 ): Promise<ApiBlockForBurnBlock[]> {
@@ -291,13 +269,6 @@ export async function getStateMachineUpdates(networkKey: string) {
   const data = await response.json();
   return data;
 }
-
-export type ApiStateMachineUpdates = Awaited<
-  ReturnType<typeof getStateMachineUpdates>
->;
-
-export type ApiStateMachineUpdate =
-  ApiStateMachineUpdates['latestStateMachineUpdates'][0];
 
 export const queries = createQueryKeyStore({
   stacksBlocks: {

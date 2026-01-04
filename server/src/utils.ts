@@ -37,7 +37,7 @@ type DbChunk = {
   publicKey: string | null;
 };
 
-export function serializeDbChunk(chunk: DbChunk): ChunkEventParsed {
+function serializeDbChunk(chunk: DbChunk): ChunkEventParsed {
   const publicKey = chunk.publicKey ?? recoverChunkPublicKey(chunk).toHex();
   const entity = knownSigners[publicKey] ?? null;
   const createdAt = getCreatedAt(chunk.id);

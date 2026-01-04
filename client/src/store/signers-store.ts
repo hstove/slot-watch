@@ -18,7 +18,7 @@ import {
 
 extend([mixPlugin]);
 
-export const signersAtomFamilyInner = atomFamily(
+const signersAtomFamilyInner = atomFamily(
   (_lookup: { publicKey: string; networkKey: string }) =>
     atom<ApiSigner | null>(null),
   dequal
@@ -107,7 +107,7 @@ export const totalRecentSignersAtom = atom((get) => {
   };
 });
 
-export const totalUpatedSignersAtom = atom((get) => {
+const totalUpatedSignersAtom = atom((get) => {
   const recentSigners = get(recentSignersAtom);
   let total = 0;
   let numSigners = 0;
@@ -129,7 +129,7 @@ export const totalUpatedSignersAtom = atom((get) => {
 
 export const useSignerVersionsWeightedAtom = atom(false);
 
-export const signerVersionsAtom = atom((get) => {
+const signerVersionsAtom = atom((get) => {
   const recentSigners = get(recentSignersAtom);
   const versions = R.groupBy(recentSigners.signers, (s) => {
     return getSortableVersion(s.versionShort).join('.');

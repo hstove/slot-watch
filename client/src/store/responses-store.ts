@@ -16,7 +16,7 @@ import type { O } from 'ts-toolbelt';
 import { atomFamily } from 'jotai/utils';
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
-export async function fetchRecentSignerResponses(
+async function fetchRecentSignerResponses(
   networkKey: string
 ): Promise<ApiBlockResponseForBlock[]> {
   const response = await apiClient.chunks['signer-latest'][':networkKey'].$get({
@@ -107,7 +107,7 @@ export const latestBlockHeightForSignerFamily = atomFamily(
 
 export const [
   fetchSignersLatestResponsesAtom,
-  signerLatestResponseFamily,
+  ,
   signerLatestResponseFamilyInner,
   signersLatestResponsesAtom,
   setSignerLatestResponsesAtom,
@@ -173,32 +173,27 @@ export const extendBoundsAtom = atom((get) => {
   return { min, max, diff };
 });
 
-export const [
-  tenureChangesAtom,
-  _tenureChangesFamily,
-  _tenureChangesFamilyInner,
-  _tenureChangesAtomInner,
-  tenureChangesWriterAtom,
-] = listAtomWithInit<ProcessedStacksBlock, string>(
-  async (get) => {
-    const networkKey = get(networkIdAtom);
-    const changes = await getTenureChanges(networkKey);
-    return changes;
-    // return changes.tenureChanges.map((stacksBlock) => {
-    //   return {
-    //     ...stacksBlock,
-    //     processedAt: stacksBlock.createdAt,
-    //     blockTimestamp: stacksBlock.blockTimestamp ?? stacksBlock.createdAt,
-    //   } satisfies ProcessedStacksBlock;
-    // });
-  },
-  (r) => r.blockHash,
-  undefined,
-  'tenure-changes'
-);
+export const [, , , tenureChangesAtomInner, tenureChangesWriterAtom] =
+  listAtomWithInit<ProcessedStacksBlock, string>(
+    async (get) => {
+      const networkKey = get(networkIdAtom);
+      const changes = await getTenureChanges(networkKey);
+      return changes;
+      // return changes.tenureChanges.map((stacksBlock) => {
+      //   return {
+      //     ...stacksBlock,
+      //     processedAt: stacksBlock.createdAt,
+      //     blockTimestamp: stacksBlock.blockTimestamp ?? stacksBlock.createdAt,
+      //   } satisfies ProcessedStacksBlock;
+      // });
+    },
+    (r) => r.blockHash,
+    undefined,
+    'tenure-changes'
+  );
 
 export const mostRecentTenureChangeAtom = atom((get) => {
-  const [tenureChange] = get(_tenureChangesAtomInner);
+  const [tenureChange] = get(tenureChangesAtomInner);
   if (tenureChange) {
     return new Date(tenureChange.blockTimestamp).getTime();
   }
@@ -215,8 +210,8 @@ export const blockResponsesForBlockQueryAtomFamily = atomFamily(
 
 export const [
   miniResponsesAtomFamilyWithLoader,
-  __miniResponseAtomFamily,
-  __miniResponseNullableAtomFamily,
+  ,
+  ,
   miniResponsesForBlockFamily,
   setMiniResponsesAtom,
 ] = listAtomFamilyWithInit(

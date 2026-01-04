@@ -171,7 +171,7 @@ export function serializeBlockResponse(
   };
 }
 
-export function latestBlockResponseLookupKey({
+function latestBlockResponseLookupKey({
   signerPublicKey,
   networkKey,
 }: {
@@ -192,7 +192,7 @@ function parseBlockResponse(result: string): BlockResponseApi | null {
   return result2.right;
 }
 
-export async function getLatestBlockResponse(
+async function getLatestBlockResponse(
   signerPublicKey: string,
   networkKey: string
 ) {
@@ -211,7 +211,7 @@ export async function getLatestBlockResponse(
   return parseBlockResponse(result);
 }
 
-export async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
+async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
   if (!blockResponse.signerPublicKey) return;
   const key = latestBlockResponseLookupKey({
     signerPublicKey: blockResponse.signerPublicKey,
@@ -248,7 +248,7 @@ export async function setLatestBlockResponses(
   });
 }
 
-export async function getCachedLatestBlockResponses(
+async function getCachedLatestBlockResponses(
   networkKey: string,
   signerPublicKeys: string[]
 ) {

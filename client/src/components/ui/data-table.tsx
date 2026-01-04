@@ -58,7 +58,7 @@ export function DataTable<TData, TValue>({
   );
 }
 
-export function DataTableWithTable<TData, TValue>({
+function DataTableWithTable<TData, TValue>({
   table,
   columns,
   onRowClick,

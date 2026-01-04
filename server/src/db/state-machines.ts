@@ -8,7 +8,7 @@ import {
 import { hex } from '@scure/base';
 import { getCreatedAt } from '../utils';
 
-export function serializeMinerState(
+function serializeMinerState(
   minerState: StateMachineUpdateMinerState
 ): ApiStateMachineMinerState {
   if (minerState.variant === 0) {

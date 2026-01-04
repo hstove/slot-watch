@@ -52,7 +52,7 @@ export function serializeBlockProposal(
 
 const LAST_BLOCK_PROPOSAL_KEY = 'last-block-proposal';
 
-export function latestBlockProposalLookupKey({
+function latestBlockProposalLookupKey({
   minerPublicKey,
   networkKey,
 }: {
@@ -62,7 +62,7 @@ export function latestBlockProposalLookupKey({
   return `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:${minerPublicKey}`;
 }
 
-export async function getAllLatestBlockProposals(
+async function getAllLatestBlockProposals(
   networkKey: string
 ): Promise<ApiBlockProposal[]> {
   const keys = await env.CACHE.list({
@@ -90,7 +90,7 @@ function parseBlockProposal(result: string) {
   }
 }
 
-export async function getLatestBlockProposal(
+async function getLatestBlockProposal(
   minerPublicKey: string,
   networkKey: string
 ) {
@@ -128,7 +128,7 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
   // await redisClient.set(key, stringify(blockProposal));
 }
 
-export async function getCachedLatestBlockProposals(
+async function getCachedLatestBlockProposals(
   networkKey: string,
   minerPublicKeys: string[]
 ) {
@@ -261,7 +261,7 @@ export const recentBlocksHealthCache = memoizeCache(
   }
 );
 
-export async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
+async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
   const recentBlocks = await db
     .selectDistinctOn([blockProposals.burnBlockHeight], {
       burnBlockHeight: blockProposals.burnBlockHeight,

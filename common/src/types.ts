@@ -232,15 +232,3 @@ export type WSPayload =
 export function getChunkId(chunk: ChunkEvent): string {
   return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;
 }
-
-export function getPayloadId(payload: WSPayload): string {
-  // if (payload.type === CHUNKS_EVENT) {
-  //   return getChunkId(payload.payload);
-  // }
-  // if (payload.type === MANY_CHUNKS_EVENT) {
-  //   const contractId = payload.payload[0].contractId ?? 'unknown';
-  //   const [addr, name] = contractId.split('.');
-  //   return `${payload.networkKey}-${payload.type}-${addr.slice(0, 4)}...${name}-${payload.receivedAt}`;
-  // }
-  return `${payload.networkKey}-${payload.type}-${payload.receivedAt}`;
-}

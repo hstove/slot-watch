@@ -18,12 +18,12 @@ export const NETWORKS = [
   },
 ];
 
-export const DEFAULT_NETWORK = {
+const DEFAULT_NETWORK = {
   id: 'mainnet',
   name: 'Mainnet',
 };
 
-export function getNetwork(networkId: string | null) {
+function getNetwork(networkId: string | null) {
   if (typeof networkId !== 'string') {
     return DEFAULT_NETWORK;
   }
@@ -44,8 +44,8 @@ export const networkAtom = atom<Network, [string | null], void>(
   }
 );
 
-export const currentNetworkAtom = atom(DEFAULT_NETWORK);
+const currentNetworkAtom = atom(DEFAULT_NETWORK);
 
 export const networkIdAtom = atom((get) => get(currentNetworkAtom).id);
 
-export const networkNameAtom = atom((get) => get(currentNetworkAtom).name);
+const networkNameAtom = atom((get) => get(currentNetworkAtom).name);

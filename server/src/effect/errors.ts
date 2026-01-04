@@ -4,13 +4,13 @@ export class DecodeError {
   constructor(readonly cause: unknown) {}
 }
 
-export class DbError {
+class DbError {
   readonly _tag = 'DbError';
   // biome-ignore lint/style/noParameterProperties: ignored using `--suppress`
   constructor(readonly cause: unknown) {}
 }
 
-export class StreamerError {
+class StreamerError {
   readonly _tag = 'StreamerError';
   // biome-ignore lint/style/noParameterProperties: ignored using `--suppress`
   constructor(readonly cause: unknown) {}

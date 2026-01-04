@@ -94,4 +94,5 @@ export const app = new Hono<ServerType>()
 
 export type SlotWatchServer = typeof app;
 
+/** @alias */
 export default app;

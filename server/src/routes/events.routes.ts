@@ -9,6 +9,7 @@ import {
   type WSBurnBlockV2,
   BURN_BLOCK_V2_EVENT,
   coreNodeBurnBlockMessageSchema,
+  NEW_BLOCK_V2_EVENT,
 } from 'slot-watch-common';
 import { getNetworkKeyHono } from '../auth';
 import { log, logger } from '../logger';
@@ -25,12 +26,12 @@ import { StreamerLive } from '../effect/layers/streamer';
 import type { DbService, StreamerService } from '../effect/tags';
 import { FetchHttpClient } from '@effect/platform';
 
-export const ServerRuntime = Layer.mergeAll(
+const ServerRuntime = Layer.mergeAll(
   Layer.provideMerge(StreamerLive, FetchHttpClient.layer),
   DbLive
 );
 
-export function runEffect<A, E>(
+function runEffect<A, E>(
   effect: Effect.Effect<A, E, DbService | StreamerService>
 ): Promise<A> {
   const pipeline = effect.pipe(
@@ -119,13 +120,13 @@ const eventsRoutes = new Hono<Env>()
     c.executionCtx.waitUntil(
       runEffect(
         handleStacksBlockEvent({
-          type: NEW_BLOCK_EVENT,
+          type: NEW_BLOCK_V2_EVENT,
           networkKey,
           receivedAt: receivedAt.toISOString(),
           payload: {
             ...block,
             networkKey,
-            receivedAt: receivedAt.toISOString(),
+            processedAt: receivedAt.toISOString(),
             blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
             burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
           },
