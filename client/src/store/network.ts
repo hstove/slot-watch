@@ -35,8 +35,6 @@ function getNetwork(networkId: string | null) {
   );
 }
 
-export const locationStore = atomWithLocation();
-
 export const networkAtom = atom<Network, [string | null], void>(
   (get) => get(currentNetworkAtom),
   (_get, set, networkId) => {
