@@ -13,7 +13,8 @@
     "generate-migrations": "drizzle-kit generate",
     "migrate": "bunx --bun drizzle-kit migrate",
     "test:watch": "vitest",
-    "dev": "wrangler dev --config ../server-wrangler.jsonc",
+    "dev": "wrangler dev --config ../server-wrangler.jsonc --host 0.0.0.0",
+    "dev:tee": "unbuffer bun dev | tee tmp/dev-server.log",
     "dev:remote": "wrangler dev --remote --config ../server-wrangler.jsonc",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --config ../server-wrangler.jsonc"
   },
