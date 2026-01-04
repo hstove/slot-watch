@@ -24,8 +24,8 @@ import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
 import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
 // import { redisClient } from '../redis';
-import { parse, stringify } from 'superjson';
-import { log, logger } from '../logger';
+import { stringify } from 'superjson';
+import { logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
@@ -62,53 +62,6 @@ function latestBlockProposalLookupKey({
   return `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:${minerPublicKey}`;
 }
 
-async function getAllLatestBlockProposals(
-  networkKey: string
-): Promise<ApiBlockProposal[]> {
-  const keys = await env.CACHE.list({
-    prefix: `${LAST_BLOCK_PROPOSAL_KEY}:${networkKey}:`,
-  });
-  const results = await env.CACHE.get(keys.keys.map((k) => k.name));
-  return [...results.values()]
-    .filter((result): result is string => result !== null)
-    .map(parseBlockProposal)
-    .filter((proposal): proposal is ApiBlockProposal => proposal !== null);
-}
-
-function parseBlockProposal(result: string) {
-  try {
-    const parsed = parse(result);
-    return parsed as ApiBlockProposal;
-  } catch (error) {
-    log
-      .withError(error)
-      .withMetadata({
-        topic: 'block-proposal',
-      })
-      .error('Error parsing block proposal from Redis');
-    return null;
-  }
-}
-
-async function getLatestBlockProposal(
-  minerPublicKey: string,
-  networkKey: string
-) {
-  const key = latestBlockProposalLookupKey({ minerPublicKey, networkKey });
-  const result = await env.CACHE.get(key);
-  // const result = await redisClient.get(key);
-  logger.debug(
-    {
-      topic: 'block-proposal',
-      key,
-      hasResult: result !== null,
-    },
-    'getting latest block proposal'
-  );
-  if (result === null) return null;
-  return parseBlockProposal(result);
-}
-
 export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
   if (!blockProposal.minerPublicKey) return;
   const key = latestBlockProposalLookupKey({
@@ -126,30 +79,6 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
   );
   await env.CACHE.put(key, stringify(blockProposal));
   // await redisClient.set(key, stringify(blockProposal));
-}
-
-async function getCachedLatestBlockProposals(
-  networkKey: string,
-  minerPublicKeys: string[]
-) {
-  const keys = minerPublicKeys.map((minerPublicKey) =>
-    latestBlockProposalLookupKey({ minerPublicKey, networkKey })
-  );
-  const results = await Promise.all(keys.map((key) => env.CACHE.get(key)));
-  // const results = await redisClient.mGet(keys);
-  logger.debug(
-    {
-      topic: 'block-proposal',
-      resultsLength: results.length,
-      keysLength: keys.length,
-      networkKey,
-    },
-    'getting latest block proposals'
-  );
-  const blockProposals = results
-    .map((result) => (result ? parseBlockProposal(result) : null))
-    .filter((r) => r !== null) as ApiBlockProposal[];
-  return blockProposals;
 }
 
 export async function getRecentBlocksHealth({

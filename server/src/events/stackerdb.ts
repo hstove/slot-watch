@@ -300,7 +300,7 @@ const processChunk = (
       catch: (e) => new DecodeError(e),
     });
 
-    const chunkType = chunkTypeName(chunkData);
+    const _chunkType = chunkTypeName(chunkData);
     const id = uuidv7({ msecs: receivedAt.getTime() });
     const chunkId = id;
 

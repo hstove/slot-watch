@@ -9,7 +9,7 @@ const testing = (a: number) => {
   return Promise.resolve(a);
 };
 
-type R = A.Promise<F.Return<typeof testing>>;
+type _R = A.Promise<F.Return<typeof testing>>;
 
 test('memoizeCache', async () => {
   runs = 0;

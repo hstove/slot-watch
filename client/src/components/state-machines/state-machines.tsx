@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route } from '@/routes/state-machines';
 import { recentSignersAtom } from '@/store/signers-store';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import {
   allSignersStateMachinesAtom,
   latestStateMachinesAtom,
@@ -12,8 +12,8 @@ import { GroupedStateMachines } from './grouped-state-machines';
 
 export function StateMachines() {
   const loaderData = Route.useLoaderData();
-  const [recentSigners, setRecentSigners] = useAtom(recentSignersAtom);
-  const [stateMachines, setStateMachines] = useAtom(latestStateMachinesAtom);
+  const setRecentSigners = useSetAtom(recentSignersAtom);
+  const setStateMachines = useSetAtom(latestStateMachinesAtom);
   const allSignersStateMachines = useAtomValue(allSignersStateMachinesAtom);
   React.useEffect(() => {
     setRecentSigners(loaderData.signers);

@@ -107,26 +107,6 @@ export const totalRecentSignersAtom = atom((get) => {
   };
 });
 
-const totalUpatedSignersAtom = atom((get) => {
-  const recentSigners = get(recentSignersAtom);
-  let total = 0;
-  let numSigners = 0;
-  for (const signer of recentSigners.signers) {
-    if (!signer.createdAt) continue;
-    total += signer.weight;
-    numSigners++;
-  }
-  const percent = (total / recentSigners.totalWeight) * 10_000;
-  const percentString = Math.round(percent) / 100;
-  return {
-    percentStr: percentString,
-    percent,
-    weight: total,
-    total: recentSigners.totalWeight,
-    numSigners,
-  };
-});
-
 export const useSignerVersionsWeightedAtom = atom(false);
 
 const signerVersionsAtom = atom((get) => {

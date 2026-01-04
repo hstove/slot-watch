@@ -11,24 +11,19 @@ import { recentSignersAtom } from './signers-store';
 import * as R from 'remeda';
 import { dequal } from 'dequal';
 
-export const [
-  ,
-  ,
-  ,
-  latestStateMachinesAtom,
-  setLatestStateMachinesAtom,
-] = listAtomWithInit(
-  async (get) => {
-    const networkKey = get(networkIdAtom);
-    const updates = await getStateMachineUpdates(networkKey);
-    return updates.latestStateMachineUpdates;
-  },
-  (update) => {
-    return update.signerPublicKey;
-  },
-  undefined,
-  'state-machine-updates'
-);
+export const [, , , latestStateMachinesAtom, setLatestStateMachinesAtom] =
+  listAtomWithInit(
+    async (get) => {
+      const networkKey = get(networkIdAtom);
+      const updates = await getStateMachineUpdates(networkKey);
+      return updates.latestStateMachineUpdates;
+    },
+    (update) => {
+      return update.signerPublicKey;
+    },
+    undefined,
+    'state-machine-updates'
+  );
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type FullSignerStateMachine = {

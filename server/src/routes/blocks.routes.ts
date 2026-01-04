@@ -272,7 +272,7 @@ const blockRoutes = new Hono<ServerType>()
         const heightBn = BigInt(heightOrHash);
         heightMaybe = Number(heightBn);
         // biome-ignore lint/suspicious/noEmptyBlockStatements: ignored using `--suppress`
-      } catch (error) {}
+      } catch {}
       const [btcBlock] = await c
         .get('db')
         .select()
@@ -397,7 +397,7 @@ const blockRoutes = new Hono<ServerType>()
     }),
     validator('param', BlockHashParamSchema),
     async (c) => {
-      const { networkKey, blockHash } = c.req.valid('param');
+      const { blockHash } = c.req.valid('param');
       const blockProposal = await c.get('db').query.blockProposals.findFirst({
         where: eq(blockProposals.signerSignatureHash, blockHash),
       });
@@ -432,7 +432,7 @@ const blockRoutes = new Hono<ServerType>()
     }),
     validator('param', BlockHashParamSchema),
     async (c) => {
-      const { networkKey, blockHash } = c.req.valid('param');
+      const { blockHash } = c.req.valid('param');
       const blockProposal = await c.get('db').query.blockProposals.findFirst({
         where: eq(blockProposals.signerSignatureHash, blockHash),
       });

@@ -47,5 +47,3 @@ export const networkAtom = atom<Network, [string | null], void>(
 const currentNetworkAtom = atom(DEFAULT_NETWORK);
 
 export const networkIdAtom = atom((get) => get(currentNetworkAtom).id);
-
-const networkNameAtom = atom((get) => get(currentNetworkAtom).name);

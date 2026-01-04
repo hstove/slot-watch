@@ -118,8 +118,7 @@ export function mapSignerDataToResponses({
 
 export async function getLatestResponses(networkKey: string) {
   const poxInfo = await getPoxInfo.get(networkKey);
-  const { signers, signersByKey, totalWeight } =
-    await getLatestStackerSet(networkKey);
+  const { signers, totalWeight } = await getLatestStackerSet(networkKey);
   const signerKeys = signers.map((s) => s.signing_key);
   const responses = await getCachedLatestBlockResponses(networkKey, signerKeys);
 
@@ -190,44 +189,6 @@ function parseBlockResponse(result: string): BlockResponseApi | null {
     return null;
   }
   return result2.right;
-}
-
-async function getLatestBlockResponse(
-  signerPublicKey: string,
-  networkKey: string
-) {
-  const key = latestBlockResponseLookupKey({ signerPublicKey, networkKey });
-  const result = await env.CACHE.get(key);
-  // const result = await redisClient.get(key);
-  logger.debug(
-    {
-      topic: 'block-response',
-      key,
-      hasResult: result !== null,
-    },
-    'getting latest block response'
-  );
-  if (result === null) return null;
-  return parseBlockResponse(result);
-}
-
-async function setLatestBlockResponse(blockResponse: BlockResponseApi) {
-  if (!blockResponse.signerPublicKey) return;
-  const key = latestBlockResponseLookupKey({
-    signerPublicKey: blockResponse.signerPublicKey,
-    networkKey: blockResponse.networkKey,
-  });
-  logger.debug(
-    {
-      topic: 'block-response',
-      key,
-      networkKey: blockResponse.networkKey,
-      signerPublicKey: blockResponse.signerPublicKey,
-    },
-    'setting latest block response'
-  );
-  await env.CACHE.put(key, stringify(blockResponse));
-  // await redisClient.set(key, stringify(blockResponse));
 }
 
 export async function setLatestBlockResponses(

@@ -4,13 +4,7 @@ import {
   addressToString,
 } from '@stacks/transactions';
 import { hex } from '@scure/base';
-import {
-  chunkTypeName,
-  knownSigners,
-  recoverChunkPublicKey,
-  type ChunkEventParsed,
-  type StackerDBPayload,
-} from 'slot-watch-common';
+import type { StackerDBPayload } from 'slot-watch-common';
 import { log } from './logger';
 
 export function getPayloadContractId(payload: StackerDBPayload) {
@@ -23,33 +17,6 @@ export function getPayloadContractId(payload: StackerDBPayload) {
     hex.encode(new Uint8Array(payload.contract_id.issuer[1]))
   );
   return `${addressToString(address)}.${payload.contract_id.name}`;
-}
-
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-type DbChunk = {
-  id: string;
-  slotId: number;
-  version: number;
-  signature: Uint8Array;
-  data: Uint8Array;
-  contractId: string;
-  networkKey: string | null;
-  publicKey: string | null;
-};
-
-function serializeDbChunk(chunk: DbChunk): ChunkEventParsed {
-  const publicKey = chunk.publicKey ?? recoverChunkPublicKey(chunk).toHex();
-  const entity = knownSigners[publicKey] ?? null;
-  const createdAt = getCreatedAt(chunk.id);
-  return {
-    ...chunk,
-    signature: hex.encode(chunk.signature),
-    data: hex.encode(chunk.data),
-    createdAt: createdAt.toISOString(),
-    type: chunkTypeName(chunk.data),
-    publicKey,
-    entity,
-  };
 }
 
 export function getCreatedAt(uuid: string): Date {

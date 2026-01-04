@@ -162,11 +162,7 @@ const BlockListResponse = ({
   );
 };
 
-const BlockListResponsesInner = ({
-  blockHash,
-}: {
-  blockHash: string;
-}) => {
+const BlockListResponsesInner = ({ blockHash }: { blockHash: string }) => {
   // const stacksBlock = useAtomValue(stacksBlocksFamily(blockHash));
   // preload
   useAtomValue(loadable(responsesForBlockAtomFamily(blockHash)));

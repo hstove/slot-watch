@@ -14,7 +14,7 @@ import {
   // sqliteTable as pgTable,
   // text as,
 } from 'drizzle-orm/pg-core';
-import { isNotNull, type InferSelectModel } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({

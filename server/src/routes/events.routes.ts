@@ -4,7 +4,6 @@ import { getPayloadContractId } from '../utils';
 import {
   type StackerDBPayload,
   type CoreNodeBlockMessage,
-  NEW_BLOCK_EVENT,
   type CoreNodeBurnBlockMessage,
   type WSBurnBlockV2,
   BURN_BLOCK_V2_EVENT,

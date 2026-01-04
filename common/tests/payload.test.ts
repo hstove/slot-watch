@@ -50,7 +50,7 @@ test('parse-fixtures', () => {
     payload.contract_id.issuer[0] === 26
       ? AddressVersion.TestnetSingleSig
       : AddressVersion.MainnetSingleSig;
-  const address = addressFromVersionHash(
+  const _address = addressFromVersionHash(
     version,
     hex.encode(new Uint8Array(payload.contract_id.issuer[1]))
   );
@@ -65,7 +65,7 @@ test('decode block response payload', () => {
   const payload = fixtureToJson(fixtures.signers1);
   for (const slot of payload.modified_slots) {
     const data = hex.decode(slot.data);
-    const decoded = decodeChunk(data);
+    const _decoded = decodeChunk(data);
     // console.log(decoded);
   }
 });
@@ -74,7 +74,7 @@ test('get rejection payload', () => {
   const payload = fixtureToJson(fixtures.signersReject);
   for (const slot of payload.modified_slots) {
     const data = hex.decode(slot.data);
-    const decoded = decodeChunk(data);
+    const _decoded = decodeChunk(data);
     // console.log(decoded);
   }
 });
@@ -83,14 +83,14 @@ test('miners payload', () => {
   const payload = fixtureToJson(fixtures.miners1);
   for (const slot of payload.modified_slots) {
     const data = hex.decode(slot.data);
-    const decoded = decodeChunk(data);
+    const _decoded = decodeChunk(data);
     // console.log(decoded);
     // console.log(makeSignerSignatureHash(decoded as NakamotoBlock));
   }
   const signersResponse = fixtureToJson(fixtures.signers1);
   for (const slot of signersResponse.modified_slots) {
     const data = hex.decode(slot.data);
-    const decoded = decodeChunk(data);
+    const _decoded = decodeChunk(data);
     // console.log(decoded);
     // console.log((decoded as BlockResponseAccepted).signerSignatureHash);
   }
@@ -114,7 +114,7 @@ test('block proposal fixture', async () => {
 test('decoding', () => {
   const chunkData =
     '01008058e991f5255b43078efd1d5ab4c05fbbd6520e37fc6b4feb51870602bb24c50172238b998b6467c0dfc28ee48319526f98ee1fd6077ad9b53a64d116525ccdc919132fdcb9d43777504ad807e4d16514a942b3a0cf6b66551350a8d030169be6';
-  const decoded = decodeChunk(hex.decode(chunkData));
+  const _decoded = decodeChunk(hex.decode(chunkData));
   // console.log(decoded);
 });
 
@@ -160,7 +160,7 @@ test('another rejection payload', () => {
 });
 
 test('another rejection', () => {
-  const payload = decodeChunk(
+  const _payload = decodeChunk(
     hex.decode(
       '010100000050426c6f636b206973206e6f7420612074656e7572652d737461727420626c6f636b2c20616e642068617320616e20756e7265636f676e697a65642074656e75726520636f6e73656e7375732068617368000691f95f84b7045f7dce7757052caa986ef042cb58f7df5031a3b5b5d0e3dda63e80000000006fb349212e1a1af1a3c712878d5159b5ec14636adb6f70be00a6da4ad4f88a9934d8a9abb229620dd8e0f225d63401e36c64817fb29e6c05591dcbe95c512df3'
     )
@@ -246,14 +246,14 @@ test('recovering public key', () => {
 test.skip('bad block response test', async () => {
   const payloadStr =
     '01010000003054686520626c6f636b207761732072656a65637465642064756520746f206e6f20736f72746974696f6e20766965772e03fed12577663acaa5c847773494f64cbcf7a22867d6eab4bfe9665a7e65bfa444';
-  const payload = decodeChunk(hex.decode(payloadStr));
+  const _payload = decodeChunk(hex.decode(payloadStr));
   // console.log(payload);
 });
 
 test('block pushed transactions', () => {
   const hexStr =
     '0200000000000001895c00000001e60f9c30d41040200b1748a525a4923d2c86ba579ce5ab6397577cd52c76347038ca4b2e9be20e6bd50f117714cf40491d79e35d0caf2de9b07a8e594f0d75018bd67a2c416a2c555359a82e51ad0f237d8816469602b38af8d902fc0690b3760191e18f0a53204455e9b2327c863543c0bf20f696081fe5000000006700845b00e8d7fb30c98896536cb6c66cceed8d5bc3e90976cf24e0599cc3a7983a7284741e645fee317934b604f27cfa5980259c44d27578c832cd98b9a6eaaebf09806900000004007eb8786d17c2704d1e3e22b7ae0a7120424cc296ddbb3e3ce1bfcd49999c132143595832a028f8418638843413d8bfde177d6b0a2a44255050c278e4fc007aea009f4279b460fb5dc4df3c00e673bb208b903e3f1d42a1ef76b580ea41b8542665786ef651f4d326b194eb91985a064eb2fb30ed1ce07eb7b354247c8ada8d80eb015b06553a7ebe53d64e62f8b1114bf5c1ec5c1ba53ef647685c849ee83f4938c30eec013ac1687745efe0a59b42904a7dbf96c3614c080c44d0761379c0ea173a01e571c31078d7c2da5741c31a13dde439f0e179156b570586da34e2b7bc2e8fba262b0af0f1cbee9f60724a64e93e56d950a31f856abfb948f51a91362931acfe063b000000c8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0700000001808000000004009a1a24e8cb1c51415b01f7dce1896dd76327a5e4000000000000293f000000000000012c000190a3c5ac010dab9c6e0fd86301f8c16d5f0192b29dd91aa87fe8e2e08af9303c51e64015da24bb2f8296e44a8ca2b237c03b89a9059e48fab5e5d93d37af1d6f03020000000000051ae959844d85de7954970675332446df1c5a54419c00000000000003e800000000000000000000000000000000000000000000000000000000000000000000';
-  const decoded = decodeChunk(hex.decode(hexStr));
+  const _decoded = decodeChunk(hex.decode(hexStr));
   // console.log(decoded);
 });
 
@@ -290,7 +290,7 @@ test('mock block', () => {
 
 test('making a serialized string', () => {
   const coder = P.prefix(P.U32BE, P.string(null));
-  const encoded = coder.encode('Hello world');
+  const _encoded = coder.encode('Hello world');
   // console.log(hex.encode(encoded));
 });
 
@@ -331,7 +331,7 @@ test('string decoding', () => {
 test('block', () => {
   const hexStr =
     '0000000000000002b16e0000005852451394a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537949a0b95cdc31680fd4442753e14675dda9cdc2c0786832892f479e7a199ec2fccf8ded1a04f034dfe599330142e7616771a7ef3afa432a9dd0310aabf110422000000006722560e01e8addb47fbb9c07795f80da976aa29c7e6de0e42839095245d1a7f0a2096b4a51cfdd4db0392313ba28eae932907ae31d645d4d7d6e6bcc1f47dec823f55d9df000000000f67000001edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f000000020000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000085000000000000000000001ed24406b185c9433bdb6fca56329d9366911728d139743a2c4c5bc9b7874aa2401bf4351e3ee17f1b420f09d8d1adb28028e5cddd75a674e051c73e39b009df01020000000007a58d678658a92f45a0f123125f10518132440b2a8e94fe3a61e52f30703a1f0c0935bfc59ae4fc94a58d678658a92f45a0f123125f10518132440b2a09621d79f244073680e433cf0bdea5e6afcba928600d0d66e231c737f157f537000000020037e79a837b4071a1fc6c1b49208e7d2141a259050000000001040037e79a837b4071a1fc6c1b49208e7d2141a259050000000000000086000000000000000000017855e62f11ab7cee2c64211e6fc7998b74a68286bdef001002ef886bad4db46b08bbfe439e32e036e51f740503483fd6b1ae04814c144843124813f289deb88d01020000000008000000000000000000000000000000000000000000000000000000000000000009a6e3cac3fac60839eb5f0a3b3b468ea433699f247683d1c73186fea9511475e71439999567e5e80bab7ff7a90014098aa7209152c8e35982347fb8b8e2d3d8fdbe9cca76988b02154a560424ab8fd80d00000000000d3f0a0000000000000060';
-  const decoded = decodeChunk(hex.decode(hexStr));
+  const _decoded = decodeChunk(hex.decode(hexStr));
   // console.log(decoded);
 });
 
@@ -378,7 +378,7 @@ test('problematic block', () => {
   if (decoded.typeId !== SignerMessageTypePrefix.BlockProposal) {
     throw new Error('Invalid type');
   }
-  const proposal = decoded as BlockProposal;
+  const _proposal = decoded as BlockProposal;
   // console.log('proposal', proposal);
   // expect(proposal.tenureChangeCause).toEqual(TenureChangeCause.BlockFound);
   // expect(proposal.).toEqual(2);
@@ -518,14 +518,14 @@ test('example', () => {
   if (decoded.typeId !== SignerMessageTypePrefix.BlockProposal) {
     throw new Error('Invalid type');
   }
-  const proposal = decoded as BlockProposal;
+  const _proposal = decoded as BlockProposal;
   // console.log(hex.encode(proposal.parentBlockId));
 });
 
 test('new failure', () => {
   const hexStr =
     '000000000000001578a500000060c4cb17081626be18a16283a890348c149f029987ee5343b3f352c5c0c291a0763b321a2c339364722f4f6597b87724311f1f9a925ce21f14c734818f28379085b557a3a8805e04c4f96f899661a2970e8c2f2abf0cc74f480fc0440288e11764615e3db9deceeb5e35d86c769f6ba629e279e52db593339800000000683be42b01822473c8e7a6764d7e6206b078ef3151179d36fd28d3fd9ca2b088ec5e55827769a6efb35c629ee6e4932dff6d743325bd17f727bd2846cd99dab02a6118999b000000000ea8000001d5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000200000000010400fbd9a1702f4ecc44fc01f1894c72fcbb23a53ce8000000000003884f00000000000000b4000159f321fccf9b9c87b6a9328c44eb7afee786a68c762fc6d82c1a2cf12028ceab296a44ea7cd22477228c982ba89851e472e7de3dc88fbfada221bdf16d6be136010200000000000516f2bba6df751755ab9ac1df8b387d981cfe265cdf0000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000001040098dab92c709d85c2681b7124b8fb473b7181b960000000000000004f0000000000000bb800011612e064989ac362611ab07bbe7ad543e7aa3ce47f31346257e4d00092d27d9b1225ccdbf45cccdc089a2444725037589d5b803b39b2769009f5a832d66f46a1030200000000021683ed66860315e334010bbfb76eb3eef887efee0a11706f78342d666173742d706f6f6c2d76330c64656c65676174652d737478000000010100000000000000000000000614b5809100000000000db8fc000000000000006f020000003e0000003a737461636b732d6e6f646520332e312e302e302e313120283a2b2c2072656c65617365206275696c642c206c696e7578205b7838365f36345d29';
-  const decoded = decodeChunk(hex.decode(hexStr));
+  const _decoded = decodeChunk(hex.decode(hexStr));
 });
 
 test('block pre-commit decoding', () => {

@@ -51,8 +51,6 @@ export const textVariants = cva('', {
   },
 });
 
-type TextVariants = VariantProps<typeof textVariants> & { className?: string };
-
 export type TextVariantProps = VariantProps<typeof textVariants>;
 
 export function textStyles(

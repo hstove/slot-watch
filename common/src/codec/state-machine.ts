@@ -126,7 +126,7 @@ export const StateMachineUpdateCoder = P.wrap({
     const activeSignerProtocolVersion = P.U64BE.decodeStream(r);
     const localSignerProtocolVersion = P.U64BE.decodeStream(r);
 
-    const byteLen = P.U32BE.decodeStream(r);
+    const _byteLen = P.U32BE.decodeStream(r);
     if (activeSignerProtocolVersion === 0n) {
       const stateMachineUpdate =
         StateMachineUpdateContentV0Coder.decodeStream(r);
