@@ -7,7 +7,7 @@
     "dev:client:tee": "turbo dev:tee --filter=slot-watch-ui",
     "build:client": "turbo build --filter=slot-watch-ui",
     "build:server": "turbo build --filter=slot-watch-api",
-    "dev:server": "cd server && bun run dev:watch",
+    "dev:server": "bun run --cwd server --env-file=../.env.local dev:tee",
     "dev:worker": "cd server && bun run worker",
     "migrate": "bun run --cwd server --bun --env-file=../.env.local migrate",
     "typecheck": "turbo typecheck",
