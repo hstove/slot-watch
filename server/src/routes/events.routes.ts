@@ -10,7 +10,7 @@ import {
   coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
 } from 'slot-watch-common';
-import { getNetworkKeyHono } from '../auth';
+import { getNetworkKeyFromRequest } from '../auth';
 import { log, logger } from '../logger';
 import { handleStackerDBChunk } from '../events/stackerdb';
 import {
@@ -20,13 +20,12 @@ import {
 import { convertBlock } from '../events/block-events';
 import type { ServerContext } from '../server-context';
 import { Layer, Effect } from 'effect';
-import { DbLive } from '../effect/layers/db';
-import { StreamerLive } from '../effect/layers/streamer';
-import type { DbService, StreamerService } from '../effect/tags';
+import { DbLive, type DbService } from '../effect/layers/db';
+import { StreamerService } from '../effect/layers/streamer';
 import { FetchHttpClient } from '@effect/platform';
 
 const ServerRuntime = Layer.mergeAll(
-  Layer.provideMerge(StreamerLive, FetchHttpClient.layer),
+  Layer.provideMerge(StreamerService.Default, FetchHttpClient.layer),
   DbLive
 );
 
@@ -51,7 +50,7 @@ type Env = {
 };
 
 const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
-  const networkKey = getNetworkKeyHono(c.req);
+  const networkKey = getNetworkKeyFromRequest(c.req);
   if (!networkKey) {
     // return new Response("Unauthorized", { status: 200 });
     return c.text('Unauthorized', 200);

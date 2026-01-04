@@ -16,9 +16,10 @@ import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { Effect } from 'effect';
-import { DbServiceTag, StreamerServiceTag } from '../effect/tags';
 import { serializeBurnBlock } from '../db/blocks';
 import { warmCache } from '../stacks-api';
+import { DbService } from '../effect/layers/db';
+import { StreamerService } from '../effect/layers/streamer';
 
 export function convertBlock(
   block: unknown
@@ -73,8 +74,8 @@ export const handleStacksBlockEvent = (job: WSNewBlockV2) =>
   Effect.gen(function* () {
     const block = job.payload;
     const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
-    const db = yield* DbServiceTag;
-    const streamer = yield* StreamerServiceTag;
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
     const dbBlock = {
       ...block,
       id,
@@ -117,8 +118,8 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
       consensusHash: payload.payload.consensusHash,
       createdAt: new Date(payload.receivedAt),
     };
-    const db = yield* DbServiceTag;
-    const streamer = yield* StreamerServiceTag;
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
     yield* Effect.all([
       db.withDb((db) => db.insert(burnBlocks).values(dbBurnBlock)),
       streamer.publish({
