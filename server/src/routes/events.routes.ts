@@ -19,7 +19,29 @@ import {
 } from '../events/block-events';
 import { convertBlock } from '../events/block-events';
 import type { ServerContext } from '../server-context';
-import { runWithServerRuntime } from '../effect/runtime';
+import { Layer, Effect } from 'effect';
+import { DbLive } from '../effect/layers/db';
+import { StreamerLive } from '../effect/layers/streamer';
+import type { DbService, StreamerService } from '../effect/tags';
+import { FetchHttpClient } from '@effect/platform';
+
+export const ServerRuntime = Layer.mergeAll(
+  Layer.provideMerge(StreamerLive, FetchHttpClient.layer),
+  DbLive
+);
+
+export function runEffect<A, E>(
+  effect: Effect.Effect<A, E, DbService | StreamerService>
+): Promise<A> {
+  const pipeline = effect.pipe(
+    Effect.provide(ServerRuntime),
+    Effect.tapErrorCause((cause) =>
+      Effect.logError('Error processing stacks block event', { cause })
+    )
+  );
+
+  return Effect.runPromise(pipeline);
+}
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type Env = {
@@ -72,7 +94,7 @@ const eventsRoutes = new Hono<Env>()
       .debug(`Got ${data.modified_slots.length} stackerdb chunks`);
     const receivedAt = new Date();
     c.executionCtx.waitUntil(
-      runWithServerRuntime(
+      runEffect(
         handleStackerDBChunk({
           payload: data,
           receivedAt,
@@ -95,7 +117,7 @@ const eventsRoutes = new Hono<Env>()
     const block = convertBlock(data);
 
     c.executionCtx.waitUntil(
-      runWithServerRuntime(
+      runEffect(
         handleStacksBlockEvent({
           type: NEW_BLOCK_EVENT,
           networkKey,
@@ -137,9 +159,7 @@ const eventsRoutes = new Hono<Env>()
         consensusHash: burnBlock.consensus_hash,
       },
     };
-    c.executionCtx.waitUntil(
-      runWithServerRuntime(handleBurnBlockEvent(payload))
-    );
+    c.executionCtx.waitUntil(runEffect(handleBurnBlockEvent(payload)));
     return new Response('OK', { status: 200 });
   })
 

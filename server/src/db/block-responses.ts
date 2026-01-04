@@ -28,7 +28,6 @@ const BlockResponseApiSchema = Schema.Struct({
   blockHeight: Schema.optional(Schema.Number),
 });
 import { logger } from '../logger';
-// import { redisClient } from '../redis';
 import { parse, stringify } from 'superjson';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
