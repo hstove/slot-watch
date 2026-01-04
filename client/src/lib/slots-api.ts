@@ -22,30 +22,6 @@ export const slotsStreamerUrl =
 
 export const apiClient = hc<SlotWatchServer>(slotsApiUrl);
 
-export type HealthBlocksResponse = Awaited<
-  ReturnType<typeof getHealthBlocks>
->['blocks'];
-
-export type HealthBlockBlock = Omit<HealthBlocksResponse[0], 'signers'>;
-
-export type HealthBlockSigner = HealthBlocksResponse[0]['signers'][0];
-
-export async function getHealthBlocks(
-  networkKey: string,
-  from?: string,
-  to?: string
-) {
-  console.log(`Fetching health blocks for ${networkKey}`);
-  const response = await apiClient.health['recent-blocks'][':networkKey'].$get({
-    param: { networkKey },
-    query: {
-      from,
-      to,
-    },
-  });
-  return response.json();
-}
-
 export async function getRecentSigners(
   networkKey: string
 ): Promise<RecentSignersResponse> {

@@ -55,7 +55,7 @@ async function getRewardSet(rewardCycle: bigint) {
   }
 }
 
-export async function getStxCommittedForCycle(rewardCycle: bigint) {
+async function getStxCommittedForCycle(rewardCycle: bigint) {
   const rewardSet = await getRewardSet(rewardCycle);
   const signers: Record<string, bigint> = {};
   for (const item of rewardSet) {
