@@ -93,7 +93,7 @@ for (const miner of upgradedMiners) {
     1,
     [createStacksPublicKey(miner)]
   );
-  const btcAddr = addressFromPublicKeys(
+  const _btcAddr = addressFromPublicKeys(
     1 as AddressVersion,
     AddressHashMode.P2PKH,
     1,

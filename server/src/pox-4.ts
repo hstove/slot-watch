@@ -50,23 +50,9 @@ async function getRewardSet(rewardCycle: bigint) {
       (n) => n !== null
     );
     return addressList;
-  } catch (error) {
+  } catch {
     return [];
   }
-}
-
-async function getStxCommittedToSigner(
-  signerPublicKey: string,
-  rewardCycle: bigint
-) {
-  const rewardSet = await getRewardSet(rewardCycle);
-  let sum = 0n;
-  for (const item of rewardSet) {
-    if (hex.encode(item.signer) === signerPublicKey) {
-      sum += BigInt(item.totalUstx);
-    }
-  }
-  return sum;
 }
 
 export async function getStxCommittedForCycle(rewardCycle: bigint) {

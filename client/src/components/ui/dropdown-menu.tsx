@@ -189,15 +189,9 @@ export {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  
   DropdownMenuRadioItem,
-  
-  
-  
-  
-  
-  
-  
-  
   DropdownMenuRadioGroup,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
 };

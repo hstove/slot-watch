@@ -63,7 +63,7 @@ export const BitVecCoder = P.wrap({
   decodeStream: (r: P.Reader) => {
     const len = P.U16BE.decodeStream(r);
     // console.log("len", len);
-    const bytesLen = dataLen(len);
+    const _bytesLen = dataLen(len);
     // console.log("bytesLen", bytesLen);
     const bytes = P.bytes(P.U32BE).decodeStream(r);
     return {
@@ -125,7 +125,7 @@ export const SignerMetadataCoder: P.CoderType<string | undefined> = P.wrap({
   decodeStream: (r: P.Reader) => {
     try {
       return P.string(P.U32BE).decodeStream(r);
-    } catch (error) {
+    } catch {
       return undefined;
     }
   },
@@ -149,7 +149,7 @@ const U8OrNothingCoder = P.wrap({
   decodeStream: (r: P.Reader) => {
     try {
       return P.U8.decodeStream(r);
-    } catch (error) {
+    } catch {
       return null;
     }
   },
@@ -175,7 +175,7 @@ export const BlockResponseDataCoder: P.CoderType<BlockResponseData> = P.wrap({
     let version: number;
     try {
       version = P.U8.decodeStream(r);
-    } catch (error) {
+    } catch {
       return {
         version: 2,
         tenureExtendTimestamp: null,
@@ -273,7 +273,7 @@ export const BlockProposalDataCoder = P.wrap({
     let version: number;
     try {
       version = P.U8.decodeStream(r);
-    } catch (error) {
+    } catch {
       return {
         version: 2,
         serverVersion: '',
@@ -508,7 +508,7 @@ export function chunkTypeName(chunk: Uint8Array) {
       try {
         MockSignatureOldCoder.decode(chunk);
         return 'Mock Signature (v0)';
-      } catch (error) {
+      } catch {
         return 'Mock Proposal';
       }
     }
@@ -539,7 +539,7 @@ export function decodeChunk(chunk: Uint8Array) {
   if (type === SignerMessageTypePrefix.MockProposal) {
     try {
       return MockProposalCoder.decode(chunk) as MockProposal;
-    } catch (error) {
+    } catch {
       const decoded = MockSignatureOldCoder.decode(chunk);
       return {
         ...decoded,
@@ -626,7 +626,7 @@ export function decodeChunk(chunk: Uint8Array) {
 export function decodeChunkMaybe(chunk: Uint8Array): DecodedChunk | null {
   try {
     return decodeChunk(chunk);
-  } catch (error) {
+  } catch {
     return null;
   }
 }

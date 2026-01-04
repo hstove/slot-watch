@@ -16,7 +16,7 @@ function cacheKey(key: string) {
   return `${KEY_PREFIX}${key}`;
 }
 
-function mutexKey(key: string) {
+function _mutexKey(key: string) {
   return `${KEY_PREFIX}${key}:mutex`;
 }
 

@@ -189,11 +189,7 @@ const BurnBlockStacksBlocks = ({
   );
 };
 
-const BurnBlockTxFees = ({
-  consensusHash,
-}: {
-  consensusHash: string;
-}) => {
+const BurnBlockTxFees = ({ consensusHash }: { consensusHash: string }) => {
   const stacksBlocks = useAtomValue(
     sortedStacksBlocksForBurnBlockAtom(consensusHash)
   );

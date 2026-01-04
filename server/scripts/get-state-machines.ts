@@ -7,8 +7,8 @@ import { getStackerSet } from '../src/stacks-api';
 
 const signers = await getStackerSet('mainnet', 111);
 
-const end = '2025-06-13T15:25:54.204Z';
-const start = '2025-06-13T15:00:54.204Z';
+const _end = '2025-06-13T15:25:54.204Z';
+const _start = '2025-06-13T15:00:54.204Z';
 
 const db = makeDb();
 

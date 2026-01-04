@@ -70,7 +70,7 @@ export const worker = await Worker('slot-watch-worker', {
   adopt: true,
 });
 
-const apiDomain = await CustomDomain('slot-watch-api-domain', {
+await CustomDomain('slot-watch-api-domain', {
   name: 'api.slotwatch.dev',
   zoneId: '121c1d3bc83456fd77bf1957012e03bc',
   workerName: worker.name,

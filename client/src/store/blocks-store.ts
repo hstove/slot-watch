@@ -1,20 +1,8 @@
-import {
-  getHealthBlocks,
-  type HealthBlockBlock,
-  type HealthBlockSigner,
-  apiClient,
-  getBtcBlock,
-  queries,
-} from '@/lib/slots-api';
+import { getBtcBlock, queries } from '@/lib/slots-api';
 import { type Atom, atom } from 'jotai';
 import { atomFamily, loadable } from 'jotai/utils';
-import { dequal } from 'dequal/lite';
-import { locationStore, networkIdAtom } from './network';
-import {
-  getConsensusBlock,
-  type ApiBurnBlock,
-  percentString,
-} from 'slot-watch-common';
+import { networkIdAtom } from './network';
+import { type ApiBurnBlock, percentString } from 'slot-watch-common';
 import * as R from 'remeda';
 import { signersApiAtom } from './signers-store';
 import { listAtomFamilyWithInit } from './store-utils';
@@ -27,55 +15,7 @@ import {
 import { ZERO_COST, type BlockCost } from '@/lib/costs';
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
 
-const blockHashesAtom = atom<string[]>([]);
-
-const blockPushesAtoms = atomFamily(
-  (_signerSignatureHash: string) => atom<HealthBlockBlock | null>(null),
-  dequal
-);
-
-const blockSignersAtoms = atomFamily(
-  (_signerSignatureHash: string) => atom<HealthBlockSigner[]>([]),
-  dequal
-);
-
-const fetchBlockParamsAtom = atom((get) => {
-  const loc = get(locationStore);
-  const from = loc.searchParams?.get('from') ?? undefined;
-  const to = loc.searchParams?.get('to') ?? undefined;
-  return { from, to };
-});
-
-const fetchBlocksAtom = atom<null, [], void>(null, async (get, set) => {
-  const networkKey = get(networkIdAtom);
-  const { from, to } = get(fetchBlockParamsAtom);
-  const { blocks } = await getHealthBlocks(networkKey, from, to);
-
-  for (const block of blocks) {
-    const { signers, ...rest } = block;
-    set(blockPushesAtoms(block.signerSignatureHash), rest);
-    set(blockSignersAtoms(block.signerSignatureHash), signers);
-  }
-  set(
-    blockHashesAtom,
-    blocks.map((b) => b.signerSignatureHash)
-  );
-});
-
-const consensusBlockAtoms = atomFamily((consensusHash: string) =>
-  // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
-  atom(async (get) => {
-    const networkKey = get(networkIdAtom);
-    return getConsensusBlock(networkKey, consensusHash);
-  })
-);
-
 const allBurnBlocksAtom = atom<ApiBurnBlock[]>([]);
-
-const maxBurnBlockHeightAtom = atom((get) => {
-  const all = get(allBurnBlocksAtom);
-  return all[0]?.burnBlockHeight ?? 0;
-});
 
 export const maxBurnBlockConsensusHashAtom = atom((get) => {
   const all = get(allBurnBlocksAtom);
@@ -404,12 +344,12 @@ export const responseOutcomeForBlockAtomFamily = atomFamily(
 // [listAtom, itemAtomFamily, itemAtomFamilyInner, listAtomFamilyInner, writerAtom]
 export const [
   responsesForBlockAtomFamily,
+  ,
   // This is the "listAtom" (an atomFamily)
   // itemAtomFamily (unused externally)
-  ,
   responseForBlockFamily,
-  // itemAtomFamilyInner
   ,
+  // itemAtomFamilyInner
   // listAtomFamilyInner
   // writerAtom
   ,
@@ -443,34 +383,4 @@ export const activeBlockAtom = atom((get) => {
   const activeHash = get(activeBlockHashAtom);
   if (!activeHash) return null;
   return get(stacksBlocksFamily(activeHash));
-});
-
-const blockResponsesChartDataAtom = atomFamily((blockHash: string) => {
-  return atom(async (get) => {
-    const responses = await get(responsesForBlockAtomFamily(blockHash));
-    const signers = get(signersApiAtom);
-    if (!signers) return null;
-    const sorted = R.sortBy(responses, [
-      (r) => new Date(r.createdAt).getTime(),
-      'asc',
-    ]);
-    const signersByPk = R.groupBy(signers.signers, (s) => s.publicKey);
-    let accumAccepted = 0;
-    let accumRejected = 0;
-    const data = sorted.map((r) => {
-      const signer = signersByPk[r.signerPublicKey]?.[0];
-      if (!signer) throw new Error('Signer not found');
-      if (r.accepted) {
-        accumAccepted += signer.weightPercent;
-      } else {
-        accumRejected += signer.weightPercent;
-      }
-      return {
-        accepted: accumAccepted,
-        rejected: accumRejected,
-        createdAt: new Date(r.createdAt).getTime(),
-      };
-    });
-    return data;
-  });
 });

@@ -6,9 +6,12 @@
   },
   "tags": ["-lintignore"],
   "ignoreBinaries": ["unbuffer"],
+  "ignoreIssues": {
+    "client/src/components/ui/*.tsx": ["exports"]
+  },
   "workspaces": {
     "client": {
-      "ignoreFiles": ["src/components/ui/**/*.tsx", "worker.ts"],
+      "ignoreFiles": ["src/components/ui/*.tsx", "worker.ts"],
       "ignoreDependencies": [
         "@radix-ui/.+",
         "vercel",

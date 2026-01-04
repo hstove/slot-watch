@@ -1,4 +1,4 @@
-import { Gauge, Summary } from 'prom-client';
+import { Gauge } from 'prom-client';
 import { recentBlocksHealthCache } from './db/block-proposals';
 import { getLatestStackerSet } from './stacks-api';
 import { logger } from './logger';
@@ -57,24 +57,6 @@ const signingPowerThisCycle = new Gauge({
   name: 'slot_watch_signing_power_this_cycle',
   help: 'The signing power of the current cycle',
   labelNames: ['signer_key'] as const,
-});
-
-const workerJobsCounts = new Gauge({
-  name: 'slot_watch_worker_job_count',
-  help: 'The amount of worker jobs',
-  labelNames: ['status'] as const,
-});
-
-const stackerDbChunkProcessingTimeSummary = new Summary({
-  name: 'slot_watch_stackerdb_chunk_processing_time',
-  help: 'The time (seconds) it takes to process a chunk',
-  labelNames: ['chunk_type'] as const,
-});
-
-const workerJobProcessingTimeSummary = new Summary({
-  name: 'slot_watch_worker_job_processing_time',
-  help: 'The time (seconds) it takes to process a worker job',
-  labelNames: ['job_type'] as const,
 });
 
 const lastNs = [10, 25, 50];

@@ -49,4 +49,4 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   }
 );
 
-export { Badge,  };
+export { Badge };
