@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  },
+  "tags": ["-lintignore"],
+  "ignoreBinaries": ["unbuffer"],
+  "workspaces": {
+    "client": {
+      "ignoreFiles": ["src/components/ui/**/*.tsx", "worker.ts"],
+      "ignoreDependencies": [
+        "@radix-ui/.+",
+        "vercel",
+        "@cloudflare/vite-plugin"
+      ]
+    },
+    "server": {
+      "entry": ["scripts/*.ts"],
+      "ignoreFiles": ["tests/test-worker.ts", "tests/fixtures.ts"],
+      "ignoreBinaries": ["src/app.ts"]
+    },
+    "common": {}
+  }
+}

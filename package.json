@@ -1,6 +1,5 @@
 {
   "name": "slot-watch",
-  "module": "src/run.ts",
   "type": "module",
   "scripts": {
     "dev:client": "bun run --cwd client dev:tee",
@@ -15,24 +14,22 @@
     "check:fix": "biome check --fix",
     "check:all": "bun check:fix && bun typecheck",
     "dev": "turbo dev --filter=slot-watch-ui",
-    "deploy:alchemy": "bun alchemy deploy --env-file .env.local"
+    "deploy:alchemy": "bun alchemy deploy --env-file .env.local",
+    "knip": "knip"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
-    "@flydotio/dockerfile": "latest",
     "@total-typescript/tsconfig": "^1.0.4",
+    "@types/node": "^25.0.3",
     "@typescript/native-preview": "^7.0.0-dev.20260102.1",
-    "shadcn": "^2.1.0",
+    "knip": "^5.79.0",
     "tsdown": "^0.14.1",
-    "tsx": "^4.19.1",
+    "typescript": "^5.9.3",
     "ultracite": "^6.5.0"
   },
-  "peerDependencies": {},
   "dependencies": {
     "@stacks/transactions": "^7.0.2",
     "alchemy": "^0.82.2",
-    "arktype": "^2.1.29",
-    "caniuse-lite": "^1.0.30001720",
     "superjson": "^2.2.1",
     "turbo": "^2.7.2",
     "usehooks-ts": "^3.1.0"

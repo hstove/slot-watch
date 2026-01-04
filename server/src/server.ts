@@ -4,7 +4,6 @@ import { honoLogger, log } from './logger';
 import eventsRoutes from './routes/events.routes';
 import { cors } from 'hono/cors';
 import { blockRoutes } from './routes/blocks.routes';
-import { getChunksRoutes } from './routes/chunks.routes';
 import { prettyJSON } from 'hono/pretty-json';
 import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
@@ -19,7 +18,6 @@ import { Scalar } from '@scalar/hono-api-reference';
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
-  .route('/', getChunksRoutes)
   .route('/', getRecentsRoutes)
   .route('/', signersRoutes)
   .route('/', stateMachineRoutes)
