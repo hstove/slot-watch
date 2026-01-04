@@ -1,5 +1,5 @@
 // Legacy imports - now using Effect-based implementation
-import { Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 import { hex } from '@scure/base';
 import { v7 as uuidv7 } from 'uuid';
 import * as R from 'remeda';
@@ -30,46 +30,48 @@ import {
   type DecodedChunk,
 } from 'slot-watch-common';
 import {
-  DbServiceTag,
-  StreamerServiceTag,
-  type DbBlockProposal,
-  type DbBlockPush,
-  type DbBlockResponse,
-  type DbStateMachineUpdate,
-  type DbService,
-  type StreamerService,
-} from '../effect/tags';
-import {
-  DecodeError,
-  UnknownChunkError,
-  PublicKeyRecoveryError,
-  type ChunkPipelineError,
-} from '../effect/errors';
-import {
   serializeBlockResponse,
   setLatestBlockResponses,
 } from '../db/block-responses';
 import { setLatestBlockProposal } from '../db/block-proposals';
 import { serializeStateMachineUpdate } from '../db/state-machines';
+import { DbService } from '../effect/layers/db';
+import type { InferInsertModel } from 'drizzle-orm';
+import type {
+  blockProposals,
+  blockPushes,
+  blockResponses,
+  stateMachineUpdates,
+} from '../db/schema';
+import { StreamerService } from '../effect/layers/streamer';
 
-// Re-export legacy types for compatibility
-export type {
-  BlockProposal,
-  BlockPushed,
-  ModifiedSlot,
-  StackerDBPayload,
-  BlockResponseAccepted,
-  BlockResponseRejected,
-  WSBlockProposal,
-  WSMiniBlockResponses,
-  ApiBlockProposal,
-  StateMachineUpdate,
-  WSStateMachineUpdate,
-  BlockResponseApi,
-  DecodedChunk,
-} from 'slot-watch-common';
+type DbBlockProposal = InferInsertModel<typeof blockProposals>;
+type DbBlockPush = InferInsertModel<typeof blockPushes>;
+type DbBlockResponse = InferInsertModel<typeof blockResponses>;
+type DbStateMachineUpdate = InferInsertModel<typeof stateMachineUpdates>;
 
-const handleBlockProposalE = ({
+export class DecodeError extends Schema.TaggedError<DecodeError>()(
+  '@errors/DecodeError',
+  {
+    cause: Schema.Unknown,
+  }
+) {}
+
+export class UnknownChunkError extends Schema.TaggedError<UnknownChunkError>()(
+  '@errors/UnknownChunkError',
+  {
+    typeId: Schema.Number,
+  }
+) {}
+
+export class PublicKeyRecoveryError extends Schema.TaggedError<PublicKeyRecoveryError>()(
+  '@errors/PublicKeyRecoveryError',
+  {
+    cause: Schema.Unknown,
+  }
+) {}
+
+const handleBlockProposal = ({
   payload,
   receivedAt,
   networkKey,
@@ -136,8 +138,8 @@ const handleBlockProposalE = ({
     });
 
     // Get services
-    const db = yield* DbServiceTag;
-    const streamer = yield* StreamerServiceTag;
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
 
     // Run database insertion, WebSocket publishing, and cache update in parallel
     yield* Effect.all(
@@ -146,14 +148,14 @@ const handleBlockProposalE = ({
         streamer.publish(wsPayload),
         Effect.tryPromise({
           try: () => setLatestBlockProposal(blockProposal),
-          catch: (e) => new DecodeError(e),
+          catch: (e) => new DecodeError({ cause: e }),
         }),
       ],
       { concurrency: 'unbounded' }
     );
   });
 
-const handleBlockPushE = ({
+const handleBlockPush = ({
   payload,
   receivedAt,
   networkKey,
@@ -179,14 +181,14 @@ const handleBlockPushE = ({
       chunkId,
     };
 
-    const db = yield* DbServiceTag;
+    const db = yield* DbService;
     yield* db.insertBlockPush(dbBlockPush);
   });
 
 type BlockAccept = TypeMerge<BlockResponseAccepted, BlockResponseRejected>;
 type BlockReject = TypeMerge<BlockResponseRejected, BlockResponseAccepted>;
 
-const handleBlockResponseE = ({
+const handleBlockResponse = ({
   chunk,
   payload,
   receivedAt,
@@ -272,8 +274,8 @@ const handleStateMachineUpdateE = ({
       table: 'state_machine_updates',
     });
 
-    const db = yield* DbServiceTag;
-    const streamer = yield* StreamerServiceTag;
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
 
     yield* Effect.all(
       [
@@ -288,16 +290,12 @@ const processChunk = (
   chunk: ModifiedSlot,
   receivedAt: Date,
   networkKey: string
-): Effect.Effect<
-  BlockResponseApi | null,
-  ChunkPipelineError,
-  DbService | StreamerService
-> =>
+) =>
   Effect.gen(function* () {
     // Decode chunk data
     const chunkData = yield* Effect.try({
       try: () => hex.decode(chunk.data),
-      catch: (e) => new DecodeError(e),
+      catch: (e) => new DecodeError({ cause: e }),
     });
 
     const _chunkType = chunkTypeName(chunkData);
@@ -313,18 +311,18 @@ const processChunk = (
           version: chunk.slot_version,
           signature: hex.decode(chunk.sig),
         }).toHex(),
-      catch: (e) => new PublicKeyRecoveryError(e),
+      catch: (e) => new PublicKeyRecoveryError({ cause: e }),
     });
 
     // Decode chunk
     const decoded: DecodedChunk = yield* Effect.try({
       try: () => decodeChunk(chunkData),
-      catch: (e) => new DecodeError(e),
+      catch: (e) => new DecodeError({ cause: e }),
     });
 
     // Route to appropriate handler based on chunk type
     if (decoded.typeId === SignerMessageTypePrefix.BlockProposal) {
-      yield* handleBlockProposalE({
+      yield* handleBlockProposal({
         payload: decoded,
         receivedAt,
         networkKey,
@@ -334,7 +332,7 @@ const processChunk = (
       return null;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockPushed) {
-      yield* handleBlockPushE({
+      yield* handleBlockPush({
         payload: decoded,
         receivedAt,
         networkKey,
@@ -344,7 +342,7 @@ const processChunk = (
       return null;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockResponse) {
-      const response = yield* handleBlockResponseE({
+      const response = yield* handleBlockResponse({
         chunk,
         payload: decoded,
         receivedAt,
@@ -364,7 +362,7 @@ const processChunk = (
       });
       return null;
     }
-    yield* Effect.fail(new UnknownChunkError(decoded.typeId));
+    yield* Effect.fail(new UnknownChunkError({ typeId: decoded.typeId }));
     return null;
   });
 
@@ -376,7 +374,7 @@ export const handleStackerDBChunk = ({
   payload: StackerDBPayload;
   receivedAt: Date;
   networkKey: string;
-}): Effect.Effect<void, ChunkPipelineError, DbService | StreamerService> =>
+}) =>
   Effect.gen(function* () {
     // Process all chunks in parallel, collecting block responses
     const results = yield* Effect.forEach(
@@ -401,7 +399,7 @@ export const handleStackerDBChunk = ({
         R.unique()
       );
 
-      const db = yield* DbServiceTag;
+      const db = yield* DbService;
       const blockProposalsList =
         yield* db.fetchBlockProposalsByHash(blockHashes);
       const blockProposals = R.pipe(
@@ -442,7 +440,7 @@ export const handleStackerDBChunk = ({
         payload: blockResponsesWithData,
       };
 
-      const streamer = yield* StreamerServiceTag;
+      const streamer = yield* StreamerService;
 
       yield* Effect.all(
         [
@@ -450,7 +448,7 @@ export const handleStackerDBChunk = ({
           streamer.publish(wsPayload),
           Effect.tryPromise({
             try: () => setLatestBlockResponses(blockResponsesWithData),
-            catch: (e) => new DecodeError(e),
+            catch: (e) => new DecodeError({ cause: e }),
           }),
         ],
         { concurrency: 'unbounded' }

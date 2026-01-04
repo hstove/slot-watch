@@ -2,10 +2,7 @@ import type { HonoRequest } from 'hono';
 import { log } from './logger';
 import { env } from 'cloudflare:workers';
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type BasicAuth = { username: string; password: string };
-
-function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
+function getBasicAuthHono(request: HonoRequest) {
   const authHeader = request.header('Authorization');
 
   // biome-ignore lint/complexity/useOptionalChain: ignored using `--suppress`
@@ -27,7 +24,7 @@ function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   return { username, password };
 }
 
-export function getNetworkKeyHono(request: HonoRequest): string | null {
+export function getNetworkKeyFromRequest(request: HonoRequest): string | null {
   const auth = getBasicAuthHono(request);
   if (!auth) {
     log.debug('No auth');
