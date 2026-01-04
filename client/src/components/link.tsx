@@ -6,7 +6,7 @@ import { textVariants } from '@/lib/text-variants';
 interface RouterLinkProps
   extends React.AnchorHTMLAttributes<HTMLAnchorElement> {}
 
-export const LinkComponent = React.forwardRef<
+const LinkComponent = React.forwardRef<
   HTMLAnchorElement,
   RouterLinkProps
 >((props, ref) => {
@@ -14,12 +14,12 @@ export const LinkComponent = React.forwardRef<
   return <a ref={ref} {...props} href={props.href} />;
 });
 
-export const Link = createLink(LinkComponent);
+const Link = createLink(LinkComponent);
 
 interface RouterNavLinkProps
   extends React.AnchorHTMLAttributes<HTMLAnchorElement> {}
 
-export const NavLinkComponent = React.forwardRef<
+const NavLinkComponent = React.forwardRef<
   HTMLAnchorElement,
   RouterNavLinkProps
 >(({ className, ...props }, ref) => {

@@ -29,7 +29,7 @@ import {
 } from 'slot-watch-common';
 import BigNumber from 'bignumber.js';
 
-export const BlockListResponse = ({
+const BlockListResponse = ({
   blockHash,
   signerPublicKey,
 }: {
@@ -162,7 +162,7 @@ export const BlockListResponse = ({
   );
 };
 
-export const BlockListResponsesInner = ({
+const BlockListResponsesInner = ({
   blockHash,
 }: {
   blockHash: string;

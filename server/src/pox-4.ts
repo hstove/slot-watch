@@ -13,7 +13,7 @@ const network = {
   url: 'https://api.hiro.so',
 };
 
-export const client = new ClarigenClient(network);
+const client = new ClarigenClient(network);
 const pox4 = mainnet.pox4;
 
 const logger = log.child().withContext({
@@ -55,7 +55,7 @@ async function getRewardSet(rewardCycle: bigint) {
   }
 }
 
-export async function getStxCommittedToSigner(
+async function getStxCommittedToSigner(
   signerPublicKey: string,
   rewardCycle: bigint
 ) {

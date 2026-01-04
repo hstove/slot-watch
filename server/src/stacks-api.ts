@@ -14,13 +14,13 @@ import {
 } from './db/block-proposals';
 import type { Db } from './db/db';
 
-export const getStackerSetCache = memoizeCache(
+const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
     `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_v2`,
   getStackerSetInner
 );
 
-export const getLatestStackerSetCache = memoizeCache(
+const getLatestStackerSetCache = memoizeCache(
   (networkKey: string) => `stacker_set_latest_v2_${networkKey}`,
   async (networkKey: string) => {
     const poxInfo = await getPoxInfo.get(networkKey);
@@ -86,7 +86,7 @@ export async function getLatestStackerSet(networkKey: string) {
 // 	return result;
 // }
 
-export async function getSmallPoxInfo(networkKey: string) {
+async function getSmallPoxInfo(networkKey: string) {
   const poxInfo = await getPoxInfoInner(networkKey);
   if (!poxInfo.reward_cycle_id) {
     throw new Error('No reward cycle id');

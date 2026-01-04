@@ -4,7 +4,7 @@ import { env } from 'cloudflare:workers';
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type BasicAuth = { username: string; password: string };
-export function getBasicAuth(request: Request): BasicAuth | null {
+function getBasicAuth(request: Request): BasicAuth | null {
   const authHeader = request.headers.get('Authorization');
 
   // biome-ignore lint/complexity/useOptionalChain: ignored using `--suppress`
@@ -25,7 +25,7 @@ export function getBasicAuth(request: Request): BasicAuth | null {
   return { username, password };
 }
 
-export function getNetworkKey(request: Request): string | null {
+function getNetworkKey(request: Request): string | null {
   const auth = getBasicAuth(request);
   if (!auth) {
     return null;
@@ -38,7 +38,7 @@ export function getNetworkKey(request: Request): string | null {
   return auth.username;
 }
 
-export function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
+function getBasicAuthHono(request: HonoRequest): BasicAuth | null {
   const authHeader = request.header('Authorization');
 
   // biome-ignore lint/complexity/useOptionalChain: ignored using `--suppress`

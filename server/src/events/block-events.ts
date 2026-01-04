@@ -1,4 +1,5 @@
 import {
+  type WSNewBlockV2,
   BURN_BLOCK_V2_EVENT,
   coreNodeBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
@@ -11,13 +12,11 @@ import {
   PayloadType,
   type TenureChangeCause,
 } from '@stacks/transactions';
-// import { publishWsEvent } from '../redis';
-import type { NewBlockJob } from '../worker/types';
 import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { Effect } from 'effect';
-import { Db, Streamer } from '../effect/tags';
+import { DbServiceTag, StreamerServiceTag } from '../effect/tags';
 import { serializeBurnBlock } from '../db/blocks';
 import { warmCache } from '../stacks-api';
 
@@ -70,12 +69,12 @@ export function convertBlock(
   };
 }
 
-export const handleStacksBlockEvent = (job: NewBlockJob) =>
+export const handleStacksBlockEvent = (job: WSNewBlockV2) =>
   Effect.gen(function* () {
     const block = job.payload;
     const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
-    const db = yield* Db;
-    const streamer = yield* Streamer;
+    const db = yield* DbServiceTag;
+    const streamer = yield* StreamerServiceTag;
     const dbBlock = {
       ...block,
       id,
@@ -118,8 +117,8 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
       consensusHash: payload.payload.consensusHash,
       createdAt: new Date(payload.receivedAt),
     };
-    const db = yield* Db;
-    const streamer = yield* Streamer;
+    const db = yield* DbServiceTag;
+    const streamer = yield* StreamerServiceTag;
     yield* Effect.all([
       db.withDb((db) => db.insert(burnBlocks).values(dbBurnBlock)),
       streamer.publish({

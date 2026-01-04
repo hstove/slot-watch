@@ -1,5 +1,4 @@
 export type { SlotWatchServer } from './server';
-// import type { app } from "./server";
 import { hc } from 'hono/client';
 import type { SlotWatchServer } from './server';
 

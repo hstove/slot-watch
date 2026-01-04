@@ -69,7 +69,7 @@ export type {
   DecodedChunk,
 } from 'slot-watch-common';
 
-export const handleBlockProposalE = ({
+const handleBlockProposalE = ({
   payload,
   receivedAt,
   networkKey,
@@ -153,7 +153,7 @@ export const handleBlockProposalE = ({
     );
   });
 
-export const handleBlockPushE = ({
+const handleBlockPushE = ({
   payload,
   receivedAt,
   networkKey,
@@ -186,7 +186,7 @@ export const handleBlockPushE = ({
 type BlockAccept = TypeMerge<BlockResponseAccepted, BlockResponseRejected>;
 type BlockReject = TypeMerge<BlockResponseRejected, BlockResponseAccepted>;
 
-export const handleBlockResponseE = ({
+const handleBlockResponseE = ({
   chunk,
   payload,
   receivedAt,
@@ -232,7 +232,7 @@ export const handleBlockResponseE = ({
     return blockResponse;
   });
 
-export const handleStateMachineUpdateE = ({
+const handleStateMachineUpdateE = ({
   payload,
   receivedAt,
   networkKey,

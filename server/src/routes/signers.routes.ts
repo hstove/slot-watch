@@ -9,7 +9,7 @@ import {
 } from 'slot-watch-common';
 import { timeout } from 'hono/timeout';
 import { log } from '../logger';
-import { getSignerLatencies } from '../db/block-responses';
+import { getLatestResponses, getSignerLatencies } from '../db/block-responses';
 import type { ServerType } from '../server-context';
 import { stxCommittedCache } from '../pox-4';
 
@@ -178,4 +178,9 @@ export const signersRoutes = new Hono<ServerType>()
         })),
       });
     }
-  );
+  )
+  .get('/chunks/signer-latest/:networkKey', async (c) => {
+    const networkKey = c.req.param('networkKey');
+    const responses = await getLatestResponses(networkKey);
+    return c.json(responses);
+  });

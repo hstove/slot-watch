@@ -49,7 +49,7 @@ function CostUsed({
   );
 }
 
-export const CostUsedBar = ({
+const CostUsedBar = ({
   used,
   name,
 }: {
