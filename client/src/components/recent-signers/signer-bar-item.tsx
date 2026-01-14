@@ -2,6 +2,11 @@ import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import mixPlugin from 'colord/plugins/mix';
 import type { RecentSignerWithLatestResponse } from '@/store/signers-store';
+import { SimpleTooltip } from '../simple-tooltip';
+import { DataLabel, DataValue } from '../data-group';
+import { PublicKey } from '../public-key';
+import { Timestamp } from '../timestamp';
+import React from 'react';
 
 extend([mixPlugin]);
 
@@ -24,13 +29,47 @@ export const SignerBarItem = ({
 }) => {
   const color = colorForTimeAgo(signer.createdAt);
   return (
-    <div
-      key={signer.publicKey}
-      className="h-full"
-      style={{
-        flexGrow: signer.weight + signer.totalWeight * 0.01,
-        backgroundColor: color,
-      }}
-    />
+    <SimpleTooltip
+      content={
+        <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
+          {signer.name ? (
+            <React.Fragment>
+              <DataLabel>Entity</DataLabel>
+              <DataValue>{signer.name}</DataValue>
+            </React.Fragment>
+          ) : null}
+          <DataLabel>Public Key</DataLabel>
+          <DataValue>
+            <PublicKey publicKey={signer.publicKey} />
+          </DataValue>
+          <DataLabel>Weight</DataLabel>
+          <DataValue>{signer.weightPercentStr}</DataValue>
+          <DataLabel>Version</DataLabel>
+          <DataValue>{signer.versionShort}</DataValue>
+          {signer.createdAt ? (
+            <React.Fragment>
+              <DataLabel>Last Seen</DataLabel>
+              <DataValue>
+                <Timestamp timestamp={signer.createdAt} />
+              </DataValue>
+            </React.Fragment>
+          ) : null}
+          {signer.blockHeight ? (
+            <React.Fragment>
+              <DataLabel>Block Height</DataLabel>
+              <DataValue>{signer.blockHeight}</DataValue>
+            </React.Fragment>
+          ) : null}
+        </div>
+      }
+    >
+      <div
+        className="h-full cursor-help"
+        style={{
+          flexGrow: signer.weight + signer.totalWeight * 0.01,
+          backgroundColor: color,
+        }}
+      />
+    </SimpleTooltip>
   );
 };

@@ -5,9 +5,7 @@ import eventsRoutes from './routes/events.routes';
 import { cors } from 'hono/cors';
 import { blockRoutes } from './routes/blocks.routes';
 import { prettyJSON } from 'hono/pretty-json';
-import { getRecentsRoutes } from './routes/recents.routes';
 import { healthRoutes } from './routes/health.routes';
-import { metricsRoutes } from './routes/metrics.routes';
 import { signersRoutes } from './routes/signers.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
 import { minersRoutes } from './routes/miners.routes';
@@ -15,15 +13,15 @@ import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
 import { openAPIRouteHandler } from 'hono-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
+import { warmupMetrics } from './metrics';
+import { register, Registry } from 'prom-client';
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
-  .route('/', getRecentsRoutes)
   .route('/', signersRoutes)
   .route('/', stateMachineRoutes)
   .route('/', minersRoutes)
-  .route('/health', healthRoutes)
-  .route('/', metricsRoutes);
+  .route('/health', healthRoutes);
 
 export const app = new Hono<ServerType>()
   .use(async (c, next) => {
@@ -75,7 +73,14 @@ export const app = new Hono<ServerType>()
 
   .get('/docs', Scalar({ url: '/openapi.json' }))
 
-  // .route('/', workerRoutes)
+  .get('/metrics', async (c) => {
+    await warmupMetrics(c.get('db'));
+    // @ts-expect-error
+    register.setContentType(Registry.OPENMETRICS_CONTENT_TYPE);
+    const metrics = await register.metrics();
+    return c.text(metrics, 200);
+  })
+
   .onError((err, c) => {
     console.error(err, 'Error handling request');
     log

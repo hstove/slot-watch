@@ -75,17 +75,6 @@ export async function getLatestStackerSet(networkKey: string) {
   return mapCachedSignerData(signers);
 }
 
-// export async function _getStackerSet(networkKey: string, rewardCycle: number) {
-// 	const cacheKey = `stacker_set_${networkKey}_${rewardCycle}`;
-// 	const cached = cache.get<StackerSetCached>(cacheKey);
-// 	if (cached) {
-// 		return cached;
-// 	}
-// 	const result = await getStackerSetInner(networkKey, rewardCycle);
-// 	cache.set<StackerSetCached>(cacheKey, result);
-// 	return result;
-// }
-
 async function getSmallPoxInfo(networkKey: string) {
   const poxInfo = await getPoxInfoInner(networkKey);
   if (!poxInfo.reward_cycle_id) {
@@ -101,19 +90,6 @@ export const getPoxInfo = memoizeCache(
   (networkKey: string) => `pox_info_${getApiUrl(networkKey)}`,
   getSmallPoxInfo
 );
-
-// export async function getPoxInfo(networkKey: string) {
-// 	const cacheKey = `pox_info_${networkKey}`;
-// 	const cached = cache.get<PoxInfoCached>(cacheKey);
-// 	if (cached) {
-// 		return cached;
-// 	}
-// 	const result = await getPoxInfoInner(networkKey);
-// 	cache.set<PoxInfoCached>(cacheKey, {
-// 		reward_cycle_id: result.reward_cycle_id,
-// 	});
-// 	return result;
-// }
 
 export async function warmCache(networkKey: string, db: Db) {
   const poxInfo = await getPoxInfo.warm(networkKey);

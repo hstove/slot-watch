@@ -16,7 +16,7 @@ import { recentBlocksHealthCache } from '../db/block-proposals';
 import type { InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { Effect } from 'effect';
-import { serializeBurnBlock } from '../db/blocks';
+import { serializeBurnBlock } from '../db/serializers';
 import { warmCache } from '../stacks-api';
 import { DbService } from '../effect/layers/db';
 import { StreamerService } from '../effect/layers/streamer';

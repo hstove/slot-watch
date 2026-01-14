@@ -23,32 +23,13 @@ import {
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
 import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
-// import { redisClient } from '../redis';
 import { stringify } from 'superjson';
 import { logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
 import * as R from 'remeda';
-
-export function serializeBlockProposal(
-  block: BlockProposalDb
-): ApiBlockProposal {
-  const createdAt = getCreatedAt(block.id);
-  return {
-    ...block,
-    createdAt: createdAt.toISOString(),
-    burnBlockHeight: block.burnBlockHeight ?? 0,
-    consensusHash: block.consensusHash ?? '',
-    minerPublicKey: block.minerPublicKey ?? '',
-    txCount: block.txCount ?? 0,
-    serverVersionShort: block.serverVersion
-      ? getVersionFromString(block.serverVersion)
-      : null,
-    serverVersion: block.serverVersion ?? null,
-    blockTimestamp: (block.blockTimestamp || createdAt).toISOString(),
-  };
-}
+import { serializeBlockProposal } from './serializers';
 
 const LAST_BLOCK_PROPOSAL_KEY = 'last-block-proposal';
 
@@ -78,7 +59,6 @@ export async function setLatestBlockProposal(blockProposal: ApiBlockProposal) {
     'setting latest block proposal'
   );
   await env.CACHE.put(key, stringify(blockProposal));
-  // await redisClient.set(key, stringify(blockProposal));
 }
 
 export async function getRecentBlocksHealth({

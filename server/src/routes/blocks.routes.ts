@@ -8,12 +8,13 @@ import {
   stacksBlocks,
 } from '../db/schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
+import { mapSignerDataToResponses } from '../db/block-responses';
 import {
-  mapSignerDataToResponses,
+  serializeBurnBlock,
+  serializeStacksBlock,
+  serializeBlockProposal,
   serializeBlockResponse,
-} from '../db/block-responses';
-import { serializeBurnBlock, serializeStacksBlock } from '../db/blocks';
-import { serializeBlockProposal } from '../db/block-proposals';
+} from '../db/serializers';
 import { log, logger } from '../logger';
 import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
