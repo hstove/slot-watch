@@ -29,12 +29,12 @@ import {
   type BlockResponseApi,
   type DecodedChunk,
 } from 'slot-watch-common';
+import { setLatestBlockResponses } from '../db/block-responses';
 import {
   serializeBlockResponse,
-  setLatestBlockResponses,
-} from '../db/block-responses';
+  serializeStateMachineUpdate,
+} from '../db/serializers';
 import { setLatestBlockProposal } from '../db/block-proposals';
-import { serializeStateMachineUpdate } from '../db/state-machines';
 import { DbService } from '../effect/layers/db';
 import type { InferInsertModel } from 'drizzle-orm';
 import type {

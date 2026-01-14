@@ -3,7 +3,7 @@ import { Schema } from 'effect';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { stateMachineUpdates, type StateMachineUpdateDb } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { serializeStateMachineUpdate } from '../db/state-machines';
+import { serializeStateMachineUpdate } from '../db/serializers';
 import * as R from 'remeda';
 import type { ServerType } from '../server-context';
 import {

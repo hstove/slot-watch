@@ -17,4 +17,3 @@ This package is part of the Slot Watch monorepo, and it's responsible for the fr
 - Server logs: `tail -n 100 tmp/dev-server.log`
 - UI design: See `./UI-DESIGN.md`
 - Debugging: Use playwriter tool to interact with the running app
-- When using `beads` for tasks, make sure to set the context to the parent folder first!

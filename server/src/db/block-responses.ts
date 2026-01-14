@@ -148,28 +148,6 @@ export async function getLatestResponses(networkKey: string) {
   };
 }
 
-export function serializeBlockResponse(
-  response: BlockResponseDb
-): BlockResponseApi {
-  const createdAt = getCreatedAt(response.id);
-  return {
-    ...response,
-    tenureExtendTimestamp: response.tenureExtendTimestamp
-      ? response.tenureExtendTimestamp.toISOString()
-      : null,
-    createdAt: createdAt.toISOString(),
-    signerPublicKey: response.signerPublicKey ?? '',
-    accepted: response.accepted ?? true,
-    version: response.version ?? undefined,
-    reason: response.reason ?? undefined,
-    validationCode: response.validationCode ?? undefined,
-    rejectCode: response.rejectCode ?? undefined,
-    rejectReason: response.rejectReason ?? undefined,
-    latencyMs: response.latencyMs ?? undefined,
-    blockHeight: response.blockHeight ?? undefined,
-  };
-}
-
 function latestBlockResponseLookupKey({
   signerPublicKey,
   networkKey,

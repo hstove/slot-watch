@@ -16,34 +16,16 @@ import { hex } from '@scure/base';
 import { StateMachineUpdateCoder } from './state-machine';
 import { decodeTransactions } from './transactions';
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
-export type BitVec = {
+export interface BitVec {
   length: number;
   bytes: Uint8Array;
-};
+}
 
 function dataLen(_len: number) {
   const len = BigInt(_len);
   const extra = len % 8n === 0n ? 0n : 1n;
   return len / 8n + extra;
 }
-
-// Rust code:
-
-// /// Serialize a BitVec to a string of 1s and 0s for display
-//     /// purposes. For example, a BitVec with [true, false, true]
-//     /// will be serialized to "101".
-//     pub fn binary_str(&self) -> String {
-// 			self.clone()
-// 					.data
-// 					.into_iter()
-// 					.fold(String::new(), |acc, byte| {
-// 							acc + &format!("{:08b}", byte).chars().rev().collect::<String>()
-// 					})
-// 					.chars()
-// 					.take(self.len() as usize)
-// 					.collect::<String>()
-// 	}
 
 export function binaryString(bitvec: BitVec) {
   return bitvec.bytes

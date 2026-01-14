@@ -1,6 +1,6 @@
 import { makeDb } from '../src/db/db';
 import { stateMachineUpdates } from '../src/db/schema';
-import { serializeStateMachineUpdate } from '../src/db/state-machines';
+import { serializeStateMachineUpdate } from '../src/db/serializers';
 import { writeFile } from 'node:fs/promises';
 import { getStackerSet } from '../src/stacks-api';
 // import { getStackerSet } from 'slot-watch-common';
