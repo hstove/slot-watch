@@ -67,6 +67,7 @@ export async function getBlockResponsesForBlock(
   const data = await response.json();
   return data.responses;
 }
+
 export type ApiBlockResponseForBlock = Omit<
   Awaited<ReturnType<typeof getBlockResponsesForBlock>>[0],
   'signerPublicKey'

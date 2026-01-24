@@ -38,7 +38,8 @@
     "./client",
     "./common",
     "./server",
-    "./streamer"
+    "./streamer",
+    "./plugin"
   ],
   "packageManager": "bun@1.0.22",
   "resolutions": {
