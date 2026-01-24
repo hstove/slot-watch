@@ -1,0 +1,13 @@
+{
+  "name": "slot-watch-plugin",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.1.34",
+    "hono": "4.7.11",
+    "slot-watch-api": "workspace:*",
+    "slot-watch-common": "workspace:*",
+    "ts-toolbelt": "^9.6.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}
