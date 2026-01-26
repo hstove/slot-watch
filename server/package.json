@@ -34,8 +34,10 @@
     "@clarigen/boot": "3.0.0",
     "@clarigen/core": "3.0.0",
     "@effect/platform": "^0.94.1",
+    "@hono/mcp": "^0.2.3",
     "@hono/standard-validator": "^0.2.1",
     "@hono/zod-validator": "^0.4.1",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "@scalar/hono-api-reference": "^0.9.30",
     "@scure/base": "^1.1.9",
     "@stacks/network": "^7.0.2",
@@ -58,6 +60,6 @@
     "slot-watch-common": "workspace:*",
     "uuid": "^11.1.0",
     "vitest": "^2.1.2",
-    "zod": "^3.23.8"
+    "zod": "^4.3.6"
   }
 }

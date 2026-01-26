@@ -17,6 +17,7 @@ import {
   type WSMiniBlockResponses,
   BLOCK_PROPOSAL_EVENT,
   getVersionFromString,
+  makeStacksBlockId,
   type ApiBlockProposal,
   type StateMachineUpdate,
   STATE_MACHINE_UPDATE_EVENT,
@@ -102,6 +103,10 @@ const handleBlockProposal = ({
       serverVersion: payload.serverVersion ?? null,
       blockTimestamp: new Date(Number(payload.timestamp) * 1000),
       txFees: Number(payload.txFees),
+      indexBlockHash: makeStacksBlockId(
+        hex.encode(signerSignatureHash),
+        hex.encode(payload.consensusHash)
+      ),
     };
 
     const blockProposal: ApiBlockProposal = {
