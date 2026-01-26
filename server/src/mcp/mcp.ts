@@ -11,6 +11,11 @@ import { Effect } from 'effect';
 import type { StreamerService } from '../effect/layers/streamer';
 import { DbService } from '../effect/layers/db';
 import { runEffect } from '../effect/runtime';
+import {
+  serializeBlockProposal,
+  serializeStacksBlock,
+} from '../db/serializers';
+import { mergeBlockData } from 'slot-watch-common/stacks-blocks';
 
 async function runMcpEffect<E>(
   effect: Effect.Effect<string, E, DbService | StreamerService>
@@ -66,41 +71,52 @@ export const makeMcpServer = () => {
 
           const stackerSet = yield* getStackers();
 
-          const block = yield* db.withDb((db) =>
-            db.query.stacksBlocks.findFirst({
-              where: or(
-                args.blockHash
-                  ? eq(stacksBlocks.blockHash, args.blockHash)
-                  : undefined,
-                typeof args.blockHeight === 'number'
-                  ? eq(stacksBlocks.blockHeight, args.blockHeight)
-                  : undefined,
-                args.indexBlockHash
-                  ? eq(stacksBlocks.indexBlockHash, args.indexBlockHash)
-                  : undefined
+          const [dbBlock, dbProposal] = yield* Effect.all(
+            [
+              db.withDb((db) =>
+                db.query.stacksBlocks.findFirst({
+                  where: or(
+                    args.blockHash
+                      ? eq(stacksBlocks.blockHash, args.blockHash)
+                      : undefined,
+                    typeof args.blockHeight === 'number'
+                      ? eq(stacksBlocks.blockHeight, args.blockHeight)
+                      : undefined,
+                    args.indexBlockHash
+                      ? eq(stacksBlocks.indexBlockHash, args.indexBlockHash)
+                      : undefined
+                  ),
+                })
               ),
-            })
+              db.withDb((db) =>
+                db.query.blockProposals.findFirst({
+                  where: or(
+                    args.blockHash
+                      ? eq(blockProposals.signerSignatureHash, args.blockHash)
+                      : undefined,
+                    args.indexBlockHash
+                      ? eq(blockProposals.indexBlockHash, args.indexBlockHash)
+                      : undefined,
+                    args.blockHeight
+                      ? eq(blockProposals.burnBlockHeight, args.blockHeight)
+                      : undefined
+                  ),
+                })
+              ),
+            ],
+            {
+              concurrency: 'unbounded',
+            }
           );
 
-          const proposal = yield* db.withDb((db) =>
-            db.query.blockProposals.findFirst({
-              where: or(
-                args.blockHash
-                  ? eq(blockProposals.signerSignatureHash, args.blockHash)
-                  : undefined,
-                args.indexBlockHash
-                  ? eq(blockProposals.indexBlockHash, args.indexBlockHash)
-                  : undefined,
-                args.blockHeight
-                  ? eq(blockProposals.burnBlockHeight, args.blockHeight)
-                  : undefined
-              ),
-            })
-          );
-
-          if (!proposal) {
+          if (!dbProposal) {
             return 'No block found';
           }
+
+          const block = dbBlock ? serializeStacksBlock(dbBlock) : null;
+          const proposal = serializeBlockProposal(dbProposal);
+
+          const merged = mergeBlockData(proposal, block);
 
           const responses = yield* db.withDb((db) =>
             db.query.blockResponses.findMany({
@@ -108,7 +124,7 @@ export const makeMcpServer = () => {
                 eq(blockProposals.networkKey, 'mainnet'),
                 eq(
                   blockProposals.signerSignatureHash,
-                  proposal.signerSignatureHash
+                  dbProposal.signerSignatureHash
                 )
               ),
             })
@@ -120,8 +136,7 @@ export const makeMcpServer = () => {
           });
 
           return JSON.stringify({
-            block,
-            proposal,
+            block: merged,
             responses: responsesWithSigners,
           });
         })
