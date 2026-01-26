@@ -29,6 +29,7 @@
     "bignumber.js": "^9.1.2",
     "effect": "^3.19.14",
     "micro-packed": "^0.6.3",
+    "openapi-fetch": "^0.15.0",
     "zod": "^3.23.8"
   }
 }

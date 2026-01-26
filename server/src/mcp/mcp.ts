@@ -1,8 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { makeDb, type Db } from '../db/db';
 import { z } from 'zod';
-import { blockProposals, blockResponses, stacksBlocks } from '../db/schema';
-import { and, desc, eq } from 'drizzle-orm';
+import {
+  blockProposals,
+  blockResponses,
+  burnBlocks,
+  stacksBlocks,
+} from '../db/schema';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { or } from 'drizzle-orm';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from '../db/block-responses';
@@ -11,6 +16,7 @@ import { Effect } from 'effect';
 import type { StreamerService } from '../effect/layers/streamer';
 import { DbService } from '../effect/layers/db';
 import { runEffect } from '../effect/runtime';
+import { env } from 'cloudflare:workers';
 import {
   serializeBlockProposal,
   serializeStacksBlock,
@@ -18,7 +24,12 @@ import {
 import { mergeBlockData } from 'slot-watch-common/stacks-blocks';
 import {
   BlockResponseRejectReasons,
+  createStacksRpcClient,
   getVersionFromString,
+  getSortitionByBurnBlockHeight,
+  getSortitionByBurnHeaderHash,
+  getSortitionByConsensusHash,
+  type SortitionResponse,
   type RejectReasonPrefix,
 } from 'slot-watch-common';
 import { omit } from 'es-toolkit';
@@ -31,6 +42,58 @@ async function runMcpEffect<E>(
   return {
     content: [{ type: 'text' as const, text: result }],
   };
+}
+
+function formatSortition(sortition: SortitionResponse) {
+  return {
+    bitcoinBlockHash: sortition.burn_block_hash,
+    bitcoinBlockHeight: sortition.burn_block_height,
+    bitcoinBlockTimestamp: sortition.burn_header_timestamp,
+    consensusHash: sortition.consensus_hash,
+    sortitionId: sortition.sortition_id,
+    parentSortitionId: sortition.parent_sortition_id,
+    wasSortition: sortition.was_sortition,
+    minerPkHash160: sortition.miner_pk_hash160 ?? null,
+    stacksParentConsensusHash: sortition.stacks_parent_ch ?? null,
+    lastSortitionConsensusHash: sortition.last_sortition_ch ?? null,
+    committedBlockHash: sortition.committed_block_hash ?? null,
+    vrfSeed: sortition.vrf_seed ?? null,
+  };
+}
+
+function getSortitionLookupCount(args: {
+  consensusHash?: string;
+  bitcoinBlockHash?: string;
+  bitcoinBlockHeight?: number;
+}) {
+  return [
+    typeof args.consensusHash === 'string',
+    typeof args.bitcoinBlockHash === 'string',
+    typeof args.bitcoinBlockHeight === 'number',
+  ].filter(Boolean).length;
+}
+
+function fetchSortition(
+  client: ReturnType<typeof createStacksRpcClient>,
+  args: {
+    consensusHash?: string;
+    bitcoinBlockHash?: string;
+    bitcoinBlockHeight?: number;
+  }
+): Promise<SortitionResponse | null> {
+  if (typeof args.consensusHash === 'string') {
+    return getSortitionByConsensusHash(client, args.consensusHash);
+  }
+
+  if (typeof args.bitcoinBlockHash === 'string') {
+    return getSortitionByBurnHeaderHash(client, args.bitcoinBlockHash);
+  }
+
+  if (typeof args.bitcoinBlockHeight === 'number') {
+    return getSortitionByBurnBlockHeight(client, args.bitcoinBlockHeight);
+  }
+
+  return Promise.resolve(null);
 }
 
 const getStackers = () =>
@@ -257,7 +320,6 @@ export const makeMcpServer = () => {
           const items = proposals.map((proposal) => {
             const accepted = Boolean(proposal.stacksBlockHash);
             return {
-              id: proposal.id,
               blockHash: proposal.signerSignatureHash,
               indexBlockHash: proposal.indexBlockHash,
               consensusHash: proposal.consensusHash,
@@ -278,6 +340,118 @@ export const makeMcpServer = () => {
           return JSON.stringify({
             limit,
             proposals: items,
+          });
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    'get-recent-bitcoin-blocks',
+    {
+      description:
+        'List the most recent Bitcoin blocks and the count of Stacks blocks associated by consensus hash.',
+      inputSchema: {
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe('Max Bitcoin blocks to return (default 50, max 200)'),
+      },
+    },
+    (args) => {
+      return runMcpEffect(
+        Effect.gen(function* () {
+          const db = yield* DbService;
+          const limit = Math.min(args.limit ?? 50, 200);
+
+          const blocks = yield* db.withDb((db) =>
+            db
+              .select({
+                id: burnBlocks.id,
+                bitcoinBlockHeight: burnBlocks.burnBlockHeight,
+                bitcoinBlockHash: burnBlocks.burnBlockHash,
+                consensusHash: burnBlocks.consensusHash,
+                stacksBlockCount: sql<number>`count(${stacksBlocks.id})`,
+              })
+              .from(burnBlocks)
+              .leftJoin(
+                stacksBlocks,
+                and(
+                  eq(stacksBlocks.consensusHash, burnBlocks.consensusHash),
+                  eq(stacksBlocks.networkKey, burnBlocks.networkKey)
+                )
+              )
+              .where(eq(burnBlocks.networkKey, 'mainnet'))
+              .groupBy(burnBlocks.id)
+              .orderBy(desc(burnBlocks.id))
+              .limit(limit)
+          );
+
+          const items = blocks.map((block) => ({
+            blockHash: block.bitcoinBlockHash,
+            bitcoinBlockHeight: block.bitcoinBlockHeight,
+            consensusHash: block.consensusHash,
+            stacksBlockCount: Number(block.stacksBlockCount),
+            observedAt: getCreatedAt(block.id).toISOString(),
+          }));
+
+          return JSON.stringify({
+            limit,
+            blocks: items,
+          });
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    'get-sortition',
+    {
+      description:
+        'Fetch a sortition by consensus hash, Bitcoin block hash, or Bitcoin block height. Provide exactly one lookup field.',
+      inputSchema: {
+        consensusHash: z
+          .string()
+          .optional()
+          .describe('The consensus hash for the sortition'),
+        bitcoinBlockHash: z
+          .string()
+          .optional()
+          .describe('The Bitcoin block hash (burn header hash)'),
+        bitcoinBlockHeight: z
+          .number()
+          .int()
+          .optional()
+          .describe('The Bitcoin block height'),
+      },
+    },
+    (args) => {
+      return runMcpEffect(
+        Effect.gen(function* () {
+          const lookups = getSortitionLookupCount(args);
+
+          if (lookups !== 1) {
+            return 'Provide exactly one of consensusHash, bitcoinBlockHash, or bitcoinBlockHeight.';
+          }
+
+          const client = createStacksRpcClient(
+            'mainnet',
+            env.HIRO_API_KEY ?? ''
+          );
+
+          const sortition = yield* Effect.promise(() =>
+            fetchSortition(client, args)
+          );
+
+          if (!sortition) {
+            return 'No sortition found';
+          }
+
+          return JSON.stringify({
+            sortition: formatSortition(sortition),
           });
         })
       );

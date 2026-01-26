@@ -20,7 +20,8 @@
       "!server/drizzle/meta/**",
       "!routeTree.gen.ts",
       "!.turbo/**",
-      "!.beads/**"
+      "!.beads/**",
+      "!common/src/stacks-rpc-types.d.ts"
     ]
   },
   "linter": {
@@ -50,7 +51,8 @@
       "!dist/",
       "!server/drizzle/meta",
       "!routeTree.gen.ts",
-      "!.turbo"
+      "!.turbo",
+      "!common/src/stacks-rpc-types.d.ts"
     ]
   },
   "javascript": {
