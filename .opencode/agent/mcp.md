@@ -18,3 +18,5 @@ When providing data about Stacks blocks, use the following guidelines:
 
 - Use `blockHash` to identify a block, even though this is called `signerSignatureHash` in some tables.
 - Use "bitcoin-X" to identify Bitcoin-related info, even though it's often referred to as "burn-X" in the code. For example, use `bitcoinBlockHeight` instead of `burnBlockHeight`.
+- Don't include the `id` field from the database - this is just for internal use.
+- The `id` field is a UUIDv7, so it can be sorted by insertion time. Use the `getCreatedAt` utility to get the timestamp of the UUID.
