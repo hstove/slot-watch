@@ -64,7 +64,9 @@ export const blockProposals = pgTable(
     serverVersion: text('server_version'),
     blockTimestamp: timestamp('block_timestamp').notNull(),
     txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
-    indexBlockHash: text('index_block_hash', { length: 64 }).notNull(),
+    indexBlockHash: text('index_block_hash', { length: 64 })
+      .default('')
+      .notNull(),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
