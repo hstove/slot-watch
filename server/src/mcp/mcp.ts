@@ -408,10 +408,10 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-sortition',
+    'get-tenure',
     {
       description:
-        'Fetch a sortition by consensus hash, Bitcoin block hash, or Bitcoin block height. Provide exactly one lookup field.',
+        'Fetch a tenure by consensus hash, Bitcoin block hash, or Bitcoin block height. Provide exactly one lookup field.',
       inputSchema: {
         consensusHash: z
           .string()
@@ -451,7 +451,7 @@ export const makeMcpServer = () => {
           }
 
           return JSON.stringify({
-            sortition: formatSortition(sortition),
+            tenure: formatSortition(sortition),
           });
         })
       );
