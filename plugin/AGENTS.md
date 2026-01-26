@@ -128,9 +128,3 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
   }
 }
 ```
-
-The `tool` helper creates a custom tool that opencode can call. It takes a Zod schema function and returns a tool definition with:
-
-- `description`: What the tool does
-- `args`: Zod schema for the tool's arguments
-- `execute`: Function that runs when the tool is called
