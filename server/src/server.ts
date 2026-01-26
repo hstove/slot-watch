@@ -15,6 +15,8 @@ import { openAPIRouteHandler } from 'hono-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { warmupMetrics } from './metrics';
 import { register, Registry } from 'prom-client';
+import { makeMcpServer } from './mcp/mcp';
+import { StreamableHTTPTransport } from '@hono/mcp';
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
@@ -79,6 +81,13 @@ export const app = new Hono<ServerType>()
     register.setContentType(Registry.OPENMETRICS_CONTENT_TYPE);
     const metrics = await register.metrics();
     return c.text(metrics, 200);
+  })
+
+  .all('/mcp', async (c) => {
+    const transport = new StreamableHTTPTransport({});
+    const mcp = makeMcpServer();
+    await mcp.connect(transport);
+    return transport.handleRequest(c);
   })
 
   .onError((err, c) => {
