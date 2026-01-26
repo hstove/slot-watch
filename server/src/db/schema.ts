@@ -64,10 +64,14 @@ export const blockProposals = pgTable(
     serverVersion: text('server_version'),
     blockTimestamp: timestamp('block_timestamp').notNull(),
     txFees: bigint('tx_fees', { mode: 'number' }).default(0).notNull(),
+    indexBlockHash: text('index_block_hash', { length: 64 }).notNull(),
   },
   (table) => [
     index('block_proposals_network_key_idx').on(table.networkKey),
     index('block_proposals_signer_signature_hash_idx').on(
+      table.signerSignatureHash
+    ),
+    index('block_proposals_signer_signature_hash_network_key_idx').on(
       table.signerSignatureHash
     ),
     index('block_proposals_chain_length_idx').on(table.chainLength),
@@ -85,6 +89,7 @@ export const blockProposals = pgTable(
       table.chainLength,
       table.id
     ),
+    index('block_proposals_index_block_hash_idx').on(table.indexBlockHash),
   ]
 );
 
@@ -177,6 +182,7 @@ export const stacksBlocks = pgTable(
   (table) => [
     index('stacks_blocks_block_height_idx').on(table.blockHeight),
     index('stacks_blocks_block_hash_idx').on(table.blockHash),
+    index('stacks_blocks_index_block_hash_idx').on(table.indexBlockHash),
     unique('stacks_blocks_network_key_block_hash_idx').on(
       table.networkKey,
       table.blockHash
@@ -184,6 +190,10 @@ export const stacksBlocks = pgTable(
     index('stacks_blocks_consensus_hash_network_key_idx').on(
       table.consensusHash,
       table.networkKey
+    ),
+    index('stacks_blocks_index_block_hash_network_key_idx').on(
+      table.networkKey,
+      table.indexBlockHash
     ),
   ]
 );
