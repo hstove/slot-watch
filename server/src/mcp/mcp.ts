@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { makeDb, type Db } from '../db/db';
 import { z } from 'zod';
 import { blockProposals, blockResponses, stacksBlocks } from '../db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { or } from 'drizzle-orm';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from '../db/block-responses';
@@ -22,6 +22,7 @@ import {
   type RejectReasonPrefix,
 } from 'slot-watch-common';
 import { omit } from 'es-toolkit';
+import { getCreatedAt } from '../utils';
 
 async function runMcpEffect<E>(
   effect: Effect.Effect<string, E, DbService | StreamerService>
@@ -195,6 +196,88 @@ export const makeMcpServer = () => {
               rejectRatio: responsesWithSigners.rejectRatio,
               acceptRatio: responsesWithSigners.acceptRatio,
             },
+          });
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    'get-recent-stacks-blocks',
+    {
+      description:
+        'List the most recent block Stacks blocks. Blocks that have been proposed but not yet processed will have `accepted` as `false`.',
+      inputSchema: {
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe('Max proposals to return (default 50, max 200)'),
+      },
+    },
+    (args) => {
+      return runMcpEffect(
+        Effect.gen(function* () {
+          const db = yield* DbService;
+          const limit = Math.min(args.limit ?? 50, 200);
+
+          const proposals = yield* db.withDb((db) =>
+            db
+              .select({
+                id: blockProposals.id,
+                signerSignatureHash: blockProposals.signerSignatureHash,
+                indexBlockHash: blockProposals.indexBlockHash,
+                burnBlockHeight: blockProposals.burnBlockHeight,
+                chainLength: blockProposals.chainLength,
+                blockTimestamp: blockProposals.blockTimestamp,
+                minerPublicKey: blockProposals.minerPublicKey,
+                serverVersion: blockProposals.serverVersion,
+                stacksBlockHash: stacksBlocks.blockHash,
+                stacksBlockHeight: stacksBlocks.blockHeight,
+                consensusHash: stacksBlocks.consensusHash,
+              })
+              .from(blockProposals)
+              .leftJoin(
+                stacksBlocks,
+                and(
+                  eq(
+                    stacksBlocks.blockHash,
+                    blockProposals.signerSignatureHash
+                  ),
+                  eq(stacksBlocks.networkKey, blockProposals.networkKey)
+                )
+              )
+              .where(eq(blockProposals.networkKey, 'mainnet'))
+              .orderBy(desc(blockProposals.id))
+              .limit(limit)
+          );
+
+          const items = proposals.map((proposal) => {
+            const accepted = Boolean(proposal.stacksBlockHash);
+            return {
+              id: proposal.id,
+              blockHash: proposal.signerSignatureHash,
+              indexBlockHash: proposal.indexBlockHash,
+              consensusHash: proposal.consensusHash,
+              bitcoinBlockHeight: proposal.burnBlockHeight,
+              height: proposal.chainLength,
+              blockTimestamp: proposal.blockTimestamp.toISOString(),
+              proposedAt: getCreatedAt(proposal.id).toISOString(),
+              minerPublicKey: proposal.minerPublicKey,
+              serverVersionShort: proposal.serverVersion
+                ? getVersionFromString(proposal.serverVersion)
+                : null,
+              accepted,
+              stacksBlockHash: accepted ? proposal.stacksBlockHash : null,
+              stacksBlockHeight: accepted ? proposal.stacksBlockHeight : null,
+            };
+          });
+
+          return JSON.stringify({
+            limit,
+            proposals: items,
           });
         })
       );
