@@ -16,6 +16,12 @@ import {
   serializeStacksBlock,
 } from '../db/serializers';
 import { mergeBlockData } from 'slot-watch-common/stacks-blocks';
+import {
+  BlockResponseRejectReasons,
+  getVersionFromString,
+  type RejectReasonPrefix,
+} from 'slot-watch-common';
+import { omit } from 'es-toolkit';
 
 async function runMcpEffect<E>(
   effect: Effect.Effect<string, E, DbService | StreamerService>
@@ -117,6 +123,18 @@ export const makeMcpServer = () => {
           const proposal = serializeBlockProposal(dbProposal);
 
           const merged = mergeBlockData(proposal, block);
+          const blockSummary = omit(merged, [
+            'networkKey',
+            'txCount',
+            'txFees',
+            'readCount',
+            'readLength',
+            'runtime',
+            'writeCount',
+            'writeLength',
+            'serverVersion',
+            'serverVersionShort',
+          ]);
 
           const responses = yield* db.withDb((db) =>
             db.query.blockResponses.findMany({
@@ -135,9 +153,48 @@ export const makeMcpServer = () => {
             responses,
           });
 
+          const signers = responsesWithSigners.signers.map((signer) => {
+            const reason = signer.rejectReason
+              ? BlockResponseRejectReasons[
+                  signer.rejectReason as RejectReasonPrefix
+                ]
+              : null;
+
+            const rejectInfo =
+              signer.accepted === false
+                ? {
+                    rejectCode: signer.rejectCode,
+                    validationCode: signer.validationCode,
+                    reason: signer.reason,
+                    reasonDescription: reason?.description ?? null,
+                    reasonLabel: reason?.label ?? null,
+                    rejectReason: signer.rejectReason ?? null,
+                  }
+                : {};
+            return {
+              signingKey: signer.signing_key,
+              weight: signer.weightPercentStr,
+              name: signer.label,
+              accepted: signer.accepted ?? null,
+              version: getVersionFromString(signer.version ?? ''),
+              latencyMs: signer.latencyMs,
+              ...rejectInfo,
+            };
+          });
+
           return JSON.stringify({
-            block: merged,
-            responses: responsesWithSigners,
+            block: {
+              ...blockSummary,
+              minerVersion: merged.serverVersionShort,
+            },
+            responses: {
+              accepted: responsesWithSigners.accepted,
+              countAccepted: responsesWithSigners.countAccepted,
+              countRejected: responsesWithSigners.countRejected,
+              signers,
+              rejectRatio: responsesWithSigners.rejectRatio,
+              acceptRatio: responsesWithSigners.acceptRatio,
+            },
           });
         })
       );
