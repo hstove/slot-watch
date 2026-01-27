@@ -6,6 +6,7 @@ import {
 import { hex } from '@scure/base';
 import type { StackerDBPayload } from 'slot-watch-common';
 import { log } from './logger';
+import { v7 as uuidv7 } from 'uuid';
 
 export function getPayloadContractId(payload: StackerDBPayload) {
   const version =
@@ -56,4 +57,8 @@ export function getCreatedAt(uuid: string): Date {
   const timestampMs = Number.parseInt(timestampHex, 16);
 
   return new Date(timestampMs);
+}
+
+export function uuidAtTime(date: Date) {
+  return uuidv7({ msecs: date.getTime() });
 }

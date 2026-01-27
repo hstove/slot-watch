@@ -10,5 +10,5 @@ In general, this means you'll be working in the `./client` folder. If you think 
 
 IMPORTANT: Read @client/AGENTS.md for more context.
 
-For Visual UI patterns, see `./tools/UI-DESIGN.md`. This is important for when you're working on _new_ UI, so that you stay visually consistent.
+For Visual UI patterns, see `./client/UI-DESIGN.md`. This is important for when you're working on _new_ UI, so that you stay visually consistent.
 
