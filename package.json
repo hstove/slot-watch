@@ -42,7 +42,7 @@
     "./streamer",
     "./plugin"
   ],
-  "packageManager": "bun@1.0.22",
+  "packageManager": "bun@1.3.4",
   "resolutions": {
     "whatwg-url": "^14.0.0"
   },
