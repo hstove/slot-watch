@@ -13,6 +13,7 @@ import { Route as WhenExtendRouteImport } from './routes/when-extend'
 import { Route as UiTestRouteImport } from './routes/ui-test'
 import { Route as StateMachinesRouteImport } from './routes/state-machines'
 import { Route as SignersRouteImport } from './routes/signers'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MinersIndexRouteImport } from './routes/miners/index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
@@ -38,6 +39,11 @@ const StateMachinesRoute = StateMachinesRouteImport.update({
 const SignersRoute = SignersRouteImport.update({
   id: '/signers',
   path: '/signers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -73,6 +79,7 @@ const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/mcp'
     | '/signers'
     | '/state-machines'
     | '/ui-test'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  McpRoute: typeof McpRoute
   SignersRoute: typeof SignersRoute
   StateMachinesRoute: typeof StateMachinesRoute
   UiTestRoute: typeof UiTestRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/signers'
       fullPath: '/signers'
       preLoaderRoute: typeof SignersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -237,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  McpRoute: McpRoute,
   SignersRoute: SignersRoute,
   StateMachinesRoute: StateMachinesRoute,
   UiTestRoute: UiTestRoute,

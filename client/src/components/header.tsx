@@ -16,6 +16,7 @@ const navItems = [
   { to: '/signers', label: 'signers' },
   { to: '/miners', label: 'miners' },
   { to: '/state-machines', label: 'state machines' },
+  { to: '/mcp', label: 'mcp' },
 ] as const;
 
 export const Header = () => {

@@ -36,7 +36,7 @@ import {
   type RejectReasonPrefix,
 } from 'slot-watch-common';
 import { omit } from 'es-toolkit';
-import { getCreatedAt } from '../utils';
+import { getCreatedAt, uuidAtTime } from '../utils';
 
 async function runMcpEffect<E>(
   effect: Effect.Effect<string, E, DbService | StreamerService>
@@ -387,9 +387,9 @@ export const makeMcpServer = () => {
               .where(
                 and(
                   eq(blockProposals.networkKey, 'mainnet'),
-                  after ? gte(blockProposals.blockTimestamp, after) : undefined,
+                  after ? gte(blockProposals.id, uuidAtTime(after)) : undefined,
                   before
-                    ? lte(blockProposals.blockTimestamp, before)
+                    ? lte(blockProposals.id, uuidAtTime(before))
                     : undefined
                 )
               )
@@ -691,17 +691,21 @@ export const makeMcpServer = () => {
               })()
             : null;
 
-          return JSON.stringify({
-            now: new Date(nowMs).toISOString(),
-            latest: {
-              stacksBlock,
-              blockProposal,
-              blockResponse,
-              blockPush,
-              bitcoinBlock,
-              stateMachineUpdate,
+          return JSON.stringify(
+            {
+              now: new Date(nowMs).toISOString(),
+              latest: {
+                stacksBlock,
+                blockProposal,
+                blockResponse,
+                blockPush,
+                bitcoinBlock,
+                stateMachineUpdate,
+              },
             },
-          });
+            null,
+            2
+          );
         })
       );
     }
