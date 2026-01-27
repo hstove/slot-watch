@@ -32,7 +32,7 @@
     "@stacks/transactions": "^7.0.2",
     "alchemy": "^0.82.2",
     "superjson": "^2.2.1",
-    "turbo": "^2.7.2",
+    "turbo": "^2.7.6",
     "usehooks-ts": "^3.1.0"
   },
   "workspaces": [
