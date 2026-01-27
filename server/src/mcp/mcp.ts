@@ -453,6 +453,14 @@ export const makeMcpServer = () => {
           .max(200)
           .optional()
           .describe('Max Bitcoin blocks to return (default 50, max 200)'),
+        after: z.iso
+          .datetime()
+          .optional()
+          .describe('Only include blocks after this ISO timestamp'),
+        before: z.iso
+          .datetime()
+          .optional()
+          .describe('Only include blocks before this ISO timestamp'),
       },
     },
     (args) => {
@@ -460,6 +468,12 @@ export const makeMcpServer = () => {
         Effect.gen(function* () {
           const db = yield* DbService;
           const limit = Math.min(args.limit ?? 50, MAX_LIMIT);
+          const after = args.after ? new Date(args.after) : null;
+          const before = args.before ? new Date(args.before) : null;
+
+          if (after && before && after > before) {
+            return 'Invalid time window: after must be before or equal to before.';
+          }
 
           const blocks = yield* db.withDb((db) =>
             db
@@ -478,7 +492,13 @@ export const makeMcpServer = () => {
                   eq(stacksBlocks.networkKey, burnBlocks.networkKey)
                 )
               )
-              .where(eq(burnBlocks.networkKey, 'mainnet'))
+              .where(
+                and(
+                  eq(burnBlocks.networkKey, 'mainnet'),
+                  after ? gte(burnBlocks.id, uuidAtTime(after)) : undefined,
+                  before ? lte(burnBlocks.id, uuidAtTime(before)) : undefined
+                )
+              )
               .groupBy(burnBlocks.id)
               .orderBy(desc(burnBlocks.id))
               .limit(limit)
