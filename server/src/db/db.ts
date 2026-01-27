@@ -6,9 +6,11 @@ import { env } from 'cloudflare:workers';
 const dbUrl =
   env.DATABASE_URL ?? 'postgresql://hankstoever@localhost:5432/slot_watch_v2';
 
+const logger = false;
+
 export function makeDb() {
   const pgClient = new NodePgClient(env.DB.connectionString ?? dbUrl);
-  return drizzlePg(pgClient, { schema });
+  return drizzlePg(pgClient, { schema, logger });
 }
 
 export type Db = ReturnType<typeof makeDb>;

@@ -38,12 +38,15 @@ import {
 import { omit } from 'es-toolkit';
 import { getCreatedAt, uuidAtTime } from '../utils';
 
-async function runMcpEffect<E>(
-  effect: Effect.Effect<string, E, DbService | StreamerService>
+async function runMcpEffect<A, E>(
+  effect: Effect.Effect<A, E, DbService | StreamerService>
 ) {
   const result = await runEffect(effect);
+  const text =
+    typeof result === 'string' ? result : JSON.stringify(result, null, 2);
   return {
-    content: [{ type: 'text' as const, text: result }],
+    content: [{ type: 'text' as const, text }],
+    structuredOutput: result,
   };
 }
 
@@ -301,7 +304,7 @@ export const makeMcpServer = () => {
             };
           });
 
-          return JSON.stringify({
+          return {
             block: {
               ...blockSummary,
               minerVersion: merged.serverVersionShort,
@@ -314,7 +317,7 @@ export const makeMcpServer = () => {
               rejectRatio: responsesWithSigners.rejectRatio,
               acceptRatio: responsesWithSigners.acceptRatio,
             },
-          });
+          };
         })
       );
     }
@@ -428,10 +431,10 @@ export const makeMcpServer = () => {
             return formatBitcoinFields(itemBase);
           });
 
-          return JSON.stringify({
+          return {
             limit,
             proposals: items,
-          });
+          };
         })
       );
     }
@@ -489,10 +492,10 @@ export const makeMcpServer = () => {
             observedAt: getObservedAt(block.id),
           }));
 
-          return JSON.stringify({
+          return {
             limit,
             blocks: items,
-          });
+          };
         })
       );
     }
@@ -691,21 +694,17 @@ export const makeMcpServer = () => {
               })()
             : null;
 
-          return JSON.stringify(
-            {
-              now: new Date(nowMs).toISOString(),
-              latest: {
-                stacksBlock,
-                blockProposal,
-                blockResponse,
-                blockPush,
-                bitcoinBlock,
-                stateMachineUpdate,
-              },
+          return {
+            now: new Date(nowMs).toISOString(),
+            latest: {
+              stacksBlock,
+              blockProposal,
+              blockResponse,
+              blockPush,
+              bitcoinBlock,
+              stateMachineUpdate,
             },
-            null,
-            2
-          );
+          };
         })
       );
     }
@@ -760,7 +759,7 @@ export const makeMcpServer = () => {
           );
 
           if (proposals.length === 0) {
-            return JSON.stringify({
+            return {
               window: { limit, blockCount: 0 },
               ratios: { accepted: 0, rejected: 0, pending: 0 },
               averages: {
@@ -769,7 +768,7 @@ export const makeMcpServer = () => {
                 pendingRatio: 0,
                 timeToPushedSeconds: 0,
               },
-            });
+            };
           }
 
           const blockHashes = proposals.map((p) => p.signerSignatureHash);
@@ -889,7 +888,7 @@ export const makeMcpServer = () => {
             .map((block) => block.pushedAfterSeconds)
             .filter((value) => typeof value === 'number') as number[];
 
-          return JSON.stringify({
+          return {
             window: {
               limit,
               blockCount: blocks.length,
@@ -913,7 +912,7 @@ export const makeMcpServer = () => {
             },
             oldestPending,
             blocks: args.includeBlocks ? blocks : undefined,
-          });
+          };
         })
       );
     }
@@ -1078,11 +1077,11 @@ export const makeMcpServer = () => {
             ? totalWeightDegraded / (stackerSet.totalWeight * blockCount)
             : 0;
 
-          return JSON.stringify({
+          return {
             window: { limit, blockCount, top },
             weightDegradedRatio,
             signers,
-          });
+          };
         })
       );
     }
@@ -1155,7 +1154,7 @@ export const makeMcpServer = () => {
                   return true;
                 });
 
-          return JSON.stringify({
+          return {
             filter,
             counts: {
               totalSigners: latest.signers.length,
@@ -1163,7 +1162,7 @@ export const makeMcpServer = () => {
               missing: missing.length,
             },
             responses: filtered.slice(0, limit),
-          });
+          };
         })
       );
     }
@@ -1235,10 +1234,10 @@ export const makeMcpServer = () => {
               };
             });
 
-          return JSON.stringify({
+          return {
             count: items.length,
             stateMachines: items,
-          });
+          };
         })
       );
     }
@@ -1367,12 +1366,12 @@ export const makeMcpServer = () => {
             });
           });
 
-          return JSON.stringify({
+          return {
             consensusHash,
             bitcoinBlockHeight,
             bitcoinBlockHash,
             blocks: items,
-          });
+          };
         })
       );
     }
@@ -1421,9 +1420,9 @@ export const makeMcpServer = () => {
             return 'No sortition found';
           }
 
-          return JSON.stringify({
+          return {
             tenure: formatSortition(sortition),
-          });
+          };
         })
       );
     }
