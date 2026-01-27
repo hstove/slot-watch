@@ -9,7 +9,7 @@
     "dev:server": "bun run --cwd server --env-file=../.env.local dev:tee",
     "dev:worker": "cd server && bun run worker",
     "migrate": "bun run --cwd server --bun --env-file=../.env.local migrate",
-    "typecheck": "turbo typecheck",
+    "typecheck": "turbo typecheck --continue",
     "check": "biome check",
     "check:fix": "biome check --fix",
     "check:all": "bun check:fix && bun typecheck",
