@@ -1,6 +1,18 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import {
+  getLatestSignerResponsesOutputSchema,
+  getLatestStateMachinesOutputSchema,
+  getRecentBitcoinBlocksOutputSchema,
+  getRecentBlockHealthOutputSchema,
+  getRecentStacksBlocksOutputSchema,
+  getSignerHealthOutputSchema,
+  getStacksBlockOutputSchema,
+  getStacksIngestionStatusOutputSchema,
+  getTenureBlocksOutputSchema,
+  getTenureOutputSchema,
+} from './mcp-schemas';
+import {
   blockProposals,
   blockResponses,
   blockPushes,
@@ -42,11 +54,18 @@ async function runMcpEffect<A, E>(
   effect: Effect.Effect<A, E, DbService | StreamerService>
 ) {
   const result = await runEffect(effect);
-  const text =
-    typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+  if (!isStructuredContent(result)) {
+    const text =
+      typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+    return {
+      content: [{ type: 'text' as const, text }],
+      isError: true,
+    };
+  }
+
   return {
-    content: [{ type: 'text' as const, text }],
-    structuredOutput: result,
+    content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+    structuredContent: result,
   };
 }
 
@@ -64,6 +83,10 @@ function getAgeSeconds(createdAtIso: string, nowMs: number) {
 function average(values: number[]) {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function isStructuredContent(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function formatBitcoinFields<
@@ -177,6 +200,7 @@ export const makeMcpServer = () => {
             'The index block hash of the Stacks block. This is a hash of (blockHash, consensusHash), which means it is unique across forks.'
           ),
       },
+      outputSchema: getStacksBlockOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -345,6 +369,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Only include proposals before this ISO timestamp'),
       },
+      outputSchema: getRecentStacksBlocksOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -462,6 +487,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Only include blocks before this ISO timestamp'),
       },
+      outputSchema: getRecentBitcoinBlocksOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -527,6 +553,7 @@ export const makeMcpServer = () => {
       description:
         'Summarize latest observed Stacks/Bitcoin/signing events to spot stalls.',
       inputSchema: {},
+      outputSchema: getStacksIngestionStatusOutputSchema,
     },
     () => {
       return runMcpEffect(
@@ -750,6 +777,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Include per-block summaries (default false)'),
       },
+      outputSchema: getRecentBlockHealthOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -961,6 +989,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Max signers to return (default 15, max 200)'),
       },
+      outputSchema: getSignerHealthOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -1125,6 +1154,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Max signers to return (default 200)'),
       },
+      outputSchema: getLatestSignerResponsesOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -1201,6 +1231,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Max signers to return (default 100)'),
       },
+      outputSchema: getLatestStateMachinesOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -1290,6 +1321,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('Max proposals to return (default 200)'),
       },
+      outputSchema: getTenureBlocksOutputSchema,
     },
     (args) => {
       return runMcpEffect(
@@ -1417,6 +1449,7 @@ export const makeMcpServer = () => {
           .optional()
           .describe('The Bitcoin block height'),
       },
+      outputSchema: getTenureOutputSchema,
     },
     (args) => {
       return runMcpEffect(

@@ -33,10 +33,10 @@ export const SignerBarItem = ({
       content={
         <div className="grid gap-0 grid-cols-[minmax(100px,min-content)_1fr] items-center">
           {signer.name ? (
-            <React.Fragment>
+            <>
               <DataLabel>Entity</DataLabel>
               <DataValue>{signer.name}</DataValue>
-            </React.Fragment>
+            </>
           ) : null}
           <DataLabel>Public Key</DataLabel>
           <DataValue>
@@ -47,18 +47,18 @@ export const SignerBarItem = ({
           <DataLabel>Version</DataLabel>
           <DataValue>{signer.versionShort}</DataValue>
           {signer.createdAt ? (
-            <React.Fragment>
+            <>
               <DataLabel>Last Seen</DataLabel>
               <DataValue>
                 <Timestamp timestamp={signer.createdAt} />
               </DataValue>
-            </React.Fragment>
+            </>
           ) : null}
           {signer.blockHeight ? (
-            <React.Fragment>
+            <>
               <DataLabel>Block Height</DataLabel>
               <DataValue>{signer.blockHeight}</DataValue>
-            </React.Fragment>
+            </>
           ) : null}
         </div>
       }
