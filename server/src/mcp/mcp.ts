@@ -180,7 +180,7 @@ export const makeMcpServer = () => {
   });
 
   server.registerTool(
-    'get-stacks-block',
+    'getStacksBlock',
     {
       description:
         'Fetch a Stacks block by a block hash, height, or index block hash. You must provide at least one lookup field.',
@@ -348,7 +348,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-recent-stacks-blocks',
+    'getRecentStacksBlocks',
     {
       description:
         'List recent Stacks block proposals with acceptance status. Blocks proposed but not processed will have `accepted` as `false`.',
@@ -466,7 +466,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-recent-bitcoin-blocks',
+    'getRecentBitcoinBlocks',
     {
       description:
         'List the most recent Bitcoin blocks and the count of Stacks blocks associated by consensus hash.',
@@ -548,7 +548,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-stacks-ingestion-status',
+    'getStacksIngestionStatus',
     {
       description:
         'Summarize latest observed Stacks/Bitcoin/signing events to spot stalls.',
@@ -758,7 +758,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-recent-block-health',
+    'getRecentBlockHealth',
     {
       description:
         'Summarize recent signer acceptance/rejection ratios and pending blocks.',
@@ -967,7 +967,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-signer-health',
+    'getSignerHealth',
     {
       description:
         'Compute signer participation and degradation over recent blocks.',
@@ -1137,7 +1137,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-latest-signer-responses',
+    'getLatestSignerResponses',
     {
       description:
         'List latest signer responses with optional filtering for missing/accepted/rejected.',
@@ -1219,7 +1219,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-latest-state-machines',
+    'getLatestStateMachines',
     {
       description: 'List the latest state machine update per signer.',
       inputSchema: {
@@ -1295,7 +1295,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-tenure-blocks',
+    'getTenureBlocks',
     {
       description:
         'List Stacks block proposals for a tenure by consensus hash or Bitcoin block identifier.',
@@ -1430,7 +1430,7 @@ export const makeMcpServer = () => {
   );
 
   server.registerTool(
-    'get-tenure',
+    'getTenure',
     {
       description:
         'Fetch a tenure by consensus hash, Bitcoin block hash, or Bitcoin block height. Provide exactly one lookup field.',
