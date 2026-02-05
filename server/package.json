@@ -37,7 +37,7 @@
     "@hono/mcp": "^0.2.3",
     "@hono/standard-validator": "^0.2.1",
     "@hono/zod-validator": "^0.7.6",
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@scalar/hono-api-reference": "^0.9.30",
     "@scure/base": "^1.1.9",
     "@stacks/network": "^7.0.2",

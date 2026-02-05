@@ -2,9 +2,7 @@
   "name": "slot-watch-website",
   "main": "../.alchemy/local/worker.js",
   "compatibility_date": "2025-05-29",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "dist",
     "binding": "ASSETS"
