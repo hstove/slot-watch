@@ -141,10 +141,6 @@ function getSortitionLookupCount(args: {
   ].filter(Boolean).length;
 }
 
-function sanitizeHexInput(value?: string) {
-  return typeof value === 'string' ? strip0x(value) : undefined;
-}
-
 function fetchSortition(
   client: ReturnType<typeof createStacksRpcClient>,
   args: {
@@ -210,8 +206,8 @@ export const makeMcpServer = () => {
     (args) => {
       return runMcpEffect(
         Effect.gen(function* () {
-          const blockHash = sanitizeHexInput(args.blockHash);
-          const indexBlockHash = sanitizeHexInput(args.indexBlockHash);
+          const blockHash = strip0x(args.blockHash);
+          const indexBlockHash = strip0x(args.indexBlockHash);
           const db = yield* DbService;
 
           const stackerSet = yield* getStackers();
@@ -1334,8 +1330,8 @@ export const makeMcpServer = () => {
       return runMcpEffect(
         Effect.gen(function* () {
           const db = yield* DbService;
-          const consensusHashInput = sanitizeHexInput(args.consensusHash);
-          const bitcoinBlockHashInput = sanitizeHexInput(args.bitcoinBlockHash);
+          const consensusHashInput = strip0x(args.consensusHash);
+          const bitcoinBlockHashInput = strip0x(args.bitcoinBlockHash);
           const bitcoinBlockHeightInput = args.bitcoinBlockHeight;
           const lookups = getSortitionLookupCount({
             consensusHash: consensusHashInput,
@@ -1468,8 +1464,8 @@ export const makeMcpServer = () => {
     (args) => {
       return runMcpEffect(
         Effect.gen(function* () {
-          const consensusHash = sanitizeHexInput(args.consensusHash);
-          const bitcoinBlockHash = sanitizeHexInput(args.bitcoinBlockHash);
+          const consensusHash = strip0x(args.consensusHash);
+          const bitcoinBlockHash = strip0x(args.bitcoinBlockHash);
           const bitcoinBlockHeight = args.bitcoinBlockHeight;
           const lookups = getSortitionLookupCount({
             consensusHash,

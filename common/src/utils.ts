@@ -135,7 +135,10 @@ export function prefix0x(value: string) {
   return value.startsWith('0x') ? value : `0x${value}`;
 }
 
-export function strip0x(value: string) {
+export function strip0x(value?: string): string;
+export function strip0x(value?: undefined): undefined;
+export function strip0x(value?: string | undefined) {
+  if (typeof value !== 'string') return value;
   return value.startsWith('0x') ? value.slice(2) : value;
 }
 
