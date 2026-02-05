@@ -46,6 +46,7 @@ import {
   getSortitionByConsensusHash,
   type SortitionResponse,
   type RejectReasonPrefix,
+  strip0x,
 } from 'slot-watch-common';
 import { omit } from 'es-toolkit';
 import { getCreatedAt, uuidAtTime } from '../utils';
@@ -140,6 +141,10 @@ function getSortitionLookupCount(args: {
   ].filter(Boolean).length;
 }
 
+function sanitizeHexInput(value?: string) {
+  return typeof value === 'string' ? strip0x(value) : undefined;
+}
+
 function fetchSortition(
   client: ReturnType<typeof createStacksRpcClient>,
   args: {
@@ -205,6 +210,8 @@ export const makeMcpServer = () => {
     (args) => {
       return runMcpEffect(
         Effect.gen(function* () {
+          const blockHash = sanitizeHexInput(args.blockHash);
+          const indexBlockHash = sanitizeHexInput(args.indexBlockHash);
           const db = yield* DbService;
 
           const stackerSet = yield* getStackers();
@@ -214,14 +221,14 @@ export const makeMcpServer = () => {
               db.withDb((db) =>
                 db.query.stacksBlocks.findFirst({
                   where: or(
-                    args.blockHash
-                      ? eq(stacksBlocks.blockHash, args.blockHash)
+                    blockHash
+                      ? eq(stacksBlocks.blockHash, blockHash)
                       : undefined,
                     typeof args.blockHeight === 'number'
                       ? eq(stacksBlocks.blockHeight, args.blockHeight)
                       : undefined,
-                    args.indexBlockHash
-                      ? eq(stacksBlocks.indexBlockHash, args.indexBlockHash)
+                    indexBlockHash
+                      ? eq(stacksBlocks.indexBlockHash, indexBlockHash)
                       : undefined
                   ),
                 })
@@ -229,11 +236,11 @@ export const makeMcpServer = () => {
               db.withDb((db) =>
                 db.query.blockProposals.findFirst({
                   where: or(
-                    args.blockHash
-                      ? eq(blockProposals.signerSignatureHash, args.blockHash)
+                    blockHash
+                      ? eq(blockProposals.signerSignatureHash, blockHash)
                       : undefined,
-                    args.indexBlockHash
-                      ? eq(blockProposals.indexBlockHash, args.indexBlockHash)
+                    indexBlockHash
+                      ? eq(blockProposals.indexBlockHash, indexBlockHash)
                       : undefined,
                     args.blockHeight
                       ? eq(blockProposals.chainLength, args.blockHeight)
@@ -1327,14 +1334,21 @@ export const makeMcpServer = () => {
       return runMcpEffect(
         Effect.gen(function* () {
           const db = yield* DbService;
-          const lookups = getSortitionLookupCount(args);
+          const consensusHashInput = sanitizeHexInput(args.consensusHash);
+          const bitcoinBlockHashInput = sanitizeHexInput(args.bitcoinBlockHash);
+          const bitcoinBlockHeightInput = args.bitcoinBlockHeight;
+          const lookups = getSortitionLookupCount({
+            consensusHash: consensusHashInput,
+            bitcoinBlockHash: bitcoinBlockHashInput,
+            bitcoinBlockHeight: bitcoinBlockHeightInput,
+          });
           if (lookups !== 1) {
             return 'Provide exactly one of consensusHash, bitcoinBlockHash, or bitcoinBlockHeight.';
           }
 
-          let consensusHash = args.consensusHash ?? null;
-          let bitcoinBlockHeight = args.bitcoinBlockHeight ?? null;
-          let bitcoinBlockHash = args.bitcoinBlockHash ?? null;
+          let consensusHash = consensusHashInput ?? null;
+          let bitcoinBlockHeight = bitcoinBlockHeightInput ?? null;
+          let bitcoinBlockHash = bitcoinBlockHashInput ?? null;
 
           if (!consensusHash) {
             const [burnBlock] = yield* db.withDb((db) =>
@@ -1344,11 +1358,11 @@ export const makeMcpServer = () => {
                 .where(
                   and(
                     eq(burnBlocks.networkKey, 'mainnet'),
-                    typeof args.bitcoinBlockHash === 'string'
-                      ? eq(burnBlocks.burnBlockHash, args.bitcoinBlockHash)
+                    typeof bitcoinBlockHashInput === 'string'
+                      ? eq(burnBlocks.burnBlockHash, bitcoinBlockHashInput)
                       : undefined,
-                    typeof args.bitcoinBlockHeight === 'number'
-                      ? eq(burnBlocks.burnBlockHeight, args.bitcoinBlockHeight)
+                    typeof bitcoinBlockHeightInput === 'number'
+                      ? eq(burnBlocks.burnBlockHeight, bitcoinBlockHeightInput)
                       : undefined
                   )
                 )
@@ -1454,7 +1468,14 @@ export const makeMcpServer = () => {
     (args) => {
       return runMcpEffect(
         Effect.gen(function* () {
-          const lookups = getSortitionLookupCount(args);
+          const consensusHash = sanitizeHexInput(args.consensusHash);
+          const bitcoinBlockHash = sanitizeHexInput(args.bitcoinBlockHash);
+          const bitcoinBlockHeight = args.bitcoinBlockHeight;
+          const lookups = getSortitionLookupCount({
+            consensusHash,
+            bitcoinBlockHash,
+            bitcoinBlockHeight,
+          });
 
           if (lookups !== 1) {
             return 'Provide exactly one of consensusHash, bitcoinBlockHash, or bitcoinBlockHeight.';
@@ -1466,7 +1487,11 @@ export const makeMcpServer = () => {
           );
 
           const sortition = yield* Effect.promise(() =>
-            fetchSortition(client, args)
+            fetchSortition(client, {
+              consensusHash,
+              bitcoinBlockHash,
+              bitcoinBlockHeight,
+            })
           );
 
           if (!sortition) {
