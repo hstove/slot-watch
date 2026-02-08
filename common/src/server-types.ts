@@ -289,7 +289,7 @@ export interface BlockProposalWithResponses
   extends Schema.Schema.Type<typeof BlockProposalWithResponsesSchema> {}
 
 export const StxBlockResponseSchema = Schema.Struct({
-  stacksBlock: ApiStacksBlockSchema,
+  stacksBlock: Schema.NullOr(ApiStacksBlockSchema),
   proposal: ApiBlockProposalSchema,
 }).annotations({ identifier: 'StxBlockResponse' });
 export interface StxBlockResponse

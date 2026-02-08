@@ -443,10 +443,7 @@ const blockRoutes = new Hono<ServerType>()
       const stxBlock = await c.get('db').query.stacksBlocks.findFirst({
         where: eq(stacksBlocks.blockHash, blockHash),
       });
-      if (!stxBlock) {
-        return c.json({ error: 'Block not found' }, 404);
-      }
-      const stxBlockData = serializeStacksBlock(stxBlock);
+      const stxBlockData = stxBlock ? serializeStacksBlock(stxBlock) : null;
       const proposalData = serializeBlockProposal(blockProposal);
       return c.json({
         stacksBlock: stxBlockData,
