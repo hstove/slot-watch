@@ -21,6 +21,9 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 2500,
   },
+  server: {
+    allowedHosts: ['.ngrok-free.dev'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
