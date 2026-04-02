@@ -30,7 +30,8 @@
       "recommended": false,
       "style": {
         "useBlockStatements": "off",
-        "useTrimStartEnd": "off"
+        "useTrimStartEnd": "off",
+        "useConsistentTypeDefinitions": "off"
       },
       "performance": {
         "noNamespaceImport": "off"
