@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhenExtendRouteImport } from './routes/when-extend'
 import { Route as UiTestRouteImport } from './routes/ui-test'
 import { Route as StateMachinesRouteImport } from './routes/state-machines'
+import { Route as StateMachineHistoryRouteImport } from './routes/state-machine-history'
 import { Route as SignersRouteImport } from './routes/signers'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndexRouteImport } from './routes/index'
@@ -34,6 +35,11 @@ const UiTestRoute = UiTestRouteImport.update({
 const StateMachinesRoute = StateMachinesRouteImport.update({
   id: '/state-machines',
   path: '/state-machines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StateMachineHistoryRoute = StateMachineHistoryRouteImport.update({
+  id: '/state-machine-history',
+  path: '/state-machine-history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignersRoute = SignersRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
+  '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
+  '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
+  '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/mcp'
     | '/signers'
+    | '/state-machine-history'
     | '/state-machines'
     | '/ui-test'
     | '/when-extend'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/mcp'
     | '/signers'
+    | '/state-machine-history'
     | '/state-machines'
     | '/ui-test'
     | '/when-extend'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/mcp'
     | '/signers'
+    | '/state-machine-history'
     | '/state-machines'
     | '/ui-test'
     | '/when-extend'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   McpRoute: typeof McpRoute
   SignersRoute: typeof SignersRoute
+  StateMachineHistoryRoute: typeof StateMachineHistoryRoute
   StateMachinesRoute: typeof StateMachinesRoute
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/state-machines'
       fullPath: '/state-machines'
       preLoaderRoute: typeof StateMachinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/state-machine-history': {
+      id: '/state-machine-history'
+      path: '/state-machine-history'
+      fullPath: '/state-machine-history'
+      preLoaderRoute: typeof StateMachineHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signers': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   McpRoute: McpRoute,
   SignersRoute: SignersRoute,
+  StateMachineHistoryRoute: StateMachineHistoryRoute,
   StateMachinesRoute: StateMachinesRoute,
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,

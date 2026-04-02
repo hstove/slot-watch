@@ -16,6 +16,7 @@ const navItems = [
   { to: '/signers', label: 'signers' },
   { to: '/miners', label: 'miners' },
   { to: '/state-machines', label: 'state machines' },
+  { to: '/state-machine-history', label: 'sm history' },
   { to: '/mcp', label: 'mcp' },
 ] as const;
 
