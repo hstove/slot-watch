@@ -19,29 +19,29 @@ import {
 import { ChevronRight } from 'lucide-react';
 import { getEntity } from '@/lib/local-signers';
 
-type BaseState = {
+interface BaseState {
   activeSignerProtocolVersion: number;
   burnBlockHeight: number;
   burnBlock: string;
   minerState: ApiStateMachineUpdate['minerState'];
   replayTxs: string[] | null;
-};
+}
 
-type GroupedHistoryEntry = {
+interface GroupedHistoryEntry {
   state: BaseState;
   signers: { publicKey: string; weightPercent: number; updatedAt: string }[];
   signerWeightPercent: number;
   signerWeightPercentStr: string;
   earliestUpdate: string;
   latestUpdate: string;
-};
+}
 
-type BurnBlockSnapshot = {
+interface BurnBlockSnapshot {
   burnBlockHeight: number;
   burnBlock: string;
   timestamp: string;
   groups: GroupedHistoryEntry[];
-};
+}
 
 function getBaseState(update: ApiStateMachineUpdate): BaseState {
   return {

@@ -251,12 +251,12 @@ export async function getStateMachineHistory(
   networkKey: string,
   cursor?: string
 ) {
-  const response = await apiClient[':networkKey'][
-    'state-machine-updates'
-  ].$get({
-    param: { networkKey },
-    query: cursor ? { cursor } : {},
-  });
+  const response = await apiClient[':networkKey']['state-machine-updates'].$get(
+    {
+      param: { networkKey },
+      query: cursor ? { cursor } : {},
+    }
+  );
   const data = await response.json();
   return data;
 }
