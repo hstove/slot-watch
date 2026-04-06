@@ -16,6 +16,7 @@ import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { Button } from '../ui/button';
 import { getStacksExplorerUrl, prefix0x } from 'slot-watch-common';
 import { Link } from '@tanstack/react-router';
+import { ResponseTimelineChart } from '../stacks-block/response-timeline-chart';
 
 function DataRow({
   label,
@@ -52,6 +53,7 @@ export function StacksBlock() {
         stacks block #{block.blockHeight.toLocaleString()}
       </h2>
       <BlockListResponses blockHash={block.blockHash} />
+      <ResponseTimelineChart blockHash={block.blockHash} />
 
       <div className="flex flex-col">
         <DataRow label="block hash">
