@@ -29,6 +29,7 @@ import { SimpleTooltip } from '@/components/simple-tooltip';
 import { BlockCosts } from '@/components/blocks-v2/burn-block-costs';
 import { MAINNET_COST_LIMITS } from '@/lib/costs';
 import { percentString } from 'slot-watch-common';
+import { ResponseTimelineChart } from '@/components/stacks-block/response-timeline-chart';
 
 interface StacksBlockDetailProps {
   block: ApiBlockForBurnBlock;
@@ -138,10 +139,10 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
       <div className="space-y-3">
         <h2 className={textStyles('h3')}>Signer Responses</h2>
         <BlockListResponses blockHash={block.blockHash} />
-        {/* <React.Suspense fallback={<div>Loading chart...</div>}>
-          <BlockResponseChart blockHash={block.blockHash} />
-        </React.Suspense> */}
       </div>
+
+      {/* Response Timeline */}
+      <ResponseTimelineChart blockHash={block.blockHash} />
 
       {/* Block Information */}
       <div className="space-y-3">
