@@ -91,4 +91,6 @@ export const knownSigners: Record<string, string> = {
     'Figment-3',
   '03bbbe587de8a76343bb9cd4233b3b60962a2ff54677dc564a704c8578a67aa582':
     'PlanBetter',
+  '038d545b66cc01a93fe405e14d6432432d81ec03e296d55cf3c07b143a4407aa4a':
+    'STX Juice',
 };
