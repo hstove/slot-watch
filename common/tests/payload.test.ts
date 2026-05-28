@@ -17,6 +17,7 @@ import {
   MockSignatureCoder,
   type MockSignatureOld,
   MockSignatureOldCoder,
+  MiningReason,
   SignerMessageTypePrefix,
   type StackerDBStateMachineUpdate,
   StateMachineUpdateCoder,
@@ -109,6 +110,53 @@ test('block proposal fixture', async () => {
     'ced4ed4e61eef9b2859ae1053bc5df414e7b3a901c927107ea7c66d1a81a7f28'
   );
   expect(message.txCount).toEqual(0);
+});
+
+test('block proposal with v3 diagnostic data', () => {
+  const hexStr = [
+    '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000010000000000000000000000007b00000000000001c8',
+    '03',
+    '00000064',
+    '00000013',
+    '737461636b732d6e6f64652066697874757265',
+    '000000000000002a',
+    '2a'.repeat(20),
+    '2a'.repeat(32),
+    '0000000069ba8215',
+    '0000000069ba8215',
+    '02',
+  ].join('');
+  const decoded = decodeChunk(hex.decode(hexStr));
+  if (decoded.typeId !== SignerMessageTypePrefix.BlockProposal) {
+    throw new Error('Invalid type');
+  }
+  const proposal = decoded as BlockProposal;
+  expect(proposal.blockHeight).toEqual(123n);
+  expect(proposal.rewardCycle).toEqual(456n);
+  expect(proposal.txCount).toEqual(0);
+  expect(proposal.serverVersion).toEqual('stacks-node fixture');
+  expect(proposal.minerDiagnosticData).not.toEqual(null);
+  expect(proposal.minerDiagnosticData?.burnchainTipHeight).toEqual(42n);
+  expect(
+    hex.encode(
+      proposal.minerDiagnosticData?.burnchainTipConsensusHash ??
+        new Uint8Array()
+    )
+  ).toEqual('2a'.repeat(20));
+  expect(
+    hex.encode(
+      proposal.minerDiagnosticData?.burnchainTipHeaderHash ?? new Uint8Array()
+    )
+  ).toEqual('2a'.repeat(32));
+  expect(proposal.minerDiagnosticData?.tenureExtendTimestamp).toEqual(
+    1_773_830_677n
+  );
+  expect(proposal.minerDiagnosticData?.readCountExtendTimestamp).toEqual(
+    1_773_830_677n
+  );
+  expect(proposal.minerDiagnosticData?.miningReason).toEqual(
+    MiningReason.ReadCountExtend
+  );
 });
 
 test('decoding', () => {
