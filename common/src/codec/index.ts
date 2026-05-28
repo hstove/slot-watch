@@ -235,8 +235,36 @@ export const StacksTxCoder: P.CoderType<StacksTransactionWire> = P.wrap({
 export interface BlockProposalData {
   version: number;
   serverVersion: string;
+  minerDiagnosticData: MinerDiagnosticData | null;
   unknownBytes: Uint8Array;
 }
+
+export const MiningReason = {
+  BlockFound: 0,
+  Extended: 1,
+  ReadCountExtend: 2,
+} as const;
+
+export type MiningReason = (typeof MiningReason)[keyof typeof MiningReason];
+
+export interface MinerDiagnosticData {
+  burnchainTipHeight: bigint;
+  burnchainTipConsensusHash: Uint8Array;
+  burnchainTipHeaderHash: Uint8Array;
+  tenureExtendTimestamp: bigint;
+  readCountExtendTimestamp: bigint;
+  miningReason: MiningReason;
+}
+
+export const MinerDiagnosticDataCoder: P.CoderType<MinerDiagnosticData> =
+  P.struct({
+    burnchainTipHeight: P.U64BE,
+    burnchainTipConsensusHash: P.bytes(20),
+    burnchainTipHeaderHash: P.bytes(32),
+    tenureExtendTimestamp: P.U64BE,
+    readCountExtendTimestamp: P.U64BE,
+    miningReason: P.U8 as P.CoderType<MiningReason>,
+  });
 
 export const BlockProposalDataCoder = P.wrap({
   encodeStream: (w: P.Writer, data: BlockProposalData) => {
@@ -257,18 +285,29 @@ export const BlockProposalDataCoder = P.wrap({
       version = P.U8.decodeStream(r);
     } catch {
       return {
-        version: 2,
+        version: 1,
         serverVersion: '',
+        minerDiagnosticData: null,
         unknownBytes: new Uint8Array(),
       } as BlockProposalData;
     }
     const innerBytes = P.bytes(P.U32BE).decodeStream(r);
-    const serverVersion = P.string(P.U32BE).decode(innerBytes);
-    const encodedVersionLen = P.string(P.U32BE).encode(serverVersion).length;
-    const unknownBytes = innerBytes.slice(encodedVersionLen);
+    const serverVersionLen = P.U32BE.decode(innerBytes.slice(0, 4));
+    const serverVersionBytes = innerBytes.slice(4, 4 + serverVersionLen);
+    const serverVersion = new TextDecoder().decode(serverVersionBytes);
+    const encodedVersionLen = 4 + serverVersionLen;
+    const remainingBytes = innerBytes.slice(encodedVersionLen);
+    const minerDiagnosticData =
+      version >= 3 ? MinerDiagnosticDataCoder.decode(remainingBytes) : null;
+    const minerDiagnosticDataLen =
+      minerDiagnosticData === null
+        ? 0
+        : MinerDiagnosticDataCoder.encode(minerDiagnosticData).length;
+    const unknownBytes = remainingBytes.slice(minerDiagnosticDataLen);
     return {
       version,
       serverVersion,
+      minerDiagnosticData,
       unknownBytes,
     };
   },
@@ -425,6 +464,7 @@ export type BlockProposal = Prettify<
     txCount: number;
     tenureChangeCause: TenureChangeCause | null;
     serverVersion: string;
+    minerDiagnosticData: MinerDiagnosticData | null;
     txFees: bigint;
   }
 >;
@@ -572,6 +612,7 @@ export function decodeChunk(chunk: Uint8Array) {
       blockHeight: extras.blockHeight,
       rewardCycle: extras.rewardCycle,
       serverVersion: extras.blockResponseData.serverVersion,
+      minerDiagnosticData: extras.blockResponseData.minerDiagnosticData,
       txCount: txsArray.length,
       tenureChangeCause,
       txFees,
