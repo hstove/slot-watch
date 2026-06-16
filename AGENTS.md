@@ -10,6 +10,7 @@ The primary focus of slot watch is around how Signers sign proposed blocks. Each
 - `./common`: Shared utilities and types
 - `./client`: Frontend React application. Learn more in `./client/AGENTS.md`.
 - `./streamer`: Rust-based event streaming service
+- `./.agents/skills/cloudflare/SKILL.md`: Local Cloudflare operations skill for production management, Worker logs, deploys, KV/cache state, and incident response.
 
 ## Root-level Commands
 

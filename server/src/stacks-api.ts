@@ -13,11 +13,13 @@ import {
   recentBlocksHealthCache,
 } from './db/block-proposals';
 import type { Db } from './db/db';
+import { env } from 'cloudflare:workers';
 
 const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number) =>
     `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_v2`,
-  getStackerSetInner
+  (networkKey: string, rewardCycle: number) =>
+    getStackerSetInner(networkKey, rewardCycle, env.HIRO_API_KEY)
 );
 
 const getLatestStackerSetCache = memoizeCache(
@@ -76,7 +78,7 @@ export async function getLatestStackerSet(networkKey: string) {
 }
 
 async function getSmallPoxInfo(networkKey: string) {
-  const poxInfo = await getPoxInfoInner(networkKey);
+  const poxInfo = await getPoxInfoInner(networkKey, env.HIRO_API_KEY);
   if (!poxInfo.reward_cycle_id) {
     throw new Error('No reward cycle id');
   }
