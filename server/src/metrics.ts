@@ -64,11 +64,18 @@ const lastNs = [10, 25, 50];
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export async function warmupMetrics(db: Db) {
   const runStart = Date.now();
-  const [recentBlocks, stackerSet, allCommits] = await Promise.all([
+  const [recentBlocks, stackerSet, allCommitsResult] = await Promise.all([
     recentBlocksHealthCache.get(db),
     getLatestStackerSet('mainnet'),
-    stxCommittedCache.get(),
+    stxCommittedCache.get().catch((error) => {
+      logger.error(
+        { error: String(error) },
+        'Failed to warm STX committed metrics'
+      );
+      return null;
+    }),
   ]);
+  const allCommits = allCommitsResult ?? {};
 
   // Reset so that we don't show stale signers
   signerParticipationRate.reset();

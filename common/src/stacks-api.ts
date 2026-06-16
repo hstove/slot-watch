@@ -36,24 +36,42 @@ export type StackerSet = {
   };
 };
 
-export async function getStackerSet(networkKey: string, rewardCycle: number) {
+function headersForApiKey(apiKey?: string) {
+  return apiKey ? { 'x-api-key': apiKey } : undefined;
+}
+
+async function readJsonResponse<T>(response: Response, url: string) {
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `Stacks API request failed: ${response.status} ${response.statusText} for ${url}: ${body.slice(0, 200)}`
+    );
+  }
+  return (await response.json()) as T;
+}
+
+export async function getStackerSet(
+  networkKey: string,
+  rewardCycle: number,
+  apiKey?: string
+) {
   const url = `${getApiUrl(networkKey)}/v3/stacker_set/${rewardCycle}`;
-  const response = await fetch(url);
-  const data = (await response.json()) as StackerSet;
+  const response = await fetch(url, { headers: headersForApiKey(apiKey) });
+  const data = await readJsonResponse<StackerSet>(response, url);
   return data.stacker_set.signers;
 }
 
-export async function getCoreNodeInfo(networkKey: string) {
+export async function getCoreNodeInfo(networkKey: string, apiKey?: string) {
   const url = `${getApiUrl(networkKey)}/v2/info`;
-  const response = await fetch(url);
-  const data = (await response.json()) as CoreNodeInfoResponse;
+  const response = await fetch(url, { headers: headersForApiKey(apiKey) });
+  const data = await readJsonResponse<CoreNodeInfoResponse>(response, url);
   return data;
 }
 
-export async function getPoxInfo(networkKey: string) {
+export async function getPoxInfo(networkKey: string, apiKey?: string) {
   const url = `${getApiUrl(networkKey)}/v2/pox`;
-  const response = await fetch(url);
-  const data = (await response.json()) as CoreNodePoxResponse;
+  const response = await fetch(url, { headers: headersForApiKey(apiKey) });
+  const data = await readJsonResponse<CoreNodePoxResponse>(response, url);
   return data;
 }
 
