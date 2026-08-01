@@ -1,4 +1,4 @@
-import { Layer, Effect } from 'effect';
+import { Cause, Layer, Effect } from 'effect';
 import { DbLive, type DbService } from '../effect/layers/db';
 import { StreamerService } from '../effect/layers/streamer';
 import { FetchHttpClient } from '@effect/platform';
@@ -13,9 +13,18 @@ export function runEffect<A, E>(
 ): Promise<A> {
   const pipeline = effect.pipe(
     Effect.provide(ServerRuntime),
-    Effect.tapErrorCause((cause) =>
-      Effect.logError('Error processing stacks block event', { cause })
-    )
+    Effect.tapErrorCause((cause) => {
+      const errors = Cause.prettyErrors(cause);
+      const errorMessage =
+        errors.map((error) => error.message).join('; ') ||
+        'Unknown Effect failure';
+      return Effect.logError(
+        `Error processing stacks block event: ${errorMessage}`,
+        {
+          errorMessage,
+        }
+      );
+    })
   );
 
   return Effect.runPromise(pipeline);

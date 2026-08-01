@@ -17,7 +17,7 @@ import {
   handleBurnBlockEvent,
   handleStacksBlockEvent,
 } from '../events/block-events';
-import { convertBlock } from '../events/block-events';
+import { convertBlock } from '../events/convert-block';
 import type { ServerContext } from '../server-context';
 import { runEffect } from '../effect/runtime';
 
@@ -41,13 +41,13 @@ const basicAuthMiddleware = createMiddleware<Env>(async (c, next) => {
 const eventsRoutes = new Hono<Env>()
   .onError((err, c) => {
     log
-      .withError(err)
       .withMetadata({
         topic: 'event-routes',
         path: c.req.path,
+        errorName: err.name,
+        errorMessage: err.message,
       })
-      .error('Error in event routes');
-    console.error(err);
+      .error(`Error in event routes: ${err.name}: ${err.message}`);
 
     return c.text('Internal Server Error', 200);
   })
