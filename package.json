@@ -29,7 +29,7 @@
     "ultracite": "^6.5.0"
   },
   "dependencies": {
-    "@stacks/transactions": "^7.0.2",
+    "@stacks/transactions": "^7.6.0",
     "alchemy": "^0.82.2",
     "superjson": "^2.2.1",
     "turbo": "^2.7.6",

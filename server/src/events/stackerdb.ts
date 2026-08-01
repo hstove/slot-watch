@@ -62,6 +62,7 @@ export class UnknownChunkError extends Schema.TaggedError<UnknownChunkError>()(
   '@errors/UnknownChunkError',
   {
     typeId: Schema.Number,
+    message: Schema.String,
   }
 ) {}
 
@@ -367,7 +368,15 @@ const processChunk = (
       });
       return null;
     }
-    yield* Effect.fail(new UnknownChunkError({ typeId: decoded.typeId }));
+    if (decoded.typeId === SignerMessageTypePrefix.BlockPreCommit) {
+      return null;
+    }
+    yield* Effect.fail(
+      new UnknownChunkError({
+        typeId: decoded.typeId,
+        message: `No handler for decoded StackerDB chunk type ${decoded.typeId} (${_chunkType}); network=${networkKey}, slotId=${chunk.slot_id}, slotVersion=${chunk.slot_version}`,
+      })
+    );
     return null;
   });
 

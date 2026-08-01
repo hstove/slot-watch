@@ -21,6 +21,44 @@ export interface BitVec {
   bytes: Uint8Array;
 }
 
+export interface ProblematicTxMarker {
+  txIndex: number;
+  category: number;
+}
+
+// Source of truth: stackslib/src/chainstate/nakamoto/mod.rs
+const NAKAMOTO_BLOCK_VERSION_EPOCH_4 = 1;
+
+const ProblematicTxMarkerCoder = P.struct({
+  txIndex: P.U32BE,
+  category: P.U8,
+});
+
+const ProblematicTxsCoder = P.array(P.U32BE, ProblematicTxMarkerCoder);
+
+function includesProblematicTxs(blockVersion: number) {
+  // biome-ignore lint/suspicious/noBitwiseOperators: block versions reserve the high bit for shadow blocks
+  return (blockVersion & 0x7f) >= NAKAMOTO_BLOCK_VERSION_EPOCH_4;
+}
+
+function decodeProblematicTxs(
+  blockVersion: number,
+  bytes: Uint8Array
+): {
+  problematicTxs: ProblematicTxMarker[];
+  rest: Uint8Array;
+} {
+  if (!includesProblematicTxs(blockVersion)) {
+    return { problematicTxs: [], rest: bytes };
+  }
+  const count = P.U32BE.decode(bytes.slice(0, 4));
+  const encodedLength = 4 + count * 5;
+  return {
+    problematicTxs: ProblematicTxsCoder.decode(bytes.slice(0, encodedLength)),
+    rest: bytes.slice(encodedLength),
+  };
+}
+
 function dataLen(_len: number) {
   const len = BigInt(_len);
   const extra = len % 8n === 0n ? 0n : 1n;
@@ -55,6 +93,7 @@ export const BitVecCoder = P.wrap({
   },
 });
 
+// Source of truth: libsigner/src/v0/messages.rs
 export const SignerMessageTypePrefix = {
   /// Block Proposal message from miners
   BlockProposal: 0,
@@ -351,7 +390,7 @@ export const BlockPushedCoder = P.struct({
   rest: P.bytes(null),
 });
 
-export const SignerSignatureHashCoder = P.struct({
+const SignerSignatureHashBaseCoder = P.struct({
   blockVersion: P.U8,
   chainLength: P.U64BE,
   burnSpent: P.U64BE,
@@ -363,6 +402,29 @@ export const SignerSignatureHashCoder = P.struct({
   minerSignature: P.bytes(65),
   bitvec: BitVecCoder,
 });
+
+type SignerSignatureHashData = P.UnwrapCoder<
+  typeof SignerSignatureHashBaseCoder
+> & {
+  problematicTxs: ProblematicTxMarker[];
+};
+
+export const SignerSignatureHashCoder: P.CoderType<SignerSignatureHashData> =
+  P.wrap({
+    encodeStream: (w: P.Writer, data: SignerSignatureHashData) => {
+      SignerSignatureHashBaseCoder.encodeStream(w, data);
+      if (includesProblematicTxs(data.blockVersion)) {
+        ProblematicTxsCoder.encodeStream(w, data.problematicTxs);
+      }
+    },
+    decodeStream: (r: P.Reader) => {
+      const header = SignerSignatureHashBaseCoder.decodeStream(r);
+      const problematicTxs = includesProblematicTxs(header.blockVersion)
+        ? ProblematicTxsCoder.decodeStream(r)
+        : [];
+      return { ...header, problematicTxs };
+    },
+  });
 
 export const InverseBoolCoder: P.CoderType<boolean> = /* @__PURE__ */ P.wrap({
   size: 1,
@@ -466,6 +528,7 @@ export type BlockProposal = Prettify<
     serverVersion: string;
     minerDiagnosticData: MinerDiagnosticData | null;
     txFees: bigint;
+    problematicTxs: ProblematicTxMarker[];
   }
 >;
 export type BlockResponseAccepted = Prettify<
@@ -491,6 +554,7 @@ export type BlockResponseMessage =
 export type BlockPushed = Prettify<
   Omit<P.UnwrapCoder<typeof BlockPushedCoder>, 'rest'> & {
     txCount: number;
+    problematicTxs: ProblematicTxMarker[];
   }
 >;
 
@@ -583,14 +647,16 @@ export function decodeChunk(chunk: Uint8Array) {
   }
   if (type === SignerMessageTypePrefix.BlockProposal) {
     const { rest: remaining, ...proposal } = BlockProposalCoder.decode(chunk);
+    const { problematicTxs, rest } = decodeProblematicTxs(
+      proposal.blockVersion,
+      remaining
+    );
     // const txs = remaining.slice(0);
     // const txCount = P.U32BE.decode(txs.slice(0, 4));
     // const txReader = new BytesReader(txs.slice(4));
     let tenureChangeCause: TenureChangeCause | null = null;
     let txFees = 0n;
-    const { txs: txsArray, extraBytes } = decodeTransactions(
-      remaining.slice(0)
-    );
+    const { txs: txsArray, extraBytes } = decodeTransactions(rest);
     for (const tx of txsArray) {
       if (tx.payload.payloadType === PayloadType.TenureChange) {
         tenureChangeCause = tx.payload.cause;
@@ -616,15 +682,21 @@ export function decodeChunk(chunk: Uint8Array) {
       txCount: txsArray.length,
       tenureChangeCause,
       txFees,
+      problematicTxs,
     } satisfies BlockProposal;
   }
   if (type === SignerMessageTypePrefix.BlockPushed) {
-    const { rest, ...pushed } = BlockPushedCoder.decode(chunk);
+    const { rest: remaining, ...pushed } = BlockPushedCoder.decode(chunk);
+    const { problematicTxs, rest } = decodeProblematicTxs(
+      pushed.blockVersion,
+      remaining
+    );
     const txCount = P.U32BE.decode(rest.slice(0, 4));
     // console.log(hex.encode(rest));
     return {
       ...pushed,
       txCount,
+      problematicTxs,
     } satisfies BlockPushed;
   }
   if (type === SignerMessageTypePrefix.MockSignature) {
