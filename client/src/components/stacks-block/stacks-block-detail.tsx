@@ -142,7 +142,10 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
       </div>
 
       {/* Response Timeline */}
-      <ResponseTimelineChart blockHash={block.blockHash} />
+      <ResponseTimelineChart
+        blockHash={block.blockHash}
+        proposedAt={block.proposedAt}
+      />
 
       {/* Block Information */}
       <div className="space-y-3">

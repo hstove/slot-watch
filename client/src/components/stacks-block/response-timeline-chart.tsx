@@ -61,7 +61,13 @@ function CustomTooltip({
   );
 }
 
-export function ResponseTimelineChart({ blockHash }: { blockHash: string }) {
+export function ResponseTimelineChart({
+  blockHash,
+  proposedAt,
+}: {
+  blockHash: string;
+  proposedAt?: string;
+}) {
   const responsesLoadable = useAtomValue(
     loadable(responsesForBlockAtomFamily(blockHash))
   );
@@ -92,7 +98,12 @@ export function ResponseTimelineChart({ blockHash }: { blockHash: string }) {
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
 
-    const baseTime = new Date(timestamps[0]).getTime();
+    const proposedTime = proposedAt
+      ? new Date(proposedAt).getTime()
+      : Number.NaN;
+    const baseTime = Number.isNaN(proposedTime)
+      ? new Date(timestamps[0]).getTime()
+      : proposedTime;
     let cumulativeAccept = 0;
     let cumulativeReject = 0;
 
@@ -144,7 +155,7 @@ export function ResponseTimelineChart({ blockHash }: { blockHash: string }) {
     }
 
     return points;
-  }, [responsesLoadable, signers]);
+  }, [proposedAt, responsesLoadable, signers]);
 
   if (!data || data.length <= 1) return null;
 

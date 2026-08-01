@@ -53,7 +53,10 @@ export function StacksBlock() {
         stacks block #{block.blockHeight.toLocaleString()}
       </h2>
       <BlockListResponses blockHash={block.blockHash} />
-      <ResponseTimelineChart blockHash={block.blockHash} />
+      <ResponseTimelineChart
+        blockHash={block.blockHash}
+        proposedAt={block.proposedAt}
+      />
 
       <div className="flex flex-col">
         <DataRow label="block hash">
