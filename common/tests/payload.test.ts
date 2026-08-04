@@ -23,7 +23,9 @@ import {
   StateMachineUpdateCoder,
 } from '../src';
 import {
+  BlockPreCommitCoder,
   decodeChunk,
+  decodeChunkMaybe,
   type BlockResponseAccepted,
   type NakamotoBlock,
   makeSignerSignatureHash,
@@ -584,10 +586,48 @@ test('block pre-commit decoding', () => {
   if (decoded.typeId !== SignerMessageTypePrefix.BlockPreCommit) {
     throw new Error('Invalid type id');
   }
-  expect(decoded.blockHash).toEqual(new Uint8Array(32));
-  expect(hex.encode(decoded.blockHash)).toEqual(
+  expect(decoded.signerSignatureHash).toEqual(new Uint8Array(32));
+  expect(hex.encode(decoded.signerSignatureHash)).toEqual(
     '0000000000000000000000000000000000000000000000000000000000000000'
   );
+});
+
+test('block pre-commit fixture round-trip', () => {
+  // `signer_signature_hash` of the block proposal used by the
+  // 'signature hashing' test above, i.e. a real mainnet hash.
+  const signerSignatureHashHex =
+    '11717149677c2ac97d15ae5954f7a716f10100b9cb81a2bf27551b2f2e54ef19';
+  const hexStr = `07${signerSignatureHashHex}`;
+  const chunk = hex.decode(hexStr);
+  expect(chunk.length).toEqual(33);
+
+  const decoded = decodeChunk(chunk);
+  expect(decoded.typeId).toEqual(SignerMessageTypePrefix.BlockPreCommit);
+  if (decoded.typeId !== SignerMessageTypePrefix.BlockPreCommit) {
+    throw new Error('Invalid type id');
+  }
+  expect(hex.encode(decoded.signerSignatureHash)).toEqual(
+    signerSignatureHashHex
+  );
+  expect(chunkTypeName(chunk)).toEqual('Block Pre-Commit');
+
+  // The coder is symmetric: re-encoding yields the exact same 33 bytes.
+  const encoded = BlockPreCommitCoder.encode({
+    typeId: SignerMessageTypePrefix.BlockPreCommit,
+    signerSignatureHash: decoded.signerSignatureHash,
+  });
+  expect(hex.encode(encoded)).toEqual(hexStr);
+});
+
+test('block pre-commit truncated payload throws', () => {
+  // 32 bytes total: prefix + only 31 bytes of hash.
+  const truncated = hex.decode(`07${'ab'.repeat(31)}`);
+  expect(() => decodeChunk(truncated)).toThrow();
+  expect(decodeChunkMaybe(truncated)).toEqual(null);
+  // Trailing garbage is also rejected by the strict struct.
+  const withTrailer = hex.decode(`07${'ab'.repeat(32)}ff`);
+  expect(() => decodeChunk(withTrailer)).toThrow();
+  expect(decodeChunkMaybe(withTrailer)).toEqual(null);
 });
 
 test('block pre-commit type name', () => {

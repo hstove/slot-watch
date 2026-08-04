@@ -503,9 +503,20 @@ export const StackerDBStateMachineUpdateCoder = P.struct({
   stateMachineUpdate: StateMachineUpdateCoder,
 });
 
+/**
+ * `SignerMessage::BlockPreCommit(Sha512Trunc256Sum)` in the Rust codec: a bare
+ * 32-byte hash after the `0x07` prefix (33 bytes total), with no length prefix,
+ * signature, metadata, or version trailer. The hash is the block's
+ * `signer_signature_hash` — the same value carried on `BlockResponse` and stored
+ * in `block_responses.signer_signature_hash`.
+ *
+ * Strict length is intentional since there is no versioned trailer on the Rust
+ * side. If this message ever grows one, switch to the tolerant try/default
+ * pattern used by `BlockResponseDataCoder` above instead of widening this struct.
+ */
 export const BlockPreCommitCoder = P.struct({
   typeId: TypeIdCoder(SignerMessageTypePrefix.BlockPreCommit),
-  blockHash: P.bytes(32),
+  signerSignatureHash: P.bytes(32),
 });
 
 export type MockBlock = Prettify<
