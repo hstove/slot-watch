@@ -1,4 +1,5 @@
 import type {
+  BlockPreCommitDb,
   BlockProposalDb,
   BlockResponseDb,
   BurnBlockDb,
@@ -6,6 +7,7 @@ import type {
   StateMachineUpdateDb,
 } from './schema';
 import {
+  type ApiBlockPreCommit,
   type ApiBlockProposal,
   type ApiBurnBlock,
   type ApiStacksBlock,
@@ -38,6 +40,22 @@ export function serializeBlockResponse(
     rejectReason: response.rejectReason ?? undefined,
     latencyMs: response.latencyMs ?? undefined,
     blockHeight: response.blockHeight ?? undefined,
+  };
+}
+
+export function serializeBlockPreCommit(
+  preCommit: BlockPreCommitDb
+): ApiBlockPreCommit {
+  const createdAt = getCreatedAt(preCommit.id);
+  return {
+    id: preCommit.id,
+    createdAt: createdAt.toISOString(),
+    signerSignatureHash: preCommit.signerSignatureHash,
+    signerPublicKey: preCommit.signerPublicKey,
+    slotId: preCommit.slotId,
+    networkKey: preCommit.networkKey,
+    latencyMs: preCommit.latencyMs ?? undefined,
+    blockHeight: preCommit.blockHeight ?? undefined,
   };
 }
 

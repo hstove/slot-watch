@@ -793,6 +793,24 @@ export function recoverChunkPublicKey(
   return sig.recoverPublicKey(message);
 }
 
+/**
+ * Inverse of `recoverChunkPublicKey`: produces the 65-byte VRS-encoded
+ * recoverable signature a signer writes to the `sig` field of a StackerDB
+ * chunk. Primarily useful for building test fixtures.
+ */
+export function signChunkData(
+  chunk: MinimalChunkData & { privateKey: Uint8Array }
+) {
+  const message = chunkAuthDigest(chunk);
+  const signature = secp256k1.sign(message, chunk.privateKey, {
+    prehash: false,
+  });
+  const vrs = new Uint8Array(65);
+  vrs[0] = signature.recovery;
+  vrs.set(signature.toCompactRawBytes(), 1);
+  return vrs;
+}
+
 export function makeStacksBlockId(blockHash: string, consensusHash: string) {
   const blockHasher = sha512_256(hex.decode(blockHash + consensusHash));
   // const consensusHasher = sha512_256(blockHasher);

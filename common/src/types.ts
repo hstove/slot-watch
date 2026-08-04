@@ -9,6 +9,7 @@ import type {
   ApiStacksBlock,
   ApiStateMachineUpdate,
   BlockResponseApi,
+  MiniBlockPreCommitApi,
   MiniBlockResponseApi,
 } from './server-types';
 import type { Prettify } from './utils';
@@ -25,6 +26,7 @@ export const BURN_BLOCK_V2_EVENT = 'burn_block_v2';
 export const BLOCK_PROPOSAL_EVENT = 'block_proposal';
 export const STATE_MACHINE_UPDATE_EVENT = 'state_machine_update';
 export const MINI_BLOCK_RESPONSES_EVENT = 'mini_block_responses';
+export const BLOCK_PRE_COMMITS_EVENT = 'block_pre_commits';
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type ChunkEvent = {
@@ -217,6 +219,11 @@ export type WSMiniBlockResponses = WSBase<
   MiniBlockResponseApi[]
 >;
 
+export type WSBlockPreCommits = WSBase<
+  typeof BLOCK_PRE_COMMITS_EVENT,
+  MiniBlockPreCommitApi[]
+>;
+
 export type WSPayload =
   // | WSChunkEvent
   // | WSNewBlock
@@ -227,7 +234,8 @@ export type WSPayload =
   | WSNewBlockV2
   | WSBurnBlockV2
   | WSStateMachineUpdate
-  | WSMiniBlockResponses;
+  | WSMiniBlockResponses
+  | WSBlockPreCommits;
 
 export function getChunkId(chunk: ChunkEvent): string {
   return `${chunk.slotId}-${chunk.version}-${chunk.contractId}-${chunk.signature}`;

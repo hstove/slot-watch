@@ -101,6 +101,29 @@ export const MiniBlockResponseApiSchema = Schema.Struct({
 export interface MiniBlockResponseApi
   extends Schema.Schema.Type<typeof MiniBlockResponseApiSchema> {}
 
+// ApiBlockPreCommit schema
+export const ApiBlockPreCommitSchema = Schema.Struct({
+  id: Schema.String,
+  createdAt: Schema.String,
+  signerSignatureHash: Schema.String,
+  signerPublicKey: Schema.String,
+  slotId: Schema.Number,
+  networkKey: Schema.String,
+  latencyMs: Schema.optional(Schema.Number),
+  blockHeight: Schema.optional(Schema.Number),
+});
+export interface ApiBlockPreCommit
+  extends Schema.Schema.Type<typeof ApiBlockPreCommitSchema> {}
+
+// MiniBlockPreCommitApi schema - slim payload for SSE
+export const MiniBlockPreCommitApiSchema = Schema.Struct({
+  signerSignatureHash: Schema.String,
+  signerPublicKey: Schema.String,
+  blockHeight: Schema.optional(Schema.Number),
+});
+export interface MiniBlockPreCommitApi
+  extends Schema.Schema.Type<typeof MiniBlockPreCommitApiSchema> {}
+
 // ApiBurnBlock schema
 export const ApiBurnBlockSchema = Schema.Struct({
   networkKey: Schema.String,
