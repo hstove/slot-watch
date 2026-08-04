@@ -131,6 +131,30 @@ export const blockResponses = pgTable(
 
 export type BlockResponseDb = InferSelectModel<typeof blockResponses>;
 
+export const blockPreCommits = pgTable(
+  'block_pre_commits',
+  {
+    id: text().primaryKey(),
+    signerSignatureHash: text('signer_signature_hash', {
+      length: 64,
+    }).notNull(),
+    slotId: integer('slot_id').notNull(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    chunkId: text('chunk_id'),
+    signerPublicKey: text('signer_public_key', { length: 66 }).notNull(),
+    latencyMs: integer('latency_ms'),
+    blockHeight: integer('block_height'),
+  },
+  (table) => [
+    index('block_pre_commits_network_key_idx').on(table.networkKey),
+    index('block_pre_commits_signer_signature_hash_idx').on(
+      table.signerSignatureHash
+    ),
+  ]
+);
+
+export type BlockPreCommitDb = InferSelectModel<typeof blockPreCommits>;
+
 export const blockPushes = pgTable(
   'block_pushes',
   {

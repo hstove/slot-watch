@@ -4,6 +4,7 @@ import * as schema from '../../db/schema';
 import type { Db as DbType } from '../../db/db';
 import { fetchBlockProposalsByHash } from '../../db/block-proposals';
 import type {
+  blockPreCommits,
   blockProposals,
   blockPushes,
   blockResponses,
@@ -15,6 +16,7 @@ import type { ApiBlockProposal } from 'slot-watch-common';
 export type DbBlockProposal = InferInsertModel<typeof blockProposals>;
 export type DbBlockPush = InferInsertModel<typeof blockPushes>;
 export type DbBlockResponse = InferInsertModel<typeof blockResponses>;
+export type DbBlockPreCommit = InferInsertModel<typeof blockPreCommits>;
 export type DbStateMachineUpdate = InferInsertModel<typeof stateMachineUpdates>;
 
 export class DbError extends Schema.TaggedError<DbError>()('@errors/DbError', {
@@ -41,6 +43,9 @@ export class DbService extends Context.Tag('@app/db')<
     insertBlockPush(input: DbBlockPush): Effect.Effect<void, DbError>;
     insertBlockResponses(
       input: DbBlockResponse[]
+    ): Effect.Effect<void, DbError>;
+    insertBlockPreCommits(
+      input: DbBlockPreCommit[]
     ): Effect.Effect<void, DbError>;
     insertStateMachineUpdate(
       input: DbStateMachineUpdate
@@ -70,6 +75,9 @@ export const DbLive = Layer.scoped(
 
       insertBlockResponses: (input) =>
         withDb(() => db.insert(schema.blockResponses).values(input)),
+
+      insertBlockPreCommits: (input) =>
+        withDb(() => db.insert(schema.blockPreCommits).values(input)),
 
       insertStateMachineUpdate: (input) =>
         withDb(() => db.insert(schema.stateMachineUpdates).values(input)),
