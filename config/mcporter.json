@@ -2,6 +2,13 @@
   "mcpServers": {
     "sw": {
       "baseUrl": "http://localhost:8787/mcp"
+    },
+    "executor": {
+      "type": "http",
+      "url": "http://mudpie:4789/mcp",
+      "headers": {
+        "Authorization": "Bearer X33ppMV5HzTcP88LlWp2aPsoOr-fgzyrqZ9b88ImGqE"
+      }
     }
   },
   "imports": []

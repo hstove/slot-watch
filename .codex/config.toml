@@ -1,3 +1,10 @@
 [mcp_servers.playwriter]
 command = "npx"
-args = ["playwriter@latest"]
+args = [ "playwriter@latest" ]
+
+[mcp_servers.executor]
+type = "http"
+url = "http://mudpie:4789/mcp"
+
+  [mcp_servers.executor.http_headers]
+  Authorization = "Bearer X33ppMV5HzTcP88LlWp2aPsoOr-fgzyrqZ9b88ImGqE"
