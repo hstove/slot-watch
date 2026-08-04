@@ -29,6 +29,7 @@ import {
   type TypeMerge,
   type BlockResponseApi,
   type DecodedChunk,
+  type ApiBlockPreCommit,
 } from 'slot-watch-common';
 import { setLatestBlockResponses } from '../db/block-responses';
 import {
@@ -45,11 +46,20 @@ import type {
   stateMachineUpdates,
 } from '../db/schema';
 import { StreamerService } from '../effect/layers/streamer';
+import {
+  buildPreCommitBatch,
+  mapBlockPreCommit,
+  splitProcessedChunks,
+  withProposalData,
+  type ProposalsByHash,
+} from './pre-commits';
 
 type DbBlockProposal = InferInsertModel<typeof blockProposals>;
 type DbBlockPush = InferInsertModel<typeof blockPushes>;
 type DbBlockResponse = InferInsertModel<typeof blockResponses>;
 type DbStateMachineUpdate = InferInsertModel<typeof stateMachineUpdates>;
+
+export type { ProcessedChunk } from './pre-commits';
 
 export class DecodeError extends Schema.TaggedError<DecodeError>()(
   '@errors/DecodeError',
@@ -356,7 +366,7 @@ const processChunk = (
         publicKey,
         chunkId,
       });
-      return response;
+      return { kind: 'response' as const, data: response };
     }
     if (decoded.typeId === SignerMessageTypePrefix.StateMachineUpdate) {
       yield* handleStateMachineUpdateE({
@@ -369,7 +379,15 @@ const processChunk = (
       return null;
     }
     if (decoded.typeId === SignerMessageTypePrefix.BlockPreCommit) {
-      return null;
+      const preCommit = mapBlockPreCommit({
+        chunk,
+        payload: decoded,
+        receivedAt,
+        networkKey,
+        publicKey,
+        chunkId,
+      });
+      return { kind: 'preCommit' as const, data: preCommit };
     }
     yield* Effect.fail(
       new UnknownChunkError({
@@ -378,6 +396,91 @@ const processChunk = (
       })
     );
     return null;
+  });
+
+const persistBlockResponses = ({
+  blockResponses,
+  proposals,
+  receivedAt,
+  networkKey,
+}: {
+  blockResponses: BlockResponseApi[];
+  proposals: ProposalsByHash;
+  receivedAt: Date;
+  networkKey: string;
+}) =>
+  Effect.gen(function* () {
+    yield* Effect.logInfo(`Inserting ${blockResponses.length} block responses`);
+
+    const blockResponsesWithData = withProposalData(
+      blockResponses,
+      proposals,
+      receivedAt,
+      networkKey
+    );
+
+    // Convert to database format
+    const dbBlockResponses: DbBlockResponse[] = blockResponsesWithData.map(
+      (r) => ({
+        ...r,
+        tenureExtendTimestamp: r.tenureExtendTimestamp
+          ? new Date(r.tenureExtendTimestamp)
+          : null,
+        createdAt: new Date(r.createdAt),
+      })
+    );
+
+    const wsPayload: WSMiniBlockResponses = {
+      type: MINI_BLOCK_RESPONSES_EVENT,
+      networkKey,
+      receivedAt: receivedAt.toISOString(),
+      payload: blockResponsesWithData,
+    };
+
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
+
+    yield* Effect.all(
+      [
+        db.insertBlockResponses(dbBlockResponses),
+        streamer.publish(wsPayload),
+        Effect.tryPromise({
+          try: () => setLatestBlockResponses(blockResponsesWithData),
+          catch: (e) => new DecodeError({ cause: e }),
+        }),
+      ],
+      { concurrency: 'unbounded' }
+    );
+  });
+
+const persistBlockPreCommits = ({
+  preCommits,
+  proposals,
+  receivedAt,
+  networkKey,
+}: {
+  preCommits: ApiBlockPreCommit[];
+  proposals: ProposalsByHash;
+  receivedAt: Date;
+  networkKey: string;
+}) =>
+  Effect.gen(function* () {
+    yield* Effect.logInfo(`Inserting ${preCommits.length} block pre-commits`);
+
+    const { rows, wsPayload } = buildPreCommitBatch({
+      preCommits,
+      proposals,
+      receivedAt,
+      networkKey,
+    });
+
+    const db = yield* DbService;
+    const streamer = yield* StreamerService;
+
+    yield* Effect.all(
+      [db.insertBlockPreCommits(rows), streamer.publish(wsPayload)],
+      { concurrency: 'unbounded' }
+    );
   });
 
 export const handleStackerDBChunk = ({
@@ -390,82 +493,60 @@ export const handleStackerDBChunk = ({
   networkKey: string;
 }) =>
   Effect.gen(function* () {
-    // Process all chunks in parallel, collecting block responses
+    // Process all chunks in parallel, collecting the batched chunk types
     const results = yield* Effect.forEach(
       payload.modified_slots,
       (chunk) => processChunk(chunk, receivedAt, networkKey),
       { concurrency: 'unbounded' }
     );
 
-    // Filter out null results to get only block responses
-    const blockResponses: BlockResponseApi[] = results.filter(
-      (r): r is BlockResponseApi => r !== null
+    // Split the collected results by kind; both kinds key on
+    // `signerSignatureHash` and share a single proposal lookup below.
+    const { blockResponses, preCommits } = splitProcessedChunks(results);
+
+    if (blockResponses.length === 0 && preCommits.length === 0) {
+      return;
+    }
+
+    const blockHashes = R.pipe(
+      [...blockResponses, ...preCommits],
+      R.map((r) => r.signerSignatureHash),
+      R.unique()
     );
 
-    if (blockResponses.length > 0) {
-      yield* Effect.logInfo(
-        `Inserting ${blockResponses.length} block responses`
-      );
+    const db = yield* DbService;
+    const blockProposalsList = yield* db.fetchBlockProposalsByHash(blockHashes);
+    const proposals: ProposalsByHash = R.pipe(
+      blockProposalsList,
+      R.groupBy((r: ApiBlockProposal) => r.signerSignatureHash),
+      R.mapValues((v: ApiBlockProposal[]) => v[0])
+    );
 
-      const blockHashes = R.pipe(
-        blockResponses,
-        R.map((r) => r.signerSignatureHash),
-        R.unique()
-      );
-
-      const db = yield* DbService;
-      const blockProposalsList =
-        yield* db.fetchBlockProposalsByHash(blockHashes);
-      const blockProposals = R.pipe(
-        blockProposalsList,
-        R.groupBy((r: ApiBlockProposal) => r.signerSignatureHash),
-        R.mapValues((v: ApiBlockProposal[]) => v[0])
-      );
-
-      const blockResponsesWithData = blockResponses.map((r) => {
-        const proposal = blockProposals[r.signerSignatureHash];
-        const latencyMs = proposal
-          ? receivedAt.getTime() - new Date(proposal.createdAt).getTime()
-          : undefined;
-        const blockHeight = proposal?.chainLength;
-        return {
-          ...r,
-          networkKey,
-          latencyMs,
-          blockHeight,
-        };
-      });
-
-      // Convert to database format
-      const dbBlockResponses: DbBlockResponse[] = blockResponsesWithData.map(
-        (r) => ({
-          ...r,
-          tenureExtendTimestamp: r.tenureExtendTimestamp
-            ? new Date(r.tenureExtendTimestamp)
-            : null,
-          createdAt: new Date(r.createdAt),
-        })
-      );
-
-      const wsPayload: WSMiniBlockResponses = {
-        type: MINI_BLOCK_RESPONSES_EVENT,
-        networkKey,
-        receivedAt: receivedAt.toISOString(),
-        payload: blockResponsesWithData,
-      };
-
-      const streamer = yield* StreamerService;
-
-      yield* Effect.all(
-        [
-          db.insertBlockResponses(dbBlockResponses),
-          streamer.publish(wsPayload),
-          Effect.tryPromise({
-            try: () => setLatestBlockResponses(blockResponsesWithData),
-            catch: (e) => new DecodeError({ cause: e }),
-          }),
-        ],
-        { concurrency: 'unbounded' }
-      );
-    }
+    // Pre-commit ingestion must never take down response ingestion, so it runs
+    // as an independent, error-isolated branch.
+    yield* Effect.all(
+      [
+        blockResponses.length > 0
+          ? persistBlockResponses({
+              blockResponses,
+              proposals,
+              receivedAt,
+              networkKey,
+            })
+          : Effect.void,
+        preCommits.length > 0
+          ? persistBlockPreCommits({
+              preCommits,
+              proposals,
+              receivedAt,
+              networkKey,
+            }).pipe(
+              Effect.catchAll((error) =>
+                Effect.logError('Failed to handle block pre-commits', error)
+              )
+            )
+          : Effect.void,
+      ],
+      { concurrency: 'unbounded' }
+    );
   });
