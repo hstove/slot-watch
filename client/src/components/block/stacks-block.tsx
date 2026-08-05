@@ -10,7 +10,10 @@ import { sha256 } from '@noble/hashes/sha256';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 import { hex } from '@scure/base';
 import { BlockListResponses } from '../blocks-v2/block-list-responses';
-import { miniResponsesAtomFamilyWithLoader } from '@/store/responses-store';
+import {
+  miniResponsesAtomFamilyWithLoader,
+  preCommitsAtomFamilyWithLoader,
+} from '@/store/responses-store';
 import { Hex } from '../hex';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { Button } from '../ui/button';
@@ -36,6 +39,7 @@ function DataRow({
 export function StacksBlock() {
   const block = useAtomValue(activeBlockAtom);
   useAtomValue(miniResponsesAtomFamilyWithLoader(block?.blockHash ?? ''));
+  useAtomValue(preCommitsAtomFamilyWithLoader(block?.blockHash ?? ''));
   useAtomValue(responsesForBlockAtomFamily(block?.blockHash ?? ''));
   const responseOutcome = useAtomValue(
     responseOutcomeForBlockAtomFamily(block?.blockHash ?? '')
