@@ -43,12 +43,12 @@ New StackerDB lane: `MessageSlotID::BlockPreCommit = 3` → contract `SP...2Q6VF
 
 | # | Issue | Scope | Status |
 |---|---|---|---|
-| #5 | Codec | rename `blockHash` → `signerSignatureHash`, real fixture | |
-| #6 | DB | `block_pre_commits` table + migration + `DbService.insertBlockPreCommits` | |
-| #7 | Ingestion | `processChunk` tagged-union return + `BlockPreCommit` branch, batched proposal join for latency | |
-| #8 | API | `ApiBlockPreCommit` schema, serializer, fold into `/responses`, client bindings | |
-| #9 | Realtime | `block_pre_commits` SSE event, `WSPayload` union, client store wiring (no visual components) | |
-| #10 | UI | per-signer bar state, popover, timeline series | deferred (manual/UI work) |
-| #11 | Metrics + MCP | pre-commit latency + phase-gap gauges, MCP fields | |
+| #5 | Codec | rename `blockHash` → `signerSignatureHash`, real fixture | ✅ b1eb62f |
+| #6 | DB | `block_pre_commits` table + migration + `DbService.insertBlockPreCommits` | ✅ 86156cd, migration applied to prod |
+| #7 | Ingestion | `processChunk` tagged-union return + `BlockPreCommit` branch, batched proposal join for latency | ✅ aa72e71, verified live (rows + SSE) |
+| #8 | API | `ApiBlockPreCommit` schema, serializer, fold into `/responses`, client bindings | ✅ a2451f3, verified live |
+| #9 | Realtime | `block_pre_commits` SSE event, `WSPayload` union, client store wiring (no visual components) | ✅ aa72e71 (server) + 4bd9409 (client) |
+| #10 | UI | per-signer bar state, popover, timeline series | ⏳ open — the only remaining work |
+| #11 | Metrics + MCP | pre-commit latency + phase-gap gauges, MCP fields | ✅ fe1658c, gauges live on /metrics |
 
-Note: the generated migration is **not applied** by this work — run `bun migrate` (and deploy) deliberately, migration before deploy.
+Production observations at rollout (2026-08-05, cycle 140): ~20-21 of 25 signers emit explicit pre-commits (4 on older binaries at 0% participation), avg pre-commit latency ~4s, avg 70%-pre-commit → 70%-acceptance gap ~3.8s.
