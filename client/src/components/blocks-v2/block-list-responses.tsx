@@ -28,6 +28,7 @@ import {
   type RejectReasonPrefix,
 } from 'slot-watch-common';
 import BigNumber from 'bignumber.js';
+import { preCommitsForBlockFamily } from '@/store/responses-store';
 
 const BlockListResponse = ({
   blockHash,
@@ -45,17 +46,32 @@ const BlockListResponse = ({
       signerPublicKey,
     })
   );
+  const preCommits = useAtomValue(preCommitsForBlockFamily(blockHash));
+  const preCommit = React.useMemo(
+    () => preCommits.find((item) => item.signerPublicKey === signerPublicKey),
+    [preCommits, signerPublicKey]
+  );
   const status = React.useMemo(() => {
     if (response?.accepted) return 'success';
     if (response?.accepted === false) return 'error';
+    if (preCommit) return 'preCommitted';
     return 'pending';
-  }, [response?.accepted]);
+  }, [preCommit, response?.accepted]);
+  let preCommitTimestamp = 'N/A';
+  if (preCommit?.createdAt) {
+    preCommitTimestamp = new Date(preCommit.createdAt).toLocaleString();
+  } else if (response?.accepted) {
+    preCommitTimestamp = 'No explicit pre-commit (older signer version)';
+  }
   if (!signer) return null;
+  const statusLabel =
+    status === 'preCommitted' ? 'pre-committed' : status.toString();
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
+          aria-label={`Signer ${signerPublicKey}: ${statusLabel}`}
           // className="h-full box-border transition-colors"
           className={statusStyles(
             status,
@@ -84,6 +100,22 @@ const BlockListResponse = ({
 
           <DataLabel>Weight</DataLabel>
           <DataValue>{signer.weightPercentStr}%</DataValue>
+
+          <DataLabel>Pre-committed at</DataLabel>
+          <DataValue>{preCommitTimestamp}</DataValue>
+
+          {typeof preCommit?.latencyMs === 'number' ? (
+            <>
+              <DataLabel>Pre-commit latency</DataLabel>
+              <DataValue>
+                {new BigNumber(preCommit.latencyMs)
+                  .div(1000)
+                  .decimalPlaces(1)
+                  .toFormat()}
+                s
+              </DataValue>
+            </>
+          ) : null}
 
           <DataLabel>Tenure Extend</DataLabel>
           <DataValue>

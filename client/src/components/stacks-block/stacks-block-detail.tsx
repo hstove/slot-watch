@@ -12,7 +12,11 @@ import { sha256 } from '@noble/hashes/sha256';
 import { ripemd160 } from '@noble/hashes/ripemd160';
 import { hex } from '@scure/base';
 import { BlockListResponses } from '@/components/blocks-v2/block-list-responses';
-import { miniResponsesAtomFamilyWithLoader } from '@/store/responses-store';
+import {
+  miniResponsesAtomFamilyWithLoader,
+  preCommitsAtomFamilyWithLoader,
+  preCommitsForBlockFamily,
+} from '@/store/responses-store';
 import type { ApiBlockForBurnBlock } from '@/lib/slots-api';
 import { PublicKey } from '@/components/public-key';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +34,7 @@ import { BlockCosts } from '@/components/blocks-v2/burn-block-costs';
 import { MAINNET_COST_LIMITS } from '@/lib/costs';
 import { percentString } from 'slot-watch-common';
 import { ResponseTimelineChart } from '@/components/stacks-block/response-timeline-chart';
+import { signersApiAtom, thresholdAtom } from '@/store/signers-store';
 
 interface StacksBlockDetailProps {
   block: ApiBlockForBurnBlock;
@@ -67,7 +72,11 @@ function TenureCauseBadge({
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
   useAtomValue(miniResponsesAtomFamilyWithLoader(block.blockHash));
+  useAtomValue(preCommitsAtomFamilyWithLoader(block.blockHash));
   useAtomValue(responsesForBlockAtomFamily(block.blockHash));
+  const preCommits = useAtomValue(preCommitsForBlockFamily(block.blockHash));
+  const signers = useAtomValue(signersApiAtom);
+  const threshold = useAtomValue(thresholdAtom);
   const responseOutcome = useAtomValue(
     responseOutcomeForBlockAtomFamily(block.blockHash)
   );
@@ -75,6 +84,44 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
     cumulativeBlockCostsAtom(block.consensusHash)
   );
   const blockCosts = cumulativeCosts.get(block.blockHash);
+
+  const preCommitOutcome = React.useMemo(() => {
+    if (!signers) return null;
+    const signerWeights = new Map(
+      signers.signers.map((signer) => [signer.publicKey, signer.weight])
+    );
+    const sorted = preCommits
+      .filter(
+        (preCommit): preCommit is typeof preCommit & { createdAt: string } =>
+          typeof preCommit.createdAt === 'string'
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    let weight = 0;
+    let crossedAt: string | null = null;
+    for (const preCommit of sorted) {
+      weight += signerWeights.get(preCommit.signerPublicKey) ?? 0;
+      if (!crossedAt && weight >= threshold) crossedAt = preCommit.createdAt;
+    }
+    return {
+      percent: (weight / signers.totalWeight) * 100,
+      crossedAt,
+    };
+  }, [preCommits, signers, threshold]);
+
+  const preCommitThresholdLabel = React.useMemo(() => {
+    if (!preCommitOutcome?.crossedAt) return null;
+    const crossedAt = new Date(preCommitOutcome.crossedAt).getTime();
+    const proposedAt = block.proposedAt
+      ? new Date(block.proposedAt).getTime()
+      : Number.NaN;
+    if (Number.isNaN(proposedAt)) {
+      return new Date(crossedAt).toLocaleTimeString();
+    }
+    return `${((crossedAt - proposedAt) / 1000).toFixed(1)}s`;
+  }, [block.proposedAt, preCommitOutcome]);
 
   const minerPkHash = React.useMemo(() => {
     if (!block?.minerPublicKey) return null;
@@ -121,6 +168,24 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
               </Badge>
             </SimpleTooltip>
           </div>
+        )}
+        {preCommitOutcome && (
+          <SimpleTooltip
+            content={
+              preCommitOutcome.crossedAt
+                ? `70% pre-commit threshold crossed at ${new Date(
+                    preCommitOutcome.crossedAt
+                  ).toLocaleString()}`
+                : '70% pre-commit threshold not reached'
+            }
+          >
+            <Badge variant="outline" className="text-emerald-600">
+              ◇ {preCommitOutcome.percent.toFixed(1)}% pre-committed · 70%{' '}
+              {preCommitThresholdLabel
+                ? `at ${preCommitThresholdLabel}`
+                : 'not reached'}
+            </Badge>
+          </SimpleTooltip>
         )}
         <TenureCauseBadge tenureCause={block.tenureChangeCause} />
         {block.txCount > 0 && (

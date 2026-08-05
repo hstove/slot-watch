@@ -14,14 +14,35 @@ import {
 import { getEntity } from '@/lib/local-signers';
 import * as R from 'remeda';
 import { loadable } from 'jotai/utils';
+import {
+  preCommitsForBlockFamily,
+  type StoredPreCommit,
+} from '@/store/responses-store';
 
 interface TimelinePoint {
   time: number;
   timeLabel: string;
   acceptPercent: number;
   rejectPercent: number;
-  signers: { name: string; accepted: boolean; weightPercent: string }[];
+  preCommitPercent: number;
+  signers: {
+    name: string;
+    status: 'accepted' | 'rejected' | 'pre-committed';
+    weightPercent: string;
+  }[];
 }
+
+const timelineStatusStyles = {
+  accepted: 'text-green-600',
+  rejected: 'text-red-600',
+  'pre-committed': 'text-emerald-500',
+} as const;
+
+const timelineStatusSymbols = {
+  accepted: '✓',
+  rejected: '✗',
+  'pre-committed': '◇',
+} as const;
 
 function CustomTooltip({
   active,
@@ -37,20 +58,23 @@ function CustomTooltip({
   return (
     <div className="border border-border bg-card p-3 font-mono text-xs max-w-[280px]">
       <div className="text-muted-foreground mb-2">{data.timeLabel}</div>
-      <div className="flex gap-4 mb-2">
+      <div className="flex flex-wrap gap-4 mb-2">
         <span className="text-green-600">
           {data.acceptPercent.toFixed(1)}% approved
         </span>
         <span className="text-red-600">
           {data.rejectPercent.toFixed(1)}% rejected
         </span>
+        <span className="text-emerald-500">
+          {data.preCommitPercent.toFixed(1)}% pre-committed
+        </span>
       </div>
       {data.signers.length > 0 && (
         <div className="border-t border-border pt-2 space-y-1">
           {data.signers.map((s, i) => (
             <div key={i} className="flex justify-between gap-2">
-              <span className={s.accepted ? 'text-green-600' : 'text-red-600'}>
-                {s.accepted ? '✓' : '✗'} {s.name}
+              <span className={timelineStatusStyles[s.status]}>
+                {timelineStatusSymbols[s.status]} {s.name}
               </span>
               <span className="text-muted-foreground">{s.weightPercent}%</span>
             </div>
@@ -71,29 +95,43 @@ export function ResponseTimelineChart({
   const responsesLoadable = useAtomValue(
     loadable(responsesForBlockAtomFamily(blockHash))
   );
+  const preCommits = useAtomValue(preCommitsForBlockFamily(blockHash));
   const signers = useAtomValue(signersApiAtom);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: allowed
   const data = React.useMemo(() => {
     if (responsesLoadable.state !== 'hasData' || !signers) return null;
     const responses = responsesLoadable.data;
-    if (responses.length === 0) return null;
+    if (responses.length === 0 && preCommits.length === 0) return null;
 
     const totalWeight = signers.totalWeight;
     const signerWeightMap = new Map(
       signers.signers.map((s) => [s.publicKey, s])
     );
 
+    type TimelineEvent =
+      | { kind: 'response'; item: (typeof responses)[number]; at: string }
+      | { kind: 'pre-commit'; item: StoredPreCommit; at: string };
     const sorted = R.pipe(
-      responses,
-      R.filter((r) => !!r.createdAt),
-      R.sortBy((r) => new Date(r.createdAt).getTime())
+      [
+        ...responses.flatMap((item) =>
+          item.createdAt
+            ? [{ kind: 'response', item, at: item.createdAt } as const]
+            : []
+        ),
+        ...preCommits.flatMap((item) =>
+          item.createdAt
+            ? [{ kind: 'pre-commit', item, at: item.createdAt } as const]
+            : []
+        ),
+      ] satisfies TimelineEvent[],
+      R.sortBy((event) => new Date(event.at).getTime())
     );
 
     if (sorted.length === 0) return null;
 
     // Group by timestamp (multiple signers respond at same time)
-    const groups = R.groupBy(sorted, (r) => r.createdAt);
+    const groups = R.groupBy(sorted, (event) => event.at);
     const timestamps = Object.keys(groups).sort(
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
@@ -106,6 +144,7 @@ export function ResponseTimelineChart({
       : proposedTime;
     let cumulativeAccept = 0;
     let cumulativeReject = 0;
+    let cumulativePreCommit = 0;
 
     const points: TimelinePoint[] = [
       {
@@ -113,6 +152,7 @@ export function ResponseTimelineChart({
         timeLabel: '0s',
         acceptPercent: 0,
         rejectPercent: 0,
+        preCommitPercent: 0,
         signers: [],
       },
     ];
@@ -121,19 +161,30 @@ export function ResponseTimelineChart({
       const batch = groups[ts];
       const batchSigners: TimelinePoint['signers'] = [];
 
-      for (const r of batch) {
-        const signer = signerWeightMap.get(r.signerPublicKey);
+      for (const event of batch) {
+        const signer = signerWeightMap.get(event.item.signerPublicKey);
         if (!signer) continue;
         const weightPct = (signer.weight / totalWeight) * 100;
-        if (r.accepted) {
+        if (event.kind === 'pre-commit') {
+          cumulativePreCommit += weightPct;
+        } else if (event.item.accepted) {
           cumulativeAccept += weightPct;
         } else {
           cumulativeReject += weightPct;
         }
+        let status: TimelinePoint['signers'][number]['status'];
+        if (event.kind === 'pre-commit') {
+          status = 'pre-committed';
+        } else if (event.item.accepted) {
+          status = 'accepted';
+        } else {
+          status = 'rejected';
+        }
         batchSigners.push({
           name:
-            getEntity(r.signerPublicKey) ?? `${r.signerPublicKey.slice(0, 8)}…`,
-          accepted: r.accepted,
+            getEntity(event.item.signerPublicKey) ??
+            `${event.item.signerPublicKey.slice(0, 8)}…`,
+          status,
           weightPercent: weightPct.toFixed(1),
         });
       }
@@ -150,12 +201,13 @@ export function ResponseTimelineChart({
         timeLabel,
         acceptPercent: Math.min(cumulativeAccept, 100),
         rejectPercent: Math.min(cumulativeReject, 100),
+        preCommitPercent: Math.min(cumulativePreCommit, 100),
         signers: batchSigners,
       });
     }
 
     return points;
-  }, [proposedAt, responsesLoadable, signers]);
+  }, [preCommits, proposedAt, responsesLoadable, signers]);
 
   if (!data || data.length <= 1) return null;
 
@@ -193,6 +245,18 @@ export function ResponseTimelineChart({
                   offset="100%"
                   stopColor="oklch(0.637 0.237 25.331)"
                   stopOpacity={0.05}
+                />
+              </linearGradient>
+              <linearGradient id="preCommitGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor="oklch(0.765 0.177 163.223)"
+                  stopOpacity={0.22}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="oklch(0.765 0.177 163.223)"
+                  stopOpacity={0.03}
                 />
               </linearGradient>
             </defs>
@@ -248,6 +312,20 @@ export function ResponseTimelineChart({
             />
             <Area
               type="stepAfter"
+              dataKey="preCommitPercent"
+              stroke="oklch(0.765 0.177 163.223)"
+              fill="url(#preCommitGrad)"
+              strokeWidth={1.5}
+              dot={false}
+              activeDot={{
+                r: 3,
+                strokeWidth: 0,
+                fill: 'oklch(0.765 0.177 163.223)',
+              }}
+              isAnimationActive={false}
+            />
+            <Area
+              type="stepAfter"
               dataKey="acceptPercent"
               stroke="oklch(0.723 0.219 149.579)"
               fill="url(#acceptGrad)"
@@ -277,6 +355,10 @@ export function ResponseTimelineChart({
           </AreaChart>
         </ResponsiveContainer>
         <div className="flex gap-4 mt-2 font-mono text-xs text-muted-foreground justify-center">
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-[2px] bg-emerald-400 inline-block" />
+            pre-committed
+          </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-[2px] bg-green-600 inline-block" />
             approved
