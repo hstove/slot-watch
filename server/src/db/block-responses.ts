@@ -1,4 +1,9 @@
-import { type BlockResponseDb, stacksBlocks, blockResponses } from './schema';
+import {
+  type BlockPreCommitDb,
+  type BlockResponseDb,
+  stacksBlocks,
+  blockResponses,
+} from './schema';
 import type { Db } from './db';
 import {
   getLatestStackerSet,
@@ -39,17 +44,50 @@ const cloudflare = new Cloudflare({
   apiToken: env.KV_API_TOKEN,
 });
 
+/**
+ * Dedupes pre-commits to the first one seen per signer (mirroring the
+ * first-response-wins rule) and tallies their stake weight. Pre-commits from
+ * keys outside the stacker set are ignored, as responses are.
+ */
+function tallyPreCommits(
+  stackerSet: StackerSet,
+  preCommits: BlockPreCommitDb[]
+) {
+  const preCommitsBySigner = new Map<string, BlockPreCommitDb>();
+  let weightPreCommitted = 0;
+  for (const preCommit of preCommits) {
+    const signer = stackerSet.signersByKey.get(preCommit.signerPublicKey);
+    if (!signer || preCommitsBySigner.has(preCommit.signerPublicKey)) {
+      continue;
+    }
+    preCommitsBySigner.set(preCommit.signerPublicKey, preCommit);
+    weightPreCommitted += signer.weight;
+  }
+  return { preCommitsBySigner, weightPreCommitted };
+}
+
 export function mapSignerDataToResponses({
   stackerSet,
   responses,
+  preCommits,
 }: {
   stackerSet: StackerSet;
   responses: BlockResponseDb[];
+  /**
+   * Optional — when omitted, no pre-commit fields are added and the output is
+   * byte-identical to the pre-#8 shape. Pre-commits are an intermediate signal
+   * only: they never affect the accept/reject verdict below.
+   */
+  preCommits?: BlockPreCommitDb[];
 }) {
   const blockSigners: Record<
     string,
     BlockResponseDb & { accepted: boolean | null }
   > = {};
+  const { preCommitsBySigner, weightPreCommitted } = tallyPreCommits(
+    stackerSet,
+    preCommits ?? []
+  );
   const alreadyCounted = new Set<string>();
   let weightAccept = 0;
   let weightReject = 0;
@@ -87,6 +125,7 @@ export function mapSignerDataToResponses({
       tenureExtendTimestamp: null,
     };
     const createdAt = blockSignerBase ? getCreatedAt(blockSignerBase.id) : null;
+    const preCommit = preCommitsBySigner.get(s.signing_key);
     return {
       ...s,
       ...blockSigner,
@@ -96,6 +135,14 @@ export function mapSignerDataToResponses({
       tenureExtendTimestamp: blockSigner.tenureExtendTimestamp
         ? blockSigner.tenureExtendTimestamp.toISOString()
         : null,
+      ...(preCommits
+        ? {
+            preCommittedAt: preCommit
+              ? getCreatedAt(preCommit.id).toISOString()
+              : null,
+            preCommitLatencyMs: preCommit?.latencyMs ?? null,
+          }
+        : {}),
     };
   });
   const rejectRatio = weightReject / totalWeight;
@@ -113,6 +160,9 @@ export function mapSignerDataToResponses({
     accepted,
     countAccepted,
     countRejected,
+    weightPreCommitted,
+    preCommitRatio: weightPreCommitted / totalWeight,
+    countPreCommitted: preCommitsBySigner.size,
   };
 }
 

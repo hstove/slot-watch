@@ -54,18 +54,42 @@ export async function getBtcBlock(networkKey: string, heightOrHash: string) {
   return response.json();
 }
 
-export async function getBlockResponsesForBlock(
+/**
+ * Fetches the `{ responses, preCommits }` payload for a block in one
+ * round-trip. Both datasets come from the same endpoint because the block
+ * detail view always renders them together.
+ */
+export async function getBlockDataForBlock(
   networkKey: string,
   blockHash: string
-): Promise<BlockResponsesResponse['responses']> {
-  if (!blockHash) return [];
+): Promise<BlockResponsesResponse> {
+  if (!blockHash) return { responses: [], preCommits: [] };
   const response = await apiClient.blocks[':networkKey'][
     ':blockId'
   ].responses.$get({
     param: { networkKey, blockId: blockHash },
   });
-  const data = await response.json();
-  return data.responses;
+  return await response.json();
+}
+
+/**
+ * Responses-only view of {@link getBlockDataForBlock}, kept for callers that
+ * only care about the signer responses.
+ */
+export async function getBlockResponsesForBlock(
+  networkKey: string,
+  blockHash: string
+): Promise<BlockResponsesResponse['responses']> {
+  const { responses } = await getBlockDataForBlock(networkKey, blockHash);
+  return responses;
+}
+
+export async function getPreCommitsForBlock(
+  networkKey: string,
+  blockHash: string
+): Promise<BlockResponsesResponse['preCommits']> {
+  const { preCommits } = await getBlockDataForBlock(networkKey, blockHash);
+  return preCommits;
 }
 
 export type ApiBlockResponseForBlock = Omit<
@@ -74,6 +98,10 @@ export type ApiBlockResponseForBlock = Omit<
 > & {
   signerPublicKey: string;
 };
+
+export type ApiPreCommitForBlock = Awaited<
+  ReturnType<typeof getPreCommitsForBlock>
+>[0];
 
 function mergeBlockData(
   proposal: ApiBlockProposal,
@@ -272,6 +300,17 @@ export const queries = createQueryKeyStore({
     forStacksBlock: (networkKey: string, blockHash: string) => ({
       queryKey: [networkKey, blockHash],
       queryFn: () => getBlockResponsesForBlock(networkKey, blockHash),
+    }),
+    // Responses + pre-commits in a single request, for consumers that need both.
+    dataForStacksBlock: (networkKey: string, blockHash: string) => ({
+      queryKey: [networkKey, blockHash],
+      queryFn: () => getBlockDataForBlock(networkKey, blockHash),
+    }),
+  },
+  preCommits: {
+    forStacksBlock: (networkKey: string, blockHash: string) => ({
+      queryKey: [networkKey, blockHash],
+      queryFn: () => getPreCommitsForBlock(networkKey, blockHash),
     }),
   },
 });
