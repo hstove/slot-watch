@@ -13,6 +13,7 @@ import {
   getTenureOutputSchema,
 } from './mcp-schemas';
 import {
+  blockPreCommits,
   blockProposals,
   blockResponses,
   blockPushes,
@@ -20,12 +21,13 @@ import {
   stacksBlocks,
   stateMachineUpdates,
 } from '../db/schema';
-import { and, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import {
   getLatestResponses,
   mapSignerDataToResponses,
 } from '../db/block-responses';
+import { getBlockPreCommits } from '../db/pre-commits';
 import { Effect } from 'effect';
 import type { StreamerService } from '../effect/layers/streamer';
 import { DbService } from '../effect/layers/db';
@@ -183,8 +185,12 @@ export const makeMcpServer = () => {
   server.registerTool(
     'getStacksBlock',
     {
-      description:
+      description: [
         'Fetch a Stacks block by a block hash, height, or index block hash. You must provide at least one lookup field.',
+        'Includes both phases of the signer commit protocol: signers first broadcast a BlockPreCommit (intent to sign), and once 70% of stake weight has pre-committed they broadcast the signed BlockResponse. `responses` is the authoritative verdict; `preCommits` is the earlier phase.',
+        'A null `preCommittedAt` on a signer usually means it runs an older binary that does not emit pre-commits — not misbehavior, and not a missed response. Treat it as a version signal.',
+        'A block where `preCommits.thresholdReached` is true but `responses.accepted` is not indicates the chain is stuck between the two phases.',
+      ].join(' '),
       inputSchema: {
         blockHeight: z
           .number()
@@ -285,21 +291,33 @@ export const makeMcpServer = () => {
             burnBlockTimestamp,
           });
 
-          const responses = yield* db.withDb((db) =>
-            db.query.blockResponses.findMany({
-              where: and(
-                eq(blockProposals.networkKey, 'mainnet'),
-                eq(
-                  blockProposals.signerSignatureHash,
-                  dbProposal.signerSignatureHash
-                )
+          const [responses, preCommits] = yield* Effect.all(
+            [
+              db.withDb((db) =>
+                db.query.blockResponses.findMany({
+                  where: and(
+                    eq(blockProposals.networkKey, 'mainnet'),
+                    eq(
+                      blockProposals.signerSignatureHash,
+                      dbProposal.signerSignatureHash
+                    )
+                  ),
+                })
               ),
-            })
+              db.withDb((db) =>
+                getBlockPreCommits(db, {
+                  signerSignatureHash: dbProposal.signerSignatureHash,
+                  networkKey: 'mainnet',
+                })
+              ),
+            ],
+            { concurrency: 'unbounded' }
           );
 
           const responsesWithSigners = mapSignerDataToResponses({
             stackerSet,
             responses,
+            preCommits,
           });
 
           const signers = responsesWithSigners.signers.map((signer) => {
@@ -327,6 +345,8 @@ export const makeMcpServer = () => {
               accepted: signer.accepted ?? null,
               version: getVersionFromString(signer.version ?? ''),
               latencyMs: signer.latencyMs,
+              preCommittedAt: signer.preCommittedAt ?? null,
+              preCommitLatencyMs: signer.preCommitLatencyMs ?? null,
               ...rejectInfo,
             };
           });
@@ -343,6 +363,12 @@ export const makeMcpServer = () => {
               signers,
               rejectRatio: responsesWithSigners.rejectRatio,
               acceptRatio: responsesWithSigners.acceptRatio,
+            },
+            preCommits: {
+              countPreCommitted: responsesWithSigners.countPreCommitted,
+              weightPreCommitted: responsesWithSigners.weightPreCommitted,
+              preCommitRatio: responsesWithSigners.preCommitRatio,
+              thresholdReached: responsesWithSigners.preCommitRatio >= 0.7,
             },
           };
         })
@@ -972,8 +998,10 @@ export const makeMcpServer = () => {
   server.registerTool(
     'getSignerHealth',
     {
-      description:
+      description: [
         'Compute signer participation and degradation over recent blocks.',
+        '`preCommitRate` is the fraction of those blocks the signer sent an explicit BlockPreCommit for (phase one of the two-phase commit). A low or zero preCommitRate alongside a healthy participationRate means an older signer binary, not degradation — only participationRate and degradationRate indicate a problem.',
+      ].join(' '),
       inputSchema: {
         limit: z
           .number()
@@ -1026,17 +1054,35 @@ export const makeMcpServer = () => {
 
           const blockHashes = proposals.map((p) => p.signerSignatureHash);
 
-          const responses = yield* db.withDb((db) =>
-            db
-              .select()
-              .from(blockResponses)
-              .where(
-                and(
-                  eq(blockResponses.networkKey, 'mainnet'),
-                  inArray(blockResponses.signerSignatureHash, blockHashes)
-                )
-              )
-              .orderBy(desc(blockResponses.id))
+          const [responses, preCommits] = yield* Effect.all(
+            [
+              db.withDb((db) =>
+                db
+                  .select()
+                  .from(blockResponses)
+                  .where(
+                    and(
+                      eq(blockResponses.networkKey, 'mainnet'),
+                      inArray(blockResponses.signerSignatureHash, blockHashes)
+                    )
+                  )
+                  .orderBy(desc(blockResponses.id))
+              ),
+              db.withDb((db) =>
+                db
+                  .select()
+                  .from(blockPreCommits)
+                  .where(
+                    and(
+                      eq(blockPreCommits.networkKey, 'mainnet'),
+                      inArray(blockPreCommits.signerSignatureHash, blockHashes)
+                    )
+                  )
+                  // Ascending: first pre-commit per signer wins.
+                  .orderBy(asc(blockPreCommits.id))
+              ),
+            ],
+            { concurrency: 'unbounded' }
           );
 
           const responsesByBlock = new Map<string, typeof responses>();
@@ -1045,6 +1091,14 @@ export const makeMcpServer = () => {
               responsesByBlock.get(response.signerSignatureHash) ?? [];
             list.push(response);
             responsesByBlock.set(response.signerSignatureHash, list);
+          }
+
+          const preCommitsByBlock = new Map<string, typeof preCommits>();
+          for (const preCommit of preCommits) {
+            const list =
+              preCommitsByBlock.get(preCommit.signerSignatureHash) ?? [];
+            list.push(preCommit);
+            preCommitsByBlock.set(preCommit.signerSignatureHash, list);
           }
 
           const signerStats = new Map<
@@ -1058,6 +1112,7 @@ export const makeMcpServer = () => {
               rejectedCount: number;
               missedCount: number;
               degradedCount: number;
+              preCommittedCount: number;
             }
           >();
 
@@ -1068,6 +1123,8 @@ export const makeMcpServer = () => {
               stackerSet,
               responses:
                 responsesByBlock.get(proposal.signerSignatureHash) ?? [],
+              preCommits:
+                preCommitsByBlock.get(proposal.signerSignatureHash) ?? [],
             });
             for (const signer of responseInfo.signers) {
               const existing = signerStats.get(signer.signing_key) ?? {
@@ -1079,7 +1136,11 @@ export const makeMcpServer = () => {
                 rejectedCount: 0,
                 missedCount: 0,
                 degradedCount: 0,
+                preCommittedCount: 0,
               };
+              if (typeof signer.preCommittedAt === 'string') {
+                existing.preCommittedCount += 1;
+              }
               if (signer.accepted === null) {
                 existing.missedCount += 1;
               } else {
@@ -1117,6 +1178,9 @@ export const makeMcpServer = () => {
               acceptedCount: signer.acceptedCount,
               rejectedCount: signer.rejectedCount,
               degradedCount: signer.degradedCount,
+              preCommitRate: blockCount
+                ? signer.preCommittedCount / blockCount
+                : 0,
             }))
             .sort(
               (a, b) =>

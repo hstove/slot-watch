@@ -64,6 +64,20 @@ export const getStacksBlockOutputSchema = z.object({
         accepted: z.boolean().nullable(),
         version: z.string(),
         latencyMs: z.number().nullable().optional(),
+        preCommittedAt: z
+          .string()
+          .nullable()
+          .optional()
+          .describe(
+            'When this signer broadcast its BlockPreCommit. Null means no explicit pre-commit was seen, which usually indicates an older signer binary rather than a problem.'
+          ),
+        preCommitLatencyMs: z
+          .number()
+          .nullable()
+          .optional()
+          .describe(
+            'Time from the BlockProposal to this signer pre-committing'
+          ),
         rejectCode: z.number().nullable().optional(),
         validationCode: z.number().nullable().optional(),
         reason: z.string().nullable().optional(),
@@ -75,6 +89,26 @@ export const getStacksBlockOutputSchema = z.object({
     rejectRatio: z.number(),
     acceptRatio: z.number(),
   }),
+  preCommits: z
+    .object({
+      countPreCommitted: z
+        .number()
+        .describe('Signers that broadcast an explicit BlockPreCommit'),
+      weightPreCommitted: z
+        .number()
+        .describe('Stake weight that explicitly pre-committed'),
+      preCommitRatio: z
+        .number()
+        .describe('weightPreCommitted as a fraction of total stake weight'),
+      thresholdReached: z
+        .boolean()
+        .describe(
+          'Whether explicit pre-commits reached the 70% weight bar that lets signers proceed to signing. May be false on a healthy block if enough weight runs pre-commit-less binaries, since an acceptance counts as an implicit pre-commit.'
+        ),
+    })
+    .describe(
+      'Phase one of the two-phase signer commit. Never the accept/reject verdict — see `responses` for that.'
+    ),
 });
 
 export const getRecentStacksBlocksOutputSchema = z.object({
@@ -256,6 +290,12 @@ export const getSignerHealthOutputSchema = z.object({
       acceptedCount: z.number(),
       rejectedCount: z.number(),
       degradedCount: z.number(),
+      preCommitRate: z
+        .number()
+        .optional()
+        .describe(
+          'Fraction of the window this signer explicitly pre-committed to. Low values usually mean an older signer binary, not degradation.'
+        ),
     })
   ),
 });

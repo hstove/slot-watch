@@ -1,6 +1,7 @@
 import type { Db } from './db';
 import {
   eq,
+  asc,
   desc,
   and,
   exists,
@@ -12,8 +13,10 @@ import {
 } from 'drizzle-orm';
 import {
   blockPushes,
+  blockPreCommits as blockPreCommitsSchema,
   blockProposals as blockProposalsSchema,
   blockResponses as blockResponsesSchema,
+  type BlockPreCommitDb,
   type BlockResponseDb,
   type BlockProposalDb,
   blockProposals,
@@ -105,19 +108,34 @@ export async function getRecentBlocksHealth({
     .offset(50)
     .limit(50);
 
-  const blockResponses = await db
-    .select()
-    .from(blockResponsesSchema)
-    .where(
-      and(
-        eq(blockResponsesSchema.networkKey, networkKey),
-        inArray(
-          blockResponsesSchema.signerSignatureHash,
-          recentBlocks.map((b) => b.signerSignatureHash)
+  const blockHashes = recentBlocks.map((b) => b.signerSignatureHash);
+
+  // Two batched queries (never per-block): responses and pre-commits for the
+  // same window of proposals.
+  const [blockResponses, preCommits] = await Promise.all([
+    db
+      .select()
+      .from(blockResponsesSchema)
+      .where(
+        and(
+          eq(blockResponsesSchema.networkKey, networkKey),
+          inArray(blockResponsesSchema.signerSignatureHash, blockHashes)
         )
       )
-    )
-    .orderBy(desc(blockResponsesSchema.id));
+      .orderBy(desc(blockResponsesSchema.id)),
+    db
+      .select()
+      .from(blockPreCommitsSchema)
+      .where(
+        and(
+          eq(blockPreCommitsSchema.networkKey, networkKey),
+          inArray(blockPreCommitsSchema.signerSignatureHash, blockHashes)
+        )
+      )
+      // Ascending so consumers get first-pre-commit-wins and can accumulate
+      // weight in observation order without re-sorting.
+      .orderBy(asc(blockPreCommitsSchema.id)),
+  ]);
 
   const responsesByBlock = new Map<string, BlockResponseDb[]>();
 
@@ -127,11 +145,21 @@ export async function getRecentBlocksHealth({
     responsesByBlock.set(response.signerSignatureHash, block);
   }
 
+  const preCommitsByBlock = new Map<string, BlockPreCommitDb[]>();
+
+  for (const preCommit of preCommits) {
+    const block = preCommitsByBlock.get(preCommit.signerSignatureHash) ?? [];
+    block.push(preCommit);
+    preCommitsByBlock.set(preCommit.signerSignatureHash, block);
+  }
+
   const blocksWithInfo = recentBlocks.map((b) => {
     const responses = responsesByBlock.get(b.signerSignatureHash) ?? [];
+    const blockPreCommits = preCommitsByBlock.get(b.signerSignatureHash) ?? [];
     const responseInfo = mapSignerDataToResponses({
       stackerSet,
       responses,
+      preCommits: blockPreCommits,
     });
     const weightPending =
       responseInfo.totalWeight -

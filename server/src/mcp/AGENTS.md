@@ -4,6 +4,20 @@ This folder contains the code for the Slot Watch MCP server. This includes vario
 
 A key goal of the Slot Watch MCP server is to allow an agent to quickly answer a question like "why is the Stacks blockchain stalled"?
 
+## The two-phase signer commit (pre-commits)
+
+Several tools expose pre-commit data, and it's easy to misread. Signers approve a block in two phases:
+
+1. A signer validates the proposed block. If it's valid, the signer broadcasts a **`BlockPreCommit`** — an announcement of intent to sign, carrying nothing but the block's `signerSignatureHash`. A signer that rejects the block skips this and sends `BlockResponse::Rejected` directly.
+2. Each signer tallies pre-commits by stake weight. Once `ceil(total_weight * 7/10)` — the same 70% bar as final approval — has pre-committed, the signer signs and broadcasts `BlockResponse::Accepted`.
+
+Consequences for how tools present this:
+
+- **The verdict is a function of `BlockResponse` only.** Pre-commits never change whether a block is accepted or rejected; that matches how miners behave. Tool output keeps them in a separate `preCommits` object so an agent can't confuse the two.
+- **A missing pre-commit is usually a version signal, not misbehavior.** Upgraded signers treat an `Accepted` with no prior pre-commit as an *implicit* pre-commit, so signers on older binaries never send explicit ones and function normally. On mainnet today roughly 4 of 25 signers emit no pre-commits at all. Never report a null `preCommittedAt` or a low `preCommitRate` as a fault — describe it as an older binary. Only `participationRate`/`degradationRate` indicate a real problem.
+- **We store only explicit pre-commits.** Implicit ones are derived at display time if needed.
+- **The useful signal is the gap between the phases.** A block whose pre-commit weight crossed 70% but whose acceptance weight did not is stuck between phases — that's the operational payoff, and it's what `slot_watch_pre_commit_to_acceptance_gap` in `src/metrics.ts` alerts on.
+
 ## Usage
 
 With a dev server running, you can debug the MCP server with `mcporter`.

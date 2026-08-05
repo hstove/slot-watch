@@ -4,6 +4,12 @@ import { getLatestStackerSet } from './stacks-api';
 import { logger } from './logger';
 import { stxCommittedCache } from './pox-4';
 import { getCreatedAt } from './utils';
+import {
+  averagePhaseGapSeconds,
+  averagePreCommitLatencySeconds,
+  signerPreCommitRate,
+  type PhaseBlock,
+} from './metrics-precommit-calc';
 import type { Db } from './db/db';
 
 const acceptanceRateLastBlocks = new Gauge({
@@ -59,7 +65,70 @@ const signingPowerThisCycle = new Gauge({
   labelNames: ['signer_key'] as const,
 });
 
+const averagePreCommitLatency = new Gauge({
+  name: 'slot_watch_average_pre_commit_latency',
+  help: 'Average time (seconds) between BlockProposal and a signer BlockPreCommit',
+  labelNames: ['last_n_blocks'] as const,
+});
+
+const preCommitToAcceptanceGap = new Gauge({
+  name: 'slot_watch_pre_commit_to_acceptance_gap',
+  help: 'Average time (seconds) from crossing the 70% pre-commit weight threshold to crossing the 70% acceptance weight threshold. Blocks that never cross a threshold are excluded',
+  labelNames: ['last_n_blocks'] as const,
+});
+
+const signerPreCommitParticipation = new Gauge({
+  name: 'slot_watch_signer_pre_commit_participation',
+  help: 'The percentage of recent proposals a signer sent an explicit BlockPreCommit for. Low values usually indicate an older signer binary that does not emit pre-commits, not misbehavior',
+  labelNames: ['last_n_blocks', 'signer_key'] as const,
+});
+
 const lastNs = [10, 25, 50];
+
+/**
+ * Populates the three pre-commit gauges from data already loaded by
+ * `warmupMetrics`. Side-effect-only and free of IO so the caller can swallow
+ * any failure: pre-commits are a diagnostic signal, and a bad computation here
+ * must never fail the metrics warmup (let alone a user-facing route).
+ *
+ * Gauges are left unset (rather than set to 0) for windows with no data, so a
+ * missing series reads as "no pre-commits observed" instead of "zero latency".
+ */
+function warmPreCommitMetrics({
+  blocks,
+  signerKeys,
+}: {
+  blocks: PhaseBlock[];
+  signerKeys: string[];
+}) {
+  // Reset so that stale signers don't linger between runs.
+  signerPreCommitParticipation.reset();
+
+  for (const n of lastNs) {
+    const lastNBlocks = blocks.slice(0, n);
+    if (lastNBlocks.length === 0) continue;
+
+    const latencySeconds = averagePreCommitLatencySeconds(lastNBlocks);
+    if (latencySeconds !== null) {
+      averagePreCommitLatency.set({ last_n_blocks: n }, latencySeconds);
+    }
+
+    const gapSeconds = averagePhaseGapSeconds(lastNBlocks);
+    if (gapSeconds !== null) {
+      preCommitToAcceptanceGap.set({ last_n_blocks: n }, gapSeconds);
+    }
+
+    for (const signerKey of signerKeys) {
+      const rate = signerPreCommitRate(lastNBlocks, signerKey);
+      if (rate !== null) {
+        signerPreCommitParticipation.set(
+          { last_n_blocks: n, signer_key: signerKey },
+          rate
+        );
+      }
+    }
+  }
+}
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ignored using `--suppress`
 export async function warmupMetrics(db: Db) {
@@ -177,6 +246,22 @@ export async function warmupMetrics(db: Db) {
     signingPowerThisCycle.set(
       { signer_key: signer.signing_key },
       signer.weight
+    );
+  }
+
+  // Isolated: pre-commit gauges are diagnostic. If anything about them throws
+  // (missing fields on a stale cache entry, a bad timestamp, a signer set
+  // mismatch) we skip just those gauges rather than fail the whole warmup —
+  // a failing warmup has previously taken the Worker down with a 1101.
+  try {
+    warmPreCommitMetrics({
+      blocks: blocksResolved,
+      signerKeys: stackerSet.signers.map((s) => s.signing_key),
+    });
+  } catch (error) {
+    logger.error(
+      { error: String(error) },
+      'Failed to warm pre-commit metrics; skipping those gauges'
     );
   }
 
