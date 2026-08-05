@@ -9,11 +9,13 @@ import {
 } from '../db/schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from '../db/block-responses';
+import { getBlockPreCommits } from '../db/pre-commits';
 import {
   serializeBurnBlock,
   serializeStacksBlock,
   serializeBlockProposal,
   serializeBlockResponse,
+  serializeBlockPreCommit,
 } from '../db/serializers';
 import { log, logger } from '../logger';
 import { timeout } from 'hono/timeout';
@@ -136,20 +138,27 @@ const blockRoutes = new Hono<ServerType>()
           )
         )
         .limit(1);
-      const responses = await c
-        .get('db')
-        .select()
-        .from(blockResponses)
-        .where(
-          and(
-            eq(blockResponses.signerSignatureHash, blockHash),
-            eq(blockResponses.networkKey, networkKey)
-          )
-        );
+      const [responses, preCommits] = await Promise.all([
+        c
+          .get('db')
+          .select()
+          .from(blockResponses)
+          .where(
+            and(
+              eq(blockResponses.signerSignatureHash, blockHash),
+              eq(blockResponses.networkKey, networkKey)
+            )
+          ),
+        getBlockPreCommits(c.get('db'), {
+          signerSignatureHash: blockHash,
+          networkKey,
+        }),
+      ]);
 
       const responsesWithSigners = mapSignerDataToResponses({
         stackerSet,
         responses,
+        preCommits,
       });
 
       const response = {
@@ -164,11 +173,12 @@ const blockRoutes = new Hono<ServerType>()
     '/blocks/:networkKey/:blockId/responses',
     describeRoute({
       summary: 'Get block responses by ID',
-      description: 'Get signer responses for a specific block by block ID',
+      description:
+        'Get signer responses and pre-commits for a specific block by block ID',
       tags: ['Stacks Blocks'],
       responses: {
         200: {
-          description: 'List of signer responses',
+          description: 'List of signer responses and pre-commits',
           content: {
             'application/json': { schema: resolver(blockResponsesResponse) },
           },
@@ -178,18 +188,26 @@ const blockRoutes = new Hono<ServerType>()
     validator('param', BlockIdParamSchema),
     async (c) => {
       const { networkKey, blockId } = c.req.valid('param');
-      const responses = await c
-        .get('db')
-        .select()
-        .from(blockResponses)
-        .where(
-          and(
-            eq(blockResponses.networkKey, networkKey),
-            eq(blockResponses.signerSignatureHash, blockId)
-          )
-        );
-      const serializedResponses = responses.map(serializeBlockResponse);
-      return c.json({ responses: serializedResponses });
+      const [responses, preCommits] = await Promise.all([
+        c
+          .get('db')
+          .select()
+          .from(blockResponses)
+          .where(
+            and(
+              eq(blockResponses.networkKey, networkKey),
+              eq(blockResponses.signerSignatureHash, blockId)
+            )
+          ),
+        getBlockPreCommits(c.get('db'), {
+          signerSignatureHash: blockId,
+          networkKey,
+        }),
+      ]);
+      return c.json({
+        responses: responses.map(serializeBlockResponse),
+        preCommits: preCommits.map(serializeBlockPreCommit),
+      });
     }
   )
   .get(

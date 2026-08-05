@@ -300,6 +300,7 @@ export interface TenureChangesResponse
 
 export const BlockResponsesResponseSchema = Schema.Struct({
   responses: Schema.mutable(Schema.Array(BlockResponseApiSchema)),
+  preCommits: Schema.mutable(Schema.Array(ApiBlockPreCommitSchema)),
 }).annotations({ identifier: 'BlockResponsesResponse' });
 export interface BlockResponsesResponse
   extends Schema.Schema.Type<typeof BlockResponsesResponseSchema> {}

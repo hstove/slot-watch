@@ -208,6 +208,14 @@ export const blockResponsesForBlockQueryAtomFamily = atomFamily(
   }
 );
 
+export const preCommitsForBlockQueryAtomFamily = atomFamily(
+  (blockHash: string) => {
+    return atomWithSuspenseQuery((get) => ({
+      ...queries.preCommits.forStacksBlock(get(networkIdAtom), blockHash),
+    }));
+  }
+);
+
 export const [
   miniResponsesAtomFamilyWithLoader,
   ,
