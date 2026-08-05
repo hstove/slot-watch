@@ -7,6 +7,8 @@ const statusVariants = cva('', {
     status: {
       success:
         'bg-green-700 text-secondary-foreground/80 hover:bg-green-700/80',
+      preCommitted:
+        'bg-emerald-400/70 text-secondary-foreground/80 hover:bg-emerald-400/90 dark:bg-emerald-500/60 dark:hover:bg-emerald-500/80',
       warning:
         'bg-orange-700 text-secondary-foreground/80 hover:bg-orange-700/80',
       error: 'bg-red-700 text-secondary-foreground/80 hover:bg-red-700/80',

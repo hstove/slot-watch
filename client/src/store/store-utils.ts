@@ -151,17 +151,18 @@ export function listAtomFamilyWithInit<OKey, T, K>(
           if (existingList.length === 0) {
             return listOrItem;
           }
-          for (const item of existingList) {
-            const existingIndex = existingList.findIndex((item) =>
-              dequal(keyFn(item), keyFn(item))
+          const nextList = [...existingList];
+          for (const item of listOrItem) {
+            const existingIndex = nextList.findIndex((existingItem) =>
+              dequal(keyFn(existingItem), keyFn(item))
             );
             if (existingIndex === -1) {
-              existingList.push(item);
+              nextList.push(item);
             } else {
-              existingList[existingIndex] = item;
+              nextList[existingIndex] = item;
             }
           }
-          return [...existingList];
+          return nextList;
         });
         for (const item of listOrItem) {
           set(itemAtomFamilyInner(keyFn(item)), item);
