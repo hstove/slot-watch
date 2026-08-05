@@ -2,6 +2,7 @@ import { atom } from 'jotai';
 import {
   type ApiBlockResponseForBlock,
   apiClient,
+  type ApiPreCommitForBlock,
   type ApiSigner,
   getTenureChanges,
   type ProcessedStacksBlock,
@@ -11,7 +12,11 @@ import { listAtomFamilyWithInit, listAtomWithInit } from './store-utils';
 import { networkIdAtom } from './network';
 import { signersApiAtom, thresholdAtom } from './signers-store';
 import * as R from 'remeda';
-import type { MiniBlockResponseApi, TypeMerge } from 'slot-watch-common';
+import type {
+  MiniBlockPreCommitApi,
+  MiniBlockResponseApi,
+  TypeMerge,
+} from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 import { atomFamily } from 'jotai/utils';
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query';
@@ -216,6 +221,16 @@ export const preCommitsForBlockQueryAtomFamily = atomFamily(
   }
 );
 
+/**
+ * A pre-commit as held in the client store. Seeded from the API (which returns
+ * the full {@link ApiPreCommitForBlock} row) and updated in real time from the
+ * `block_pre_commits` SSE event, which only carries the slim
+ * {@link MiniBlockPreCommitApi} fields. Everything beyond the slim payload is
+ * therefore optional.
+ */
+export type StoredPreCommit = MiniBlockPreCommitApi &
+  Partial<Omit<ApiPreCommitForBlock, keyof MiniBlockPreCommitApi>>;
+
 export const [
   miniResponsesAtomFamilyWithLoader,
   ,
@@ -254,3 +269,44 @@ export const [
   },
   'mini-block-responses'
 );
+
+/**
+ * Pre-commits for a block, keyed by the block's `signerSignatureHash`.
+ *
+ * Mirrors the mini-responses collection above: the outer family key is the
+ * block hash, items are keyed by `{ blockHash, signerPublicKey }`, the list is
+ * seeded by `preCommitsForBlockQueryAtomFamily`, and
+ * `setPreCommitsAtom(blockHash)` is the SSE write path.
+ */
+export const [
+  preCommitsAtomFamilyWithLoader,
+  ,
+  ,
+  preCommitsForBlockFamily,
+  setPreCommitsAtom,
+] = listAtomFamilyWithInit<
+  string,
+  StoredPreCommit,
+  { blockHash: string; signerPublicKey: string }
+>(
+  async (signerSignatureHash, get) => {
+    const preCommits = await get(
+      preCommitsForBlockQueryAtomFamily(signerSignatureHash)
+    );
+    return preCommits.data;
+  },
+  (p) => ({
+    blockHash: p.signerSignatureHash,
+    signerPublicKey: p.signerPublicKey,
+  }),
+  undefined,
+  'block-pre-commits'
+);
+
+/** Drops all pre-commit state for a block, mirroring `removeResponsesForBlock`. */
+export function removePreCommitsForBlock(blockHash: string) {
+  preCommitsAtomFamilyWithLoader.remove(blockHash);
+  preCommitsForBlockFamily.remove(blockHash);
+  preCommitsForBlockQueryAtomFamily.remove(blockHash);
+  setPreCommitsAtom.remove(blockHash);
+}
