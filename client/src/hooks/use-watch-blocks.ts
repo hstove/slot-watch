@@ -9,6 +9,8 @@ import {
   STATE_MACHINE_UPDATE_EVENT,
   type MiniBlockResponseApi,
   MINI_BLOCK_RESPONSES_EVENT,
+  type MiniBlockPreCommitApi,
+  BLOCK_PRE_COMMITS_EVENT,
 } from 'slot-watch-common';
 import React from 'react';
 import { useAtomCallback } from 'jotai/utils';
@@ -22,7 +24,11 @@ import {
 } from '@/store/blocks-store';
 import type { ProcessedStacksBlock, ProposalOnlyBlock } from '@/lib/slots-api';
 import { setLatestStateMachinesAtom } from '@/store/state-machine-store';
-import { setMiniResponsesAtom } from '@/store/responses-store';
+import {
+  removePreCommitsForBlock,
+  setMiniResponsesAtom,
+  setPreCommitsAtom,
+} from '@/store/responses-store';
 import * as R from 'remeda';
 import { formatTimestamp } from './use-timestamp';
 
@@ -98,6 +104,18 @@ export const useWatchBlocks = () => {
     )
   );
 
+  const handleBlockPreCommits = useAtomCallback(
+    React.useCallback((_get, set, preCommits: MiniBlockPreCommitApi[]) => {
+      const byBlockHash = R.groupBy(preCommits, (p) => p.signerSignatureHash);
+      // biome-ignore lint/suspicious/useGuardForIn: ignored using `--suppress`
+      for (const blockHash in byBlockHash) {
+        const blockPreCommits = byBlockHash[blockHash];
+        if (!blockPreCommits) continue;
+        set(setPreCommitsAtom(blockHash), blockHash, blockPreCommits);
+      }
+    }, [])
+  );
+
   const handleMessage = useAtomCallback(
     React.useCallback(
       // biome-ignore lint/suspicious/noExplicitAny: This is a websocket message event
@@ -119,6 +137,8 @@ export const useWatchBlocks = () => {
           } else if (payload.type === MINI_BLOCK_RESPONSES_EVENT) {
             const miniBlockResponses = payload.payload;
             handleMiniBlockResponses(miniBlockResponses);
+          } else if (payload.type === BLOCK_PRE_COMMITS_EVENT) {
+            handleBlockPreCommits(payload.payload);
           } else if (payload.type === NEW_BLOCK_V2_EVENT) {
             const block = payload.payload;
             console.log(
@@ -146,6 +166,7 @@ export const useWatchBlocks = () => {
             // Remove them via the family remove method.
             removeResponsesForBlock(block.blockHash);
             responseOutcomeForBlockAtomFamily.remove(block.blockHash);
+            removePreCommitsForBlock(block.blockHash);
           } else if (payload.type === BURN_BLOCK_V2_EVENT) {
             const burnBlock = payload.payload;
             console.log('Received burn block', burnBlock.burnBlockHeight);
@@ -160,7 +181,12 @@ export const useWatchBlocks = () => {
           console.debug('Error parsing message', error);
         }
       },
-      [handleBlockProposal, handleMiniBlockResponses, handleStateMachineUpdate]
+      [
+        handleBlockProposal,
+        handleMiniBlockResponses,
+        handleBlockPreCommits,
+        handleStateMachineUpdate,
+      ]
     )
   );
 
