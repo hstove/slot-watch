@@ -93,6 +93,9 @@ const BlockListResponse = ({
             </>
           ) : null}
 
+          <DataLabel>Signer Manager</DataLabel>
+          <DataValue>{signer.signerManager}</DataValue>
+
           <DataLabel>Public Key</DataLabel>
           <DataValue>
             <PublicKey publicKey={signer.signing_key} />

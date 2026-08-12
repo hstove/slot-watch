@@ -6,6 +6,8 @@ import type {
 import createRpcClient from 'openapi-fetch';
 import type { paths as rpcPaths } from './stacks-rpc-types';
 
+const HEX_PREFIX = /^0x/;
+
 export function createStacksRpcClient(networkKey: string, apiKey: string) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -27,13 +29,28 @@ export type StackerSetSigner = {
   signing_key: string;
   weight: number;
   stacked_amt: string;
+  signerManager: string | null;
 };
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StackerSet = {
   stacker_set: {
-    signers: StackerSetSigner[];
+    signers: Omit<StackerSetSigner, 'signerManager'>[];
   };
+};
+
+// biome-ignore lint/style/useConsistentTypeDefinitions: API response shape
+export type RegisteredStakingSigner = {
+  signer: string;
+  signer_key: string;
+};
+
+// biome-ignore lint/style/useConsistentTypeDefinitions: API response shape
+type RegisteredStakingSignersResponse = {
+  cursor: {
+    next: string | null;
+  };
+  results: RegisteredStakingSigner[];
 };
 
 function headersForApiKey(apiKey?: string) {
@@ -55,10 +72,52 @@ export async function getStackerSet(
   rewardCycle: number,
   apiKey?: string
 ) {
-  const url = `${getApiUrl(networkKey)}/v3/stacker_set/${rewardCycle}`;
-  const response = await fetch(url, { headers: headersForApiKey(apiKey) });
-  const data = await readJsonResponse<StackerSet>(response, url);
-  return data.stacker_set.signers;
+  const apiUrl = getApiUrl(networkKey);
+  const stackerSetUrl = `${apiUrl}/v3/stacker_set/${rewardCycle}`;
+  const [stackerSetResponse, registeredSigners] = await Promise.all([
+    fetch(stackerSetUrl, { headers: headersForApiKey(apiKey) }),
+    getRegisteredStakingSigners(networkKey, apiKey),
+  ]);
+  const data = await readJsonResponse<StackerSet>(
+    stackerSetResponse,
+    stackerSetUrl
+  );
+  const signerManagersByKey = new Map(
+    registeredSigners.map(({ signer, signer_key }) => [
+      signer_key.replace(HEX_PREFIX, ''),
+      signer,
+    ])
+  );
+  return data.stacker_set.signers.map((signer) => ({
+    ...signer,
+    signerManager: signerManagersByKey.get(signer.signing_key) ?? null,
+  }));
+}
+
+export async function getRegisteredStakingSigners(
+  networkKey: string,
+  apiKey?: string
+) {
+  const signers: RegisteredStakingSigner[] = [];
+  let cursor: string | null = null;
+
+  do {
+    const url = new URL(`${getApiUrl(networkKey)}/extended/v3/staking/signers`);
+    url.searchParams.set('limit', '200');
+    if (cursor) url.searchParams.set('cursor', cursor);
+
+    const response = await fetch(url, {
+      headers: headersForApiKey(apiKey),
+    });
+    const data = await readJsonResponse<RegisteredStakingSignersResponse>(
+      response,
+      url.toString()
+    );
+    signers.push(...data.results);
+    cursor = data.cursor.next;
+  } while (cursor);
+
+  return signers;
 }
 
 export async function getCoreNodeInfo(networkKey: string, apiKey?: string) {

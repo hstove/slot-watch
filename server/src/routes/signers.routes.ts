@@ -255,6 +255,7 @@ export const signersRoutes = new Hono<ServerType>()
           const common = {
             publicKey: signer.signing_key,
             name: knownSigners[signer.signing_key] ?? null,
+            signerManager: signer.signerManager,
             slotId: index,
             weight: signer.weight,
             weightPercent: percent,

@@ -42,6 +42,14 @@ export const SignerBarItem = ({
           <DataValue>
             <PublicKey publicKey={signer.publicKey} />
           </DataValue>
+          {signer.signerManager ? (
+            <>
+              <DataLabel>Signer Manager</DataLabel>
+              <DataValue>
+                <PublicKey publicKey={signer.signerManager} />
+              </DataValue>
+            </>
+          ) : null}
           <DataLabel>Weight</DataLabel>
           <DataValue>{signer.weightPercentStr}</DataValue>
           <DataLabel>Version</DataLabel>
