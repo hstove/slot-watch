@@ -12,6 +12,7 @@ import {
 import { SimpleTooltip } from '../simple-tooltip';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { truncateMiddle } from '@/lib/utils';
 
 const BLOCKS_WON_COUNT = 500;
 
@@ -92,8 +93,8 @@ function MinerCard({ miner }: { miner: ApiMinerStat }) {
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0 space-y-2">
-          <code className="text-xs font-mono block truncate">
-            {miner.publicKey}
+          <code className="text-xs font-mono block">
+            {truncateMiddle(miner.publicKey, 12, 10)}
           </code>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>

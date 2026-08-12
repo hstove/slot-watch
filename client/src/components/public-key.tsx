@@ -1,7 +1,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { textVariants } from '@/lib/text-variants';
-import { cn } from '@/lib/utils';
+import { cn, truncateMiddle } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -34,11 +34,11 @@ export const PublicKey = ({
           <code
             className={cn(
               textVariants({ variant: 'code' }),
-              'max-w-[90px] text-nowrap text-ellipsis inline-block overflow-clip text-xs',
+              'text-nowrap inline-block text-xs',
               className
             )}
           >
-            {publicKey}
+            {truncateMiddle(publicKey, 6, 5)}
           </code>
         </TooltipTrigger>
         <TooltipContent>

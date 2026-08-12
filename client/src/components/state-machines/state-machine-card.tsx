@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { TruncateMiddle } from '@/components/truncate-middle';
 import { cn } from '@/lib/utils';
 
 export function StateMachineCard({
@@ -71,30 +72,46 @@ export function StateMachineCard({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-muted-foreground">Current Miner:</span>
-                  <div className="font-mono text-xs truncate">
-                    {stateMachine.minerState.currentMinerPkh}
+                  <div className="font-mono text-xs">
+                    <TruncateMiddle
+                      value={stateMachine.minerState.currentMinerPkh}
+                      head={10}
+                      tail={8}
+                    />
                   </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Tenure ID:</span>
-                  <div className="font-mono text-xs truncate">
-                    {stateMachine.minerState.tenureId}
+                  <div className="font-mono text-xs">
+                    <TruncateMiddle
+                      value={stateMachine.minerState.tenureId}
+                      head={10}
+                      tail={8}
+                    />
                   </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">
                     Parent Tenure ID:
                   </span>
-                  <div className="font-mono text-xs truncate">
-                    {stateMachine.minerState.parentTenureId}
+                  <div className="font-mono text-xs">
+                    <TruncateMiddle
+                      value={stateMachine.minerState.parentTenureId}
+                      head={10}
+                      tail={8}
+                    />
                   </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">
                     Parent Last Block:
                   </span>
-                  <div className="font-mono text-xs truncate">
-                    {stateMachine.minerState.parentTenureLastBlock}
+                  <div className="font-mono text-xs">
+                    <TruncateMiddle
+                      value={stateMachine.minerState.parentTenureLastBlock}
+                      head={10}
+                      tail={8}
+                    />
                   </div>
                 </div>
                 <div>
