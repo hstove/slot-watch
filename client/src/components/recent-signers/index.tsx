@@ -6,17 +6,37 @@ import {
   totalRecentSignersAtom,
   useSignerVersionsWeightedAtom,
 } from '@/store/signers-store';
-import { textVariants } from '@/lib/text-variants';
 import { networkIdAtom } from '@/store/network';
-import { DataTable } from '../ui/data-table';
-import { columns } from './columns';
 import { VersionsChart } from './versions-chart';
-import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { Route } from '../../routes/signers';
 import { SignerBarItem } from './signer-bar-item';
+import { SignersTable } from './signers-table';
 
 const MAINNET_LAUNCHED = true;
+
+function Metric({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="border-b border-border px-3 py-2.5 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0">
+      <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 font-mono text-xl font-semibold leading-none tracking-tight tabular-nums">
+        {value}
+      </div>
+      <div className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+        {detail}
+      </div>
+    </div>
+  );
+}
 
 export const RecentSigners = () => {
   const totalRecents = useAtomValue(totalRecentSignersAtom);
@@ -32,86 +52,92 @@ export const RecentSigners = () => {
     setRecentSigners(loaderData.signers);
   }, [loaderData, setRecentSigners]);
 
-  const columnVisibility = React.useMemo(() => {
-    if (networkId !== 'mainnet') {
-      return {
-        degradation10: false,
-        degradation25: false,
-        degradation50: false,
-      };
-    }
-    return undefined;
-  }, [networkId]);
-
   if (!recentSigners) return null;
+
+  const totalWeight = recentSigners.totalWeight || 1;
+  const weightedHealth = recentSignersWithLatestResponses.reduce(
+    (total, signer) => total + signer.weight * (1 - signer.degradation50),
+    0
+  );
+  const weightedHealthPercent = Number(
+    ((weightedHealth / totalWeight) * 100).toFixed(1)
+  );
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 auto-cols-fr gap-3">
-        <Card className="flex flex-col items-center pt-5">
-          {/* <CardHeader /> */}
-          <CardContent className="w-full flex flex-col items-center flex-1">
-            <div className="flex-1 items-center" />
+      <section className="border border-border bg-card">
+        <div className="grid grid-cols-1 sm:grid-cols-3">
+          <Metric
+            label="active power"
+            value={`${totalRecents.percentStr}%`}
+            detail="seen within 10 minutes"
+          />
+          <Metric
+            label="active signers"
+            value={`${totalRecents.numSigners}/${recentSigners.signers.length}`}
+            detail="responding roster slots"
+          />
+          <Metric
+            label="network health"
+            value={`${weightedHealthPercent}%`}
+            detail="weight-adjusted · 50 proposals"
+          />
+        </div>
 
-            <h2 className={textVariants({ variant: 'h2' })}>
-              {totalRecents.percentStr}%
-            </h2>
-            <div className="flex-1 items-center" />
-            <p className={textVariants({ variant: 'muted' })}>
-              Percent of signer weight active in last 10 minutes
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col items-center pt-5">
-          {/* <CardHeader /> */}
-          <CardContent className="w-full flex flex-col items-center flex-1">
-            <div className="flex-1 items-center" />
-            <h2 className={textVariants({ variant: 'h2' })}>
-              {totalRecents.numSigners}
-              <span className="opacity-50 mx-2">/</span>
-              {recentSigners.signers.length}
-            </h2>
-            <div className="flex-1 items-center" />
-
-            <p className={textVariants({ variant: 'muted' })}>
-              Number of signers active in last 10 minutes
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col items-center pt-5">
-          <CardContent className="w-full flex flex-col items-center">
+        <div className="grid border-t border-border md:grid-cols-[minmax(16rem,0.9fr)_minmax(0,1.6fr)]">
+          <div className="border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                version mix
+              </span>
+              <button
+                type="button"
+                className="border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
+                onClick={() => setUseWeighted((current) => !current)}
+              >
+                {useWeighted ? 'by weight' : 'by signer'}
+              </button>
+            </div>
             <React.Suspense>
               <VersionsChart />
             </React.Suspense>
-            <div className="flex gap-2">
-              <p className={textVariants({ variant: 'muted' })}>
-                Signer versions
-              </p>
-              <Badge
-                size={'icon'}
-                variant="outline"
-                className="cursor-pointer"
-                onClick={() => {
-                  setUseWeighted((cur) => !cur);
-                }}
-              >
-                {useWeighted ? 'Weighted' : 'Raw'}
-              </Badge>
+          </div>
+
+          {showCustom ? null : (
+            <div className="px-3 py-2.5">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  signing power by activity
+                </span>
+                <div className="flex items-center gap-3 font-mono text-[9px] text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <i className="h-1.5 w-1.5 bg-green-600" /> active
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <i className="h-1.5 w-1.5 bg-amber-600" /> aging
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <i className="h-1.5 w-1.5 bg-red-600" /> stale
+                  </span>
+                </div>
+              </div>
+              <div className="flex h-4 w-full gap-px overflow-hidden bg-muted">
+                {recentSignersWithLatestResponses.map((signer) => (
+                  <SignerBarItem key={signer.publicKey} signer={signer} />
+                ))}
+              </div>
+              <div className="mt-1.5 flex justify-between font-mono text-[9px] text-muted-foreground">
+                <span>slot 00</span>
+                <span>width = signing power</span>
+                <span>slot {recentSigners.signers.length - 1}</span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-      {showCustom ? null : (
-        <div className="w-full rounded-md h-10 border border-border flex overflow-hidden mb-8 gap-[2px]">
-          {recentSignersWithLatestResponses.map((s) => {
-            return <SignerBarItem key={s.publicKey} signer={s} />;
-          })}
+          )}
         </div>
-      )}
-      <DataTable
-        columns={columns}
-        data={recentSignersWithLatestResponses}
-        columnVisibility={columnVisibility}
+      </section>
+      <SignersTable
+        signers={recentSignersWithLatestResponses}
+        rewardCycle={recentSigners.rewardCycle}
       />
     </div>
   );

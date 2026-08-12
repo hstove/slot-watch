@@ -1,31 +1,52 @@
-import { signerVersionsChartAtom } from '@/store/signers-store';
+import {
+  signerVersionsChartAtom,
+  useSignerVersionsWeightedAtom,
+} from '@/store/signers-store';
 import { useAtomValue } from 'jotai';
-import { Pie, PieChart } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
+import { SimpleTooltip } from '../simple-tooltip';
 
 export const VersionsChart = () => {
-  const { chartConfig, chartData } = useAtomValue(signerVersionsChartAtom);
+  const { chartData } = useAtomValue(signerVersionsChartAtom);
+  const useWeighted = useAtomValue(useSignerVersionsWeightedAtom);
+
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="h-[100px] w-full flex-1 [&_.recharts-pie-label-text]:fill-foreground"
-    >
-      <PieChart width={100} height={100}>
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent hideLabel />}
-        />
-        <Pie
-          data={chartData}
-          dataKey="signers"
-          nameKey="version"
-          // cx="50%"
-          // cy="50%"
-          // outerRadius={80}
-          // fill="#82ca9d"
-          // label
-        />
-      </PieChart>
-    </ChartContainer>
+    <div>
+      <div className="flex h-2 w-full gap-px overflow-hidden bg-muted">
+        {chartData.map((item) => (
+          <SimpleTooltip
+            key={item.version}
+            content={`${useWeighted ? `${item.signers}% of signer weight` : `${item.signers} signers`} on ${item.version === 'unknown' ? 'an unknown version' : `v${item.version}`}`}
+          >
+            <div
+              className="h-full min-w-0"
+              style={{
+                flexGrow: item.signers,
+                backgroundColor: item.fill,
+              }}
+            />
+          </SimpleTooltip>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+        {chartData.map((item) => (
+          <div
+            key={item.version}
+            className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"
+          >
+            <span
+              className="h-1.5 w-1.5"
+              style={{ backgroundColor: item.fill }}
+            />
+            <span>
+              {item.version === 'unknown' ? 'unknown' : `v${item.version}`}
+            </span>
+            <span className="tabular-nums text-foreground">
+              {item.signers}
+              {useWeighted ? '%' : ''}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
