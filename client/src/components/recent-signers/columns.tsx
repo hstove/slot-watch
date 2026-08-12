@@ -85,6 +85,20 @@ export const columns: ColumnDef<RecentSigner>[] = [
     },
   },
   {
+    header: 'Signer Manager',
+    accessorKey: 'signerManager',
+    enableSorting: false,
+    cell: ({ row }) => {
+      if (!row.original.signerManager) return null;
+      return (
+        <PublicKey
+          publicKey={row.original.signerManager}
+          className="max-w-[110px]"
+        />
+      );
+    },
+  },
+  {
     // header: "Signing Power",
     cell: ({ row }) => {
       return (

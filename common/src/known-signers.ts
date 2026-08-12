@@ -93,4 +93,22 @@ export const knownSigners: Record<string, string> = {
     'PlanBetter',
   '038d545b66cc01a93fe405e14d6432432d81ec03e296d55cf3c07b143a4407aa4a':
     'STX Juice',
+  '023d6e4adbd5e7bedd5a1e1b85940e1e8c6c34924fd0d584e5e15d84c8572083d9':
+    'Fast Pool',
+  '021acd08580abb387c45d44cc742fffe0f61c17db534331495a246f315a0d9404f':
+    'Xverse',
+  '027af6b78b484b2c129dab7e490e8438f9a6eb4890071335a5781d483073866b9a':
+    'HashKey',
+  '0285f4c617c4065e429d1666dcfd885c52e223acfc042aa2c2855adc93034e6975':
+    'Xverse',
+  '02bcfeb0fd2bafa20d865999467d5b9a00d4ef5e37fbaca27d45ee0dbaf13e0596':
+    'StackingDAO',
+  '02c54d8b1ba4b7207f78f861c60f8a67433c264a11ac9b6b7773476e9f6c008e49':
+    'Infinity Stones',
+  '02f37e08d25d8a660caf66b9cb3a09b1ce055cbb5f57186d92af43268d722408da':
+    'Xverse',
+  '0309126df3691918f25f8872819bc8268e9e1e0d92d0494fa4fb9783589a1392fa':
+    'Foundry',
+  '038265445ac9fa77d96bf6f3eee74e287deb10aeef2f2e3f96581a6bb765de8240':
+    'Juicy Stake',
 };

@@ -14,7 +14,10 @@ const app = await alchemy('slot-watch', {
   stage: 'prod',
   phase: process.argv.includes('--destroy') ? 'destroy' : 'up',
   password: process.env.ALCHEMY_PASSWORD,
-  stateStore: (scope) => new CloudflareStateStore(scope),
+  stateStore: (scope) =>
+    new CloudflareStateStore(scope, {
+      forceUpdate: true,
+    }),
 });
 
 await Exec('build', {

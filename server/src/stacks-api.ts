@@ -17,16 +17,20 @@ import { env } from 'cloudflare:workers';
 
 const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number, contractId: string) =>
-    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_${contractId}_v3`,
-  (networkKey: string, rewardCycle: number, contractId: string) =>
-    getStackerSetInner(networkKey, rewardCycle, contractId, env.HIRO_API_KEY)
+    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_${contractId}_v4`,
+  (networkKey: string, rewardCycle: number, _contractId: string) =>
+    getStackerSetInner(networkKey, rewardCycle, env.HIRO_API_KEY)
 );
 
 const getLatestStackerSetCache = memoizeCache(
-  (networkKey: string) => `stacker_set_latest_v2_${networkKey}`,
+  (networkKey: string) => `stacker_set_latest_v3_${networkKey}`,
   async (networkKey: string) => {
     const poxInfo = await getPoxInfo.get(networkKey);
-    return getStackerSetCache.get(networkKey, poxInfo.rewardCycleId);
+    return getStackerSetCache.get(
+      networkKey,
+      poxInfo.rewardCycleId,
+      poxInfo.contractId
+    );
   }
 );
 
@@ -68,7 +72,12 @@ function mapCachedSignerData(signers: StackerSetSigner[]) {
 }
 
 export async function getStackerSet(networkKey: string, rewardCycle: number) {
-  const signers = await getStackerSetCache.get(networkKey, rewardCycle);
+  const poxInfo = await getPoxInfo.get(networkKey);
+  const signers = await getStackerSetCache.get(
+    networkKey,
+    rewardCycle,
+    poxInfo.contractId
+  );
   return mapCachedSignerData(signers);
 }
 
@@ -97,7 +106,7 @@ export const getPoxInfo = memoizeCache(
 export async function warmCache(networkKey: string, db: Db) {
   const poxInfo = await getPoxInfo.warm(networkKey);
   const rewardCycle = poxInfo.rewardCycleId;
-  await getStackerSetCache.warm(networkKey, rewardCycle);
+  await getStackerSetCache.warm(networkKey, rewardCycle, poxInfo.contractId);
   await Promise.all([
     stxCommittedCache.warm(),
     fetchRecentMinerBlocksCache.warm(networkKey, db),
