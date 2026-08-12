@@ -216,7 +216,7 @@ export const BlockListStacksBlock = ({ blockHash }: { blockHash: string }) => {
           </TooltipProvider>
         </div>
         <div className="block-list-col [&]:hidden [&]:md:flex">
-          <PublicKey publicKey={block.blockHash} className="max-w-[200px]" />
+          <PublicKey publicKey={block.blockHash} />
         </div>
         <div className="block-list-col">
           <TenureCauseBadge tenureCause={block.tenureChangeCause} />

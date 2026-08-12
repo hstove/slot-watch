@@ -11,9 +11,13 @@ import {
 
 export const PublicKey = ({
   publicKey,
+  head = 6,
+  tail = 5,
   className,
 }: {
   publicKey: string;
+  head?: number;
+  tail?: number;
   className?: string;
 }) => {
   const { toast } = useToast();
@@ -38,7 +42,7 @@ export const PublicKey = ({
               className
             )}
           >
-            {truncateMiddle(publicKey, 6, 5)}
+            {truncateMiddle(publicKey, head, tail)}
           </code>
         </TooltipTrigger>
         <TooltipContent>

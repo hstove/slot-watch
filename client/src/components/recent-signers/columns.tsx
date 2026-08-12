@@ -63,10 +63,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     cell: ({ row }) => {
       return (
         <div className="text-xs">
-          <PublicKey
-            publicKey={row.original.publicKey}
-            className="max-w-[70px]"
-          />
+          <PublicKey publicKey={row.original.publicKey} />
         </div>
       );
     },
@@ -91,10 +88,7 @@ export const columns: ColumnDef<RecentSigner>[] = [
     cell: ({ row }) => {
       if (!row.original.signerManager) return null;
       return (
-        <PublicKey
-          publicKey={row.original.signerManager}
-          className="max-w-[110px]"
-        />
+        <PublicKey publicKey={row.original.signerManager} head={8} tail={8} />
       );
     },
   },

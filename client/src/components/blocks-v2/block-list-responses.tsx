@@ -98,10 +98,7 @@ const BlockListResponse = ({
             <>
               <DataLabel>Signer Manager</DataLabel>
               <DataValue>
-                <PublicKey
-                  publicKey={signer.signerManager}
-                  className="max-w-[160px]"
-                />
+                <PublicKey publicKey={signer.signerManager} head={8} tail={8} />
               </DataValue>
             </>
           ) : null}
