@@ -9,6 +9,10 @@
       "persistent": true,
       "cache": false
     },
+    "dev:tee": {
+      "persistent": true,
+      "cache": false
+    },
     "test": {}
   }
 }

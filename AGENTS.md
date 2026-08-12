@@ -36,7 +36,7 @@ This means server changes are deployed to prod to be tested. Keep changes resili
 
 ### Client: run locally against prod
 
-The client is fine to run locally with `bun dev:client` — it points at the production API and streamer, so you get real data. See `./client/AGENTS.md` for dev server details and logs.
+The client is fine to run locally with `bun dev:client:tee` — it points at the production API and streamer, so you get real data. See `./client/AGENTS.md` for dev server details and logs.
 
 ### Cloudflare logs & production state
 
