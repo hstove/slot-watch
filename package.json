@@ -14,7 +14,7 @@
     "check:fix": "biome check --fix",
     "check:all": "bun check:fix && bun typecheck",
     "dev": "turbo dev --filter=slot-watch-ui",
-    "deploy:alchemy": "bun alchemy deploy --env-file .env.local",
+    "deploy:alchemy": "bun alchemy deploy --env-file .env.local --profile stackslabs",
     "knip": "knip"
   },
   "devDependencies": {
