@@ -141,6 +141,30 @@ export const BlockResponseRejectReasons = {
     description:
       'The block attempted a tenure extend but the burn view has not changed and not enough time has passed for a time-based tenure extend',
   },
+  /// The block has an irrecoverable pubkey hash
+  14: {
+    label: 'IrrecoverablePubkeyHash',
+    description: 'The block has an irrecoverable pubkey hash',
+  },
+  /// The block could not be validated as no consensus among signers
+  15: {
+    label: 'NoSignerConsensus',
+    description:
+      'The block could not be validated as no consensus among signers',
+  },
+  /// The block consensus hash does not match the active miner's tenure id
+  16: {
+    label: 'ConsensusHashMismatch',
+    description:
+      "The block consensus hash does not match the active miner's tenure id",
+  },
+  /// The block marks one or more transactions as problematic, which signers
+  /// do not yet allow
+  17: {
+    label: 'ProblematicTransactions',
+    description:
+      'The block marks one or more transactions as problematic, which signers do not yet allow',
+  },
   /// Unknown reject code, for forward compatibility
   254: {
     label: 'Unknown',

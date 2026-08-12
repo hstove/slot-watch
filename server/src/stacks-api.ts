@@ -16,10 +16,10 @@ import type { Db } from './db/db';
 import { env } from 'cloudflare:workers';
 
 const getStackerSetCache = memoizeCache(
-  (networkKey: string, rewardCycle: number) =>
-    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_v2`,
-  (networkKey: string, rewardCycle: number) =>
-    getStackerSetInner(networkKey, rewardCycle, env.HIRO_API_KEY)
+  (networkKey: string, rewardCycle: number, contractId: string) =>
+    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_${contractId}_v3`,
+  (networkKey: string, rewardCycle: number, contractId: string) =>
+    getStackerSetInner(networkKey, rewardCycle, contractId, env.HIRO_API_KEY)
 );
 
 const getLatestStackerSetCache = memoizeCache(
@@ -86,6 +86,7 @@ async function getSmallPoxInfo(networkKey: string) {
     firstBurnchainBlockHeight: poxInfo.first_burnchain_block_height,
     rewardCycleLength: poxInfo.reward_cycle_length,
     rewardCycleId: poxInfo.reward_cycle_id,
+    contractId: poxInfo.contract_id,
   };
 }
 export const getPoxInfo = memoizeCache(

@@ -450,25 +450,55 @@ export const BlockResponseAcceptedCoder = P.struct({
   data: BlockResponseDataCoder,
 });
 
+/** `RejectReasonPrefix::ValidationFailed`, which is followed by a u8 code. */
+const REJECT_REASON_VALIDATION_FAILED = 0;
+/**
+ * `RejectReasonPrefix::ConsensusHashMismatch`, which is followed by the
+ * expected and actual consensus hashes (20 bytes each).
+ */
+const REJECT_REASON_CONSENSUS_HASH_MISMATCH = 16;
+
 export const ValidationErrorCoder: P.CoderType<{
   reasonCode: number;
   validationCode: number | undefined;
+  expectedConsensusHash: Uint8Array | undefined;
+  actualConsensusHash: Uint8Array | undefined;
 }> = P.wrap({
   encodeStream: (
     w: P.Writer,
-    data: { reasonCode: number; validationCode: number | undefined }
+    data: {
+      reasonCode: number;
+      validationCode: number | undefined;
+      expectedConsensusHash: Uint8Array | undefined;
+      actualConsensusHash: Uint8Array | undefined;
+    }
   ) => {
     P.U8.encodeStream(w, data.reasonCode);
     if (typeof data.validationCode === 'number') {
       P.U8.encodeStream(w, data.validationCode);
     }
+    if (data.expectedConsensusHash && data.actualConsensusHash) {
+      w.bytes(data.expectedConsensusHash);
+      w.bytes(data.actualConsensusHash);
+    }
   },
   decodeStream: (r: P.Reader) => {
     const reasonCode = P.U8.decodeStream(r);
-    const validationCode = reasonCode === 0 ? P.U8.decodeStream(r) : undefined;
+    const validationCode =
+      reasonCode === REJECT_REASON_VALIDATION_FAILED
+        ? P.U8.decodeStream(r)
+        : undefined;
+    let expectedConsensusHash: Uint8Array | undefined;
+    let actualConsensusHash: Uint8Array | undefined;
+    if (reasonCode === REJECT_REASON_CONSENSUS_HASH_MISMATCH) {
+      expectedConsensusHash = P.bytes(20).decodeStream(r);
+      actualConsensusHash = P.bytes(20).decodeStream(r);
+    }
     return {
       reasonCode,
       validationCode,
+      expectedConsensusHash,
+      actualConsensusHash,
     };
   },
 });
@@ -551,6 +581,8 @@ export type BlockResponseRejected = Prettify<
   Omit<P.UnwrapCoder<typeof BlockResponseRejectedCoder>, 'accepted'> & {
     reasonCode: number;
     validationCode: number | undefined;
+    expectedConsensusHash: Uint8Array | undefined;
+    actualConsensusHash: Uint8Array | undefined;
     accepted: false;
   }
 >;
