@@ -6,6 +6,7 @@ import { textStyles } from '@/lib/text-variants';
 import { SimpleTooltip } from '@/components/simple-tooltip';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { truncateMiddle } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { MinerVersionHistory, MinerRecentBlock } from 'slot-watch-common';
 import type { ApiMinerDetail } from '@/lib/slots-api';
@@ -122,8 +123,8 @@ function RecentBlockCard({ block }: { block: MinerRecentBlock }) {
             </span>
             <span>{block.txCount} txs</span>
           </div>
-          <code className="text-xs font-mono text-muted-foreground block truncate">
-            {block.signerSignatureHash}
+          <code className="text-xs font-mono text-muted-foreground block">
+            {truncateMiddle(block.signerSignatureHash, 12, 10)}
           </code>
         </div>
         <ChevronRightIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
