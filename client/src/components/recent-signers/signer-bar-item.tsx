@@ -1,6 +1,4 @@
-import { colord, extend } from 'colord';
 import { differenceInSeconds, parseISO } from 'date-fns';
-import mixPlugin from 'colord/plugins/mix';
 import type { RecentSignerWithLatestResponse } from '@/store/signers-store';
 import { SimpleTooltip } from '../simple-tooltip';
 import { DataLabel, DataValue } from '../data-group';
@@ -8,18 +6,13 @@ import { PublicKey } from '../public-key';
 import { Timestamp } from '../timestamp';
 import React from 'react';
 
-extend([mixPlugin]);
-
-const okColor = colord('#15803d');
-const badColor = colord('#b91c1c');
-
 function colorForTimeAgo(timeAgo: string | null) {
-  if (timeAgo === null) return badColor.toHex();
+  if (timeAgo === null) return '#dc2626';
   const date = parseISO(timeAgo);
   const diff = differenceInSeconds(new Date(), date);
-  const maxDiff = 60 * 60; // 1 hour
-  const ratio = Math.min(diff / maxDiff, 1);
-  return okColor.mix(badColor, ratio).toHex();
+  if (diff <= 10 * 60) return '#16a34a';
+  if (diff <= 60 * 60) return '#d97706';
+  return '#dc2626';
 }
 
 export const SignerBarItem = ({
@@ -74,7 +67,9 @@ export const SignerBarItem = ({
       <div
         className="h-full cursor-help"
         style={{
-          flexGrow: signer.weight + signer.totalWeight * 0.01,
+          flexBasis: 0,
+          flexGrow: signer.weight,
+          minWidth: 2,
           backgroundColor: color,
         }}
       />

@@ -1,7 +1,6 @@
 import { atom } from 'jotai';
 import { networkIdAtom } from './network';
 import type { RecentSigner } from 'slot-watch-common';
-import { getSortableVersion } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import type { ApiRecentSigners, ApiSigner, ApiSigners } from '@/lib/slots-api';
 import { atomFamily } from 'jotai/utils';
@@ -112,8 +111,9 @@ export const useSignerVersionsWeightedAtom = atom(false);
 const signerVersionsAtom = atom((get) => {
   const recentSigners = get(recentSignersAtom);
   const versions = R.groupBy(recentSigners.signers, (s) => {
-    return getSortableVersion(s.versionShort).join('.');
-    // return s.versionShort;
+    return s.versionShort && s.versionShort !== 'No'
+      ? s.versionShort
+      : 'unknown';
   });
   const useWeighted = get(useSignerVersionsWeightedAtom);
 
