@@ -36,6 +36,7 @@ const BlockListResponse = ({
 }: {
   blockHash: string;
   signerPublicKey: string;
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: its fine
 }) => {
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const totalWeight = useAtomValue(totalWeightAtom);
@@ -93,8 +94,17 @@ const BlockListResponse = ({
             </>
           ) : null}
 
-          <DataLabel>Signer Manager</DataLabel>
-          <DataValue>{signer.signerManager}</DataValue>
+          {signer.signerManager ? (
+            <>
+              <DataLabel>Signer Manager</DataLabel>
+              <DataValue>
+                <PublicKey
+                  publicKey={signer.signerManager}
+                  className="max-w-[160px]"
+                />
+              </DataValue>
+            </>
+          ) : null}
 
           <DataLabel>Public Key</DataLabel>
           <DataValue>

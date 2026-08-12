@@ -123,4 +123,8 @@ await Exec('deploy-streamer', {
       },
 });
 
+await Exec('format', {
+  command: 'bun run check:fix',
+});
+
 await app.finalize();

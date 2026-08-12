@@ -12,7 +12,7 @@
  * catches a chain "stuck between phases".
  */
 
-export type PhaseSigner = {
+export interface PhaseSigner {
   signing_key: string;
   weight: number;
   /** When the signer's BlockResponse was observed, if it ever responded. */
@@ -26,12 +26,12 @@ export type PhaseSigner = {
   preCommittedAt?: string | null;
   /** Proposal -> pre-commit latency, as recorded at ingestion. */
   preCommitLatencyMs?: number | null;
-};
+}
 
-export type PhaseBlock = {
+export interface PhaseBlock {
   totalWeight: number;
   signers: PhaseSigner[];
-};
+}
 
 /** The same `ceil(total_weight * 7/10)` bar signers apply to both phases. */
 export function weightThreshold(totalWeight: number) {
