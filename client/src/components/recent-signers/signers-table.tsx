@@ -9,7 +9,11 @@ import {
 } from '@tanstack/react-table';
 import { ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { differenceInSeconds, format, isToday } from 'date-fns';
-import { percentString } from 'slot-watch-common';
+import {
+  getSortableVersion,
+  percentString,
+  versionSort,
+} from 'slot-watch-common';
 import type { RecentSignerWithLatestResponse } from '@/store/signers-store';
 import { useToast } from '@/hooks/use-toast';
 import { useEntity } from '@/hooks/use-entity';
@@ -18,7 +22,7 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import { SimpleTooltip } from '../simple-tooltip';
 
 const gridClassName =
-  'grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.45fr)_minmax(0,1.65fr)_5.5rem_5rem_minmax(0,1.2fr)]';
+  'grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.35fr)_minmax(0,1.5fr)_5.5rem_5rem_6.5rem_minmax(7.5rem,0.9fr)]';
 
 function SortHeader({
   column,
@@ -165,10 +169,6 @@ function Activity({ signer }: { signer: RecentSignerWithLatestResponse }) {
     ? differenceInSeconds(new Date(), signer.createdAt)
     : null;
   const hasBadActivity = secondsAgo === null || secondsAgo > 60 * 60;
-  const hasVersion = signer.versionShort && signer.versionShort !== 'No';
-  const versionLabel = hasVersion
-    ? `v${signer.versionShort}`
-    : 'version unknown';
   const visibleTimestamp = lastSeen
     ? format(lastSeen, isToday(lastSeen) ? 'HH:mm:ss' : 'MMM d · HH:mm')
     : null;
@@ -196,16 +196,27 @@ function Activity({ signer }: { signer: RecentSignerWithLatestResponse }) {
         {signer.blockHeight
           ? `#${signer.blockHeight.toLocaleString()}`
           : 'no block'}
-        <span className="mx-1.5 text-border">/</span>
-        {signer.version ? (
-          <SimpleTooltip content={signer.version}>
-            <span>{versionLabel}</span>
-          </SimpleTooltip>
-        ) : (
-          versionLabel
-        )}
       </div>
     </div>
+  );
+}
+
+function Version({ signer }: { signer: RecentSignerWithLatestResponse }) {
+  const hasVersion = signer.versionShort && signer.versionShort !== 'No';
+  const label = hasVersion ? `v${signer.versionShort}` : 'unknown';
+
+  if (!signer.version) {
+    return (
+      <span className="font-mono text-xs text-muted-foreground">{label}</span>
+    );
+  }
+
+  return (
+    <SimpleTooltip content={signer.version}>
+      <span className="block truncate font-mono text-xs text-muted-foreground">
+        {label}
+      </span>
+    </SimpleTooltip>
   );
 }
 
@@ -226,6 +237,16 @@ const columns: ColumnDef<RecentSignerWithLatestResponse>[] = [
   {
     id: 'health',
     accessorFn: (signer) => 1 - signer.degradation50,
+    sortDescFirst: true,
+  },
+  {
+    id: 'version',
+    accessorFn: (signer) => getSortableVersion(signer.versionShort),
+    sortingFn: (a, b) =>
+      versionSort(
+        getSortableVersion(a.original.versionShort),
+        getSortableVersion(b.original.versionShort)
+      ),
     sortDescFirst: true,
   },
   {
@@ -282,6 +303,7 @@ export function SignersTable({
         <SortHeader column={table.getColumn('health')} align="right">
           health
         </SortHeader>
+        <SortHeader column={table.getColumn('version')}>version</SortHeader>
         <div />
       </div>
 
@@ -303,10 +325,15 @@ export function SignersTable({
               <div className="col-start-2 row-start-1 md:col-start-auto md:row-start-auto">
                 <SigningPower signer={signer} />
               </div>
-              <div className="md:col-auto">
+              <div className="col-start-1 row-start-3 md:col-auto md:row-start-auto">
                 <Health degradation={signer.degradation50} />
               </div>
-              <Activity signer={signer} />
+              <div className="col-start-2 row-start-3 min-w-0 md:col-auto md:row-start-auto">
+                <Version signer={signer} />
+              </div>
+              <div className="col-span-2 row-start-4 min-w-0 md:col-auto md:row-start-auto">
+                <Activity signer={signer} />
+              </div>
             </div>
           );
         })}
