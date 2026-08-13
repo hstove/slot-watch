@@ -9,6 +9,7 @@ import {
   BURN_BLOCK_V2_EVENT,
   coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
+  sumPoxSpendSats,
 } from 'slot-watch-common';
 import { getNetworkKeyFromRequest } from '../auth';
 import { log, logger } from '../logger';
@@ -135,6 +136,7 @@ const eventsRoutes = new Hono<Env>()
         burnBlockHeight: burnBlock.burn_block_height,
         burnBlockHash: burnBlock.burn_block_hash,
         consensusHash: burnBlock.consensus_hash,
+        poxSpendSats: sumPoxSpendSats(burnBlock.pox_transactions),
       },
     };
     c.executionCtx.waitUntil(runEffect(handleBurnBlockEvent(payload)));
