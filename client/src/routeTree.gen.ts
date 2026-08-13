@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhenExtendRouteImport } from './routes/when-extend'
 import { Route as UiTestRouteImport } from './routes/ui-test'
+import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StateMachinesRouteImport } from './routes/state-machines'
 import { Route as StateMachineHistoryRouteImport } from './routes/state-machine-history'
 import { Route as SignersRouteImport } from './routes/signers'
@@ -30,6 +31,11 @@ const WhenExtendRoute = WhenExtendRouteImport.update({
 const UiTestRoute = UiTestRouteImport.update({
   id: '/ui-test',
   path: '/ui-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StateMachinesRoute = StateMachinesRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/signers': typeof SignersRoute
   '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
+  '/timeline': typeof TimelineRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/signers': typeof SignersRoute
   '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
+  '/timeline': typeof TimelineRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/signers': typeof SignersRoute
   '/state-machine-history': typeof StateMachineHistoryRoute
   '/state-machines': typeof StateMachinesRoute
+  '/timeline': typeof TimelineRoute
   '/ui-test': typeof UiTestRoute
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/signers'
     | '/state-machine-history'
     | '/state-machines'
+    | '/timeline'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/signers'
     | '/state-machine-history'
     | '/state-machines'
+    | '/timeline'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/signers'
     | '/state-machine-history'
     | '/state-machines'
+    | '/timeline'
     | '/ui-test'
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   SignersRoute: typeof SignersRoute
   StateMachineHistoryRoute: typeof StateMachineHistoryRoute
   StateMachinesRoute: typeof StateMachinesRoute
+  TimelineRoute: typeof TimelineRoute
   UiTestRoute: typeof UiTestRoute
   WhenExtendRoute: typeof WhenExtendRoute
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/ui-test'
       fullPath: '/ui-test'
       preLoaderRoute: typeof UiTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/state-machines': {
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignersRoute: SignersRoute,
   StateMachineHistoryRoute: StateMachineHistoryRoute,
   StateMachinesRoute: StateMachinesRoute,
+  TimelineRoute: TimelineRoute,
   UiTestRoute: UiTestRoute,
   WhenExtendRoute: WhenExtendRoute,
   BtcBlocksHeightOrHashRoute: BtcBlocksHeightOrHashRoute,

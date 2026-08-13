@@ -12,6 +12,7 @@ import {
 
 const navItems = [
   { to: '/', label: 'blocks' },
+  { to: '/timeline', label: 'timeline' },
   { to: '/when-extend', label: 'extend' },
   { to: '/signers', label: 'signers' },
   { to: '/miners', label: 'miners' },
