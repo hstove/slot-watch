@@ -60,6 +60,7 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
       burnBlockHash: payload.payload.burnBlockHash,
       networkKey: payload.networkKey,
       consensusHash: payload.payload.consensusHash,
+      poxSpendSats: payload.payload.poxSpendSats,
       createdAt: new Date(payload.receivedAt),
     };
     const db = yield* DbService;
