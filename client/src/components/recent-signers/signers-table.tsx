@@ -83,7 +83,10 @@ function SignerIdentity({
             <SimpleTooltip content={entity ? 'rename signer' : 'name signer'}>
               <button
                 type="button"
-                className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+                className={cn(
+                  'shrink-0 text-muted-foreground transition-opacity hover:text-foreground [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100',
+                  renameOpen && '[@media(hover:hover)]:opacity-100'
+                )}
                 aria-label={entity ? 'rename signer' : 'name signer'}
                 onClick={() => setRenameOpen(true)}
               >
@@ -342,7 +345,7 @@ export function SignersTable({
               key={signer.publicKey}
               className={cn(
                 gridClassName,
-                'items-center gap-x-3 gap-y-2 border-b border-border/70 px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/25 md:min-h-10 md:py-1'
+                'group items-center gap-x-3 gap-y-2 border-b border-border/70 px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/25 md:min-h-10 md:py-1'
               )}
             >
               <SignerIdentity signer={signer} />
