@@ -254,6 +254,7 @@ export const [
           networkKey: get(networkIdAtom),
           createdAt: block.processedAt ?? new Date().toISOString(),
           consensusHash: block.consensusHash,
+          poxSpendSats: 0,
         });
       }
       const burnBlocks = get(allBurnBlocksAtom);
@@ -267,6 +268,7 @@ export const [
           networkKey: get(networkIdAtom),
           createdAt: block.processedAt ?? new Date().toISOString(),
           consensusHash: block.consensusHash,
+          poxSpendSats: 0,
         });
       }
     }

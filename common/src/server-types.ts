@@ -132,6 +132,8 @@ export const ApiBurnBlockSchema = Schema.Struct({
   burnBlockHash: Schema.String,
   createdAt: Schema.String,
   consensusHash: Schema.String,
+  /** Total miner PoX spend in satoshis. 0 for historical rows ingested before this field existed. */
+  poxSpendSats: Schema.Number,
 });
 export interface ApiBurnBlock
   extends Schema.Schema.Type<typeof ApiBurnBlockSchema> {}

@@ -141,6 +141,7 @@ export const getRecentBitcoinBlocksOutputSchema = z.object({
       bitcoinBlockHeight: z.number(),
       consensusHash: z.string(),
       stacksBlockCount: z.number(),
+      poxSpendSats: z.number(),
       observedAt: z.string(),
     })
   ),
@@ -195,6 +196,7 @@ const ingestionBitcoinBlockSchema = z
     bitcoinBlockHash: z.string(),
     bitcoinBlockHeight: z.number(),
     consensusHash: z.string(),
+    poxSpendSats: z.number(),
   })
   .merge(observedAgeSchema);
 

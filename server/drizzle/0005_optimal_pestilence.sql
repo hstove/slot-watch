@@ -1,0 +1,1 @@
+ALTER TABLE "burn_blocks" ADD COLUMN "pox_spend_sats" bigint DEFAULT 0 NOT NULL;
