@@ -7,7 +7,7 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { ArrowDownIcon, ArrowUpIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { differenceInSeconds, format, isToday } from 'date-fns';
 import {
   getSortableVersion,
@@ -17,9 +17,11 @@ import {
 import type { RecentSignerWithLatestResponse } from '@/store/signers-store';
 import { useToast } from '@/hooks/use-toast';
 import { useEntity } from '@/hooks/use-entity';
+import { isKnownSigner, saveSigner } from '@/lib/local-signers';
 import { cn, truncateMiddle } from '@/lib/utils';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { SimpleTooltip } from '../simple-tooltip';
+import { RenameSignerDialog } from './rename-signer-dialog';
 
 const gridClassName =
   'grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.35fr)_minmax(0,1.5fr)_5.5rem_5rem_6.5rem_minmax(7.5rem,0.9fr)]';
@@ -57,8 +59,10 @@ function SignerIdentity({
 }: {
   signer: RecentSignerWithLatestResponse;
 }) {
+  const [renameOpen, setRenameOpen] = React.useState(false);
   const localEntity = useEntity(signer.publicKey);
   const entity = localEntity ?? signer.name;
+  const canRename = !(isKnownSigner(signer.publicKey) || signer.name);
 
   return (
     <div className="flex min-w-0 items-center gap-2.5">
@@ -66,16 +70,39 @@ function SignerIdentity({
         {String(signer.slotId).padStart(2, '0')}
       </span>
       <div className="min-w-0">
-        <div
-          className={cn(
-            'truncate text-xs font-medium leading-4',
-            !entity && 'font-mono text-muted-foreground'
-          )}
-        >
-          {entity ?? 'unknown'}
+        <div className="flex min-w-0 items-center gap-1">
+          <div
+            className={cn(
+              'truncate text-xs font-medium leading-4',
+              !entity && 'font-mono text-muted-foreground'
+            )}
+          >
+            {entity ?? 'unknown'}
+          </div>
+          {canRename ? (
+            <SimpleTooltip content={entity ? 'rename signer' : 'name signer'}>
+              <button
+                type="button"
+                className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={entity ? 'rename signer' : 'name signer'}
+                onClick={() => setRenameOpen(true)}
+              >
+                <Pencil1Icon className="h-3 w-3" />
+              </button>
+            </SimpleTooltip>
+          ) : null}
         </div>
         <CompactIdentifier value={signer.publicKey} head={8} tail={6} />
       </div>
+      {canRename ? (
+        <RenameSignerDialog
+          open={renameOpen}
+          onOpenChange={setRenameOpen}
+          publicKey={signer.publicKey}
+          currentName={entity ?? undefined}
+          onSave={(name) => saveSigner(signer.publicKey, name)}
+        />
+      ) : null}
     </div>
   );
 }
