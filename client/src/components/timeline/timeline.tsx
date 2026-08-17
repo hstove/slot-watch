@@ -71,12 +71,11 @@ function statusForBlock(
   return 'pending';
 }
 
-function tenureColor(consensusHash: string) {
-  let hash = 0;
-  for (const char of consensusHash) {
-    hash = (hash * 31 + char.charCodeAt(0)) % 360;
-  }
-  return `hsl(${hash % 360} 72% 58%)`;
+function tenureColor(burnBlockHeight: number) {
+  // Golden-angle spacing so consecutive Bitcoin tenures land ~137° apart
+  // on the hue wheel instead of clustering from a hash collision.
+  const hue = (burnBlockHeight * 137.508) % 360;
+  return `hsl(${hue} 72% 58%)`;
 }
 
 function formatClock(timestamp: number) {
@@ -286,7 +285,7 @@ function BitcoinEvent({
   event: Extract<TimelineEvent, { kind: 'bitcoin' }>;
   allBlocks: ApiBlockForBurnBlock[];
 }) {
-  const color = tenureColor(event.block.consensusHash);
+  const color = tenureColor(event.block.burnBlockHeight);
   const matchingBlocks = allBlocks
     .filter(
       (block) =>
@@ -349,7 +348,7 @@ function StacksEvent({
   status: StacksStatus;
 }) {
   const setActiveBlockHash = useSetAtom(activeBlockHashAtom);
-  const color = tenureColor(event.block.consensusHash);
+  const color = tenureColor(event.block.burnBlockHeight);
 
   return (
     <div className="relative grid grid-cols-[62px_1fr] gap-3 md:grid-cols-[94px_1fr]">
@@ -567,7 +566,7 @@ function SettledBundle({
   const newest = sorted[0];
   const oldest = sorted.at(-1);
   if (!(newest && oldest)) return null;
-  const color = tenureColor(newest.consensusHash);
+  const color = tenureColor(newest.burnBlockHeight);
   const trailingGap = nextTimestamp
     ? timestampForBlock(oldest) - nextTimestamp
     : 0;

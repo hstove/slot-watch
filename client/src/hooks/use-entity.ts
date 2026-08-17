@@ -1,6 +1,14 @@
-import { useMemo } from 'react';
-import { getEntity } from '@/lib/local-signers';
+import { useSyncExternalStore } from 'react';
+import {
+  getEntity,
+  getKnownEntity,
+  subscribeLocalSigners,
+} from '@/lib/local-signers';
 
 export const useEntity = (publicKey: string) => {
-  return useMemo(() => getEntity(publicKey), [publicKey]);
+  return useSyncExternalStore(
+    subscribeLocalSigners,
+    () => getEntity(publicKey),
+    () => getKnownEntity(publicKey)
+  );
 };
