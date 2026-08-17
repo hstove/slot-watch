@@ -151,6 +151,17 @@ interface _CoreNodeBurnBlockMessage {
   reward_slot_holders: string[];
 }
 
+const poxTransactionRewardSchema = z.object({
+  txid: z.string(),
+  reward_recipients: z.array(
+    z.object({
+      recipient: z.string(),
+      amt: z.number(),
+      utxo_idx: z.number(),
+    })
+  ),
+});
+
 export const coreNodeBurnBlockMessageSchema = z.object({
   burn_block_hash: string0x,
   burn_block_height: z.number(),
@@ -163,8 +174,23 @@ export const coreNodeBurnBlockMessageSchema = z.object({
   ),
   reward_slot_holders: z.array(z.string()),
   consensus_hash: string0x,
+  /** Per-commit PoX payouts. Absent on older node payloads. */
+  pox_transactions: z.array(poxTransactionRewardSchema).default([]),
 });
 
 export type CoreNodeBurnBlockMessage = z.infer<
   typeof coreNodeBurnBlockMessageSchema
 >;
+
+/** Total miner PoX spend for a burn block, in satoshis. */
+export function sumPoxSpendSats(
+  poxTransactions: CoreNodeBurnBlockMessage['pox_transactions']
+): number {
+  let total = 0;
+  for (const tx of poxTransactions) {
+    for (const recipient of tx.reward_recipients) {
+      total += recipient.amt;
+    }
+  }
+  return total;
+}

@@ -237,6 +237,9 @@ export const burnBlocks = pgTable(
     // createdAt: timestamp('created_at').default(sql`now()`).notNull(),
     networkKey: text('network_key', { length: 20 }).notNull(),
     consensusHash: text('consensus_hash', { length: 64 }).notNull(),
+    poxSpendSats: bigint('pox_spend_sats', { mode: 'number' })
+      .default(0)
+      .notNull(),
   },
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),

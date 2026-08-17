@@ -537,6 +537,7 @@ export const makeMcpServer = () => {
                 bitcoinBlockHeight: burnBlocks.burnBlockHeight,
                 bitcoinBlockHash: burnBlocks.burnBlockHash,
                 consensusHash: burnBlocks.consensusHash,
+                poxSpendSats: burnBlocks.poxSpendSats,
                 stacksBlockCount: sql<number>`count(${stacksBlocks.id})`,
               })
               .from(burnBlocks)
@@ -564,6 +565,7 @@ export const makeMcpServer = () => {
             bitcoinBlockHeight: block.bitcoinBlockHeight,
             consensusHash: block.consensusHash,
             stacksBlockCount: Number(block.stacksBlockCount),
+            poxSpendSats: block.poxSpendSats,
             observedAt: getObservedAt(block.id),
           }));
 
@@ -735,6 +737,7 @@ export const makeMcpServer = () => {
                   bitcoinBlockHash: latestBitcoin.burnBlockHash,
                   bitcoinBlockHeight: latestBitcoin.burnBlockHeight,
                   consensusHash: latestBitcoin.consensusHash,
+                  poxSpendSats: latestBitcoin.poxSpendSats,
                   observedAt,
                   ageSeconds: getAgeSeconds(observedAt, nowMs),
                 };
