@@ -18,7 +18,7 @@ import {
 } from '@/store/responses-store';
 import { setSignersApiAtom, signersApiAtom } from '@/store/signers-store';
 import type { ApiBlockForBurnBlock } from '@/lib/slots-api';
-import type { ApiBurnBlock } from 'slot-watch-common';
+import { type ApiBurnBlock, satsToBtc } from 'slot-watch-common';
 import { Route } from '@/routes/timeline';
 import { BlockModal } from '@/components/block/block-modal';
 import { BtcIcon } from '@/components/icons/btc-icon';
@@ -302,6 +302,7 @@ function BitcoinEvent({
   } else if (tenureDelay > 15_000) {
     tenureLabel = `tenure began ${formatDuration(tenureDelay)} later`;
   }
+  const minerSpendBtc = satsToBtc(event.block.poxSpendSats).toFormat();
 
   return (
     <div className="relative py-2 md:py-3">
@@ -314,7 +315,7 @@ function BitcoinEvent({
         params={{ heightOrHash: event.block.burnBlockHeight.toString() }}
         className="relative grid grid-cols-[62px_1fr] items-stretch gap-3 border border-border bg-card transition-colors hover:bg-muted/40 md:grid-cols-[94px_1fr]"
         style={{ borderLeftColor: color, borderLeftWidth: 3 }}
-        title={`Bitcoin block ${event.block.burnBlockHeight} · ${new Date(event.block.createdAt).toLocaleString()}`}
+        title={`Bitcoin block ${event.block.burnBlockHeight} · ${minerSpendBtc} BTC miner spend · ${new Date(event.block.createdAt).toLocaleString()}`}
       >
         <div className="flex items-center justify-end border-r border-border px-2 py-3 font-mono text-[10px] text-muted-foreground md:text-xs">
           {formatClock(event.timestamp)}
@@ -331,8 +332,11 @@ function BitcoinEvent({
               title="tenure color"
             />
           </div>
-          <div className="font-mono text-[10px] text-muted-foreground md:text-right">
-            {tenureLabel}
+          <div className="flex min-w-0 flex-col gap-0.5 font-mono text-[10px] md:items-end md:text-right">
+            <span className="text-foreground md:text-xs">
+              {minerSpendBtc} BTC
+            </span>
+            <span className="text-muted-foreground">{tenureLabel}</span>
           </div>
         </div>
       </Link>

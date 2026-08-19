@@ -126,6 +126,11 @@ export function microStxToStx(microStx: IntegerType) {
   return bn.decimalPlaces(6).shiftedBy(-6);
 }
 
+export function satsToBtc(sats: IntegerType) {
+  const bn = intToBn(sats);
+  return bn.decimalPlaces(8).shiftedBy(-8);
+}
+
 export function stxToMicroStx(stx: IntegerType) {
   const bn = intToBn(stx);
   return bn.decimalPlaces(6).shiftedBy(6).decimalPlaces(0);
