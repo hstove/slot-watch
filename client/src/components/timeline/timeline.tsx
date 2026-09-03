@@ -659,10 +659,10 @@ function SettledBundle({
               gridTemplateColumns: `repeat(${sorted.length}, minmax(0, 1fr))`,
             }}
           >
-            {sorted.map((block, index) => {
-              const nextBlock = sorted[index + 1];
-              const gap = nextBlock
-                ? timestampForBlock(block) - timestampForBlock(nextBlock)
+            {[...sorted].reverse().map((block, index, chronological) => {
+              const previousBlock = chronological[index - 1];
+              const gap = previousBlock
+                ? timestampForBlock(block) - timestampForBlock(previousBlock)
                 : trailingGap;
               const status = statusForBlock(block, maxProcessedHeight);
               const isTenureChange =
