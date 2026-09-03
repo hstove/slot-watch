@@ -19,6 +19,7 @@ import {
 import { setSignersApiAtom, signersApiAtom } from '@/store/signers-store';
 import type { ApiBlockForBurnBlock } from '@/lib/slots-api';
 import { type ApiBurnBlock, satsToBtc } from 'slot-watch-common';
+import { TenureChangeCause } from '@stacks/transactions';
 import { Route } from '@/routes/index';
 import { BlockModal } from '@/components/block/block-modal';
 import { BtcIcon } from '@/components/icons/btc-icon';
@@ -69,6 +70,10 @@ function statusForBlock(
   if (block.processedAt) return 'confirmed';
   if (block.blockHeight <= maxProcessedHeight) return 'rejected';
   return 'pending';
+}
+
+function isTenureExtend(cause: number | null) {
+  return cause !== null && cause !== TenureChangeCause.BlockFound;
 }
 
 function tenureColor(burnBlockHeight: number) {
@@ -580,7 +585,10 @@ function SettledBundle({
   ).length;
   const confirmedCount = sorted.length - rejectedCount;
   const tenureChangeCount = sorted.filter(
-    (block) => block.tenureChangeCause !== null
+    (block) => block.tenureChangeCause === TenureChangeCause.BlockFound
+  ).length;
+  const tenureExtendCount = sorted.filter((block) =>
+    isTenureExtend(block.tenureChangeCause)
   ).length;
   const burnBlock = burnBlocks.find(
     (block) => block.consensusHash === newest.consensusHash
@@ -630,6 +638,11 @@ function SettledBundle({
                     {tenureChangeCount} tenure changes
                   </span>
                 )}
+                {tenureExtendCount > 0 && (
+                  <span className="text-amber-600 dark:text-amber-400">
+                    {tenureExtendCount} tenure extends
+                  </span>
+                )}
                 <span>{formatDuration(duration)}</span>
               </div>
             </div>
@@ -652,7 +665,11 @@ function SettledBundle({
                 ? timestampForBlock(block) - timestampForBlock(nextBlock)
                 : trailingGap;
               const status = statusForBlock(block, maxProcessedHeight);
-              const isTenureChange = block.tenureChangeCause !== null;
+              const isTenureChange =
+                block.tenureChangeCause === TenureChangeCause.BlockFound;
+              const isTenureExtendBlock = isTenureExtend(
+                block.tenureChangeCause
+              );
               return (
                 <button
                   type="button"
@@ -664,11 +681,13 @@ function SettledBundle({
                   )}
                   style={{
                     height: `${Math.min(24, Math.max(6, gap / 700))}px`,
-                    boxShadow: isTenureChange
-                      ? 'inset 0 2px 0 rgb(34 211 238)'
-                      : undefined,
+                    boxShadow: isTenureExtendBlock
+                      ? 'inset 0 2px 0 rgb(245 158 11)'
+                      : isTenureChange
+                        ? 'inset 0 2px 0 rgb(34 211 238)'
+                        : undefined,
                   }}
-                  title={`Stacks block ${block.blockHeight} · ${status}${isTenureChange ? ' · tenure change' : ''} · ${formatClock(timestampForBlock(block))} · anchored to Bitcoin #${burnBlock?.burnBlockHeight ?? 'unknown'} · click for details`}
+                  title={`Stacks block ${block.blockHeight} · ${status}${isTenureExtendBlock ? ' · tenure extend' : isTenureChange ? ' · tenure change' : ''} · ${formatClock(timestampForBlock(block))} · anchored to Bitcoin #${burnBlock?.burnBlockHeight ?? 'unknown'} · click for details`}
                   aria-label={`Open Stacks block ${block.blockHeight}`}
                 />
               );
@@ -717,8 +736,11 @@ function CompactBlock({
         <XIcon className="h-3 w-3 text-destructive" />
       )}
       <span className="flex-1">block {block.blockHeight.toLocaleString()}</span>
-      {block.tenureChangeCause !== null && (
+      {block.tenureChangeCause === TenureChangeCause.BlockFound && (
         <span className="text-cyan-600 dark:text-cyan-400">tenure change</span>
+      )}
+      {isTenureExtend(block.tenureChangeCause) && (
+        <span className="text-amber-600 dark:text-amber-400">tenure extend</span>
       )}
       <span className="text-muted-foreground">
         {formatClock(timestampForBlock(block))}
