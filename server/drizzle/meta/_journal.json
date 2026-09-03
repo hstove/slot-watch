@@ -43,6 +43,13 @@
       "when": 1786631191513,
       "tag": "0005_optimal_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788286635046,
+      "tag": "0006_strange_maximus",
+      "breakpoints": true
     }
   ]
 }

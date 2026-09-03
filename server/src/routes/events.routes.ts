@@ -93,22 +93,25 @@ const eventsRoutes = new Hono<Env>()
     const data = await c.req.json<CoreNodeBlockMessage>();
     logger.info(`${networkKey}: Got new Block (${data.block_height})`);
     const receivedAt = new Date();
-    const block = convertBlock(data);
+    const { block, maturedMinerRewards } = convertBlock(data);
 
     c.executionCtx.waitUntil(
       runEffect(
-        handleStacksBlockEvent({
-          type: NEW_BLOCK_V2_EVENT,
-          networkKey,
-          receivedAt: receivedAt.toISOString(),
-          payload: {
-            ...block,
+        handleStacksBlockEvent(
+          {
+            type: NEW_BLOCK_V2_EVENT,
             networkKey,
-            processedAt: receivedAt.toISOString(),
-            blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
-            burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+            receivedAt: receivedAt.toISOString(),
+            payload: {
+              ...block,
+              networkKey,
+              processedAt: receivedAt.toISOString(),
+              blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
+              burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
+            },
           },
-        })
+          maturedMinerRewards
+        )
       )
     );
 
@@ -137,6 +140,7 @@ const eventsRoutes = new Hono<Env>()
         burnBlockHash: burnBlock.burn_block_hash,
         consensusHash: burnBlock.consensus_hash,
         poxSpendSats: sumPoxSpendSats(burnBlock.pox_transactions),
+        burnAmountSats: burnBlock.burn_amount,
       },
     };
     c.executionCtx.waitUntil(runEffect(handleBurnBlockEvent(payload)));

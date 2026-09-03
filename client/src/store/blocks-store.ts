@@ -255,6 +255,7 @@ export const [
           createdAt: block.processedAt ?? new Date().toISOString(),
           consensusHash: block.consensusHash,
           poxSpendSats: 0,
+          burnAmountSats: 0,
         });
       }
       const burnBlocks = get(allBurnBlocksAtom);
@@ -269,6 +270,7 @@ export const [
           createdAt: block.processedAt ?? new Date().toISOString(),
           consensusHash: block.consensusHash,
           poxSpendSats: 0,
+          burnAmountSats: 0,
         });
       }
     }

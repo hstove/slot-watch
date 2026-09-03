@@ -1,6 +1,8 @@
 import { test, expect } from 'vitest';
 import {
   coreNodeBurnBlockMessageSchema,
+  maturedMinerRewardSchema,
+  sumMinerRewardUstx,
   sumPoxSpendSats,
 } from '../src/event-stream-types';
 
@@ -43,4 +45,32 @@ test('treats missing pox_transactions as zero spend', () => {
   const parsed = coreNodeBurnBlockMessageSchema.parse(baseBurnBlock);
   expect(parsed.pox_transactions).toEqual([]);
   expect(sumPoxSpendSats(parsed.pox_transactions)).toEqual(0);
+});
+
+test('parses burn_amount and optional parent_burn_block_hash', () => {
+  const parsed = coreNodeBurnBlockMessageSchema.parse({
+    ...baseBurnBlock,
+    burn_amount: 12_345,
+    parent_burn_block_hash: `0x${'cc'.repeat(32)}`,
+  });
+  expect(parsed.burn_amount).toEqual(12_345);
+  expect(parsed.parent_burn_block_hash).toEqual('cc'.repeat(32));
+  expect(
+    coreNodeBurnBlockMessageSchema.parse(baseBurnBlock).parent_burn_block_hash
+  ).toBeUndefined();
+});
+
+test('sums matured miner reward amounts in micro-STX', () => {
+  const reward = maturedMinerRewardSchema.parse({
+    from_index_consensus_hash: `0x${'dd'.repeat(32)}`,
+    from_stacks_block_hash: `0x${'ee'.repeat(32)}`,
+    recipient: 'SP000000000000000000002Q6VF78',
+    miner_address: 'SP000000000000000000002Q6VF78',
+    // 2x coinbase, e.g. after one missed sortition
+    coinbase_amount: '2000000000',
+    tx_fees_anchored: '150000',
+    tx_fees_streamed_confirmed: '25000',
+    tx_fees_streamed_produced: '10000',
+  });
+  expect(sumMinerRewardUstx(reward)).toEqual(2_000_185_000);
 });

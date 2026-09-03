@@ -11,8 +11,8 @@ import {
 } from './ui/dropdown-menu';
 
 const navItems = [
-  { to: '/', label: 'blocks' },
-  { to: '/timeline', label: 'timeline' },
+  { to: '/', label: 'timeline' },
+  { to: '/blocks', label: 'blocks' },
   { to: '/when-extend', label: 'extend' },
   { to: '/signers', label: 'signers' },
   { to: '/miners', label: 'miners' },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from '@/routes/index';
+import { Route } from '@/routes/blocks/index';
 import {
   loadMoreBurnBlocksAtom,
   setAllBurnBlocksAtom,
