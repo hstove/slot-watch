@@ -3,18 +3,86 @@ import {
   BURN_BLOCK_V2_EVENT,
   NEW_BLOCK_V2_EVENT,
   type WSBurnBlockV2,
+  type MaturedMinerReward,
 } from 'slot-watch-common';
-import { burnBlocks, stacksBlocks } from '../db/schema';
+import { burnBlocks, minerRewards, stacksBlocks } from '../db/schema';
 import { recentBlocksHealthCache } from '../db/block-proposals';
-import type { InferInsertModel } from 'drizzle-orm';
+import { and, eq, inArray, type InferInsertModel } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { Effect } from 'effect';
 import { serializeBurnBlock } from '../db/serializers';
 import { warmCache } from '../stacks-api';
 import { DbService } from '../effect/layers/db';
 import { StreamerService } from '../effect/layers/streamer';
+import { log } from '../logger';
 
-export const handleStacksBlockEvent = (job: WSNewBlockV2) =>
+/**
+ * Persist matured miner rewards from a new_block event, attributing each
+ * reward back to the tenure that earned it via the earning block's index
+ * block hash.
+ */
+const storeMinerRewards = (job: WSNewBlockV2, rewards: MaturedMinerReward[]) =>
+  Effect.gen(function* () {
+    if (rewards.length === 0) return;
+    const db = yield* DbService;
+    const indexHashes = [
+      ...new Set(rewards.map((r) => r.from_index_consensus_hash)),
+    ];
+    const earnedBlocks = yield* db.withDb((db) =>
+      db
+        .select({
+          indexBlockHash: stacksBlocks.indexBlockHash,
+          consensusHash: stacksBlocks.consensusHash,
+          burnBlockHeight: stacksBlocks.burnBlockHeight,
+        })
+        .from(stacksBlocks)
+        .where(
+          and(
+            eq(stacksBlocks.networkKey, job.networkKey),
+            inArray(stacksBlocks.indexBlockHash, indexHashes)
+          )
+        )
+    );
+    const earnedByIndexHash = new Map(
+      earnedBlocks.map((b) => [b.indexBlockHash, b])
+    );
+    const msecs = new Date(job.receivedAt).getTime();
+    const rows = rewards.map((reward) => {
+      const earned = earnedByIndexHash.get(reward.from_index_consensus_hash);
+      return {
+        id: uuidv7({ msecs }),
+        networkKey: job.networkKey,
+        recipient: reward.recipient,
+        minerAddress: reward.miner_address,
+        coinbaseUstx: Number(reward.coinbase_amount),
+        txFeesAnchoredUstx: Number(reward.tx_fees_anchored),
+        txFeesStreamedConfirmedUstx: Number(reward.tx_fees_streamed_confirmed),
+        txFeesStreamedProducedUstx: Number(reward.tx_fees_streamed_produced),
+        fromStacksBlockHash: reward.from_stacks_block_hash,
+        fromIndexBlockHash: reward.from_index_consensus_hash,
+        maturedBlockHeight: job.payload.blockHeight,
+        maturedBurnBlockHeight: job.payload.burnBlockHeight,
+        earnedConsensusHash: earned?.consensusHash ?? null,
+        earnedBurnBlockHeight: earned?.burnBlockHeight ?? null,
+      } satisfies InferInsertModel<typeof minerRewards>;
+    });
+    yield* db.withDb((db) =>
+      db.insert(minerRewards).values(rows).onConflictDoNothing()
+    );
+  }).pipe(
+    Effect.catchAll((err) =>
+      Effect.sync(() =>
+        log
+          .withMetadata({ topic: 'miner-rewards', networkKey: job.networkKey })
+          .error(`Failed to store miner rewards: ${err}`)
+      )
+    )
+  );
+
+export const handleStacksBlockEvent = (
+  job: WSNewBlockV2,
+  maturedMinerRewards: MaturedMinerReward[] = []
+) =>
   Effect.gen(function* () {
     const block = job.payload;
     const id = uuidv7({ msecs: new Date(job.receivedAt).getTime() });
@@ -47,6 +115,7 @@ export const handleStacksBlockEvent = (job: WSNewBlockV2) =>
       }),
       db.withDb((db) => db.insert(stacksBlocks).values(dbBlock)),
       db.withDb((db) => recentBlocksHealthCache.warmIfNeeded(db)),
+      storeMinerRewards(job, maturedMinerRewards),
     ]);
   });
 
@@ -61,6 +130,7 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
       networkKey: payload.networkKey,
       consensusHash: payload.payload.consensusHash,
       poxSpendSats: payload.payload.poxSpendSats,
+      burnAmountSats: payload.payload.burnAmountSats,
       createdAt: new Date(payload.receivedAt),
     };
     const db = yield* DbService;

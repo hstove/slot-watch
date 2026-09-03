@@ -240,6 +240,11 @@ export const burnBlocks = pgTable(
     poxSpendSats: bigint('pox_spend_sats', { mode: 'number' })
       .default(0)
       .notNull(),
+    /** Satoshis sent to the burn address by miners. Total miner BTC spend for
+     * the block is poxSpendSats + burnAmountSats. */
+    burnAmountSats: bigint('burn_amount_sats', { mode: 'number' })
+      .default(0)
+      .notNull(),
   },
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),
@@ -256,6 +261,65 @@ export const burnBlocks = pgTable(
 );
 
 export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
+
+/**
+ * Matured miner rewards from `/new_block` events. One row per (maturing block,
+ * recipient). `coinbaseUstx` already includes coinbases accumulated from
+ * missed sortitions. Revenue is attributed to the tenure that earned it via
+ * `earnedConsensusHash`/`earnedBurnBlockHeight` (resolved by joining
+ * `fromIndexBlockHash` to `stacks_blocks.index_block_hash` at ingest); join
+ * `earnedConsensusHash` to `block_proposals.consensus_hash` for the miner's
+ * public key.
+ */
+export const minerRewards = pgTable(
+  'miner_rewards',
+  {
+    id: text().primaryKey(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    /** STX principal receiving the reward (may be a contract). */
+    recipient: text('recipient').notNull(),
+    /** The winning miner's STX address. */
+    minerAddress: text('miner_address'),
+    coinbaseUstx: bigint('coinbase_ustx', { mode: 'number' }).notNull(),
+    txFeesAnchoredUstx: bigint('tx_fees_anchored_ustx', {
+      mode: 'number',
+    }).notNull(),
+    txFeesStreamedConfirmedUstx: bigint('tx_fees_streamed_confirmed_ustx', {
+      mode: 'number',
+    }).notNull(),
+    txFeesStreamedProducedUstx: bigint('tx_fees_streamed_produced_ustx', {
+      mode: 'number',
+    }).notNull(),
+    fromStacksBlockHash: text('from_stacks_block_hash', {
+      length: 64,
+    }).notNull(),
+    /** Index block hash of the block that earned the reward. */
+    fromIndexBlockHash: text('from_index_block_hash', { length: 64 }).notNull(),
+    /** Stacks block height of the block whose event delivered (matured) the reward. */
+    maturedBlockHeight: integer('matured_block_height').notNull(),
+    maturedBurnBlockHeight: integer('matured_burn_block_height').notNull(),
+    /** Tenure that earned the reward. Null if the earning block wasn't indexed. */
+    earnedConsensusHash: text('earned_consensus_hash', { length: 64 }),
+    earnedBurnBlockHeight: integer('earned_burn_block_height'),
+  },
+  (table) => [
+    unique('miner_rewards_network_from_index_recipient_idx').on(
+      table.networkKey,
+      table.fromIndexBlockHash,
+      table.recipient
+    ),
+    index('miner_rewards_earned_burn_block_height_network_key_idx').on(
+      table.networkKey,
+      table.earnedBurnBlockHeight
+    ),
+    index('miner_rewards_miner_address_network_key_idx').on(
+      table.minerAddress,
+      table.networkKey
+    ),
+  ]
+);
+
+export type MinerRewardDb = InferSelectModel<typeof minerRewards>;
 
 export const stateMachineUpdates = pgTable(
   'state_machine_updates',

@@ -19,7 +19,7 @@ import {
 import { setSignersApiAtom, signersApiAtom } from '@/store/signers-store';
 import type { ApiBlockForBurnBlock } from '@/lib/slots-api';
 import { type ApiBurnBlock, satsToBtc } from 'slot-watch-common';
-import { Route } from '@/routes/timeline';
+import { Route } from '@/routes/index';
 import { BlockModal } from '@/components/block/block-modal';
 import { BtcIcon } from '@/components/icons/btc-icon';
 import { Button } from '@/components/ui/button';
