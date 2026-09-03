@@ -597,7 +597,7 @@ function SettledBundle({
   return (
     <div className="grid grid-cols-[62px_1fr] gap-3 md:grid-cols-[94px_1fr]">
       <div className="flex items-start justify-end pt-3 font-mono text-[10px] text-muted-foreground md:text-xs">
-        {formatClock(timestampForBlock(newest))}
+        {formatClock(timestampForBlock(oldest))}
       </div>
       <div
         className="relative border-l py-1 pl-3"
