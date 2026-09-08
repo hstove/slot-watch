@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Schema } from 'effect';
-import { and, asc, between, eq, isNotNull, max, sql } from 'drizzle-orm';
+import { and, asc, between, desc, eq, isNotNull, max, sql } from 'drizzle-orm';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { timeout } from 'hono/timeout';
 import { MinerEconomicsResponseSchema } from 'slot-watch-common';
@@ -92,48 +92,58 @@ Caveats:
         .groupBy(minerRewards.networkKey, minerRewards.earnedBurnBlockHeight)
         .as('rewards');
 
+      // burn_blocks can hold two rows for one height after a Bitcoin fork. Keep
+      // the row with the most Stacks blocks, then the latest id. The count is a
+      // correlated subquery so the (consensus_hash, network_key) index is used;
+      // joining stacks_blocks and grouping makes Postgres seq scan the table.
+      const stacksBlockCount = sql<number>`(select count(*) from ${stacksBlocks} sb where sb.consensus_hash = "burn_blocks".consensus_hash and sb.network_key = "burn_blocks".network_key)`;
+      const deduped = db
+        .selectDistinctOn([burnBlocks.burnBlockHeight], {
+          id: burnBlocks.id,
+          burnBlockHeight: burnBlocks.burnBlockHeight,
+          burnBlockHash: burnBlocks.burnBlockHash,
+          consensusHash: burnBlocks.consensusHash,
+          poxSpendSats: burnBlocks.poxSpendSats,
+          burnAmountSats: burnBlocks.burnAmountSats,
+          stacksBlockCount: stacksBlockCount.as('stacks_block_count'),
+        })
+        .from(burnBlocks)
+        .where(
+          and(
+            eq(burnBlocks.networkKey, networkKey),
+            between(burnBlocks.burnBlockHeight, fromHeight, toHeight)
+          )
+        )
+        .orderBy(
+          asc(burnBlocks.burnBlockHeight),
+          desc(stacksBlockCount),
+          desc(burnBlocks.id)
+        )
+        .as('deduped');
+
       const [rows, [matured]] = await Promise.all([
         db
           .select({
-            id: burnBlocks.id,
-            burnBlockHeight: burnBlocks.burnBlockHeight,
-            burnBlockHash: burnBlocks.burnBlockHash,
-            consensusHash: burnBlocks.consensusHash,
-            poxSpendSats: burnBlocks.poxSpendSats,
-            burnAmountSats: burnBlocks.burnAmountSats,
-            stacksBlockCount: sql<number>`count(${stacksBlocks.id})`,
+            id: deduped.id,
+            burnBlockHeight: deduped.burnBlockHeight,
+            burnBlockHash: deduped.burnBlockHash,
+            consensusHash: deduped.consensusHash,
+            poxSpendSats: deduped.poxSpendSats,
+            burnAmountSats: deduped.burnAmountSats,
+            stacksBlockCount: deduped.stacksBlockCount,
             coinbaseUstx: rewards.coinbaseUstx,
             txFeesUstx: rewards.txFeesUstx,
             recipients: rewards.recipients,
           })
-          .from(burnBlocks)
+          .from(deduped)
           .leftJoin(
             rewards,
             and(
-              eq(rewards.networkKey, burnBlocks.networkKey),
-              eq(rewards.earnedBurnBlockHeight, burnBlocks.burnBlockHeight)
+              eq(rewards.networkKey, networkKey),
+              eq(rewards.earnedBurnBlockHeight, deduped.burnBlockHeight)
             )
           )
-          .leftJoin(
-            stacksBlocks,
-            and(
-              eq(stacksBlocks.consensusHash, burnBlocks.consensusHash),
-              eq(stacksBlocks.networkKey, burnBlocks.networkKey)
-            )
-          )
-          .where(
-            and(
-              eq(burnBlocks.networkKey, networkKey),
-              between(burnBlocks.burnBlockHeight, fromHeight, toHeight)
-            )
-          )
-          .groupBy(
-            burnBlocks.id,
-            rewards.coinbaseUstx,
-            rewards.txFeesUstx,
-            rewards.recipients
-          )
-          .orderBy(asc(burnBlocks.burnBlockHeight)),
+          .orderBy(asc(deduped.burnBlockHeight)),
         db
           .select({ height: max(minerRewards.earnedBurnBlockHeight) })
           .from(minerRewards)
