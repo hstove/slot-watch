@@ -47,9 +47,26 @@ const storeMinerRewards = (job: WSNewBlockV2, rewards: MaturedMinerReward[]) =>
       earnedBlocks.map((b) => [b.indexBlockHash, b])
     );
     const msecs = new Date(job.receivedAt).getTime();
-    const rows = rewards.map((reward) => {
+    // The node splits one tenure's reward into two entries with the same
+    // (from_index, recipient): coinbase + anchored fees, and streamed-produced
+    // fees. Sum them so the unique key holds one complete row.
+    const rows = new Map<string, InferInsertModel<typeof minerRewards>>();
+    for (const reward of rewards) {
+      const key = `${reward.from_index_consensus_hash}:${reward.recipient}`;
+      const existing = rows.get(key);
+      if (existing) {
+        existing.coinbaseUstx += Number(reward.coinbase_amount);
+        existing.txFeesAnchoredUstx += Number(reward.tx_fees_anchored);
+        existing.txFeesStreamedConfirmedUstx += Number(
+          reward.tx_fees_streamed_confirmed
+        );
+        existing.txFeesStreamedProducedUstx += Number(
+          reward.tx_fees_streamed_produced
+        );
+        continue;
+      }
       const earned = earnedByIndexHash.get(reward.from_index_consensus_hash);
-      return {
+      rows.set(key, {
         id: uuidv7({ msecs }),
         networkKey: job.networkKey,
         recipient: reward.recipient,
@@ -64,10 +81,13 @@ const storeMinerRewards = (job: WSNewBlockV2, rewards: MaturedMinerReward[]) =>
         maturedBurnBlockHeight: job.payload.burnBlockHeight,
         earnedConsensusHash: earned?.consensusHash ?? null,
         earnedBurnBlockHeight: earned?.burnBlockHeight ?? null,
-      } satisfies InferInsertModel<typeof minerRewards>;
-    });
+      });
+    }
     yield* db.withDb((db) =>
-      db.insert(minerRewards).values(rows).onConflictDoNothing()
+      db
+        .insert(minerRewards)
+        .values([...rows.values()])
+        .onConflictDoNothing()
     );
   }).pipe(
     Effect.catchAll((err) =>
