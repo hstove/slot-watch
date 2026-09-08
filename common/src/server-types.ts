@@ -404,6 +404,41 @@ export const BurnBlockResponseSchema = Schema.Struct({
 export interface BurnBlockResponse
   extends Schema.Schema.Type<typeof BurnBlockResponseSchema> {}
 
+// Miner economics for a single burn block
+export const MinerEconomicsBlockSchema = Schema.Struct({
+  burnBlockHeight: Schema.Number,
+  burnBlockHash: Schema.String,
+  consensusHash: Schema.String,
+  /** ISO timestamp derived from the uuidv7 row id. */
+  observedAt: Schema.String,
+  /** Stacks blocks joined on consensus hash. */
+  stacksBlockCount: Schema.Number,
+  /** Total miner PoX spend in satoshis. 0 for historical rows ingested before this field existed. */
+  poxSpendSats: Schema.Number,
+  /** Satoshis sent to the burn address by miners. 0 for historical rows ingested before this field existed. */
+  burnAmountSats: Schema.Number,
+  /** Matured miner rewards earned by this burn block. Null when no reward rows exist. */
+  revenue: Schema.NullOr(
+    Schema.Struct({
+      coinbaseUstx: Schema.Number,
+      /** Anchored + streamed confirmed + streamed produced fees. */
+      txFeesUstx: Schema.Number,
+      recipients: Schema.Number,
+    })
+  ),
+}).annotations({ identifier: 'MinerEconomicsBlock' });
+export interface MinerEconomicsBlock
+  extends Schema.Schema.Type<typeof MinerEconomicsBlockSchema> {}
+
+export const MinerEconomicsResponseSchema = Schema.Struct({
+  /** Highest burn height with any matured reward row. Blocks at or below this
+   * height with a null revenue earned nothing; blocks above it are still maturing. */
+  maturedThroughHeight: Schema.Number,
+  blocks: Schema.mutable(Schema.Array(MinerEconomicsBlockSchema)),
+}).annotations({ identifier: 'MinerEconomicsResponse' });
+export interface MinerEconomicsResponse
+  extends Schema.Schema.Type<typeof MinerEconomicsResponseSchema> {}
+
 // Miner version history entry
 export const MinerVersionHistorySchema = Schema.Struct({
   version: Schema.String,
