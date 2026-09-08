@@ -9,6 +9,7 @@ import { healthRoutes } from './routes/health.routes';
 import { signersRoutes } from './routes/signers.routes';
 import { stateMachineRoutes } from './routes/state-machine.routes';
 import { minersRoutes } from './routes/miners.routes';
+import { minerEconomicsRoutes } from './routes/miner-economics.routes';
 import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
 import { openAPIRouteHandler } from 'hono-openapi';
@@ -23,6 +24,7 @@ const api = new Hono<ServerType>()
   .route('/', signersRoutes)
   .route('/', stateMachineRoutes)
   .route('/', minersRoutes)
+  .route('/', minerEconomicsRoutes)
   .route('/health', healthRoutes);
 
 export const app = new Hono<ServerType>()
@@ -65,6 +67,11 @@ export const app = new Hono<ServerType>()
             description: 'Signer state machine updates',
           },
           { name: 'Miners', description: 'Miner statistics and activity' },
+          {
+            name: 'Miner Economics',
+            description:
+              'Miner BTC spend and matured STX revenue per burn block',
+          },
         ],
       },
     })
