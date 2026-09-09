@@ -471,6 +471,37 @@ export const MinerEconomicsMinersResponseSchema = Schema.Struct({
 export interface MinerEconomicsMinersResponse
   extends Schema.Schema.Type<typeof MinerEconomicsMinersResponseSchema> {}
 
+// Per-burn-block commits for a height range
+export const MinerCommitSchema = Schema.Struct({
+  txid: Schema.String,
+  /** Null while the Bitcoin sender is unresolved. */
+  minerAddress: Schema.NullOr(Schema.String),
+  minerPublicKey: Schema.NullOr(Schema.String),
+  spendSats: Schema.Number,
+  burnSats: Schema.Number,
+}).annotations({ identifier: 'MinerCommit' });
+export interface MinerCommit
+  extends Schema.Schema.Type<typeof MinerCommitSchema> {}
+
+export const MinerCommitsBlockSchema = Schema.Struct({
+  burnBlockHeight: Schema.Number,
+  burnBlockHash: Schema.String,
+  consensusHash: Schema.String,
+  /** Commit txid that won the sortition. Null if none or not yet resolved. */
+  winningTxid: Schema.NullOr(Schema.String),
+  commits: Schema.mutable(Schema.Array(MinerCommitSchema)),
+}).annotations({ identifier: 'MinerCommitsBlock' });
+export interface MinerCommitsBlock
+  extends Schema.Schema.Type<typeof MinerCommitsBlockSchema> {}
+
+export const MinerCommitsResponseSchema = Schema.Struct({
+  fromHeight: Schema.Number,
+  toHeight: Schema.Number,
+  blocks: Schema.mutable(Schema.Array(MinerCommitsBlockSchema)),
+}).annotations({ identifier: 'MinerCommitsResponse' });
+export interface MinerCommitsResponse
+  extends Schema.Schema.Type<typeof MinerCommitsResponseSchema> {}
+
 // Miner version history entry
 export const MinerVersionHistorySchema = Schema.Struct({
   version: Schema.String,
