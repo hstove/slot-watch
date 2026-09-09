@@ -1,158 +1,93 @@
-import { DataTable, SortableHeader } from '../ui/data-table';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { ApiMinerStat } from '@/lib/slots-api';
+import React from 'react';
 import { Route } from '../../routes/miners/index';
-import { PublicKey } from '../public-key';
-import {
-  getVersionFromString,
-  percentString,
-  getSortableVersion,
-  versionSort,
-} from 'slot-watch-common';
-import { SimpleTooltip } from '../simple-tooltip';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { ChevronRightIcon } from '@radix-ui/react-icons';
-import { truncateMiddle } from '@/lib/utils';
+import { buildMinerRows } from '@/lib/miner-rows';
+import { MINER_WINDOWS } from '@/lib/miner-economics';
+import { MinerMetrics, SortitionShare, WindowSwitch } from './miner-overview';
+import { SpendChart } from './spend-chart';
+import { MinersTable } from './miners-table';
 
-const BLOCKS_WON_COUNT = 500;
-
-const columns: ColumnDef<ApiMinerStat>[] = [
-  {
-    header: 'Miner',
-    accessorKey: 'publicKey',
-    enableSorting: false,
-    cell: ({ row }) => {
-      return (
-        <Link
-          to="/miners/$publicKey"
-          params={{ publicKey: row.original.publicKey }}
-          className="hover:underline"
-        >
-          <PublicKey publicKey={row.original.publicKey} />
-        </Link>
-      );
-    },
-  },
-  {
-    accessorKey: 'count',
-    sortDescFirst: true,
-    header: ({ column }) => {
-      return (
-        <SortableHeader column={column}>
-          Blocks won (last {BLOCKS_WON_COUNT})
-        </SortableHeader>
-      );
-    },
-    cell: ({ row }) => {
-      const pct = percentString(row.original.count / BLOCKS_WON_COUNT);
-      return <div>{pct}%</div>;
-    },
-  },
-  {
-    accessorKey: 'latestBlock',
-    sortDescFirst: true,
-    header: ({ column }) => {
-      return (
-        <SortableHeader column={column}>Last tenure (BTC Block)</SortableHeader>
-      );
-    },
-    cell: ({ row }) => {
-      return <span>{row.original.latestBlock}</span>;
-    },
-  },
-  {
-    id: 'versionCmp',
-    accessorFn: (row) => {
-      return getSortableVersion(row.version);
-    },
-    sortingFn: (a, b) => {
-      const aVersion = getSortableVersion(a.original.version);
-      const bVersion = getSortableVersion(b.original.version);
-      return versionSort(aVersion, bVersion);
-    },
-    header: ({ column }) => {
-      return <SortableHeader column={column}>Version</SortableHeader>;
-    },
-    cell: ({ row }) => {
-      return (
-        <SimpleTooltip content={row.original.version}>
-          <span>{getVersionFromString(row.original.version)}</span>
-        </SimpleTooltip>
-      );
-    },
-  },
-];
-
-function MinerCard({ miner }: { miner: ApiMinerStat }) {
-  const pct = percentString(miner.count / BLOCKS_WON_COUNT);
+function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Link
-      to="/miners/$publicKey"
-      params={{ publicKey: miner.publicKey }}
-      className="block border border-border p-4 hover:bg-muted/30 active:bg-muted/50 transition-colors"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 min-w-0 space-y-2">
-          <code className="text-xs font-mono block">
-            {truncateMiddle(miner.publicKey, 12, 10)}
-          </code>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span>
-              <span className="text-foreground font-medium">{pct}%</span> blocks
-            </span>
-            <span>
-              BTC{' '}
-              <span className="text-foreground">
-                {miner.latestBlock.toLocaleString()}
-              </span>
-            </span>
-            <span>{getVersionFromString(miner.version)}</span>
-          </div>
-        </div>
-        <ChevronRightIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-      </div>
-    </Link>
-  );
-}
-
-function MinersMobileList({ miners }: { miners: ApiMinerStat[] }) {
-  return (
-    <div className="flex flex-col divide-y divide-border border border-border">
-      {miners.map((miner) => (
-        <MinerCard key={miner.publicKey} miner={miner} />
-      ))}
-    </div>
-  );
-}
-
-function MinersDesktopTable({ miners }: { miners: ApiMinerStat[] }) {
-  const navigate = useNavigate();
-  return (
-    <DataTable
-      columns={columns}
-      data={miners}
-      onRowClick={(row) => {
-        navigate({
-          to: '/miners/$publicKey',
-          params: { publicKey: row.publicKey },
-        });
-      }}
-    />
+    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+      {children}
+    </span>
   );
 }
 
 export const Miners = () => {
-  const { minerStats } = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const search = Route.useSearch();
+  const rows = React.useMemo(
+    () =>
+      buildMinerRows({
+        networkKey: data.networkKey,
+        economics: data.economics,
+        matured: data.matured,
+        minerStats: data.minerStats.miners,
+      }),
+    [data]
+  );
+  const blocks = data.tip - data.fromHeight + 1;
+  const commitBlocks = data.commits.blocks;
+  const commitsFrom = commitBlocks[0]?.burnBlockHeight ?? data.fromHeight;
+
   return (
-    <div>
-      {/* Mobile: card list */}
-      <div className="md:hidden">
-        <MinersMobileList miners={minerStats.miners} />
-      </div>
-      {/* Desktop: data table */}
-      <div className="hidden md:block">
-        <MinersDesktopTable miners={minerStats.miners} />
-      </div>
+    <div className="flex flex-col gap-2">
+      <section className="border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="font-mono text-sm font-medium">miners</h1>
+            <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+              btc {data.fromHeight.toLocaleString()} –{' '}
+              {data.tip.toLocaleString()} ·{' '}
+              {MINER_WINDOWS[data.windowKey].label} · {blocks.toLocaleString()}{' '}
+              blocks
+            </span>
+          </div>
+          <WindowSwitch active={data.windowKey} network={search.network} />
+        </div>
+        <MinerMetrics
+          rows={rows}
+          blocks={blocks}
+          maturedThroughHeight={Math.min(
+            data.tip,
+            data.economics.maturedThroughHeight
+          )}
+          fromHeight={data.fromHeight}
+        />
+        <div className="grid border-t border-border md:grid-cols-[minmax(16rem,0.8fr)_minmax(0,2fr)]">
+          <div className="border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
+            <div className="mb-2 flex items-center justify-between">
+              <PanelLabel>sortition share</PanelLabel>
+              <PanelLabel>
+                {rows.reduce((s, r) => s + r.wins, 0).toLocaleString()} wins
+              </PanelLabel>
+            </div>
+            <SortitionShare rows={rows} />
+          </div>
+          <div className="px-3 py-2.5">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <PanelLabel>commit spend by miner</PanelLabel>
+              <PanelLabel>
+                btc {commitsFrom.toLocaleString()} – {data.tip.toLocaleString()}
+                {commitsFrom > data.fromHeight
+                  ? ` · last ${(data.tip - commitsFrom + 1).toLocaleString()} blocks`
+                  : ''}
+              </PanelLabel>
+            </div>
+            <SpendChart blocks={commitBlocks} rows={rows} />
+          </div>
+        </div>
+      </section>
+      <MinersTable
+        rows={rows}
+        blocks={blocks}
+        fromHeight={data.fromHeight}
+        maturedThroughHeight={Math.min(
+          data.tip,
+          data.economics.maturedThroughHeight
+        )}
+      />
     </div>
   );
 };

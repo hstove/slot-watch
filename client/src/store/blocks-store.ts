@@ -256,6 +256,7 @@ export const [
           consensusHash: block.consensusHash,
           poxSpendSats: 0,
           burnAmountSats: 0,
+          winningTxid: null,
         });
       }
       const burnBlocks = get(allBurnBlocksAtom);
@@ -271,6 +272,7 @@ export const [
           consensusHash: block.consensusHash,
           poxSpendSats: 0,
           burnAmountSats: 0,
+          winningTxid: null,
         });
       }
     }

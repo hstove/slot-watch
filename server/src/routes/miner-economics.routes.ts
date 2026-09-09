@@ -4,6 +4,8 @@ import { and, asc, between, desc, eq, isNotNull, max, sql } from 'drizzle-orm';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { timeout } from 'hono/timeout';
 import {
+  type MinerCommit,
+  MinerCommitsResponseSchema,
   MinerEconomicsMinersResponseSchema,
   MinerEconomicsResponseSchema,
 } from 'slot-watch-common';
@@ -18,6 +20,8 @@ import { getCreatedAt } from '../utils';
 
 /** Four weeks of Bitcoin blocks. */
 const MAX_SPAN = 4032;
+/** One week of Bitcoin blocks; the commits route returns a row per commit. */
+const MAX_COMMITS_SPAN = 1008;
 
 const NetworkKeyParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
@@ -38,11 +42,18 @@ const minerEconomicsResponse = Schema.standardSchemaV1(
 const minerEconomicsMinersResponse = Schema.standardSchemaV1(
   MinerEconomicsMinersResponseSchema
 );
+const minerCommitsResponse = Schema.standardSchemaV1(
+  MinerCommitsResponseSchema
+);
 
-function validateRange(fromHeight: number, toHeight: number): string | null {
+function validateRange(
+  fromHeight: number,
+  toHeight: number,
+  maxSpan = MAX_SPAN
+): string | null {
   if (toHeight < fromHeight) return 'toHeight must be >= fromHeight';
-  if (toHeight - fromHeight > MAX_SPAN)
-    return `Height span may not exceed ${MAX_SPAN}`;
+  if (toHeight - fromHeight > maxSpan)
+    return `Height span may not exceed ${maxSpan}`;
   return null;
 }
 
@@ -314,6 +325,96 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
           coinbaseUstx: Number(row.coinbaseUstx ?? 0),
           txFeesUstx: Number(row.txFeesUstx ?? 0),
           rewardRows: Number(row.rewardRows ?? 0),
+        })),
+      });
+    }
+  )
+  .get(
+    '/miner-economics/:networkKey/commits',
+    describeRoute({
+      summary: 'Get block commits per burn block',
+      description: `Every block commit mined in an inclusive burn height range of at most ${MAX_COMMITS_SPAN} blocks, grouped by burn block and ascending by height. Each block carries its \`winningTxid\` so callers can mark the winning commit. Burn blocks without commits are included with an empty list. A commit with a null \`minerAddress\` has not had its Bitcoin sender resolved yet.`,
+      tags: ['Miner Economics'],
+      responses: {
+        200: {
+          description: 'Commits grouped by burn block',
+          content: {
+            'application/json': { schema: resolver(minerCommitsResponse) },
+          },
+        },
+        400: { description: 'Invalid height range' },
+      },
+    }),
+    validator('param', NetworkKeyParamSchema),
+    validator('query', HeightRangeQuerySchema),
+    async (c) => {
+      const { networkKey } = c.req.valid('param');
+      const { fromHeight, toHeight } = c.req.valid('query');
+      const rangeError = validateRange(fromHeight, toHeight, MAX_COMMITS_SPAN);
+      if (rangeError) return c.json({ error: rangeError }, 400);
+
+      const db = c.get('db');
+      const [blocks, commits] = await Promise.all([
+        db
+          .select({
+            id: burnBlocks.id,
+            burnBlockHeight: burnBlocks.burnBlockHeight,
+            burnBlockHash: burnBlocks.burnBlockHash,
+            consensusHash: burnBlocks.consensusHash,
+            winningTxid: burnBlocks.winningTxid,
+          })
+          .from(burnBlocks)
+          .where(
+            and(
+              eq(burnBlocks.networkKey, networkKey),
+              between(burnBlocks.burnBlockHeight, fromHeight, toHeight)
+            )
+          )
+          .orderBy(asc(burnBlocks.burnBlockHeight), asc(burnBlocks.id)),
+        db
+          .select({
+            burnBlockHash: minerSpends.burnBlockHash,
+            txid: minerSpends.txid,
+            minerAddress: minerSpends.minerAddress,
+            minerPublicKey: minerSpends.minerPublicKey,
+            spendSats: minerSpends.spendSats,
+            burnSats: minerSpends.burnSats,
+          })
+          .from(minerSpends)
+          .where(
+            and(
+              eq(minerSpends.networkKey, networkKey),
+              between(minerSpends.burnBlockHeight, fromHeight, toHeight)
+            )
+          )
+          .orderBy(desc(minerSpends.spendSats)),
+      ]);
+
+      const byHash = new Map<string, MinerCommit[]>();
+      for (const row of commits) {
+        const list = byHash.get(row.burnBlockHash) ?? [];
+        list.push({
+          txid: row.txid,
+          minerAddress: row.minerAddress,
+          minerPublicKey: row.minerPublicKey,
+          spendSats: Number(row.spendSats),
+          burnSats: Number(row.burnSats),
+        });
+        byHash.set(row.burnBlockHash, list);
+      }
+      // Forked heights keep the later-observed row, matching the ingest order.
+      const byHeight = new Map<number, (typeof blocks)[number]>();
+      for (const block of blocks) byHeight.set(block.burnBlockHeight, block);
+
+      return c.json({
+        fromHeight,
+        toHeight,
+        blocks: [...byHeight.values()].map((block) => ({
+          burnBlockHeight: block.burnBlockHeight,
+          burnBlockHash: block.burnBlockHash,
+          consensusHash: block.consensusHash,
+          winningTxid: block.winningTxid,
+          commits: byHash.get(block.burnBlockHash) ?? [],
         })),
       });
     }

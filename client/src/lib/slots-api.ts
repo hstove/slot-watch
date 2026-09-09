@@ -9,6 +9,8 @@ import {
   type SignersResponse,
   type RecentSignersResponse,
   type BlockResponsesResponse,
+  type MinerCommitsResponse,
+  type MinerEconomicsMinersResponse,
 } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
 import { createQueryKeyStore } from '@lukemorales/query-key-factory';
@@ -254,6 +256,36 @@ export async function getMinerStats(networkKey: string) {
 
 export type ApiMinerStats = Awaited<ReturnType<typeof getMinerStats>>;
 export type ApiMinerStat = ApiMinerStats['miners'][0];
+
+export async function getMinerEconomicsMiners(
+  networkKey: string,
+  fromHeight: number,
+  toHeight: number
+): Promise<MinerEconomicsMinersResponse> {
+  const response = await apiClient['miner-economics'][
+    ':networkKey'
+  ].miners.$get({
+    param: { networkKey },
+    query: { fromHeight: String(fromHeight), toHeight: String(toHeight) },
+  });
+  if (!response.ok) throw new Error('Failed to fetch miner economics');
+  return response.json();
+}
+
+export async function getMinerCommits(
+  networkKey: string,
+  fromHeight: number,
+  toHeight: number
+): Promise<MinerCommitsResponse> {
+  const response = await apiClient['miner-economics'][
+    ':networkKey'
+  ].commits.$get({
+    param: { networkKey },
+    query: { fromHeight: String(fromHeight), toHeight: String(toHeight) },
+  });
+  if (!response.ok) throw new Error('Failed to fetch miner commits');
+  return response.json();
+}
 
 export async function getMinerDetail(networkKey: string, publicKey: string) {
   const response = await apiClient[':networkKey'].miners[':publicKey'].$get({

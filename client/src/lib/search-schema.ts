@@ -6,3 +6,9 @@ const basicSearchSchema = z.object({
 });
 
 export const validateSearch = zodValidator(basicSearchSchema);
+
+export const minersSearchSchema = basicSearchSchema.extend({
+  window: z.enum(['1d', '7d', '28d']).optional(),
+});
+
+export const validateMinersSearch = zodValidator(minersSearchSchema);
