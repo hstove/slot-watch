@@ -245,6 +245,10 @@ export const burnBlocks = pgTable(
     burnAmountSats: bigint('burn_amount_sats', { mode: 'number' })
       .default(0)
       .notNull(),
+    /** Bitcoin txid of the block commit that won this block's sortition, set
+     * when the tenure's first Stacks block arrives. Joins to
+     * `miner_spends.txid`. Null if no sortition or not yet resolved. */
+    winningTxid: text('winning_txid', { length: 64 }),
   },
   (table) => [
     index('burn_blocks_network_key_idx').on(table.networkKey),
@@ -261,6 +265,60 @@ export const burnBlocks = pgTable(
 );
 
 export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
+
+/**
+ * One row per block-commit transaction in a burn block, from
+ * `pox_transactions` in `/new_burn_block`. The miner is identified by the
+ * commit's input public key (fetched from a Bitcoin API), which is the same
+ * key that signs the miner's block proposals. `minerAddress` is the STX
+ * address derived from that key and equals `miner_rewards.miner_address`, so
+ * spend and revenue join on it. A commit won its sortition when
+ * `stacks_blocks.miner_txid = txid`; its tenure is `consensusHash`, which
+ * equals `miner_rewards.earned_consensus_hash`.
+ */
+export const minerSpends = pgTable(
+  'miner_spends',
+  {
+    id: text().primaryKey(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    burnBlockHeight: integer('burn_block_height').notNull(),
+    burnBlockHash: text('burn_block_hash', { length: 64 }).notNull(),
+    /** Consensus hash of the burn block the commit was mined in. */
+    consensusHash: text('consensus_hash', { length: 64 }).notNull(),
+    txid: text('txid', { length: 64 }).notNull(),
+    /** Satoshis paid to PoX reward recipients by this commit. */
+    spendSats: bigint('spend_sats', { mode: 'number' }).notNull(),
+    /** Satoshis this commit sent to the burn address. The node's event only
+     * reports burns in aggregate, so ingest leaves this 0; the backfill's gap
+     * phase fills it from Bitcoin data. Total spend is spendSats + burnSats. */
+    burnSats: bigint('burn_sats', { mode: 'number' }).default(0).notNull(),
+    recipientCount: integer('recipient_count').notNull(),
+    /** Compressed secp256k1 key from the commit's first input. Null if unresolved. */
+    minerPublicKey: text('miner_public_key', { length: 66 }),
+    /** STX address derived from `minerPublicKey`. */
+    minerAddress: text('miner_address'),
+  },
+  (table) => [
+    unique('miner_spends_network_key_txid_idx').on(
+      table.networkKey,
+      table.txid
+    ),
+    index('miner_spends_burn_block_height_network_key_idx').on(
+      table.networkKey,
+      table.burnBlockHeight
+    ),
+    index('miner_spends_miner_address_network_key_idx').on(
+      table.minerAddress,
+      table.networkKey
+    ),
+    index('miner_spends_consensus_hash_network_key_idx').on(
+      table.consensusHash,
+      table.networkKey
+    ),
+  ]
+);
+
+export type MinerSpendDb = InferSelectModel<typeof minerSpends>;
 
 /**
  * Matured miner rewards from `/new_block` events. One row per (maturing block,

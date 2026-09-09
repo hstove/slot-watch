@@ -26,6 +26,8 @@ This workspace is an API server for Slot Watch.
   - `serializers.ts`: Serializers to turn DB models into API types
   - `block-responses.ts`: Functions for working with block responses
   - `block-proposals.ts`: Functions for working with block proposals
+- `src/bitcoin.ts`: Resolves a block commit's miner from its Bitcoin input key (Esplora APIs); the derived STX address joins `miner_spends` to `miner_rewards`
+- `scripts/backfill-miner-economics.ts`, `scripts/backfill-miner-spends.ts`: Backfill/repair miner spend and revenue from a local Hiro DB dump plus Bitcoin APIs
 
 ## Understanding the data flow
 

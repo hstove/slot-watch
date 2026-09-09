@@ -3,8 +3,16 @@ import { Schema } from 'effect';
 import { and, asc, between, desc, eq, isNotNull, max, sql } from 'drizzle-orm';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { timeout } from 'hono/timeout';
-import { MinerEconomicsResponseSchema } from 'slot-watch-common';
-import { burnBlocks, minerRewards, stacksBlocks } from '../db/schema';
+import {
+  MinerEconomicsMinersResponseSchema,
+  MinerEconomicsResponseSchema,
+} from 'slot-watch-common';
+import {
+  burnBlocks,
+  minerRewards,
+  minerSpends,
+  stacksBlocks,
+} from '../db/schema';
 import type { ServerType } from '../server-context';
 import { getCreatedAt } from '../utils';
 
@@ -27,6 +35,16 @@ const HeightRangeQuerySchema = Schema.standardSchemaV1(
 const minerEconomicsResponse = Schema.standardSchemaV1(
   MinerEconomicsResponseSchema
 );
+const minerEconomicsMinersResponse = Schema.standardSchemaV1(
+  MinerEconomicsMinersResponseSchema
+);
+
+function validateRange(fromHeight: number, toHeight: number): string | null {
+  if (toHeight < fromHeight) return 'toHeight must be >= fromHeight';
+  if (toHeight - fromHeight > MAX_SPAN)
+    return `Height span may not exceed ${MAX_SPAN}`;
+  return null;
+}
 
 export const minerEconomicsRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -59,12 +77,8 @@ Caveats:
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const { fromHeight, toHeight } = c.req.valid('query');
-      if (toHeight < fromHeight) {
-        return c.json({ error: 'toHeight must be >= fromHeight' }, 400);
-      }
-      if (toHeight - fromHeight > MAX_SPAN) {
-        return c.json({ error: `Height span may not exceed ${MAX_SPAN}` }, 400);
-      }
+      const rangeError = validateRange(fromHeight, toHeight);
+      if (rangeError) return c.json({ error: rangeError }, 400);
 
       const db = c.get('db');
       const rewards = db
@@ -173,6 +187,133 @@ Caveats:
                   txFeesUstx: Number(row.txFeesUstx),
                   recipients: Number(row.recipients),
                 },
+        })),
+      });
+    }
+  )
+  .get(
+    '/miner-economics/:networkKey/miners',
+    describeRoute({
+      summary: 'Get per-miner spend and revenue',
+      description: `Aggregates each miner's block commits (\`miner_spends\`, by the burn height the commit was mined in) and matured rewards (\`miner_rewards\`, by the burn height the tenure was earned in) over an inclusive height range of at most ${MAX_SPAN} blocks. Miners are keyed by the STX address derived from the key that funds their commits, which is the same key that signs their block proposals and receives their rewards.
+
+A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewards mature about 100 tenures after they are earned, so ranges ending above \`maturedThroughHeight\` under-report revenue. A row with a null \`minerAddress\` holds commits whose Bitcoin sender has not been resolved yet.`,
+      tags: ['Miner Economics'],
+      responses: {
+        200: {
+          description: 'Per-miner totals',
+          content: {
+            'application/json': {
+              schema: resolver(minerEconomicsMinersResponse),
+            },
+          },
+        },
+        400: { description: 'Invalid height range' },
+      },
+    }),
+    validator('param', NetworkKeyParamSchema),
+    validator('query', HeightRangeQuerySchema),
+    async (c) => {
+      const { networkKey } = c.req.valid('param');
+      const { fromHeight, toHeight } = c.req.valid('query');
+      const rangeError = validateRange(fromHeight, toHeight);
+      if (rangeError) return c.json({ error: rangeError }, 400);
+
+      const db = c.get('db');
+      const won = sql<boolean>`exists (select 1 from ${burnBlocks} bb where bb.network_key = ${minerSpends.networkKey} and bb.burn_block_hash = ${minerSpends.burnBlockHash} and bb.winning_txid = ${minerSpends.txid})`;
+      // Postgres can't hash a full join on `is not distinct from`, so group
+      // unresolved miners under '' and join on equality.
+      const spend = db
+        .select({
+          minerKey: sql<string>`coalesce(${minerSpends.minerAddress}, '')`.as(
+            'spend_miner_key'
+          ),
+          minerPublicKey: sql<
+            string | null
+          >`max(${minerSpends.minerPublicKey})`.as('miner_public_key'),
+          commits: sql<number>`count(*)`.as('commits'),
+          wins: sql<number>`count(*) filter (where ${won})`.as('wins'),
+          spendSats: sql<number>`sum(${minerSpends.spendSats})`.as(
+            'spend_sats'
+          ),
+          burnSats: sql<number>`sum(${minerSpends.burnSats})`.as('burn_sats'),
+        })
+        .from(minerSpends)
+        .where(
+          and(
+            eq(minerSpends.networkKey, networkKey),
+            between(minerSpends.burnBlockHeight, fromHeight, toHeight)
+          )
+        )
+        .groupBy(sql`coalesce(${minerSpends.minerAddress}, '')`)
+        .as('spend');
+      const revenue = db
+        .select({
+          minerKey: sql<string>`coalesce(${minerRewards.minerAddress}, '')`.as(
+            'revenue_miner_key'
+          ),
+          coinbaseUstx: sql<number>`sum(${minerRewards.coinbaseUstx})`.as(
+            'coinbase_ustx'
+          ),
+          txFeesUstx:
+            sql<number>`sum(${minerRewards.txFeesAnchoredUstx} + ${minerRewards.txFeesStreamedConfirmedUstx} + ${minerRewards.txFeesStreamedProducedUstx})`.as(
+              'tx_fees_ustx'
+            ),
+          rewardRows: sql<number>`count(*)`.as('reward_rows'),
+        })
+        .from(minerRewards)
+        .where(
+          and(
+            eq(minerRewards.networkKey, networkKey),
+            between(minerRewards.earnedBurnBlockHeight, fromHeight, toHeight)
+          )
+        )
+        .groupBy(sql`coalesce(${minerRewards.minerAddress}, '')`)
+        .as('revenue');
+
+      const [rows, [matured]] = await Promise.all([
+        db
+          .select({
+            minerAddress: sql<
+              string | null
+            >`nullif(coalesce(${spend.minerKey}, ${revenue.minerKey}), '')`,
+            minerPublicKey: spend.minerPublicKey,
+            commits: spend.commits,
+            wins: spend.wins,
+            spendSats: spend.spendSats,
+            burnSats: spend.burnSats,
+            coinbaseUstx: revenue.coinbaseUstx,
+            txFeesUstx: revenue.txFeesUstx,
+            rewardRows: revenue.rewardRows,
+          })
+          .from(spend)
+          .fullJoin(revenue, eq(spend.minerKey, revenue.minerKey))
+          .orderBy(desc(spend.spendSats)),
+        db
+          .select({ height: max(minerRewards.earnedBurnBlockHeight) })
+          .from(minerRewards)
+          .where(
+            and(
+              eq(minerRewards.networkKey, networkKey),
+              isNotNull(minerRewards.earnedBurnBlockHeight)
+            )
+          ),
+      ]);
+
+      return c.json({
+        fromHeight,
+        toHeight,
+        maturedThroughHeight: Number(matured?.height ?? 0),
+        miners: rows.map((row) => ({
+          minerAddress: row.minerAddress,
+          minerPublicKey: row.minerPublicKey ?? null,
+          commits: Number(row.commits ?? 0),
+          wins: Number(row.wins ?? 0),
+          spendSats: Number(row.spendSats ?? 0),
+          burnSats: Number(row.burnSats ?? 0),
+          coinbaseUstx: Number(row.coinbaseUstx ?? 0),
+          txFeesUstx: Number(row.txFeesUstx ?? 0),
+          rewardRows: Number(row.rewardRows ?? 0),
         })),
       });
     }
