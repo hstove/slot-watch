@@ -50,6 +50,27 @@
       "when": 1788286635046,
       "tag": "0006_strange_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788906496669,
+      "tag": "0007_fixed_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788907674171,
+      "tag": "0008_typical_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788918986766,
+      "tag": "0009_strong_iron_fist",
+      "breakpoints": true
     }
   ]
 }

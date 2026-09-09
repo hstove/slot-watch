@@ -70,7 +70,7 @@ export const coreNodeBlockMessageSchema = z.object({
   burn_block_time: z.number(),
   burn_block_hash: string0x,
   burn_block_height: z.number(),
-  miner_txid: z.string(),
+  miner_txid: string0x,
   index_block_hash: string0x,
   parent_index_block_hash: z.string(),
   parent_block_hash: z.string(),

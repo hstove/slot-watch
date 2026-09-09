@@ -136,6 +136,8 @@ export const ApiBurnBlockSchema = Schema.Struct({
   poxSpendSats: Schema.Number,
   /** Satoshis sent to the burn address by miners. 0 for historical rows ingested before this field existed. */
   burnAmountSats: Schema.Number,
+  /** Bitcoin txid of the block commit that won this block's sortition; joins to miner spends. Null if none or unresolved. */
+  winningTxid: Schema.NullOr(Schema.String),
 });
 export interface ApiBurnBlock
   extends Schema.Schema.Type<typeof ApiBurnBlockSchema> {}
@@ -438,6 +440,36 @@ export const MinerEconomicsResponseSchema = Schema.Struct({
 }).annotations({ identifier: 'MinerEconomicsResponse' });
 export interface MinerEconomicsResponse
   extends Schema.Schema.Type<typeof MinerEconomicsResponseSchema> {}
+
+// Per-miner spend and revenue over a burn height range
+export const MinerEconomicsMinerSchema = Schema.Struct({
+  /** STX address derived from the miner's key. Null groups commits whose sender is unresolved. */
+  minerAddress: Schema.NullOr(Schema.String),
+  minerPublicKey: Schema.NullOr(Schema.String),
+  /** Block commits mined in the range. */
+  commits: Schema.Number,
+  /** Commits that won their sortition (matched to a Stacks block's miner txid). */
+  wins: Schema.Number,
+  /** Satoshis paid to PoX recipients across all commits. */
+  spendSats: Schema.Number,
+  /** Satoshis sent to the burn address across all commits (burn-only commits happen when no reward set is active). Total BTC spend is spendSats + burnSats. */
+  burnSats: Schema.Number,
+  /** Matured rewards earned by tenures in the range, in micro-STX. */
+  coinbaseUstx: Schema.Number,
+  txFeesUstx: Schema.Number,
+  rewardRows: Schema.Number,
+}).annotations({ identifier: 'MinerEconomicsMiner' });
+export interface MinerEconomicsMiner
+  extends Schema.Schema.Type<typeof MinerEconomicsMinerSchema> {}
+
+export const MinerEconomicsMinersResponseSchema = Schema.Struct({
+  fromHeight: Schema.Number,
+  toHeight: Schema.Number,
+  maturedThroughHeight: Schema.Number,
+  miners: Schema.mutable(Schema.Array(MinerEconomicsMinerSchema)),
+}).annotations({ identifier: 'MinerEconomicsMinersResponse' });
+export interface MinerEconomicsMinersResponse
+  extends Schema.Schema.Type<typeof MinerEconomicsMinersResponseSchema> {}
 
 // Miner version history entry
 export const MinerVersionHistorySchema = Schema.Struct({

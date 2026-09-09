@@ -1,0 +1,1 @@
+ALTER TABLE "miner_spends" ADD COLUMN "burn_sats" bigint DEFAULT 0 NOT NULL;

@@ -30,7 +30,7 @@ const withDb = <T>(fn: () => Promise<T>) =>
       try: () => fn(),
       catch: (cause) =>
         new DbError({
-          message: 'Failed to call function with database',
+          message: `Failed to call function with database: ${cause instanceof Error ? cause.message : String(cause)}`,
           cause,
         }),
     });

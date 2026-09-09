@@ -4,10 +4,18 @@ import {
   NEW_BLOCK_V2_EVENT,
   type WSBurnBlockV2,
   type MaturedMinerReward,
+  type CoreNodeBurnBlockMessage,
 } from 'slot-watch-common';
-import { burnBlocks, minerRewards, stacksBlocks } from '../db/schema';
+import {
+  burnBlocks,
+  minerRewards,
+  minerSpends,
+  stacksBlocks,
+} from '../db/schema';
+import { fetchTxSenderPublicKey, minerAddressFromPublicKey } from '../bitcoin';
 import { recentBlocksHealthCache } from '../db/block-proposals';
-import { and, eq, inArray, type InferInsertModel } from 'drizzle-orm';
+import { and, eq, inArray, isNull, type InferInsertModel } from 'drizzle-orm';
+import { TenureChangeCause } from '@stacks/transactions';
 import { v7 as uuidv7 } from 'uuid';
 import { Effect } from 'effect';
 import { serializeBurnBlock } from '../db/serializers';
@@ -99,9 +107,40 @@ const storeMinerRewards = (job: WSNewBlockV2, rewards: MaturedMinerReward[]) =>
     )
   );
 
+/**
+ * Record which block commit won the sortition once the tenure's first block
+ * arrives. Tenure extends keep the previous winner, so only BlockFound counts.
+ */
+const storeWinningTxid = (job: WSNewBlockV2, minerTxid: string | undefined) =>
+  Effect.gen(function* () {
+    if (
+      !minerTxid ||
+      job.payload.tenureChangeCause !== TenureChangeCause.BlockFound
+    )
+      return;
+    const db = yield* DbService;
+    yield* db.withDb((db) =>
+      db
+        .update(burnBlocks)
+        .set({ winningTxid: minerTxid })
+        .where(
+          and(
+            eq(burnBlocks.networkKey, job.networkKey),
+            eq(burnBlocks.consensusHash, job.payload.consensusHash),
+            isNull(burnBlocks.winningTxid)
+          )
+        )
+    );
+  }).pipe(
+    Effect.catchAll((e) =>
+      Effect.sync(() => log.withError(e).error('Failed to store winning txid'))
+    )
+  );
+
 export const handleStacksBlockEvent = (
   job: WSNewBlockV2,
-  maturedMinerRewards: MaturedMinerReward[] = []
+  maturedMinerRewards: MaturedMinerReward[] = [],
+  minerTxid?: string
 ) =>
   Effect.gen(function* () {
     const block = job.payload;
@@ -136,10 +175,59 @@ export const handleStacksBlockEvent = (
       db.withDb((db) => db.insert(stacksBlocks).values(dbBlock)),
       db.withDb((db) => recentBlocksHealthCache.warmIfNeeded(db)),
       storeMinerRewards(job, maturedMinerRewards),
+      storeWinningTxid(job, minerTxid),
     ]);
   });
 
-export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
+/**
+ * Persist one row per block commit in a burn block. The miner is resolved from
+ * the commit's Bitcoin input key; a failed lookup leaves it null rather than
+ * failing the burn block, and the backfill script repairs nulls.
+ */
+const storeMinerSpends = (
+  payload: WSBurnBlockV2,
+  poxTransactions: CoreNodeBurnBlockMessage['pox_transactions']
+) =>
+  Effect.gen(function* () {
+    if (poxTransactions.length === 0) return;
+    const db = yield* DbService;
+    const { networkKey } = payload;
+    const rows = yield* Effect.promise(() =>
+      Promise.all(
+        poxTransactions.map(async (tx, i) => {
+          const txid = tx.txid.startsWith('0x') ? tx.txid.slice(2) : tx.txid;
+          const publicKey = await fetchTxSenderPublicKey(txid);
+          return {
+            id: uuidv7({ msecs: new Date(payload.receivedAt).getTime() + i }),
+            networkKey,
+            burnBlockHeight: payload.payload.burnBlockHeight,
+            burnBlockHash: payload.payload.burnBlockHash,
+            consensusHash: payload.payload.consensusHash,
+            txid,
+            spendSats: tx.reward_recipients.reduce((sum, r) => sum + r.amt, 0),
+            burnSats: 0,
+            recipientCount: tx.reward_recipients.length,
+            minerPublicKey: publicKey,
+            minerAddress: publicKey
+              ? minerAddressFromPublicKey(publicKey, networkKey)
+              : null,
+          } satisfies InferInsertModel<typeof minerSpends>;
+        })
+      )
+    );
+    yield* db.withDb((db) =>
+      db.insert(minerSpends).values(rows).onConflictDoNothing()
+    );
+  }).pipe(
+    Effect.catchAll((e) =>
+      Effect.sync(() => log.withError(e).error('Failed to store miner spends'))
+    )
+  );
+
+export const handleBurnBlockEvent = (
+  payload: WSBurnBlockV2,
+  poxTransactions: CoreNodeBurnBlockMessage['pox_transactions'] = []
+) =>
   Effect.gen(function* () {
     // const burnBlock = coreNodeBurnBlockMessageSchema.parse(payload.payload);
     const id = uuidv7({ msecs: new Date(payload.receivedAt).getTime() });
@@ -151,6 +239,7 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
       consensusHash: payload.payload.consensusHash,
       poxSpendSats: payload.payload.poxSpendSats,
       burnAmountSats: payload.payload.burnAmountSats,
+      winningTxid: null,
       createdAt: new Date(payload.receivedAt),
     };
     const db = yield* DbService;
@@ -163,6 +252,7 @@ export const handleBurnBlockEvent = (payload: WSBurnBlockV2) =>
         networkKey: payload.networkKey,
         payload: serializeBurnBlock(dbBurnBlock),
       }),
+      storeMinerSpends(payload, poxTransactions),
       db.withDb((db) => warmCache(payload.networkKey, db)),
     ]);
   });

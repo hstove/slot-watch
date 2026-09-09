@@ -13,6 +13,8 @@ import type { StacksBlockDb } from '../db/schema';
 export interface ConvertedBlock {
   block: Omit<StacksBlockDb, 'id' | 'networkKey'>;
   maturedMinerRewards: MaturedMinerReward[];
+  /** Bitcoin txid of the block commit that won this block's tenure. */
+  minerTxid: string;
 }
 
 export function convertBlock(block: unknown): ConvertedBlock {
@@ -63,5 +65,6 @@ export function convertBlock(block: unknown): ConvertedBlock {
       ...cost,
     },
     maturedMinerRewards: parsed.matured_miner_rewards,
+    minerTxid: parsed.miner_txid,
   };
 }
