@@ -114,12 +114,19 @@ await CustomDomain('slot-watch-website-domain', {
 });
 
 await Exec('deploy-streamer', {
-  command: 'flyctl deploy',
+  command: 'flyctl deploy --depot --depot-scope app',
   cwd: 'streamer',
   memoize: process.env.CI
     ? false
     : {
-        patterns: ['./streamer/**/*.rs', './streamer/Cargo.toml'],
+        patterns: [
+          './streamer/**/*.rs',
+          './streamer/Cargo.toml',
+          './streamer/Cargo.lock',
+          './streamer/Dockerfile',
+          './streamer/fly.toml',
+          './streamer/.dockerignore',
+        ],
       },
 });
 
