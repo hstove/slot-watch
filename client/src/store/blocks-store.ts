@@ -24,7 +24,7 @@ export const maxBurnBlockConsensusHashAtom = atom((get) => {
 
 export const sortedBurnBlocksAtom = atom((get) => {
   const burnBlocks = get(allBurnBlocksAtom);
-  return burnBlocks.sort((a, b) => b.burnBlockHeight - a.burnBlockHeight);
+  return [...burnBlocks].sort((a, b) => b.burnBlockHeight - a.burnBlockHeight);
 });
 
 export const burnBlocksAtomFamily = atomFamily((_burnBlockHash: string) =>
@@ -83,21 +83,69 @@ export const insertBurnBlockAtom = atom(
   // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (get, set, burnBlock: ApiBurnBlock) => {
     const existing = get(burnBlocksAtomFamily(burnBlock.burnBlockHash));
-    set(burnBlocksAtomFamily(burnBlock.burnBlockHash), {
+    const nextBurnBlock = {
       ...existing,
       ...burnBlock,
+    };
+    set(burnBlocksAtomFamily(burnBlock.burnBlockHash), nextBurnBlock);
+    set(allBurnBlocksAtom, (blocks) => {
+      const existingIndex = blocks.findIndex(
+        (block) => block.burnBlockHash === burnBlock.burnBlockHash
+      );
+      if (existingIndex === -1) return [nextBurnBlock, ...blocks];
+      return blocks.map((block, index) =>
+        index === existingIndex ? nextBurnBlock : block
+      );
     });
+  }
+);
+
+const pendingBurnBlockLoadsAtom = atom<Set<string>>(new Set<string>());
+
+const ensureBurnBlockAtom = atom(
+  null,
+  async (
+    get,
+    set,
+    burnBlock: { burnBlockHash: string; burnBlockHeight: number }
+  ) => {
+    const networkKey = get(networkIdAtom);
+    const requestKey = `${networkKey}:${burnBlock.burnBlockHash}`;
     const burnBlocks = get(allBurnBlocksAtom);
-    const existingIndex = burnBlocks.findIndex(
-      (b) => b.burnBlockHash === burnBlock.burnBlockHash
+    if (
+      burnBlocks.some(
+        (existing) => existing.burnBlockHash === burnBlock.burnBlockHash
+      )
+    ) {
+      return;
+    }
+
+    const pendingLoads = get(pendingBurnBlockLoadsAtom);
+    if (pendingLoads.has(requestKey)) return;
+    set(
+      pendingBurnBlockLoadsAtom,
+      new Set<string>(pendingLoads).add(requestKey)
     );
-    if (existingIndex === -1) {
-      set(allBurnBlocksAtom, (blocks) => {
-        return [burnBlock, ...blocks];
-      });
-    } else {
-      burnBlocks[existingIndex] = burnBlock;
-      set(allBurnBlocksAtom, burnBlocks);
+
+    try {
+      const response = await getBtcBlock(networkKey, burnBlock.burnBlockHash);
+      if (response.btcBlock && get(networkIdAtom) === networkKey) {
+        set(insertBurnBlockAtom, response.btcBlock);
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to load Bitcoin block ${burnBlock.burnBlockHeight}`,
+        error
+      );
+    } finally {
+      set(
+        pendingBurnBlockLoadsAtom,
+        new Set<string>(
+          [...get(pendingBurnBlockLoadsAtom)].filter(
+            (pending) => pending !== requestKey
+          )
+        )
+      );
     }
   }
 );
@@ -244,35 +292,17 @@ export const [
     if (block.consensusHash) {
       set(recentlyActiveBurnBlockAtom, block.consensusHash);
     }
-    // we might need to insert a burn block if we missed it
+    // A Stacks block can reference a Bitcoin block outside the initial recent
+    // window. Load the real record so its timestamp and spend remain accurate.
     if (block.burnBlockHash && block.burnBlockHeight) {
-      const burnBlock = get(burnBlocksAtomFamily(block.burnBlockHash));
-      if (!burnBlock) {
-        set(insertBurnBlockAtom, {
-          burnBlockHeight: block.burnBlockHeight,
-          burnBlockHash: block.burnBlockHash,
-          networkKey: get(networkIdAtom),
-          createdAt: block.processedAt ?? new Date().toISOString(),
-          consensusHash: block.consensusHash,
-          poxSpendSats: 0,
-          burnAmountSats: 0,
-          winningTxid: null,
-        });
-      }
       const burnBlocks = get(allBurnBlocksAtom);
-      const existingIndex = burnBlocks.findIndex(
-        (b) => b.burnBlockHash === block.burnBlockHash
+      const hasBurnBlock = burnBlocks.some(
+        (burnBlock) => burnBlock.burnBlockHash === block.burnBlockHash
       );
-      if (existingIndex === -1) {
-        set(insertBurnBlockAtom, {
+      if (!hasBurnBlock) {
+        set(ensureBurnBlockAtom, {
           burnBlockHeight: block.burnBlockHeight,
           burnBlockHash: block.burnBlockHash,
-          networkKey: get(networkIdAtom),
-          createdAt: block.processedAt ?? new Date().toISOString(),
-          consensusHash: block.consensusHash,
-          poxSpendSats: 0,
-          burnAmountSats: 0,
-          winningTxid: null,
         });
       }
     }
