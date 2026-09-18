@@ -122,7 +122,6 @@ export const blockResponses = pgTable(
     blockHeight: integer('block_height'),
   },
   (table) => [
-    index('block_responses_network_key_idx').on(table.networkKey),
     index('block_responses_signer_signature_hash_idx').on(
       table.signerSignatureHash
     ),
@@ -396,14 +395,7 @@ export const stateMachineUpdates = pgTable(
       .notNull(),
     chunkId: text('chunk_id'),
   },
-  (table) => [
-    index('state_machine_updates_network_key_idx').on(table.networkKey),
-    index('state_machine_updates_by_signer_latest_id_network_key_idx').on(
-      table.signerPublicKey,
-      table.networkKey,
-      table.id
-    ),
-  ]
+  (_table) => []
 );
 
 export type StateMachineUpdateDb = InferSelectModel<typeof stateMachineUpdates>;

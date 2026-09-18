@@ -1,0 +1,1322 @@
+{
+  "id": "d431164f-8ff2-459d-bee0-9910f01453c2",
+  "prevId": "2354aab7-4587-4bdc-b0ae-b0e3505d83d9",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.block_pre_commits": {
+      "name": "block_pre_commits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signer_public_key": {
+          "name": "signer_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latency_ms": {
+          "name": "latency_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_height": {
+          "name": "block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "block_pre_commits_network_key_idx": {
+          "name": "block_pre_commits_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_pre_commits_signer_signature_hash_idx": {
+          "name": "block_pre_commits_signer_signature_hash_idx",
+          "columns": [
+            {
+              "expression": "signer_signature_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.block_proposals": {
+      "name": "block_proposals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_length": {
+          "name": "chain_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "miner_public_key": {
+          "name": "miner_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tenure_change_cause": {
+          "name": "tenure_change_cause",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tx_count": {
+          "name": "tx_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "server_version": {
+          "name": "server_version",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_timestamp": {
+          "name": "block_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_fees": {
+          "name": "tx_fees",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "index_block_hash": {
+          "name": "index_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        }
+      },
+      "indexes": {
+        "block_proposals_network_key_idx": {
+          "name": "block_proposals_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_signer_signature_hash_idx": {
+          "name": "block_proposals_signer_signature_hash_idx",
+          "columns": [
+            {
+              "expression": "signer_signature_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_signer_signature_hash_network_key_idx": {
+          "name": "block_proposals_signer_signature_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "signer_signature_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_chain_length_idx": {
+          "name": "block_proposals_chain_length_idx",
+          "columns": [
+            {
+              "expression": "chain_length",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_burn_block_height_idx": {
+          "name": "block_proposals_burn_block_height_idx",
+          "columns": [
+            {
+              "expression": "burn_block_height",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_consensus_hash_network_key_idx": {
+          "name": "block_proposals_consensus_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "consensus_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_by_consensus_hash_idx": {
+          "name": "block_proposals_by_consensus_hash_idx",
+          "columns": [
+            {
+              "expression": "consensus_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "chain_length",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_proposals_index_block_hash_idx": {
+          "name": "block_proposals_index_block_hash_idx",
+          "columns": [
+            {
+              "expression": "index_block_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.block_pushes": {
+      "name": "block_pushes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_length": {
+          "name": "chain_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "miner_public_key": {
+          "name": "miner_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "block_pushes_network_key_idx": {
+          "name": "block_pushes_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "block_pushes_signer_signature_hash_idx": {
+          "name": "block_pushes_signer_signature_hash_idx",
+          "columns": [
+            {
+              "expression": "signer_signature_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.block_responses": {
+      "name": "block_responses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signer_signature_hash": {
+          "name": "signer_signature_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signer_public_key": {
+          "name": "signer_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accepted": {
+          "name": "accepted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tenure_extend_timestamp": {
+          "name": "tenure_extend_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version": {
+          "name": "version",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reject_code": {
+          "name": "reject_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_code": {
+          "name": "validation_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reject_reason": {
+          "name": "reject_reason",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "latency_ms": {
+          "name": "latency_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_height": {
+          "name": "block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "block_responses_signer_signature_hash_idx": {
+          "name": "block_responses_signer_signature_hash_idx",
+          "columns": [
+            {
+              "expression": "signer_signature_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.burn_blocks": {
+      "name": "burn_blocks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_hash": {
+          "name": "burn_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pox_spend_sats": {
+          "name": "pox_spend_sats",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "burn_amount_sats": {
+          "name": "burn_amount_sats",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "winning_txid": {
+          "name": "winning_txid",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "burn_blocks_network_key_idx": {
+          "name": "burn_blocks_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "burn_blocks_burn_block_height_idx": {
+          "name": "burn_blocks_burn_block_height_idx",
+          "columns": [
+            {
+              "expression": "burn_block_height",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "burn_blocks_consensus_hash_network_key_idx": {
+          "name": "burn_blocks_consensus_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "consensus_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "burn_blocks_network_key_burn_block_hash_idx": {
+          "name": "burn_blocks_network_key_burn_block_hash_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "network_key",
+            "burn_block_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.miner_rewards": {
+      "name": "miner_rewards",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recipient": {
+          "name": "recipient",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "miner_address": {
+          "name": "miner_address",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "coinbase_ustx": {
+          "name": "coinbase_ustx",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_fees_anchored_ustx": {
+          "name": "tx_fees_anchored_ustx",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_fees_streamed_confirmed_ustx": {
+          "name": "tx_fees_streamed_confirmed_ustx",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_fees_streamed_produced_ustx": {
+          "name": "tx_fees_streamed_produced_ustx",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from_stacks_block_hash": {
+          "name": "from_stacks_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from_index_block_hash": {
+          "name": "from_index_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "matured_block_height": {
+          "name": "matured_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "matured_burn_block_height": {
+          "name": "matured_burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "earned_consensus_hash": {
+          "name": "earned_consensus_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "earned_burn_block_height": {
+          "name": "earned_burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "miner_rewards_earned_burn_block_height_network_key_idx": {
+          "name": "miner_rewards_earned_burn_block_height_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "earned_burn_block_height",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "miner_rewards_miner_address_network_key_idx": {
+          "name": "miner_rewards_miner_address_network_key_idx",
+          "columns": [
+            {
+              "expression": "miner_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "miner_rewards_network_from_index_recipient_idx": {
+          "name": "miner_rewards_network_from_index_recipient_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "network_key",
+            "from_index_block_hash",
+            "recipient"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.miner_spends": {
+      "name": "miner_spends",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_hash": {
+          "name": "burn_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "txid": {
+          "name": "txid",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spend_sats": {
+          "name": "spend_sats",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_sats": {
+          "name": "burn_sats",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "recipient_count": {
+          "name": "recipient_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "miner_public_key": {
+          "name": "miner_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "miner_address": {
+          "name": "miner_address",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "miner_spends_burn_block_height_network_key_idx": {
+          "name": "miner_spends_burn_block_height_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "burn_block_height",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "miner_spends_miner_address_network_key_idx": {
+          "name": "miner_spends_miner_address_network_key_idx",
+          "columns": [
+            {
+              "expression": "miner_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "miner_spends_consensus_hash_network_key_idx": {
+          "name": "miner_spends_consensus_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "consensus_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "miner_spends_network_key_txid_idx": {
+          "name": "miner_spends_network_key_txid_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "network_key",
+            "txid"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stacker_db_slots": {
+      "name": "stacker_db_slots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature": {
+          "name": "signature",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_id": {
+          "name": "contract_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_key": {
+          "name": "public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stacks_blocks": {
+      "name": "stacks_blocks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "block_height": {
+          "name": "block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_hash": {
+          "name": "block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_height": {
+          "name": "burn_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_hash": {
+          "name": "burn_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tenure_change_cause": {
+          "name": "tenure_change_cause",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_timestamp": {
+          "name": "block_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "burn_block_timestamp": {
+          "name": "burn_block_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "index_block_hash": {
+          "name": "index_block_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_count": {
+          "name": "tx_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_fees": {
+          "name": "tx_fees",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "read_count": {
+          "name": "read_count",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "read_length": {
+          "name": "read_length",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "runtime": {
+          "name": "runtime",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "write_count": {
+          "name": "write_count",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "write_length": {
+          "name": "write_length",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consensus_hash": {
+          "name": "consensus_hash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "stacks_blocks_block_height_idx": {
+          "name": "stacks_blocks_block_height_idx",
+          "columns": [
+            {
+              "expression": "block_height",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "stacks_blocks_block_hash_idx": {
+          "name": "stacks_blocks_block_hash_idx",
+          "columns": [
+            {
+              "expression": "block_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "stacks_blocks_index_block_hash_idx": {
+          "name": "stacks_blocks_index_block_hash_idx",
+          "columns": [
+            {
+              "expression": "index_block_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "stacks_blocks_consensus_hash_network_key_idx": {
+          "name": "stacks_blocks_consensus_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "consensus_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "stacks_blocks_index_block_hash_network_key_idx": {
+          "name": "stacks_blocks_index_block_hash_network_key_idx",
+          "columns": [
+            {
+              "expression": "network_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "index_block_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "stacks_blocks_network_key_block_hash_idx": {
+          "name": "stacks_blocks_network_key_block_hash_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "network_key",
+            "block_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.state_machine_updates": {
+      "name": "state_machine_updates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signer_public_key": {
+          "name": "signer_public_key",
+          "type": "varchar(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network_key": {
+          "name": "network_key",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "local_signer_protocol_version": {
+          "name": "local_signer_protocol_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active_signer_protocol_version": {
+          "name": "active_signer_protocol_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "update_content": {
+          "name": "update_content",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chunk_id": {
+          "name": "chunk_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
