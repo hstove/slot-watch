@@ -4,20 +4,16 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import {
   MinersResponseSchema,
   MinerDetailResponseSchema,
+  NetworkKeyParamSchema,
+  NetworkKeySchema,
 } from 'slot-watch-common';
 import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
 import { fetchRecentMinerStats, fetchMinerDetail } from '../db/block-proposals';
 
-const NetworkKeyParamSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    networkKey: Schema.String,
-  }).annotations({ identifier: 'NetworkKeyParam' })
-);
-
 const MinerDetailParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
-    networkKey: Schema.String,
+    networkKey: NetworkKeySchema,
     publicKey: Schema.String,
   }).annotations({ identifier: 'MinerDetailParam' })
 );
@@ -42,7 +38,7 @@ export const minersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));

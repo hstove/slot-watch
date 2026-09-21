@@ -1,5 +1,28 @@
+import { Schema } from 'effect';
+
 const TESTNET_BURN_ADDRESS = 'ST000000000000000000002AMW42H';
 const MAINNET_BURN_ADDRESS = 'SP000000000000000000002Q6VF78';
+
+/** The only network Slot Watch currently stores. */
+export const NETWORK_KEY_MAINNET = 'mainnet' as const;
+
+export const NetworkKeySchema = Schema.Literal(NETWORK_KEY_MAINNET).annotations(
+  {
+    identifier: 'NetworkKey',
+    description:
+      'Stacks network. Slot Watch currently stores only mainnet; other values are rejected.',
+  }
+);
+export type NetworkKey = Schema.Schema.Type<typeof NetworkKeySchema>;
+
+export const NetworkKeyParamSchema = Schema.Struct({
+  networkKey: NetworkKeySchema,
+}).annotations({ identifier: 'NetworkKeyParam' });
+
+/** Assert a path value as the public API network key. */
+export function asNetworkKey(value: string): NetworkKey {
+  return value as NetworkKey;
+}
 
 export const networkKeyToMainnet: Record<string, boolean> = {
   testnet: false,

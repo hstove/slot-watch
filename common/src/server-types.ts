@@ -1,5 +1,6 @@
 import { Schema } from 'effect';
 import type { StateMachineUpdateMinerStateInactive } from './codec/state-machine';
+import { NetworkKeySchema } from './networks';
 
 // RecentSigner schema
 export const RecentSignerSchema = Schema.Struct({
@@ -24,7 +25,7 @@ export interface RecentSigner
 
 // RecentSignersResponse schema
 export const RecentSignersResponseSchema = Schema.Struct({
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   rewardCycle: Schema.Number,
   totalWeight: Schema.Number,
   signers: Schema.mutable(Schema.Array(RecentSignerSchema)),
@@ -74,7 +75,7 @@ export const BlockResponseApiSchema = Schema.Struct({
   signerSignatureHash: Schema.String,
   slotId: Schema.Number,
   createdAt: Schema.String,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   chunkId: Schema.NullOr(Schema.String),
   signerPublicKey: Schema.String,
   accepted: Schema.Boolean,
@@ -109,7 +110,7 @@ export const ApiBlockPreCommitSchema = Schema.Struct({
   signerSignatureHash: Schema.String,
   signerPublicKey: Schema.String,
   slotId: Schema.Number,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   latencyMs: Schema.optional(Schema.Number),
   blockHeight: Schema.optional(Schema.Number),
 });
@@ -127,7 +128,7 @@ export interface MiniBlockPreCommitApi
 
 // ApiBurnBlock schema
 export const ApiBurnBlockSchema = Schema.Struct({
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   burnBlockHeight: Schema.Number,
   burnBlockHash: Schema.String,
   createdAt: Schema.String,
@@ -150,7 +151,7 @@ export const ApiStacksBlockSchema = Schema.Struct({
   tenureChangeCause: Schema.NullOr(Schema.Number),
   txCount: Schema.Number,
   burnBlockHeight: Schema.Number,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   processedAt: Schema.String,
   burnBlockHash: Schema.String,
   readCount: Schema.Number,
@@ -171,7 +172,7 @@ export const ApiBlockProposalSchema = Schema.Struct({
   signerSignatureHash: Schema.String,
   chainLength: Schema.Number,
   createdAt: Schema.String,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   chunkId: Schema.NullOr(Schema.String),
   minerPublicKey: Schema.String,
   consensusHash: Schema.String,
@@ -223,7 +224,7 @@ export const ApiStateMachineUpdateSchema = Schema.Struct({
   activeSignerProtocolVersion: Schema.Number,
   localSignerProtocolVersion: Schema.Number,
   signerPublicKey: Schema.String,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   chunkId: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   replayTxs: Schema.NullOr(Schema.mutable(Schema.Array(Schema.String))),

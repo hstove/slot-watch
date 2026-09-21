@@ -17,6 +17,7 @@ import {
   type StateMachineUpdateMinerState,
   getVersionFromString,
   superDeserialize,
+  type NetworkKey,
 } from 'slot-watch-common';
 import { getCreatedAt } from '../utils';
 import { hex } from '@scure/base';
@@ -27,6 +28,7 @@ export function serializeBlockResponse(
   const createdAt = getCreatedAt(response.id);
   return {
     ...response,
+    networkKey: response.networkKey as NetworkKey,
     tenureExtendTimestamp: response.tenureExtendTimestamp
       ? response.tenureExtendTimestamp.toISOString()
       : null,
@@ -53,7 +55,7 @@ export function serializeBlockPreCommit(
     signerSignatureHash: preCommit.signerSignatureHash,
     signerPublicKey: preCommit.signerPublicKey,
     slotId: preCommit.slotId,
-    networkKey: preCommit.networkKey,
+    networkKey: preCommit.networkKey as NetworkKey,
     latencyMs: preCommit.latencyMs ?? undefined,
     blockHeight: preCommit.blockHeight ?? undefined,
   };
@@ -63,6 +65,7 @@ export function serializeBurnBlock(block: BurnBlockDb): ApiBurnBlock {
   const createdAt = getCreatedAt(block.id);
   return {
     ...block,
+    networkKey: block.networkKey as NetworkKey,
     createdAt: createdAt.toISOString(),
   };
 }
@@ -71,6 +74,7 @@ export function serializeStacksBlock(block: StacksBlockDb): ApiStacksBlock {
   const createdAt = getCreatedAt(block.id);
   return {
     ...block,
+    networkKey: block.networkKey as NetworkKey,
     burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
     blockTimestamp: (block.blockTimestamp ?? new Date()).toISOString(),
     processedAt: createdAt.toISOString(),
@@ -105,6 +109,7 @@ export function serializeStateMachineUpdate(
 
   return {
     ...rest,
+    networkKey: rest.networkKey as NetworkKey,
     burnBlock: hex.encode(content.burnBlock),
     burnBlockHeight: Number(content.burnBlockHeight),
     minerState: serializeMinerState(content.minerState),
@@ -119,6 +124,7 @@ export function serializeBlockProposal(
   const createdAt = getCreatedAt(block.id);
   return {
     ...block,
+    networkKey: block.networkKey as NetworkKey,
     createdAt: createdAt.toISOString(),
     burnBlockHeight: block.burnBlockHeight ?? 0,
     consensusHash: block.consensusHash ?? '',

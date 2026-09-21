@@ -13,6 +13,7 @@ import {
   SignerLatenciesResponseSchema,
   SignersDashboardResponseSchema,
   StackedNextCycleResponseSchema,
+  NetworkKeyParamSchema,
 } from 'slot-watch-common';
 import { timeout } from 'hono/timeout';
 import { log } from '../logger';
@@ -20,12 +21,6 @@ import { getLatestResponses, getSignerLatencies } from '../db/block-responses';
 import type { ServerType } from '../server-context';
 import { stxCommittedCache } from '../pox-4';
 import { signerDegradationRate, warmupMetrics } from '../metrics';
-
-const NetworkKeyParamSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    networkKey: Schema.String,
-  }).annotations({ identifier: 'NetworkKeyParam' })
-);
 
 const signersResponse = Schema.standardSchemaV1(SignersResponseSchema);
 const signerLatenciesResponse = Schema.standardSchemaV1(
@@ -60,7 +55,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const poxInfo = await getPoxInfo.get(networkKey);
@@ -154,7 +149,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const latencies = await getSignerLatencies(networkKey, c.get('db'));
@@ -182,7 +177,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey: _ } = c.req.valid('param');
       const stxCommitted = await stxCommittedCache.get();
@@ -210,7 +205,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const { responses, signers, totalWeight, poxInfo } =
@@ -298,7 +293,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const poxInfo = await getPoxInfo.get(networkKey);

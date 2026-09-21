@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { networkIdAtom } from './network';
-import type { RecentSigner } from 'slot-watch-common';
+import { NETWORK_KEY_MAINNET, type RecentSigner } from 'slot-watch-common';
 import { differenceInSeconds } from 'date-fns';
 import type { ApiRecentSigners, ApiSigner, ApiSigners } from '@/lib/slots-api';
 import { atomFamily } from 'jotai/utils';
@@ -59,7 +59,7 @@ export const thresholdAtom = atom((get) => {
 });
 
 export const recentSignersAtom = atom<ApiRecentSigners>({
-  networkKey: '',
+  networkKey: NETWORK_KEY_MAINNET,
   rewardCycle: 0,
   totalWeight: 0,
   signers: [],

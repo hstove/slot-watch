@@ -32,7 +32,7 @@ import {
  * extracted into `src/events/pre-commits.ts` precisely so it can be tested.
  */
 
-const NETWORK_KEY = 'test-net';
+const NETWORK_KEY = 'mainnet';
 const SIGNER_PRIVATE_KEY = hex.decode(
   '1111111111111111111111111111111111111111111111111111111111111111'
 );
