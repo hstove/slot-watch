@@ -8,6 +8,7 @@ import {
   MinerCommitsResponseSchema,
   MinerEconomicsMinersResponseSchema,
   MinerEconomicsResponseSchema,
+  NetworkKeyParamSchema,
 } from 'slot-watch-common';
 import {
   burnBlocks,
@@ -22,12 +23,6 @@ import { getCreatedAt } from '../utils';
 const MAX_SPAN = 4032;
 /** One week of Bitcoin blocks; the commits route returns a row per commit. */
 const MAX_COMMITS_SPAN = 1008;
-
-const NetworkKeyParamSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    networkKey: Schema.String,
-  }).annotations({ identifier: 'NetworkKeyParam' })
-);
 
 const HeightRangeQuerySchema = Schema.standardSchemaV1(
   Schema.Struct({
@@ -83,7 +78,7 @@ Caveats:
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');
@@ -222,7 +217,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');
@@ -345,7 +340,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');

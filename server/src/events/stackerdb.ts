@@ -30,6 +30,7 @@ import {
   type BlockResponseApi,
   type DecodedChunk,
   type ApiBlockPreCommit,
+  type NetworkKey,
 } from 'slot-watch-common';
 import { setLatestBlockResponses } from '../db/block-responses';
 import {
@@ -124,7 +125,7 @@ const handleBlockProposal = ({
       signerSignatureHash: dbBlockProposal.signerSignatureHash,
       chainLength: dbBlockProposal.chainLength,
       createdAt: receivedAt.toISOString(),
-      networkKey: dbBlockProposal.networkKey,
+      networkKey: dbBlockProposal.networkKey as NetworkKey,
       chunkId: dbBlockProposal.chunkId ?? null,
       minerPublicKey: dbBlockProposal.minerPublicKey,
       consensusHash: dbBlockProposal.consensusHash,

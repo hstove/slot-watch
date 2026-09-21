@@ -9,13 +9,8 @@ import type { ServerType } from '../server-context';
 import {
   StateMachinesResponseSchema,
   StateMachineUpdatesResponseSchema,
+  NetworkKeyParamSchema,
 } from 'slot-watch-common';
-
-const NetworkKeyParamSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    networkKey: Schema.String,
-  }).annotations({ identifier: 'NetworkKeyParam' })
-);
 
 const StateMachineUpdatesQuerySchema = Schema.standardSchemaV1(
   Schema.Struct({
@@ -47,7 +42,7 @@ export const stateMachineRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const latestStateMachineUpdatesDistinct = await c
@@ -98,7 +93,7 @@ export const stateMachineRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     validator('query', StateMachineUpdatesQuerySchema),
     async (c) => {
       const { networkKey: networkKeyParam } = c.req.valid('param');

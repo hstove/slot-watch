@@ -10,15 +10,26 @@ import {
   getPoxInfo,
   type StackerSet,
 } from '../stacks-api';
-import { knownSigners, type BlockResponseApi } from 'slot-watch-common';
+import {
+  knownSigners,
+  NetworkKeySchema,
+  type BlockResponseApi,
+} from 'slot-watch-common';
 import { Schema, Either } from 'effect';
+import { logger } from '../logger';
+import { parse, stringify } from 'superjson';
+import { env } from 'cloudflare:workers';
+import { getCreatedAt } from '../utils';
+import { desc, eq, and, sql } from 'drizzle-orm';
+import Cloudflare from 'cloudflare';
+import * as R from 'remeda';
 
 // Local schema definition to avoid cross-package type issues
 const BlockResponseApiSchema = Schema.Struct({
   signerSignatureHash: Schema.String,
   slotId: Schema.Number,
   createdAt: Schema.String,
-  networkKey: Schema.String,
+  networkKey: NetworkKeySchema,
   chunkId: Schema.NullOr(Schema.String),
   signerPublicKey: Schema.String,
   accepted: Schema.Boolean,
@@ -32,13 +43,6 @@ const BlockResponseApiSchema = Schema.Struct({
   id: Schema.String,
   blockHeight: Schema.optional(Schema.Number),
 });
-import { logger } from '../logger';
-import { parse, stringify } from 'superjson';
-import { env } from 'cloudflare:workers';
-import { getCreatedAt } from '../utils';
-import { desc, eq, and, sql } from 'drizzle-orm';
-import Cloudflare from 'cloudflare';
-import * as R from 'remeda';
 
 const cloudflare = new Cloudflare({
   apiToken: env.KV_API_TOKEN,

@@ -1,3 +1,4 @@
+import type { NetworkKey } from './networks';
 import type { ApiBlockProposal, ApiStacksBlock } from './server-types';
 import type { TypeMerge } from './utils';
 import type { O } from 'ts-toolbelt';
@@ -9,7 +10,7 @@ interface StacksBlockBase {
   tenureChangeCause: number | null;
   txCount: number;
   burnBlockHeight: number;
-  networkKey: string;
+  networkKey: NetworkKey;
   consensusHash: string;
   txFees: number;
 }

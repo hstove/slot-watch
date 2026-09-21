@@ -30,32 +30,28 @@ import {
   BlockResponsesResponseSchema,
   BlockProposalWithResponsesSchema,
   StxBlockResponseSchema,
+  NetworkKeyParamSchema,
+  NetworkKeySchema,
 } from 'slot-watch-common';
 
 // Request param/query schemas (local to routes)
-const NetworkKeyParamSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    networkKey: Schema.String,
-  }).annotations({ identifier: 'NetworkKeyParam' })
-);
-
 const BlockHashParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
-    networkKey: Schema.String,
+    networkKey: NetworkKeySchema,
     blockHash: Schema.String,
   }).annotations({ identifier: 'BlockHashParam' })
 );
 
 const BlockIdParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
-    networkKey: Schema.String,
+    networkKey: NetworkKeySchema,
     blockId: Schema.String,
   }).annotations({ identifier: 'BlockIdParam' })
 );
 
 const HeightOrHashParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
-    networkKey: Schema.String,
+    networkKey: NetworkKeySchema,
     heightOrHash: Schema.String,
   }).annotations({ identifier: 'HeightOrHashParam' })
 );
@@ -63,7 +59,7 @@ const HeightOrHashParamSchema = Schema.standardSchemaV1(
 const ConsensusHashParamSchema = Schema.standardSchemaV1(
   Schema.Struct({
     consensusHash: Schema.String,
-    networkKey: Schema.String,
+    networkKey: NetworkKeySchema,
   }).annotations({ identifier: 'ConsensusHashParam' })
 );
 
@@ -225,7 +221,7 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       logger.debug(
@@ -374,7 +370,7 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', NetworkKeyParamSchema),
+    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
     validator('query', TenureChangesQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');

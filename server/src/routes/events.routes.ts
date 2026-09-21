@@ -10,6 +10,7 @@ import {
   coreNodeBurnBlockMessageSchema,
   NEW_BLOCK_V2_EVENT,
   sumPoxSpendSats,
+  type NetworkKey,
 } from 'slot-watch-common';
 import { getNetworkKeyFromRequest } from '../auth';
 import { log, logger } from '../logger';
@@ -104,7 +105,7 @@ const eventsRoutes = new Hono<Env>()
             receivedAt: receivedAt.toISOString(),
             payload: {
               ...block,
-              networkKey,
+              networkKey: networkKey as NetworkKey,
               processedAt: receivedAt.toISOString(),
               blockTimestamp: block.blockTimestamp?.toISOString() ?? null,
               burnBlockTimestamp: block.burnBlockTimestamp.toISOString(),
@@ -135,7 +136,7 @@ const eventsRoutes = new Hono<Env>()
       networkKey,
       payload: {
         ...burnBlock,
-        networkKey,
+        networkKey: networkKey as NetworkKey,
         createdAt: new Date().toISOString(),
         burnBlockHeight: burnBlock.burn_block_height,
         burnBlockHash: burnBlock.burn_block_hash,
