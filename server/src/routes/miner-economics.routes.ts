@@ -1,6 +1,17 @@
 import { Hono } from 'hono';
 import { Schema } from 'effect';
-import { and, asc, between, desc, eq, isNotNull, max, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  between,
+  desc,
+  eq,
+  isNotNull,
+  max,
+  sql,
+  type SQLWrapper,
+} from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { timeout } from 'hono/timeout';
 import {
@@ -12,17 +23,29 @@ import {
 } from 'slot-watch-common';
 import {
   burnBlocks,
+  hourlyPrices,
   minerRewards,
   minerSpends,
   stacksBlocks,
 } from '../db/schema';
 import type { ServerType } from '../server-context';
 import { getCreatedAt } from '../utils';
+import { COINBASE_SOURCE } from '../prices/coinbase';
 
 /** Four weeks of Bitcoin blocks. */
 const MAX_SPAN = 4032;
 /** One week of Bitcoin blocks; the commits route returns a row per commit. */
 const MAX_COMMITS_SPAN = 1008;
+const btcPrice = alias(hourlyPrices, 'btc_price');
+const stxPrice = alias(hourlyPrices, 'stx_price');
+
+function observedHour(id: SQLWrapper) {
+  return sql<string>`date_trunc('hour', to_timestamp(uuid7_ms(${id}) / 1000.0), 'UTC')`;
+}
+
+function completeUsd(pricedUsd: string | null, missing: number | null) {
+  return Number(missing ?? 0) === 0 ? pricedUsd : null;
+}
 
 const HeightRangeQuerySchema = Schema.toStandardSchemaV1(
   Schema.Struct({
@@ -60,7 +83,7 @@ export const minerEconomicsRoutes = new Hono<ServerType>()
       summary: 'Get miner economics by burn block',
       description: `Miner BTC spend and matured STX revenue per Bitcoin block, ascending by height. Both \`fromHeight\` and \`toHeight\` are required and inclusive; reject spans where \`toHeight - fromHeight > ${MAX_SPAN}\` (four weeks). Callers find the tip with \`GET /burn-blocks/:networkKey\` (first row) and page backwards in height ranges.
 
-Total miner BTC spend for a block is \`poxSpendSats + burnAmountSats\`. Total miner revenue is \`coinbaseUstx + txFeesUstx\`, in micro-STX.
+Total miner BTC spend for a block is \`poxSpendSats + burnAmountSats\`. Total miner revenue is \`coinbaseUstx + txFeesUstx\`, in micro-STX. USD values use hourly opens at the block's observed UTC hour, including revenue attributed to the earning hour rather than maturity. Missing candles produce null USD fields; amounts are decimal strings.
 
 Caveats:
 - \`poxSpendSats\` and \`burnAmountSats\` are 0 for rows ingested before those columns existed and not covered by the backfill (mainnet before roughly 2026-07-01).
@@ -90,7 +113,7 @@ Caveats:
       const rewards = db
         .select({
           networkKey: minerRewards.networkKey,
-          earnedBurnBlockHeight: minerRewards.earnedBurnBlockHeight,
+          earnedConsensusHash: minerRewards.earnedConsensusHash,
           coinbaseUstx: sql<number>`sum(${minerRewards.coinbaseUstx})`.as(
             'coinbase_ustx'
           ),
@@ -109,7 +132,7 @@ Caveats:
             between(minerRewards.earnedBurnBlockHeight, fromHeight, toHeight)
           )
         )
-        .groupBy(minerRewards.networkKey, minerRewards.earnedBurnBlockHeight)
+        .groupBy(minerRewards.networkKey, minerRewards.earnedConsensusHash)
         .as('rewards');
 
       // burn_blocks can hold two rows for one height after a Bitcoin fork. Keep
@@ -141,6 +164,8 @@ Caveats:
         )
         .as('deduped');
 
+      const hour = observedHour(deduped.id);
+
       const [rows, [matured]] = await Promise.all([
         db
           .select({
@@ -154,13 +179,38 @@ Caveats:
             coinbaseUstx: rewards.coinbaseUstx,
             txFeesUstx: rewards.txFeesUstx,
             recipients: rewards.recipients,
+            hourStart: hour,
+            btcUsdOpen: btcPrice.openPrice,
+            stxUsdOpen: stxPrice.openPrice,
+            spendUsd: sql<
+              string | null
+            >`round((${deduped.poxSpendSats}::numeric + ${deduped.burnAmountSats}::numeric) / 100000000 * ${btcPrice.openPrice}, 8)::text`,
+            revenueUsd: sql<
+              string | null
+            >`round((${rewards.coinbaseUstx}::numeric + ${rewards.txFeesUstx}::numeric) / 1000000 * ${stxPrice.openPrice}, 8)::text`,
           })
           .from(deduped)
           .leftJoin(
             rewards,
             and(
               eq(rewards.networkKey, networkKey),
-              eq(rewards.earnedBurnBlockHeight, deduped.burnBlockHeight)
+              eq(rewards.earnedConsensusHash, deduped.consensusHash)
+            )
+          )
+          .leftJoin(
+            btcPrice,
+            and(
+              eq(btcPrice.source, COINBASE_SOURCE),
+              eq(btcPrice.productId, 'BTC-USD'),
+              eq(btcPrice.hourStart, hour)
+            )
+          )
+          .leftJoin(
+            stxPrice,
+            and(
+              eq(stxPrice.source, COINBASE_SOURCE),
+              eq(stxPrice.productId, 'STX-USD'),
+              eq(stxPrice.hourStart, hour)
             )
           )
           .orderBy(asc(deduped.burnBlockHeight)),
@@ -185,6 +235,14 @@ Caveats:
           stacksBlockCount: Number(row.stacksBlockCount),
           poxSpendSats: row.poxSpendSats,
           burnAmountSats: row.burnAmountSats,
+          valuation: {
+            source: COINBASE_SOURCE,
+            hourStart: new Date(row.hourStart).toISOString(),
+            btcUsdOpen: row.btcUsdOpen,
+            stxUsdOpen: row.stxUsdOpen,
+            spendUsd: row.spendUsd,
+            revenueUsd: row.revenueUsd,
+          },
           revenue:
             row.recipients === null
               ? null
@@ -203,7 +261,7 @@ Caveats:
       summary: 'Get per-miner spend and revenue',
       description: `Aggregates each miner's block commits (\`miner_spends\`, by the burn height the commit was mined in) and matured rewards (\`miner_rewards\`, by the burn height the tenure was earned in) over an inclusive height range of at most ${MAX_SPAN} blocks. Miners are keyed by the STX address derived from the key that funds their commits, which is the same key that signs their block proposals and receives their rewards.
 
-A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewards mature about 100 tenures after they are earned, so ranges ending above \`maturedThroughHeight\` under-report revenue. A row with a null \`minerAddress\` holds commits whose Bitcoin sender has not been resolved yet.`,
+A commit counts as a win when its burn block's \`winningTxid\` matches it. USD totals sum per-row values at each burn block's observed hourly open. If any row lacks its block or price, that total is null and the missing count reports coverage. Rewards mature about 100 tenures after they are earned, so ranges ending above \`maturedThroughHeight\` under-report revenue. A row with a null \`minerAddress\` holds commits whose Bitcoin sender has not been resolved yet.`,
       tags: ['Miner Economics'],
       responses: {
         200: {
@@ -243,8 +301,32 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
             'spend_sats'
           ),
           burnSats: sql<number>`sum(${minerSpends.burnSats})`.as('burn_sats'),
+          pricedSpendUsd: sql<
+            string | null
+          >`round(sum((${minerSpends.spendSats}::numeric + ${minerSpends.burnSats}::numeric) / 100000000 * ${btcPrice.openPrice}), 8)::text`.as(
+            'priced_spend_usd'
+          ),
+          spendPriceMissing:
+            sql<number>`count(*) filter (where ${btcPrice.openPrice} is null)`.as(
+              'spend_price_missing'
+            ),
         })
         .from(minerSpends)
+        .leftJoin(
+          burnBlocks,
+          and(
+            eq(burnBlocks.networkKey, minerSpends.networkKey),
+            eq(burnBlocks.burnBlockHash, minerSpends.burnBlockHash)
+          )
+        )
+        .leftJoin(
+          btcPrice,
+          and(
+            eq(btcPrice.source, COINBASE_SOURCE),
+            eq(btcPrice.productId, 'BTC-USD'),
+            eq(btcPrice.hourStart, observedHour(burnBlocks.id))
+          )
+        )
         .where(
           and(
             eq(minerSpends.networkKey, networkKey),
@@ -266,8 +348,32 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
               'tx_fees_ustx'
             ),
           rewardRows: sql<number>`count(*)`.as('reward_rows'),
+          pricedRevenueUsd: sql<
+            string | null
+          >`round(sum((${minerRewards.coinbaseUstx}::numeric + ${minerRewards.txFeesAnchoredUstx}::numeric + ${minerRewards.txFeesStreamedConfirmedUstx}::numeric + ${minerRewards.txFeesStreamedProducedUstx}::numeric) / 1000000 * ${stxPrice.openPrice}), 8)::text`.as(
+            'priced_revenue_usd'
+          ),
+          revenuePriceMissing:
+            sql<number>`count(*) filter (where ${stxPrice.openPrice} is null)`.as(
+              'revenue_price_missing'
+            ),
         })
         .from(minerRewards)
+        .leftJoin(
+          burnBlocks,
+          and(
+            eq(burnBlocks.networkKey, minerRewards.networkKey),
+            eq(burnBlocks.consensusHash, minerRewards.earnedConsensusHash)
+          )
+        )
+        .leftJoin(
+          stxPrice,
+          and(
+            eq(stxPrice.source, COINBASE_SOURCE),
+            eq(stxPrice.productId, 'STX-USD'),
+            eq(stxPrice.hourStart, observedHour(burnBlocks.id))
+          )
+        )
         .where(
           and(
             eq(minerRewards.networkKey, networkKey),
@@ -291,6 +397,10 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
             coinbaseUstx: revenue.coinbaseUstx,
             txFeesUstx: revenue.txFeesUstx,
             rewardRows: revenue.rewardRows,
+            pricedSpendUsd: spend.pricedSpendUsd,
+            pricedRevenueUsd: revenue.pricedRevenueUsd,
+            spendPriceMissing: spend.spendPriceMissing,
+            revenuePriceMissing: revenue.revenuePriceMissing,
           })
           .from(spend)
           .fullJoin(revenue, eq(spend.minerKey, revenue.minerKey))
@@ -320,6 +430,15 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
           coinbaseUstx: Number(row.coinbaseUstx ?? 0),
           txFeesUstx: Number(row.txFeesUstx ?? 0),
           rewardRows: Number(row.rewardRows ?? 0),
+          pricedSpendUsd: row.pricedSpendUsd,
+          pricedRevenueUsd: row.pricedRevenueUsd,
+          spendUsd: completeUsd(row.pricedSpendUsd, row.spendPriceMissing),
+          revenueUsd: completeUsd(
+            row.pricedRevenueUsd,
+            row.revenuePriceMissing
+          ),
+          spendPriceMissing: Number(row.spendPriceMissing ?? 0),
+          revenuePriceMissing: Number(row.revenuePriceMissing ?? 0),
         })),
       });
     }
