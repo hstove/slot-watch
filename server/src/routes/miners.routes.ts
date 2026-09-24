@@ -11,15 +11,17 @@ import { timeout } from 'hono/timeout';
 import type { ServerType } from '../server-context';
 import { fetchRecentMinerStats, fetchMinerDetail } from '../db/block-proposals';
 
-const MinerDetailParamSchema = Schema.standardSchemaV1(
+const MinerDetailParamSchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     networkKey: NetworkKeySchema,
     publicKey: Schema.String,
-  }).annotations({ identifier: 'MinerDetailParam' })
+  }).annotate({ identifier: 'MinerDetailParam' })
 );
 
-const minersResponse = Schema.standardSchemaV1(MinersResponseSchema);
-const minerDetailResponse = Schema.standardSchemaV1(MinerDetailResponseSchema);
+const minersResponse = Schema.toStandardSchemaV1(MinersResponseSchema);
+const minerDetailResponse = Schema.toStandardSchemaV1(
+  MinerDetailResponseSchema
+);
 
 export const minersRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -38,7 +40,7 @@ export const minersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const minerStats = await fetchRecentMinerStats(networkKey, c.get('db'));
@@ -66,7 +68,9 @@ export const minersRoutes = new Hono<ServerType>()
           content: {
             'application/json': {
               schema: resolver(
-                Schema.standardSchemaV1(Schema.Struct({ error: Schema.String }))
+                Schema.toStandardSchemaV1(
+                  Schema.Struct({ error: Schema.String })
+                )
               ),
             },
           },

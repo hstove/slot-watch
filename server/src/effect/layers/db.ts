@@ -36,7 +36,7 @@ const withDb = <T>(fn: () => Promise<T>) =>
     });
   });
 
-export class DbService extends Context.Tag('@app/db')<
+export class DbService extends Context.Service<
   DbService,
   {
     insertBlockProposal(input: DbBlockProposal): Effect.Effect<void, DbError>;
@@ -55,9 +55,9 @@ export class DbService extends Context.Tag('@app/db')<
     ): Effect.Effect<ApiBlockProposal[], DbError>;
     withDb<R>(f: (db: DbType) => Promise<R>): Effect.Effect<R, DbError>;
   }
->() {}
+>()('@app/db') {}
 
-export const DbLive = Layer.scoped(
+export const DbLive = Layer.effect(
   DbService,
   Effect.gen(function* () {
     const db = makeDb();
