@@ -8,6 +8,7 @@ import {
   minerColorMap,
   minerKey,
   satsPerStx,
+  parseUsd,
   totalRevenue,
   totalSpend,
   UNRESOLVED_KEY,
@@ -24,6 +25,17 @@ export interface MinerRow {
   burnSats: number;
   /** Spend over the matured slice of the window, comparable with revenue. */
   maturedSpendSats: number;
+  hasMaturedActivity: boolean;
+  /** Known-price subtotal across the full window; recent commits may be unpriced. */
+  pricedSpendUsd: number | null;
+  spendPriceMissing: number;
+  /** Comparable USD values over the matured slice only. */
+  maturedSpendUsd: number | null;
+  maturedRevenueUsd: number | null;
+  maturedPricedSpendUsd: number | null;
+  maturedPricedRevenueUsd: number | null;
+  maturedSpendPriceMissing: number;
+  maturedRevenuePriceMissing: number;
   coinbaseUstx: number;
   txFeesUstx: number;
   revenueUstx: number;
@@ -46,6 +58,15 @@ function emptyRow(key: string, color: string): MinerRow {
     spendSats: 0,
     burnSats: 0,
     maturedSpendSats: 0,
+    hasMaturedActivity: false,
+    pricedSpendUsd: null,
+    spendPriceMissing: 0,
+    maturedSpendUsd: null,
+    maturedRevenueUsd: null,
+    maturedPricedSpendUsd: null,
+    maturedPricedRevenueUsd: null,
+    maturedSpendPriceMissing: 0,
+    maturedRevenuePriceMissing: 0,
     coinbaseUstx: 0,
     txFeesUstx: 0,
     revenueUstx: 0,
@@ -116,10 +137,19 @@ function applyEconomics(row: MinerRow, m: MinerEconomicsMiner) {
   row.wins = m.wins;
   row.spendSats = m.spendSats;
   row.burnSats = m.burnSats;
+  row.pricedSpendUsd = parseUsd(m.pricedSpendUsd);
+  row.spendPriceMissing = m.spendPriceMissing;
 }
 
 function applyMatured(row: MinerRow, m: MinerEconomicsMiner) {
+  row.hasMaturedActivity = true;
   row.maturedSpendSats = totalSpend(m);
+  row.maturedSpendUsd = m.commits ? parseUsd(m.spendUsd) : 0;
+  row.maturedRevenueUsd = m.rewardRows ? parseUsd(m.revenueUsd) : 0;
+  row.maturedPricedSpendUsd = parseUsd(m.pricedSpendUsd);
+  row.maturedPricedRevenueUsd = parseUsd(m.pricedRevenueUsd);
+  row.maturedSpendPriceMissing = m.spendPriceMissing;
+  row.maturedRevenuePriceMissing = m.revenuePriceMissing;
   row.coinbaseUstx = m.coinbaseUstx;
   row.txFeesUstx = m.txFeesUstx;
   row.revenueUstx = totalRevenue(m);

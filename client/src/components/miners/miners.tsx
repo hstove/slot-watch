@@ -1,10 +1,11 @@
 import React from 'react';
 import { Route } from '../../routes/miners/index';
 import { buildMinerRows } from '@/lib/miner-rows';
-import { MINER_WINDOWS } from '@/lib/miner-economics';
+import { MINER_WINDOWS, sumUsdTotals } from '@/lib/miner-economics';
 import { MinerMetrics, SortitionShare, WindowSwitch } from './miner-overview';
 import { SpendChart } from './spend-chart';
 import { MinersTable } from './miners-table';
+import { UsdComparison } from './usd-comparison';
 
 function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -55,8 +56,13 @@ export const Miners = () => {
           )}
           fromHeight={data.fromHeight}
         />
-        <div className="grid border-t border-border md:grid-cols-[minmax(16rem,0.8fr)_minmax(0,2fr)]">
-          <div className="border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
+        <UsdComparison
+          totals={data.matured ? sumUsdTotals(data.matured.miners) : null}
+          fromHeight={data.fromHeight}
+          toHeight={Math.min(data.tip, data.economics.maturedThroughHeight)}
+        />
+        <div className="grid grid-cols-[minmax(0,1fr)] border-t border-border md:grid-cols-[minmax(16rem,0.8fr)_minmax(0,2fr)]">
+          <div className="min-w-0 border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
             <div className="mb-2 flex items-center justify-between">
               <PanelLabel>sortition share</PanelLabel>
               <PanelLabel>
@@ -65,7 +71,7 @@ export const Miners = () => {
             </div>
             <SortitionShare rows={rows} />
           </div>
-          <div className="px-3 py-2.5">
+          <div className="min-w-0 px-3 py-2.5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <PanelLabel>commit spend by miner</PanelLabel>
               <PanelLabel>
@@ -81,6 +87,8 @@ export const Miners = () => {
       </section>
       <MinersTable
         rows={rows}
+        networkKey={data.networkKey}
+        windowKey={data.windowKey}
         blocks={blocks}
         fromHeight={data.fromHeight}
         maturedThroughHeight={Math.min(

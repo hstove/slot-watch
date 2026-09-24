@@ -4,6 +4,9 @@ import {
   formatBtc,
   formatSats,
   formatStx,
+  formatUsd,
+  grossMarginPercent,
+  type MinerWindow,
   percent,
 } from '@/lib/miner-economics';
 import type { MinerRow } from '@/lib/miner-rows';
@@ -18,6 +21,7 @@ type SortKey =
   | 'winRate'
   | 'avgCommit'
   | 'revenue'
+  | 'margin'
   | 'satsPerStx'
   | 'latestBlock';
 
@@ -28,12 +32,14 @@ const sorters: Record<SortKey, (row: MinerRow) => number> = {
   winRate: (r) => (r.commits ? r.wins / r.commits : -1),
   avgCommit: (r) => (r.commits ? (r.spendSats + r.burnSats) / r.commits : -1),
   revenue: (r) => r.revenueUstx,
+  margin: (r) =>
+    grossMarginPercent(r.maturedSpendUsd, r.maturedRevenueUsd) ?? -999_999,
   satsPerStx: (r) => r.satsPerStx ?? -1,
   latestBlock: (r) => r.latestBlock ?? -1,
 };
 
 const gridClassName =
-  'grid grid-cols-[minmax(0,1.5fr)_3.5rem_5rem_6rem_6.5rem_8rem_7rem_5rem_7rem] items-center gap-x-3 px-3';
+  'grid grid-cols-[minmax(0,1.5fr)_3.5rem_5rem_6rem_6.5rem_9rem_8.5rem_7rem_5rem_7rem] items-center gap-x-3 px-3';
 
 function Header({
   label,
@@ -140,16 +146,55 @@ function WinRateBar({ row, maxShare }: { row: MinerRow; maxShare: number }) {
   );
 }
 
+function RevenueCell({ row }: { row: MinerRow }) {
+  let sub: string | undefined;
+  if (row.hasMaturedActivity) {
+    sub = row.maturedRevenuePriceMissing
+      ? `${formatUsd(row.maturedPricedRevenueUsd, true)} · ${row.maturedRevenuePriceMissing} unpriced`
+      : `${formatUsd(row.maturedRevenueUsd, true)} USD`;
+  }
+  return (
+    <Num muted={row.revenueUstx === 0} sub={sub}>
+      {row.revenueUstx ? formatStx(row.revenueUstx) : '–'}
+    </Num>
+  );
+}
+
+function MarginCell({ row }: { row: MinerRow }) {
+  const margin = grossMarginPercent(row.maturedSpendUsd, row.maturedRevenueUsd);
+  const net =
+    row.maturedSpendUsd !== null && row.maturedRevenueUsd !== null
+      ? row.maturedRevenueUsd - row.maturedSpendUsd
+      : null;
+  const missing = row.maturedSpendPriceMissing + row.maturedRevenuePriceMissing;
+  let sub: string | undefined;
+  if (missing) sub = `${missing} unpriced`;
+  else if (net !== null) sub = `${formatUsd(net, true)} net`;
+  let color: string | undefined;
+  if (margin !== null)
+    color =
+      margin >= 0 ? 'text-green-600 dark:text-green-500' : 'text-destructive';
+  return (
+    <Num muted={margin === null} className={color} sub={sub}>
+      {margin === null ? '–' : `${margin.toFixed(1)}%`}
+    </Num>
+  );
+}
+
 function DesktopRow({
   row,
   totalWins,
   maxRate,
   blocks,
+  networkKey,
+  windowKey,
 }: {
   row: MinerRow;
   totalWins: number;
   maxRate: number;
   blocks: number;
+  networkKey: string;
+  windowKey: MinerWindow;
 }) {
   const spend = row.spendSats + row.burnSats;
   const commitsSub =
@@ -157,9 +202,11 @@ function DesktopRow({
       ? `${percent(row.commits, blocks, 0)} of blocks`
       : undefined;
   let spendSub: string | undefined;
-  if (row.burnSats) spendSub = `burn ${formatBtc(row.burnSats)}`;
-  else if (row.commits)
+  if (row.pricedSpendUsd !== null) {
+    spendSub = `${formatUsd(row.pricedSpendUsd, true)}${row.spendPriceMissing ? ` · ${row.spendPriceMissing} unpriced` : ' USD'}`;
+  } else if (row.commits) {
     spendSub = `${formatSats(Math.round(spend / row.commits))} / commit`;
+  }
   return (
     <div
       className={cn(
@@ -167,7 +214,11 @@ function DesktopRow({
         'group h-12 border-b border-border last:border-b-0 hover:bg-muted/30'
       )}
     >
-      <MinerIdentity miner={row} />
+      <MinerIdentity
+        miner={row}
+        networkKey={networkKey}
+        windowKey={windowKey}
+      />
       <div className="font-mono text-xs text-muted-foreground">
         {row.shortVersion ? (
           <SimpleTooltip content={row.version}>
@@ -185,12 +236,8 @@ function DesktopRow({
       </Num>
       <WinRateBar row={row} maxShare={maxRate} />
       <Num sub={spendSub}>{formatBtc(spend)}</Num>
-      <Num
-        muted={row.revenueUstx === 0}
-        sub={row.revenueUstx ? `${formatStx(row.txFeesUstx)} fees` : undefined}
-      >
-        {row.revenueUstx ? `${formatStx(row.revenueUstx)}` : '–'}
-      </Num>
+      <RevenueCell row={row} />
+      <MarginCell row={row} />
       <Num muted={row.satsPerStx === null}>
         {row.satsPerStx === null
           ? '–'
@@ -206,8 +253,24 @@ function DesktopRow({
   );
 }
 
-function MobileCard({ row, totalWins }: { row: MinerRow; totalWins: number }) {
+function MobileCard({
+  row,
+  totalWins,
+  networkKey,
+  windowKey,
+}: {
+  row: MinerRow;
+  totalWins: number;
+  networkKey: string;
+  windowKey: MinerWindow;
+}) {
   const spend = row.spendSats + row.burnSats;
+  const margin = grossMarginPercent(row.maturedSpendUsd, row.maturedRevenueUsd);
+  const marginMissing =
+    row.maturedSpendPriceMissing + row.maturedRevenuePriceMissing;
+  let marginLabel = '–';
+  if (margin !== null) marginLabel = `${margin.toFixed(1)}%`;
+  else if (marginMissing) marginLabel = '– unpriced';
   const cells: [string, string][] = [
     ['commits', row.commits.toLocaleString()],
     [
@@ -216,7 +279,14 @@ function MobileCard({ row, totalWins }: { row: MinerRow; totalWins: number }) {
     ],
     ['share', totalWins ? percent(row.wins, totalWins) : '–'],
     ['btc spent', formatBtc(spend)],
+    [
+      'usd spend',
+      row.pricedSpendUsd === null
+        ? '–'
+        : `${formatUsd(row.pricedSpendUsd, true)}${row.spendPriceMissing ? ' partial' : ''}`,
+    ],
     ['stx earned', row.revenueUstx ? formatStx(row.revenueUstx) : '–'],
+    ['usd margin', marginLabel],
     [
       'sats / stx',
       row.satsPerStx === null
@@ -227,7 +297,11 @@ function MobileCard({ row, totalWins }: { row: MinerRow; totalWins: number }) {
   return (
     <div className="border-b border-border p-3 last:border-b-0">
       <div className="flex items-center justify-between gap-2">
-        <MinerIdentity miner={row} />
+        <MinerIdentity
+          miner={row}
+          networkKey={networkKey}
+          windowKey={windowKey}
+        />
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
           {row.shortVersion ?? ''}
           {row.latestBlock ? ` · ${row.latestBlock.toLocaleString()}` : ''}
@@ -252,11 +326,15 @@ export function MinersTable({
   maturedThroughHeight,
   fromHeight,
   blocks,
+  networkKey,
+  windowKey,
 }: {
   rows: MinerRow[];
   maturedThroughHeight: number;
   fromHeight: number;
   blocks: number;
+  networkKey: string;
+  windowKey: MinerWindow;
 }) {
   const [sortKey, setSortKey] = React.useState<SortKey>('spend');
   const [desc, setDesc] = React.useState(true);
@@ -327,6 +405,13 @@ export function MinersTable({
             {...headerProps}
           />
           <Header
+            label="usd margin"
+            sortKey="margin"
+            className="text-right"
+            hint={`(USD earned − USD spent) ÷ USD earned over matured blocks (${maturedLabel}); unavailable when prices are missing`}
+            {...headerProps}
+          />
+          <Header
             label="sats/stx"
             sortKey="satsPerStx"
             className="text-right"
@@ -348,12 +433,20 @@ export function MinersTable({
             totalWins={totalWins}
             maxRate={maxRate}
             blocks={blocks}
+            networkKey={networkKey}
+            windowKey={windowKey}
           />
         ))}
       </div>
       <div className="md:hidden">
         {sorted.map((row) => (
-          <MobileCard key={row.key} row={row} totalWins={totalWins} />
+          <MobileCard
+            key={row.key}
+            row={row}
+            totalWins={totalWins}
+            networkKey={networkKey}
+            windowKey={windowKey}
+          />
         ))}
       </div>
     </section>

@@ -91,7 +91,7 @@ export function MinerCommitsTable({
   const rows = all.slice(0, MAX_ROWS);
   if (rows.length === 0) return null;
   return (
-    <section className="border border-border bg-card">
+    <section className="min-w-0 border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           block commits
@@ -102,46 +102,53 @@ export function MinerCommitsTable({
             : `${all.length.toLocaleString()} blocks`}
         </span>
       </div>
-      <div
-        className={cn(gridClassName, 'h-8 border-b border-border bg-muted/30')}
-      >
-        <Head>btc block</Head>
-        <Head right>spend</Head>
-        <Head right>block total</Head>
-        <Head right>share</Head>
-        <Head right>commits</Head>
-        <Head>result</Head>
-      </div>
-      {rows.map((r) => (
-        <div
-          key={r.hash}
-          className={cn(
-            gridClassName,
-            'h-8 border-b border-border/50 text-xs last:border-b-0 hover:bg-muted/30'
-          )}
-        >
-          <Link
-            to="/btc-blocks/$heightOrHash"
-            params={{ heightOrHash: String(r.height) }}
-            className="font-mono tabular-nums hover:underline"
+      <div className="overflow-x-auto">
+        <div className="min-w-[40rem]">
+          <div
+            className={cn(
+              gridClassName,
+              'h-8 border-b border-border bg-muted/30'
+            )}
           >
-            {r.height.toLocaleString()}
-          </Link>
-          <span className="text-right font-mono tabular-nums">
-            {formatSats(r.ownSats)}
-          </span>
-          <span className="text-right font-mono tabular-nums text-muted-foreground">
-            {formatSats(r.blockSats)}
-          </span>
-          <span className="text-right font-mono tabular-nums text-muted-foreground">
-            {percent(r.ownSats, r.blockSats)}
-          </span>
-          <span className="text-right font-mono tabular-nums text-muted-foreground">
-            {r.commits}
-          </span>
-          <Outcome row={r} color={row.color} />
+            <Head>btc block</Head>
+            <Head right>spend</Head>
+            <Head right>block total</Head>
+            <Head right>share</Head>
+            <Head right>commits</Head>
+            <Head>result</Head>
+          </div>
+          {rows.map((r) => (
+            <div
+              key={r.hash}
+              className={cn(
+                gridClassName,
+                'h-8 border-b border-border/50 text-xs last:border-b-0 hover:bg-muted/30'
+              )}
+            >
+              <Link
+                to="/btc-blocks/$heightOrHash"
+                params={{ heightOrHash: String(r.height) }}
+                className="font-mono tabular-nums hover:underline"
+              >
+                {r.height.toLocaleString()}
+              </Link>
+              <span className="text-right font-mono tabular-nums">
+                {formatSats(r.ownSats)}
+              </span>
+              <span className="text-right font-mono tabular-nums text-muted-foreground">
+                {formatSats(r.blockSats)}
+              </span>
+              <span className="text-right font-mono tabular-nums text-muted-foreground">
+                {percent(r.ownSats, r.blockSats)}
+              </span>
+              <span className="text-right font-mono tabular-nums text-muted-foreground">
+                {r.commits}
+              </span>
+              <Outcome row={r} color={row.color} />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </section>
   );
 }
