@@ -18,5 +18,8 @@
       "binding": "DB",
       "id": "0d80e28aec7241daa9692ec6f7d0e409"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": ["10 * * * *"]
+  }
 }
