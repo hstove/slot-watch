@@ -98,7 +98,7 @@ const storeMinerRewards = (job: WSNewBlockV2, rewards: MaturedMinerReward[]) =>
         .onConflictDoNothing()
     );
   }).pipe(
-    Effect.catchAll((err) =>
+    Effect.catch((err) =>
       Effect.sync(() =>
         log
           .withMetadata({ topic: 'miner-rewards', networkKey: job.networkKey })
@@ -132,7 +132,7 @@ const storeWinningTxid = (job: WSNewBlockV2, minerTxid: string | undefined) =>
         )
     );
   }).pipe(
-    Effect.catchAll((e) =>
+    Effect.catch((e) =>
       Effect.sync(() => log.withError(e).error('Failed to store winning txid'))
     )
   );
@@ -219,7 +219,7 @@ const storeMinerSpends = (
       db.insert(minerSpends).values(rows).onConflictDoNothing()
     );
   }).pipe(
-    Effect.catchAll((e) =>
+    Effect.catch((e) =>
       Effect.sync(() => log.withError(e).error('Failed to store miner spends'))
     )
   );

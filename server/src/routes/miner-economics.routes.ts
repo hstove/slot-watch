@@ -24,20 +24,20 @@ const MAX_SPAN = 4032;
 /** One week of Bitcoin blocks; the commits route returns a row per commit. */
 const MAX_COMMITS_SPAN = 1008;
 
-const HeightRangeQuerySchema = Schema.standardSchemaV1(
+const HeightRangeQuerySchema = Schema.toStandardSchemaV1(
   Schema.Struct({
-    fromHeight: Schema.NumberFromString.pipe(Schema.int()),
-    toHeight: Schema.NumberFromString.pipe(Schema.int()),
-  }).annotations({ identifier: 'MinerEconomicsQuery' })
+    fromHeight: Schema.NumberFromString.check(Schema.isInt()),
+    toHeight: Schema.NumberFromString.check(Schema.isInt()),
+  }).annotate({ identifier: 'MinerEconomicsQuery' })
 );
 
-const minerEconomicsResponse = Schema.standardSchemaV1(
+const minerEconomicsResponse = Schema.toStandardSchemaV1(
   MinerEconomicsResponseSchema
 );
-const minerEconomicsMinersResponse = Schema.standardSchemaV1(
+const minerEconomicsMinersResponse = Schema.toStandardSchemaV1(
   MinerEconomicsMinersResponseSchema
 );
-const minerCommitsResponse = Schema.standardSchemaV1(
+const minerCommitsResponse = Schema.toStandardSchemaV1(
   MinerCommitsResponseSchema
 );
 
@@ -78,7 +78,7 @@ Caveats:
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');
@@ -217,7 +217,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');
@@ -340,7 +340,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. Rewar
         400: { description: 'Invalid height range' },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     validator('query', HeightRangeQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');

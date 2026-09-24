@@ -542,7 +542,7 @@ export const handleStackerDBChunk = ({
               receivedAt,
               networkKey,
             }).pipe(
-              Effect.catchAll((error) =>
+              Effect.catch((error) =>
                 Effect.logError('Failed to handle block pre-commits', error)
               )
             )

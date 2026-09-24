@@ -35,56 +35,56 @@ import {
 } from 'slot-watch-common';
 
 // Request param/query schemas (local to routes)
-const BlockHashParamSchema = Schema.standardSchemaV1(
+const BlockHashParamSchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     networkKey: NetworkKeySchema,
     blockHash: Schema.String,
-  }).annotations({ identifier: 'BlockHashParam' })
+  }).annotate({ identifier: 'BlockHashParam' })
 );
 
-const BlockIdParamSchema = Schema.standardSchemaV1(
+const BlockIdParamSchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     networkKey: NetworkKeySchema,
     blockId: Schema.String,
-  }).annotations({ identifier: 'BlockIdParam' })
+  }).annotate({ identifier: 'BlockIdParam' })
 );
 
-const HeightOrHashParamSchema = Schema.standardSchemaV1(
+const HeightOrHashParamSchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     networkKey: NetworkKeySchema,
     heightOrHash: Schema.String,
-  }).annotations({ identifier: 'HeightOrHashParam' })
+  }).annotate({ identifier: 'HeightOrHashParam' })
 );
 
-const ConsensusHashParamSchema = Schema.standardSchemaV1(
+const ConsensusHashParamSchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     consensusHash: Schema.String,
     networkKey: NetworkKeySchema,
-  }).annotations({ identifier: 'ConsensusHashParam' })
+  }).annotate({ identifier: 'ConsensusHashParam' })
 );
 
-const TenureChangesQuerySchema = Schema.standardSchemaV1(
+const TenureChangesQuerySchema = Schema.toStandardSchemaV1(
   Schema.Struct({
     cause: Schema.optional(Schema.NumberFromString),
-  }).annotations({ identifier: 'TenureChangesQuery' })
+  }).annotate({ identifier: 'TenureChangesQuery' })
 );
 
 // Standard Schema wrappers for OpenAPI resolver
-const burnBlocksResponse = Schema.standardSchemaV1(BurnBlocksResponseSchema);
-const burnBlockResponse = Schema.standardSchemaV1(BurnBlockResponseSchema);
-const burnBlockBlocksResponse = Schema.standardSchemaV1(
+const burnBlocksResponse = Schema.toStandardSchemaV1(BurnBlocksResponseSchema);
+const burnBlockResponse = Schema.toStandardSchemaV1(BurnBlockResponseSchema);
+const burnBlockBlocksResponse = Schema.toStandardSchemaV1(
   BurnBlockBlocksResponseSchema
 );
-const tenureChangesResponse = Schema.standardSchemaV1(
+const tenureChangesResponse = Schema.toStandardSchemaV1(
   TenureChangesResponseSchema
 );
-const blockResponsesResponse = Schema.standardSchemaV1(
+const blockResponsesResponse = Schema.toStandardSchemaV1(
   BlockResponsesResponseSchema
 );
-const blockProposalWithResponses = Schema.standardSchemaV1(
+const blockProposalWithResponses = Schema.toStandardSchemaV1(
   BlockProposalWithResponsesSchema
 );
-const stxBlockResponse = Schema.standardSchemaV1(StxBlockResponseSchema);
+const stxBlockResponse = Schema.toStandardSchemaV1(StxBlockResponseSchema);
 
 const blockRoutes = new Hono<ServerType>()
   .use('*', timeout(5000))
@@ -221,7 +221,7 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       logger.debug(
@@ -370,7 +370,7 @@ const blockRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     validator('query', TenureChangesQuerySchema),
     async (c) => {
       const { networkKey } = c.req.valid('param');

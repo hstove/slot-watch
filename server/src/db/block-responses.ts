@@ -15,7 +15,7 @@ import {
   NetworkKeySchema,
   type BlockResponseApi,
 } from 'slot-watch-common';
-import { Schema, Either } from 'effect';
+import { Schema, Exit } from 'effect';
 import { logger } from '../logger';
 import { parse, stringify } from 'superjson';
 import { env } from 'cloudflare:workers';
@@ -212,15 +212,15 @@ function latestBlockResponseLookupKey({
   return `latest-block-response:${signerPublicKey}-${networkKey}`;
 }
 
-const decodeBlockResponse = Schema.decodeUnknownEither(BlockResponseApiSchema);
+const decodeBlockResponse = Schema.decodeUnknownExit(BlockResponseApiSchema);
 
 function parseBlockResponse(result: string): BlockResponseApi | null {
   const parsed = parse(result);
   const result2 = decodeBlockResponse(parsed);
-  if (Either.isLeft(result2)) {
+  if (Exit.isFailure(result2)) {
     return null;
   }
-  return result2.right;
+  return result2.value;
 }
 
 export async function setLatestBlockResponses(

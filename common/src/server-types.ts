@@ -48,10 +48,7 @@ export const TimelineChunkSchema = Schema.Struct({
   createdAt: Schema.String,
   publicKey: Schema.NullOr(Schema.String),
   entity: Schema.NullOr(Schema.String),
-  others: Schema.Record({
-    key: Schema.String,
-    value: Schema.NullOr(TimelineChunkOtherSchema),
-  }),
+  others: Schema.Record(Schema.String, Schema.NullOr(TimelineChunkOtherSchema)),
 });
 export interface TimelineChunk
   extends Schema.Schema.Type<typeof TimelineChunkSchema> {}
@@ -201,10 +198,10 @@ const StateMachineUpdateMinerStateActiveSchema = Schema.Struct({
   currentMinerPkh: Schema.String,
 });
 
-export const ApiStateMachineMinerStateSchema = Schema.Union(
+export const ApiStateMachineMinerStateSchema = Schema.Union([
   StateMachineUpdateMinerStateInactiveSchema,
-  StateMachineUpdateMinerStateActiveSchema
-);
+  StateMachineUpdateMinerStateActiveSchema,
+]);
 export type ApiStateMachineMinerState =
   | StateMachineUpdateMinerStateInactive
   | {
@@ -236,14 +233,14 @@ export interface ApiStateMachineUpdate
 export const SignerLatencySchema = Schema.Struct({
   signerSignatureHash: Schema.String,
   latencyMs: Schema.Number,
-}).annotations({ identifier: 'SignerLatency' });
+}).annotate({ identifier: 'SignerLatency' });
 export interface SignerLatency
   extends Schema.Schema.Type<typeof SignerLatencySchema> {}
 
 // SignerLatenciesResponse schema
 export const SignerLatenciesResponseSchema = Schema.Struct({
   latencies: Schema.mutable(Schema.Array(SignerLatencySchema)),
-}).annotations({ identifier: 'SignerLatenciesResponse' });
+}).annotate({ identifier: 'SignerLatenciesResponse' });
 export interface SignerLatenciesResponse
   extends Schema.Schema.Type<typeof SignerLatenciesResponseSchema> {}
 
@@ -252,7 +249,7 @@ export const PoxInfoSchema = Schema.Struct({
   firstBurnchainBlockHeight: Schema.Number,
   rewardCycleLength: Schema.Number,
   rewardCycleId: Schema.Number,
-}).annotations({ identifier: 'PoxInfo' });
+}).annotate({ identifier: 'PoxInfo' });
 export interface PoxInfo extends Schema.Schema.Type<typeof PoxInfoSchema> {}
 
 // StackerSetSigner schema
@@ -266,18 +263,17 @@ export const StackerSetSignerSchema = Schema.Struct({
   name: Schema.NullOr(Schema.String),
   signerManager: Schema.NullOr(Schema.String),
   label: Schema.String,
-}).annotations({ identifier: 'StackerSetSigner' });
+}).annotate({ identifier: 'StackerSetSigner' });
 export interface ApiStackerSetSigner
   extends Schema.Schema.Type<typeof StackerSetSignerSchema> {}
 
 // SignersResponse schema
-export const SignersResponseSchema = Schema.extend(
-  PoxInfoSchema,
-  Schema.Struct({
+export const SignersResponseSchema = PoxInfoSchema.pipe(
+  Schema.fieldsAssign({
     signers: Schema.mutable(Schema.Array(StackerSetSignerSchema)),
     totalWeight: Schema.Number,
   })
-).annotations({ identifier: 'SignersResponse' });
+).annotate({ identifier: 'SignersResponse' });
 export interface SignersResponse
   extends Schema.Schema.Type<typeof SignersResponseSchema> {}
 
@@ -285,46 +281,46 @@ export interface SignersResponse
 export const StxCommittedItemSchema = Schema.Struct({
   signer: Schema.String,
   stx: Schema.String,
-}).annotations({ identifier: 'StxCommittedItem' });
+}).annotate({ identifier: 'StxCommittedItem' });
 
 // StackedNextCycleResponse schema
 export const StackedNextCycleResponseSchema = Schema.Struct({
   stxCommitted: Schema.mutable(Schema.Array(StxCommittedItemSchema)),
-}).annotations({ identifier: 'StackedNextCycleResponse' });
+}).annotate({ identifier: 'StackedNextCycleResponse' });
 export interface StackedNextCycleResponse
   extends Schema.Schema.Type<typeof StackedNextCycleResponseSchema> {}
 
 // API Response schemas for OpenAPI documentation
 export const BurnBlocksResponseSchema = Schema.Struct({
   burnBlocks: Schema.mutable(Schema.Array(ApiBurnBlockSchema)),
-}).annotations({ identifier: 'BurnBlocksResponse' });
+}).annotate({ identifier: 'BurnBlocksResponse' });
 export interface BurnBlocksResponse
   extends Schema.Schema.Type<typeof BurnBlocksResponseSchema> {}
 
 export const TenureChangesResponseSchema = Schema.Struct({
   tenureChanges: Schema.mutable(Schema.Array(ApiStacksBlockSchema)),
-}).annotations({ identifier: 'TenureChangesResponse' });
+}).annotate({ identifier: 'TenureChangesResponse' });
 export interface TenureChangesResponse
   extends Schema.Schema.Type<typeof TenureChangesResponseSchema> {}
 
 export const BlockResponsesResponseSchema = Schema.Struct({
   responses: Schema.mutable(Schema.Array(BlockResponseApiSchema)),
   preCommits: Schema.mutable(Schema.Array(ApiBlockPreCommitSchema)),
-}).annotations({ identifier: 'BlockResponsesResponse' });
+}).annotate({ identifier: 'BlockResponsesResponse' });
 export interface BlockResponsesResponse
   extends Schema.Schema.Type<typeof BlockResponsesResponseSchema> {}
 
 export const BlockProposalWithResponsesSchema = Schema.Struct({
   blockProposal: ApiBlockProposalSchema,
   responses: Schema.mutable(Schema.Array(BlockResponseApiSchema)),
-}).annotations({ identifier: 'BlockProposalWithResponses' });
+}).annotate({ identifier: 'BlockProposalWithResponses' });
 export interface BlockProposalWithResponses
   extends Schema.Schema.Type<typeof BlockProposalWithResponsesSchema> {}
 
 export const StxBlockResponseSchema = Schema.Struct({
   stacksBlock: Schema.NullOr(ApiStacksBlockSchema),
   proposal: ApiBlockProposalSchema,
-}).annotations({ identifier: 'StxBlockResponse' });
+}).annotate({ identifier: 'StxBlockResponse' });
 export interface StxBlockResponse
   extends Schema.Schema.Type<typeof StxBlockResponseSchema> {}
 
@@ -338,14 +334,14 @@ export const SignerDashboardItemSchema = Schema.Struct({
   stackedAmount: Schema.String,
   stackedAmountStx: Schema.Number,
   label: Schema.String,
-}).annotations({ identifier: 'SignerDashboardItem' });
+}).annotate({ identifier: 'SignerDashboardItem' });
 export interface SignerDashboardItem
   extends Schema.Schema.Type<typeof SignerDashboardItemSchema> {}
 
 // SignersDashboardResponse schema
 export const SignersDashboardResponseSchema = Schema.mutable(
   Schema.Array(SignerDashboardItemSchema)
-).annotations({ identifier: 'SignersDashboardResponse' });
+).annotate({ identifier: 'SignersDashboardResponse' });
 export interface SignersDashboardResponse
   extends Schema.Schema.Type<typeof SignersDashboardResponseSchema> {}
 
@@ -354,7 +350,7 @@ export const StateMachinesResponseSchema = Schema.Struct({
   latestStateMachineUpdates: Schema.mutable(
     Schema.Array(ApiStateMachineUpdateSchema)
   ),
-}).annotations({ identifier: 'StateMachinesResponse' });
+}).annotate({ identifier: 'StateMachinesResponse' });
 export interface StateMachinesResponse
   extends Schema.Schema.Type<typeof StateMachinesResponseSchema> {}
 
@@ -363,7 +359,7 @@ export const StateMachineUpdatesResponseSchema = Schema.Struct({
   lastId: Schema.optional(Schema.String),
   next: Schema.String,
   stateMachines: Schema.mutable(Schema.Array(ApiStateMachineUpdateSchema)),
-}).annotations({ identifier: 'StateMachineUpdatesResponse' });
+}).annotate({ identifier: 'StateMachineUpdatesResponse' });
 export interface StateMachineUpdatesResponse
   extends Schema.Schema.Type<typeof StateMachineUpdatesResponseSchema> {}
 
@@ -373,7 +369,7 @@ export const MinerSummarySchema = Schema.Struct({
   count: Schema.Number,
   latestBlock: Schema.Number,
   version: Schema.String,
-}).annotations({ identifier: 'MinerSummary' });
+}).annotate({ identifier: 'MinerSummary' });
 export interface MinerSummary
   extends Schema.Schema.Type<typeof MinerSummarySchema> {}
 
@@ -382,7 +378,7 @@ export const MinersResponseSchema = Schema.Struct({
   minerStats: Schema.Struct({
     miners: Schema.mutable(Schema.Array(MinerSummarySchema)),
   }),
-}).annotations({ identifier: 'MinersResponse' });
+}).annotate({ identifier: 'MinersResponse' });
 export interface MinersResponse
   extends Schema.Schema.Type<typeof MinersResponseSchema> {}
 
@@ -396,14 +392,14 @@ export const BurnBlockBlocksResponseSchema = Schema.Struct({
       })
     )
   ),
-}).annotations({ identifier: 'BurnBlockBlocksResponse' });
+}).annotate({ identifier: 'BurnBlockBlocksResponse' });
 export interface BurnBlockBlocksResponse
   extends Schema.Schema.Type<typeof BurnBlockBlocksResponseSchema> {}
 
 // Single burn block response
 export const BurnBlockResponseSchema = Schema.Struct({
   btcBlock: Schema.NullOr(ApiBurnBlockSchema),
-}).annotations({ identifier: 'BurnBlockResponse' });
+}).annotate({ identifier: 'BurnBlockResponse' });
 export interface BurnBlockResponse
   extends Schema.Schema.Type<typeof BurnBlockResponseSchema> {}
 
@@ -429,7 +425,7 @@ export const MinerEconomicsBlockSchema = Schema.Struct({
       recipients: Schema.Number,
     })
   ),
-}).annotations({ identifier: 'MinerEconomicsBlock' });
+}).annotate({ identifier: 'MinerEconomicsBlock' });
 export interface MinerEconomicsBlock
   extends Schema.Schema.Type<typeof MinerEconomicsBlockSchema> {}
 
@@ -438,7 +434,7 @@ export const MinerEconomicsResponseSchema = Schema.Struct({
    * height with a null revenue earned nothing; blocks above it are still maturing. */
   maturedThroughHeight: Schema.Number,
   blocks: Schema.mutable(Schema.Array(MinerEconomicsBlockSchema)),
-}).annotations({ identifier: 'MinerEconomicsResponse' });
+}).annotate({ identifier: 'MinerEconomicsResponse' });
 export interface MinerEconomicsResponse
   extends Schema.Schema.Type<typeof MinerEconomicsResponseSchema> {}
 
@@ -459,7 +455,7 @@ export const MinerEconomicsMinerSchema = Schema.Struct({
   coinbaseUstx: Schema.Number,
   txFeesUstx: Schema.Number,
   rewardRows: Schema.Number,
-}).annotations({ identifier: 'MinerEconomicsMiner' });
+}).annotate({ identifier: 'MinerEconomicsMiner' });
 export interface MinerEconomicsMiner
   extends Schema.Schema.Type<typeof MinerEconomicsMinerSchema> {}
 
@@ -468,7 +464,7 @@ export const MinerEconomicsMinersResponseSchema = Schema.Struct({
   toHeight: Schema.Number,
   maturedThroughHeight: Schema.Number,
   miners: Schema.mutable(Schema.Array(MinerEconomicsMinerSchema)),
-}).annotations({ identifier: 'MinerEconomicsMinersResponse' });
+}).annotate({ identifier: 'MinerEconomicsMinersResponse' });
 export interface MinerEconomicsMinersResponse
   extends Schema.Schema.Type<typeof MinerEconomicsMinersResponseSchema> {}
 
@@ -480,7 +476,7 @@ export const MinerCommitSchema = Schema.Struct({
   minerPublicKey: Schema.NullOr(Schema.String),
   spendSats: Schema.Number,
   burnSats: Schema.Number,
-}).annotations({ identifier: 'MinerCommit' });
+}).annotate({ identifier: 'MinerCommit' });
 export interface MinerCommit
   extends Schema.Schema.Type<typeof MinerCommitSchema> {}
 
@@ -491,7 +487,7 @@ export const MinerCommitsBlockSchema = Schema.Struct({
   /** Commit txid that won the sortition. Null if none or not yet resolved. */
   winningTxid: Schema.NullOr(Schema.String),
   commits: Schema.mutable(Schema.Array(MinerCommitSchema)),
-}).annotations({ identifier: 'MinerCommitsBlock' });
+}).annotate({ identifier: 'MinerCommitsBlock' });
 export interface MinerCommitsBlock
   extends Schema.Schema.Type<typeof MinerCommitsBlockSchema> {}
 
@@ -499,7 +495,7 @@ export const MinerCommitsResponseSchema = Schema.Struct({
   fromHeight: Schema.Number,
   toHeight: Schema.Number,
   blocks: Schema.mutable(Schema.Array(MinerCommitsBlockSchema)),
-}).annotations({ identifier: 'MinerCommitsResponse' });
+}).annotate({ identifier: 'MinerCommitsResponse' });
 export interface MinerCommitsResponse
   extends Schema.Schema.Type<typeof MinerCommitsResponseSchema> {}
 
@@ -510,7 +506,7 @@ export const MinerVersionHistorySchema = Schema.Struct({
   firstSeen: Schema.String,
   lastSeen: Schema.String,
   blockCount: Schema.Number,
-}).annotations({ identifier: 'MinerVersionHistory' });
+}).annotate({ identifier: 'MinerVersionHistory' });
 export interface MinerVersionHistory
   extends Schema.Schema.Type<typeof MinerVersionHistorySchema> {}
 
@@ -523,7 +519,7 @@ export const MinerRecentBlockSchema = Schema.Struct({
   serverVersion: Schema.NullOr(Schema.String),
   serverVersionShort: Schema.NullOr(Schema.String),
   txCount: Schema.Number,
-}).annotations({ identifier: 'MinerRecentBlock' });
+}).annotate({ identifier: 'MinerRecentBlock' });
 export interface MinerRecentBlock
   extends Schema.Schema.Type<typeof MinerRecentBlockSchema> {}
 
@@ -531,7 +527,7 @@ export interface MinerRecentBlock
 export const MinerWindowStatsSchema = Schema.Struct({
   blocksWon: Schema.Number,
   percentage: Schema.Number,
-}).annotations({ identifier: 'MinerWindowStats' });
+}).annotate({ identifier: 'MinerWindowStats' });
 export interface MinerWindowStats
   extends Schema.Schema.Type<typeof MinerWindowStatsSchema> {}
 
@@ -551,6 +547,6 @@ export const MinerDetailResponseSchema = Schema.Struct({
     versionHistory: Schema.mutable(Schema.Array(MinerVersionHistorySchema)),
   }),
   recentBlocks: Schema.mutable(Schema.Array(MinerRecentBlockSchema)),
-}).annotations({ identifier: 'MinerDetailResponse' });
+}).annotate({ identifier: 'MinerDetailResponse' });
 export interface MinerDetailResponse
   extends Schema.Schema.Type<typeof MinerDetailResponseSchema> {}

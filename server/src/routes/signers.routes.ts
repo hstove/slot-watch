@@ -22,18 +22,18 @@ import type { ServerType } from '../server-context';
 import { stxCommittedCache } from '../pox-4';
 import { signerDegradationRate, warmupMetrics } from '../metrics';
 
-const signersResponse = Schema.standardSchemaV1(SignersResponseSchema);
-const signerLatenciesResponse = Schema.standardSchemaV1(
+const signersResponse = Schema.toStandardSchemaV1(SignersResponseSchema);
+const signerLatenciesResponse = Schema.toStandardSchemaV1(
   SignerLatenciesResponseSchema
 );
-const stackedNextCycleResponse = Schema.standardSchemaV1(
+const stackedNextCycleResponse = Schema.toStandardSchemaV1(
   StackedNextCycleResponseSchema
 );
 
-const recentSignersResponse = Schema.standardSchemaV1(
+const recentSignersResponse = Schema.toStandardSchemaV1(
   RecentSignersResponseSchema
 );
-const signersDashboardResponse = Schema.standardSchemaV1(
+const signersDashboardResponse = Schema.toStandardSchemaV1(
   SignersDashboardResponseSchema
 );
 
@@ -55,7 +55,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const poxInfo = await getPoxInfo.get(networkKey);
@@ -81,7 +81,7 @@ export const signersRoutes = new Hono<ServerType>()
           content: {
             'application/json': {
               schema: resolver(
-                Schema.standardSchemaV1(
+                Schema.toStandardSchemaV1(
                   Schema.Struct({ status: Schema.String })
                 )
               ),
@@ -93,7 +93,7 @@ export const signersRoutes = new Hono<ServerType>()
           content: {
             'application/json': {
               schema: resolver(
-                Schema.standardSchemaV1(
+                Schema.toStandardSchemaV1(
                   Schema.Struct({
                     status: Schema.String,
                     error: Schema.String,
@@ -149,7 +149,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const latencies = await getSignerLatencies(networkKey, c.get('db'));
@@ -177,7 +177,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey: _ } = c.req.valid('param');
       const stxCommitted = await stxCommittedCache.get();
@@ -205,7 +205,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const { responses, signers, totalWeight, poxInfo } =
@@ -293,7 +293,7 @@ export const signersRoutes = new Hono<ServerType>()
         },
       },
     }),
-    validator('param', Schema.standardSchemaV1(NetworkKeyParamSchema)),
+    validator('param', Schema.toStandardSchemaV1(NetworkKeyParamSchema)),
     async (c) => {
       const { networkKey } = c.req.valid('param');
       const poxInfo = await getPoxInfo.get(networkKey);
