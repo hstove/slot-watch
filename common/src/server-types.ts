@@ -416,6 +416,17 @@ export const MinerEconomicsBlockSchema = Schema.Struct({
   poxSpendSats: Schema.Number,
   /** Satoshis sent to the burn address by miners. 0 for historical rows ingested before this field existed. */
   burnAmountSats: Schema.Number,
+  /** USD at the hourly open for the time Slot Watch observed this burn block.
+   * Decimal strings preserve PostgreSQL numeric precision. Missing candles
+   * and immature or absent revenue remain null. */
+  valuation: Schema.Struct({
+    source: Schema.String,
+    hourStart: Schema.String,
+    btcUsdOpen: Schema.NullOr(Schema.String),
+    stxUsdOpen: Schema.NullOr(Schema.String),
+    spendUsd: Schema.NullOr(Schema.String),
+    revenueUsd: Schema.NullOr(Schema.String),
+  }),
   /** Matured miner rewards earned by this burn block. Null when no reward rows exist. */
   revenue: Schema.NullOr(
     Schema.Struct({
@@ -455,6 +466,17 @@ export const MinerEconomicsMinerSchema = Schema.Struct({
   coinbaseUstx: Schema.Number,
   txFeesUstx: Schema.Number,
   rewardRows: Schema.Number,
+  /** Sum of each commit's spend valued at its burn block's observed hour.
+   * Null if any commit lacks a matching block or BTC candle. */
+  spendUsd: Schema.NullOr(Schema.String),
+  /** Sum of each matured reward valued at its earning block's observed hour.
+   * Null if any reward lacks an earning block or STX candle, or no rewards exist. */
+  revenueUsd: Schema.NullOr(Schema.String),
+  /** Subtotal for rows with a known hourly price, even if coverage is incomplete. */
+  pricedSpendUsd: Schema.NullOr(Schema.String),
+  pricedRevenueUsd: Schema.NullOr(Schema.String),
+  spendPriceMissing: Schema.Number,
+  revenuePriceMissing: Schema.Number,
 }).annotate({ identifier: 'MinerEconomicsMiner' });
 export interface MinerEconomicsMiner
   extends Schema.Schema.Type<typeof MinerEconomicsMinerSchema> {}

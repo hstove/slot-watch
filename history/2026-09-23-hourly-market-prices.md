@@ -86,12 +86,47 @@ Both Coinbase Advanced Trade and Exchange return no candles for
 2026-05-08 02:00–06:00 UTC for either product. Those five hours are left
 missing, rather than filled with invented prices.
 
-## Next API step
+## API
 
-Add a price range API and then USD fields to the economics API with the
-selected valuation basis, source, hour, and coverage/null semantics in the
-response. Preserve the existing native-unit fields. The hourly table is in
-production, but prices are not yet returned by a Slot Watch API route.
+`GET /prices/hourly?from=...&to=...` returns stored BTC-USD and STX-USD
+opens in an inclusive/exclusive UTC hourly range of at most 31 days. The
+response identifies the source (`coinbase`), repeats the bounds, and returns
+decimal price strings. Missing candles are omitted. This lets a consumer
+chart either market series and derive STX per BTC from matching hours. It
+uses the `(source, product_id, hour_start)` primary key; there is no upstream
+request during an API read.
+
+The existing `GET /miner-economics/:networkKey` response now includes a
+`valuation` on every block: observed `hourStart`, both hourly USD opens,
+`spendUsd`, and `revenueUsd`. USD amounts are rounded to eight decimal places
+in PostgreSQL and serialized as decimal strings. Spend remains null when the
+BTC candle is absent; revenue remains null when the matured reward or STX
+candle is absent. Reward rows join by `(network_key,
+earned_consensus_hash)` so a fork at the same Bitcoin height cannot attach
+revenue to the wrong burn block. The existing native-unit fields and
+`maturedThroughHeight` remain the way to interpret absent or immature
+revenue.
+
+The existing `GET /miner-economics/:networkKey/miners` response now sums
+per-commit USD spend and per-reward USD revenue at their respective earning
+blocks' observed hours. `spendPriceMissing` and `revenuePriceMissing` count
+rows lacking a matching burn block or candle; the corresponding USD total is
+null if any row is unpriced. `pricedSpendUsd` and `pricedRevenueUsd` still
+provide the covered subtotals, so the current, unfinished hour does not erase
+useful historical valuation. A miner with no spend or no matured rewards has
+null for that USD total and a missing count of zero. This prevents an
+incomplete total from appearing as a profit margin. These aggregates use the
+same bounded four-week height window as the existing route and index joins
+to burn blocks and hourly prices. No separate summary table or additional
+migration is needed for current request sizes.
+
+The next client pass can show USD alongside native units in the block and
+miner tables, compute a margin only when both totals are present and the
+revenue window is mature, and indicate missing-price counts. The spend chart
+can use the block valuations or hourly price endpoint for an optional USD
+view. A daily history chart should sum the per-block USD amounts by observed
+UTC day rather than multiply native daily totals by a daily price. No client
+changes are included in this pass.
 
 ## Bondai history page as a consumer
 
