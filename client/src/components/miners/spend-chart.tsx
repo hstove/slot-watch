@@ -149,7 +149,7 @@ export function SpendChart({
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -194,9 +194,9 @@ export function SpendChart({
       </div>
       <div className="mt-2">
         <WinnerStrip blocks={winnerBlocks} rows={rowMap} />
-        <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground">
+        <div className="mt-1 flex min-w-0 justify-between gap-1 font-mono text-[9px] text-muted-foreground">
           <span>{first?.toLocaleString()}</span>
-          <span>
+          <span className="min-w-0 text-center">
             {stripLabel} · each bar ={' '}
             {bucketSize === 1 ? '1 btc block' : `${bucketSize} btc blocks`}
           </span>

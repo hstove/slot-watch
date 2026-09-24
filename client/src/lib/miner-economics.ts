@@ -67,6 +67,67 @@ export function formatCompact(value: number) {
   });
 }
 
+export function parseUsd(value: string | null): number | null {
+  return value === null ? null : Number(value);
+}
+
+export function formatUsd(value: number | null, compact = false) {
+  if (value === null) return '–';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: compact ? 1 : 0,
+    notation: compact ? 'compact' : 'standard',
+  }).format(value);
+}
+
+/** Gross margin uses revenue as the denominator: $1,000 earned on $700
+ * spent is 30%. A zero-revenue or incompletely priced range has no margin. */
+export function grossMarginPercent(
+  spendUsd: number | null,
+  revenueUsd: number | null
+) {
+  return spendUsd === null || revenueUsd === null || revenueUsd <= 0
+    ? null
+    : ((revenueUsd - spendUsd) / revenueUsd) * 100;
+}
+
+export interface UsdTotals {
+  spendUsd: number | null;
+  revenueUsd: number | null;
+  pricedSpendUsd: number | null;
+  pricedRevenueUsd: number | null;
+  spendPriceMissing: number;
+  revenuePriceMissing: number;
+}
+
+/** Aggregate the API's per-miner totals without treating missing prices as 0.
+ * A miner with no rewards contributes 0 revenue to the network total. */
+export function sumUsdTotals(miners: MinerEconomicsMiner[]): UsdTotals {
+  let spend = 0;
+  let revenue = 0;
+  let pricedSpend = 0;
+  let pricedRevenue = 0;
+  let spendMissing = 0;
+  let revenueMissing = 0;
+  for (const miner of miners) {
+    spend += parseUsd(miner.spendUsd) ?? 0;
+    revenue += parseUsd(miner.revenueUsd) ?? 0;
+    pricedSpend += parseUsd(miner.pricedSpendUsd) ?? 0;
+    pricedRevenue += parseUsd(miner.pricedRevenueUsd) ?? 0;
+    spendMissing += miner.spendPriceMissing;
+    revenueMissing += miner.revenuePriceMissing;
+  }
+  return {
+    spendUsd: spendMissing ? null : spend,
+    revenueUsd: revenueMissing ? null : revenue,
+    pricedSpendUsd: miners.length ? pricedSpend : null,
+    pricedRevenueUsd: miners.length ? pricedRevenue : null,
+    spendPriceMissing: spendMissing,
+    revenuePriceMissing: revenueMissing,
+  };
+}
+
 export function percent(numerator: number, denominator: number, digits = 1) {
   if (denominator === 0) return '–';
   return `${((numerator / denominator) * 100).toFixed(digits)}%`;

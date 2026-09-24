@@ -3,6 +3,7 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import { useToast } from '@/hooks/use-toast';
 import { cn, truncateMiddle } from '@/lib/utils';
 import type { MinerRow } from '@/lib/miner-rows';
+import type { MinerWindow } from '@/lib/miner-economics';
 import { SimpleTooltip } from '../simple-tooltip';
 
 export function CopyValue({
@@ -57,7 +58,15 @@ export function MinerSwatch({
   );
 }
 
-export function MinerIdentity({ miner }: { miner: MinerRow }) {
+export function MinerIdentity({
+  miner,
+  networkKey,
+  windowKey,
+}: {
+  miner: MinerRow;
+  networkKey: string;
+  windowKey: MinerWindow;
+}) {
   const label = miner.address
     ? truncateMiddle(miner.address, 8, 6)
     : 'unresolved sender';
@@ -72,6 +81,7 @@ export function MinerIdentity({ miner }: { miner: MinerRow }) {
           <Link
             to="/miners/$publicKey"
             params={{ publicKey: miner.publicKey }}
+            search={{ network: networkKey, window: windowKey }}
             className="block truncate font-mono text-xs leading-4 hover:underline"
             onClick={(event) => event.stopPropagation()}
           >

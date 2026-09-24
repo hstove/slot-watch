@@ -120,13 +120,23 @@ same bounded four-week height window as the existing route and index joins
 to burn blocks and hourly prices. No separate summary table or additional
 migration is needed for current request sizes.
 
-The next client pass can show USD alongside native units in the block and
-miner tables, compute a margin only when both totals are present and the
-revenue window is mature, and indicate missing-price counts. The spend chart
-can use the block valuations or hourly price endpoint for an optional USD
-view. A daily history chart should sum the per-block USD amounts by observed
-UTC day rather than multiply native daily totals by a daily price. No client
-changes are included in this pass.
+The miner overview and miner detail pages now show a four-metric USD
+comparison over the **same matured burn-height range**: BTC spent, STX earned,
+net, and gross margin (`(revenue - spend) / revenue`). They keep the existing
+native BTC/STX figures for the full selected window. The miner table adds
+priced USD subtotals under native amounts and a sortable margin column.
+Missing prices leave the full USD total and margin blank, while showing the
+priced subtotal and missing row count. A rewardless miner contributes zero
+revenue to the network total, but has no percentage margin because its
+denominator is zero. Miner detail now offers 1d/7d/28d windows; 7d is the
+default, while the 28d view currently identifies one unpriced older reward
+for some miners. The comparison explicitly labels its hourly-open and
+observation-time basis, and excludes other costs and sale timing.
+
+A later chart pass can use block valuations or hourly prices for an optional
+USD spend series. A daily history chart should sum the per-block USD amounts
+by observed UTC day rather than multiply native daily totals by a daily
+price.
 
 ## Bondai history page as a consumer
 
