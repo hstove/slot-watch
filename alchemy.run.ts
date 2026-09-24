@@ -49,6 +49,7 @@ const db = await Hyperdrive('slot-watch-pg', {
 export const worker = await Worker('slot-watch-worker', {
   name: 'slot-watch-worker',
   entrypoint: 'server/src/server.ts',
+  crons: ['10 * * * *'],
   compatibilityFlags: ['nodejs_compat'],
   compatibilityDate: '2025-05-29',
   bundle: {

@@ -18,6 +18,10 @@ import { warmupMetrics } from './metrics';
 import { register, Registry } from 'prom-client';
 import { makeMcpServer } from './mcp/mcp';
 import { StreamableHTTPTransport } from '@hono/mcp';
+import { Effect } from 'effect';
+import { FetchHttpClient } from 'effect/unstable/http';
+import { completedHour, HOUR_MS } from './prices/coinbase';
+import { syncHourlyPrices } from './prices/sync';
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
@@ -116,4 +120,32 @@ export const app = new Hono<ServerType>()
 export type SlotWatchServer = typeof app;
 
 /** @alias */
-export default app;
+export default {
+  fetch: app.fetch,
+  async scheduled(controller: ScheduledController) {
+    const to = completedHour(new Date(controller.scheduledTime));
+    const from = new Date(to.getTime() - 6 * HOUR_MS);
+    const db = makeDb();
+    await db.$client.connect();
+    try {
+      const counts = await Effect.runPromise(
+        syncHourlyPrices(db, from, to).pipe(
+          Effect.provide(FetchHttpClient.layer)
+        )
+      );
+      log
+        .withMetadata({
+          topic: 'hourly-prices',
+          from: from.toISOString(),
+          to: to.toISOString(),
+          counts,
+        })
+        .info('Refreshed hourly prices');
+    } catch (error) {
+      log.withError(error).error('Failed to refresh hourly prices');
+      throw error;
+    } finally {
+      await db.$client.end();
+    }
+  },
+};

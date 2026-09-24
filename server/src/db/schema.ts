@@ -10,11 +10,14 @@ import {
   bigint,
   boolean,
   unique,
+  numeric,
+  primaryKey,
+  check,
   json,
   // sqliteTable as pgTable,
   // text as,
 } from 'drizzle-orm/pg-core';
-import type { InferSelectModel } from 'drizzle-orm';
+import { sql, type InferSelectModel } from 'drizzle-orm';
 import type { StateMachineUpdate, SuperJSON } from 'slot-watch-common';
 
 const bytea = customType<{ data: Uint8Array; notNull: false; default: false }>({
@@ -264,6 +267,38 @@ export const burnBlocks = pgTable(
 );
 
 export type BurnBlockDb = InferSelectModel<typeof burnBlocks>;
+
+/**
+ * One-hour market candle opens. `hourStart` is the UTC candle bucket, not
+ * the fetch time. `openPrice` is quote currency per one base currency in
+ * `productId` (initially BTC-USD and STX-USD). Cross rates are derived from
+ * prices for the same source and hour, rather than stored separately.
+ */
+export const hourlyPrices = pgTable(
+  'hourly_prices',
+  {
+    source: text('source', { length: 32 }).notNull(),
+    productId: text('product_id', { length: 20 }).notNull(),
+    hourStart: timestamp('hour_start', { withTimezone: true }).notNull(),
+    openPrice: numeric('open_price', { precision: 24, scale: 10 }).notNull(),
+    fetchedAt: timestamp('fetched_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: 'hourly_prices_source_product_hour_pk',
+      columns: [table.source, table.productId, table.hourStart],
+    }),
+    check('hourly_prices_open_positive', sql`${table.openPrice} > 0`),
+    check(
+      'hourly_prices_hour_aligned',
+      sql`extract(epoch from ${table.hourStart}) % 3600 = 0`
+    ),
+  ]
+);
+
+export type HourlyPriceDb = InferSelectModel<typeof hourlyPrices>;
 
 /**
  * One row per block-commit transaction in a burn block, from

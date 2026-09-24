@@ -78,6 +78,13 @@
       "when": 1789757899740,
       "tag": "0010_hesitant_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790222654937,
+      "tag": "0011_cooing_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }
