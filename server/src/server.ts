@@ -21,7 +21,7 @@ import { makeMcpServer } from './mcp/mcp';
 import { StreamableHTTPTransport } from '@hono/mcp';
 import { Effect } from 'effect';
 import { FetchHttpClient } from 'effect/unstable/http';
-import { completedHour, HOUR_MS } from './prices/coinbase';
+import { startOfHour, HOUR_MS } from './prices/coinbase';
 import { syncHourlyPrices } from './prices/sync';
 
 const api = new Hono<ServerType>()
@@ -126,7 +126,9 @@ export type SlotWatchServer = typeof app;
 export default {
   fetch: app.fetch,
   async scheduled(controller: ScheduledController) {
-    const to = completedHour(new Date(controller.scheduledTime));
+    const to = new Date(
+      startOfHour(new Date(controller.scheduledTime)).getTime() + HOUR_MS
+    );
     const from = new Date(to.getTime() - 6 * HOUR_MS);
     const db = makeDb();
     await db.$client.connect();

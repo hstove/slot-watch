@@ -14,7 +14,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Effect } from 'effect';
 import { FetchHttpClient } from 'effect/unstable/http';
 import * as schema from '../src/db/schema';
-import { completedHour, HOUR_MS } from '../src/prices/coinbase';
+import { startOfHour, HOUR_MS } from '../src/prices/coinbase';
 import { syncHourlyPrices } from '../src/prices/sync';
 
 const { values: args } = parseArgs({
@@ -24,16 +24,16 @@ const { values: args } = parseArgs({
   },
 });
 
-const to = args.to ? new Date(args.to) : completedHour(new Date());
+const to = args.to ? new Date(args.to) : startOfHour(new Date());
 const sixMonthsAgo = new Date(to);
 sixMonthsAgo.setUTCMonth(sixMonthsAgo.getUTCMonth() - 6);
-const from = args.from ? new Date(args.from) : completedHour(sixMonthsAgo);
+const from = args.from ? new Date(args.from) : startOfHour(sixMonthsAgo);
 if (
   !(Number.isFinite(from.getTime()) && Number.isFinite(to.getTime())) ||
   from.getTime() % HOUR_MS !== 0 ||
   to.getTime() % HOUR_MS !== 0 ||
   from >= to ||
-  to > completedHour(new Date())
+  to > startOfHour(new Date())
 )
   throw new Error('Expected an hourly UTC range ending no later than now');
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
