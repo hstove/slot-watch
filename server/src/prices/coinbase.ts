@@ -29,11 +29,11 @@ function parseCandle(
   return [hour, candle.open];
 }
 
-export function completedHour(date: Date): Date {
+export function startOfHour(date: Date): Date {
   return new Date(Math.floor(date.getTime() / HOUR_MS) * HOUR_MS);
 }
 
-/** Fetch one range of completed hourly candle opens (at most 300 hours). */
+/** Fetch one range of hourly candle opens (at most 300 hours). An hour's open is final once it starts. */
 export function fetchCoinbaseHourlyPrices(
   product: PriceProduct,
   from: Date,
@@ -47,9 +47,9 @@ export function fetchCoinbaseHourlyPrices(
       hours > 300 ||
       from.getTime() % HOUR_MS !== 0 ||
       to.getTime() % HOUR_MS !== 0 ||
-      to > completedHour(new Date())
+      to.getTime() > startOfHour(new Date()).getTime() + HOUR_MS
     ) {
-      return yield* Effect.fail(new Error('Invalid completed candle range'));
+      return yield* Effect.fail(new Error('Invalid candle range'));
     }
 
     const url = new URL(
