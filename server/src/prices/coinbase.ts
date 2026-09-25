@@ -65,7 +65,7 @@ export function fetchCoinbaseHourlyPrices(
     const response = yield* HttpClient.get(url).pipe(
       Effect.flatMap(HttpClientResponse.filterStatusOk),
       Effect.timeout('15 seconds'),
-      Effect.retry({ schedule: Schedule.exponential('1 second'), times: 3 })
+      Effect.retry({ schedule: Schedule.exponential('2 seconds'), times: 4 })
     );
     const body =
       yield* HttpClientResponse.schemaBodyJson(CandlesResponse)(response);
