@@ -36,7 +36,7 @@ This means server changes are deployed to prod to be tested. Keep changes resili
 
 ### Client: run locally against prod
 
-The client is fine to run locally with `bun dev:client:tee` — it points at the production API and streamer, so you get real data. See `./client/AGENTS.md` for dev server details and logs.
+Run the client with `bun dev:client:tee` from the repo root, then open `https://slotwatch.localhost` (not `localhost:<port>`). It points at the production API and streamer, so you get real data. Logs go to `client/tmp/dev-server.log`. See `./client/AGENTS.md` for more.
 
 ### Cloudflare logs & production state
 

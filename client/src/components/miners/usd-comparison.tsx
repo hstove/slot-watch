@@ -82,10 +82,6 @@ export function UsdComparison({
             : 'no matured blocks in this window yet'}
         </div>
       )}
-      <div className="border-t border-border px-3 py-2 font-mono text-[10px] text-muted-foreground">
-        Coinbase hourly opens at the earning block’s observed time · matured
-        rewards only · excludes other mining costs and sale timing
-      </div>
     </div>
   );
 }
