@@ -13,7 +13,7 @@ This package is part of the Slot Watch monorepo, and it's responsible for the fr
 
 ## Memory
 
-- Dev server: `https://slotwatch.localhost`
+- Dev server: run `bun dev:client:tee` from the repo root, then visit `https://slotwatch.localhost`
 - Server logs: `tail -n 100 tmp/dev-server.log`
 - UI design: See `./UI-DESIGN.md`
 - Prod URL: `https://slotwatch.dev`
