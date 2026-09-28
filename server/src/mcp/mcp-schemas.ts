@@ -1,4 +1,16 @@
+import { MINER_ANIMAL_KEYS, MINER_COLOR_KEYS } from 'slot-watch-common';
 import { z } from 'zod';
+
+const minerIdentityShape = {
+  minerLabel: z
+    .string()
+    .nullable()
+    .describe(
+      'Deterministic miner nickname derived from its public key, e.g. "Teal Wolf"'
+    ),
+  minerColor: z.enum(MINER_COLOR_KEYS as [string, ...string[]]).nullable(),
+  minerAnimal: z.enum(MINER_ANIMAL_KEYS as [string, ...string[]]).nullable(),
+};
 
 const minerStateSchema = z.union([
   z.object({ status: z.literal('none') }),
@@ -46,6 +58,7 @@ export const getStacksBlockOutputSchema = z.object({
       blockTimestamp: z.string(),
       observedAt: z.string(),
       minerPublicKey: z.string(),
+      ...minerIdentityShape,
       tenureChangeCause: z.number().nullable(),
       indexBlockHash: z.string().nullable().optional(),
       processedAt: z.string().optional(),
@@ -123,6 +136,7 @@ export const getRecentStacksBlocksOutputSchema = z.object({
         blockTimestamp: z.string(),
         observedAt: z.string(),
         minerPublicKey: z.string(),
+        ...minerIdentityShape,
         serverVersionShort: z.string().nullable(),
         accepted: z.boolean(),
         stacksBlockHash: z.string().nullable(),
@@ -166,6 +180,7 @@ const ingestionBlockProposalSchema = z
     consensusHash: z.string(),
     blockTimestamp: z.string(),
     minerPublicKey: z.string(),
+    ...minerIdentityShape,
     serverVersionShort: z.string().nullable(),
   })
   .merge(bitcoinBlockHeightSchema)
@@ -188,6 +203,7 @@ const ingestionBlockPushSchema = z
     blockHash: z.string(),
     blockHeight: z.number(),
     minerPublicKey: z.string(),
+    ...minerIdentityShape,
   })
   .merge(observedAgeSchema);
 
@@ -232,6 +248,7 @@ const blockHealthItemSchema = z
     blockTimestamp: z.string(),
     observedAt: z.string(),
     minerPublicKey: z.string(),
+    ...minerIdentityShape,
     accepted: z.boolean().nullable(),
     acceptRatio: z.number(),
     rejectRatio: z.number(),
@@ -358,6 +375,7 @@ const tenureBlockSchema = z
     blockTimestamp: z.string(),
     observedAt: z.string(),
     minerPublicKey: z.string(),
+    ...minerIdentityShape,
     accepted: z.boolean(),
     stacksBlockHash: z.string().nullable(),
     stacksBlockHeight: z.number().nullable(),

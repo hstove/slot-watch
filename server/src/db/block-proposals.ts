@@ -27,7 +27,12 @@ import {
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
-import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
+import {
+  getMinerIdentity,
+  getVersionFromString,
+  type ApiBlockProposal,
+  type MinerIdentity,
+} from 'slot-watch-common';
 import { stringify } from 'superjson';
 import { log, logger } from '../logger';
 import { memoizeCache } from '../cache';
@@ -265,7 +270,7 @@ export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
 
   const miners: Record<
     string,
-    {
+    MinerIdentity & {
       version: string;
       count: number;
       latestBlock: number;
@@ -282,6 +287,7 @@ export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
       count: 0,
       latestBlock: block.burnBlockHeight,
       publicKey: minerPublicKey,
+      ...getMinerIdentity(minerPublicKey),
     };
     miners[minerPublicKey] = {
       ...miner,
@@ -385,6 +391,7 @@ export async function fetchMinerDetail(
   return {
     miner: {
       publicKey,
+      ...getMinerIdentity(publicKey),
       btcAddress,
       stats: {
         last500: {

@@ -10,7 +10,7 @@ import {
   UNRESOLVED_KEY,
 } from '@/lib/miner-economics';
 import { type MinerRow, sumRows } from '@/lib/miner-rows';
-import { cn, truncateMiddle } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { SimpleTooltip } from '../simple-tooltip';
 
 export function Metric({
@@ -132,15 +132,13 @@ function ShareRow({
   const delta = (winShare - spendShare) * 100;
   const deltaLabel = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`;
   return (
-    <div className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_3.5rem_2.5rem] items-center gap-x-2 font-mono text-[10px]">
+    <div className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)_3.5rem_2.5rem] items-center gap-x-2 font-mono text-[10px]">
       <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
         <span
           className="h-1.5 w-1.5 shrink-0"
           style={{ backgroundColor: row.color }}
         />
-        <span className="truncate">
-          {row.address ? truncateMiddle(row.address, 5, 4) : 'unresolved'}
-        </span>
+        <span className="truncate">{row.label}</span>
       </span>
       <span className="flex flex-col gap-px">
         <span className="h-1 w-full bg-muted">
@@ -198,7 +196,7 @@ export function SortitionShare({ rows }: { rows: MinerRow[] }) {
         {winners.map((row) => (
           <SimpleTooltip
             key={row.key}
-            content={`${row.address ? truncateMiddle(row.address, 8, 6) : 'unresolved'} · ${row.wins} wins · ${percent(row.wins, totalWins)}`}
+            content={`${row.label} · ${row.wins} wins · ${percent(row.wins, totalWins)}`}
           >
             <div
               className="h-full min-w-0"

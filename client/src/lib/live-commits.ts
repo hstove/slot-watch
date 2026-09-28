@@ -1,4 +1,9 @@
-import type { MinerCommitsBlock } from 'slot-watch-common';
+import {
+  type MinerCommit,
+  type MinerCommitsBlock,
+  type MinerName,
+  minerDisplay,
+} from 'slot-watch-common';
 import type { MinerLiveState } from '@/hooks/use-mempool-commits';
 import {
   type FeeStatus,
@@ -7,7 +12,7 @@ import {
   type LiveCommit,
   type MempoolBlock,
 } from '@/lib/mempool-space';
-import { minerColorMap, minerKey } from '@/lib/miner-economics';
+import { UNRESOLVED_COLOR } from '@/lib/miner-economics';
 import { truncateMiddle } from '@/lib/utils';
 
 /** Sortition weighs a commit by the median of the miner's last 6 commits. */
@@ -16,6 +21,7 @@ const COMMITMENT_WINDOW = 6;
 export interface TrackedMiner {
   publicKey: string;
   stxAddress: string | null;
+  identity: MinerName | null;
   label: string;
   btcAddress: string;
   color: string;
@@ -24,34 +30,41 @@ export interface TrackedMiner {
   wins: number;
 }
 
+function newTrackedMiner(
+  commit: MinerCommit,
+  publicKey: string,
+  btcAddress: string
+): TrackedMiner {
+  const identity = minerDisplay(commit);
+  return {
+    publicKey,
+    stxAddress: commit.minerAddress,
+    identity,
+    label: identity
+      ? identity.label
+      : truncateMiddle(commit.minerAddress ?? publicKey, 5, 4),
+    color: identity?.hex ?? UNRESOLVED_COLOR,
+    btcAddress,
+    bids: new Map(),
+    wins: 0,
+  };
+}
+
 export function trackedMiners(blocks: MinerCommitsBlock[]): TrackedMiner[] {
-  const byKey = new Map<string, Omit<TrackedMiner, 'color'>>();
+  const byKey = new Map<string, TrackedMiner>();
   for (const block of blocks) {
     for (const commit of block.commits) {
       if (!(commit.minerPublicKey && commit.btcAddress)) continue;
-      const miner = byKey.get(commit.minerPublicKey) ?? {
-        publicKey: commit.minerPublicKey,
-        stxAddress: commit.minerAddress,
-        label: commit.minerAddress
-          ? truncateMiddle(commit.minerAddress, 5, 4)
-          : truncateMiddle(commit.minerPublicKey, 6, 4),
-        btcAddress: commit.btcAddress,
-        bids: new Map(),
-        wins: 0,
-      };
+      const miner =
+        byKey.get(commit.minerPublicKey) ??
+        newTrackedMiner(commit, commit.minerPublicKey, commit.btcAddress);
       miner.btcAddress = commit.btcAddress;
       miner.bids.set(block.burnBlockHeight, commit.spendSats + commit.burnSats);
       if (commit.txid === block.winningTxid) miner.wins++;
       byKey.set(commit.minerPublicKey, miner);
     }
   }
-  const colors = minerColorMap(
-    [...byKey.values()].map((m) => minerKey(m.stxAddress))
-  );
-  return [...byKey.values()].map((m) => ({
-    ...m,
-    color: colors.get(minerKey(m.stxAddress)) ?? '#6b7280',
-  }));
+  return [...byKey.values()];
 }
 
 function median(values: number[]) {

@@ -15,6 +15,7 @@ import {
   type ApiStateMachineUpdate,
   type BlockResponseApi,
   type StateMachineUpdateMinerState,
+  getMinerIdentity,
   getVersionFromString,
   superDeserialize,
   type NetworkKey,
@@ -129,6 +130,7 @@ export function serializeBlockProposal(
     burnBlockHeight: block.burnBlockHeight ?? 0,
     consensusHash: block.consensusHash ?? '',
     minerPublicKey: block.minerPublicKey ?? '',
+    ...getMinerIdentity(block.minerPublicKey),
     txCount: block.txCount ?? 0,
     serverVersionShort: block.serverVersion
       ? getVersionFromString(block.serverVersion)

@@ -42,6 +42,7 @@ import { mergeBlockData } from 'slot-watch-common/stacks-blocks';
 import {
   BlockResponseRejectReasons,
   createStacksRpcClient,
+  getMinerIdentity,
   getVersionFromString,
   getSortitionByBurnBlockHeight,
   getSortitionByBurnHeaderHash,
@@ -465,6 +466,7 @@ export const makeMcpServer = () => {
               blockTimestamp: proposal.blockTimestamp.toISOString(),
               observedAt: getObservedAt(proposal.id),
               minerPublicKey: proposal.minerPublicKey,
+              ...getMinerIdentity(proposal.minerPublicKey),
               serverVersionShort: proposal.serverVersion
                 ? getVersionFromString(proposal.serverVersion)
                 : null,
@@ -689,6 +691,7 @@ export const makeMcpServer = () => {
                     consensusHash: latestProposal.consensusHash,
                     blockTimestamp: latestProposal.blockTimestamp.toISOString(),
                     minerPublicKey: latestProposal.minerPublicKey,
+                    ...getMinerIdentity(latestProposal.minerPublicKey),
                     serverVersionShort: latestProposal.serverVersion
                       ? getVersionFromString(latestProposal.serverVersion)
                       : null,
@@ -724,6 +727,7 @@ export const makeMcpServer = () => {
                   blockHash: latestPush.signerSignatureHash,
                   blockHeight: latestPush.chainLength,
                   minerPublicKey: latestPush.minerPublicKey,
+                  ...getMinerIdentity(latestPush.minerPublicKey),
                   observedAt,
                   ageSeconds: getAgeSeconds(observedAt, nowMs),
                 };
@@ -934,6 +938,7 @@ export const makeMcpServer = () => {
                 blockTimestamp: proposal.blockTimestamp.toISOString(),
                 observedAt,
                 minerPublicKey: proposal.minerPublicKey,
+                ...getMinerIdentity(proposal.minerPublicKey),
                 accepted: responseInfo.accepted,
                 acceptRatio: responseInfo.acceptRatio,
                 rejectRatio: responseInfo.rejectRatio,
@@ -1488,6 +1493,7 @@ export const makeMcpServer = () => {
               blockTimestamp: proposal.blockTimestamp.toISOString(),
               observedAt: getObservedAt(proposal.id),
               minerPublicKey: proposal.minerPublicKey,
+              ...getMinerIdentity(proposal.minerPublicKey),
               accepted,
               stacksBlockHash: accepted ? proposal.stacksBlockHash : null,
               stacksBlockHeight: accepted ? proposal.stacksBlockHeight : null,

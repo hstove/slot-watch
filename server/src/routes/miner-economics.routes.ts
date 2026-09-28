@@ -20,6 +20,7 @@ import {
   MinerEconomicsMinersResponseSchema,
   MinerEconomicsResponseSchema,
   NetworkKeyParamSchema,
+  getMinerIdentity,
 } from 'slot-watch-common';
 import {
   burnBlocks,
@@ -423,6 +424,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
         miners: rows.map((row) => ({
           minerAddress: row.minerAddress,
           minerPublicKey: row.minerPublicKey ?? null,
+          ...getMinerIdentity(row.minerPublicKey),
           commits: Number(row.commits ?? 0),
           wins: Number(row.wins ?? 0),
           spendSats: Number(row.spendSats ?? 0),
@@ -513,6 +515,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
           txid: row.txid,
           minerAddress: row.minerAddress,
           minerPublicKey: row.minerPublicKey,
+          ...getMinerIdentity(row.minerPublicKey),
           btcAddress: row.btcAddress,
           spendSats: Number(row.spendSats),
           burnSats: Number(row.burnSats),

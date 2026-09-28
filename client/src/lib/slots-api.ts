@@ -11,6 +11,7 @@ import {
   type BlockResponsesResponse,
   type MinerCommitsResponse,
   type MinerEconomicsMinersResponse,
+  type MinerIdentity,
   asNetworkKey,
 } from 'slot-watch-common';
 import type { O } from 'ts-toolbelt';
@@ -116,6 +117,9 @@ function mergeBlockData(
       blockHash: proposal.signerSignatureHash,
       blockHeight: proposal.chainLength,
       minerPublicKey: proposal.minerPublicKey,
+      minerLabel: proposal.minerLabel,
+      minerColor: proposal.minerColor,
+      minerAnimal: proposal.minerAnimal,
       txCount: proposal.txCount ?? 0,
       tenureChangeCause: proposal.tenureChangeCause,
       consensusHash: proposal.consensusHash,
@@ -141,6 +145,9 @@ function mergeBlockData(
     blockHash: proposal.signerSignatureHash,
     blockHeight: proposal.chainLength,
     minerPublicKey: proposal.minerPublicKey,
+    minerLabel: proposal.minerLabel,
+    minerColor: proposal.minerColor,
+    minerAnimal: proposal.minerAnimal,
     txCount: proposal.txCount ?? 0,
     tenureChangeCause: proposal.tenureChangeCause,
     consensusHash: proposal.consensusHash,
@@ -186,7 +193,7 @@ type StacksBlockBase = {
   txFees: number;
 };
 
-interface _ProposalOnlyBlock extends StacksBlockBase {
+interface _ProposalOnlyBlock extends StacksBlockBase, MinerIdentity {
   minerPublicKey: string | null;
   proposedAt: string;
   serverVersion: string | null;
