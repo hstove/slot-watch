@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MinersIndexRouteImport } from './routes/miners/index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
 import { Route as StxBlocksBlockHashRouteImport } from './routes/stx-blocks/$blockHash'
+import { Route as MinersLiveRouteImport } from './routes/miners/live'
 import { Route as MinersPublicKeyRouteImport } from './routes/miners/$publicKey'
 import { Route as BtcBlocksHeightOrHashRouteImport } from './routes/btc-blocks/$heightOrHash'
 
@@ -78,6 +79,11 @@ const StxBlocksBlockHashRoute = StxBlocksBlockHashRouteImport.update({
   path: '/stx-blocks/$blockHash',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MinersLiveRoute = MinersLiveRouteImport.update({
+  id: '/miners/live',
+  path: '/miners/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MinersPublicKeyRoute = MinersPublicKeyRouteImport.update({
   id: '/miners/$publicKey',
   path: '/miners/$publicKey',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
   '/miners/$publicKey': typeof MinersPublicKeyRoute
+  '/miners/live': typeof MinersLiveRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
   '/miners': typeof MinersIndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
   '/miners/$publicKey': typeof MinersPublicKeyRoute
+  '/miners/live': typeof MinersLiveRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks': typeof BlocksIndexRoute
   '/miners': typeof MinersIndexRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/when-extend': typeof WhenExtendRoute
   '/btc-blocks/$heightOrHash': typeof BtcBlocksHeightOrHashRoute
   '/miners/$publicKey': typeof MinersPublicKeyRoute
+  '/miners/live': typeof MinersLiveRoute
   '/stx-blocks/$blockHash': typeof StxBlocksBlockHashRoute
   '/blocks/': typeof BlocksIndexRoute
   '/miners/': typeof MinersIndexRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
     | '/miners/$publicKey'
+    | '/miners/live'
     | '/stx-blocks/$blockHash'
     | '/blocks'
     | '/miners'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
     | '/miners/$publicKey'
+    | '/miners/live'
     | '/stx-blocks/$blockHash'
     | '/blocks'
     | '/miners'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/when-extend'
     | '/btc-blocks/$heightOrHash'
     | '/miners/$publicKey'
+    | '/miners/live'
     | '/stx-blocks/$blockHash'
     | '/blocks/'
     | '/miners/'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   WhenExtendRoute: typeof WhenExtendRoute
   BtcBlocksHeightOrHashRoute: typeof BtcBlocksHeightOrHashRoute
   MinersPublicKeyRoute: typeof MinersPublicKeyRoute
+  MinersLiveRoute: typeof MinersLiveRoute
   StxBlocksBlockHashRoute: typeof StxBlocksBlockHashRoute
   BlocksIndexRoute: typeof BlocksIndexRoute
   MinersIndexRoute: typeof MinersIndexRoute
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StxBlocksBlockHashRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/miners/live': {
+      id: '/miners/live'
+      path: '/miners/live'
+      fullPath: '/miners/live'
+      preLoaderRoute: typeof MinersLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/miners/$publicKey': {
       id: '/miners/$publicKey'
       path: '/miners/$publicKey'
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   WhenExtendRoute: WhenExtendRoute,
   BtcBlocksHeightOrHashRoute: BtcBlocksHeightOrHashRoute,
   MinersPublicKeyRoute: MinersPublicKeyRoute,
+  MinersLiveRoute: MinersLiveRoute,
   StxBlocksBlockHashRoute: StxBlocksBlockHashRoute,
   BlocksIndexRoute: BlocksIndexRoute,
   MinersIndexRoute: MinersIndexRoute,
