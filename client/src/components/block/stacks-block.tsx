@@ -17,7 +17,12 @@ import {
 import { Hex } from '../hex';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { Button } from '../ui/button';
-import { getStacksExplorerUrl, prefix0x } from 'slot-watch-common';
+import {
+  getStacksExplorerUrl,
+  minerDisplay,
+  prefix0x,
+} from 'slot-watch-common';
+import { MinerNameTag } from '../miners/miner-identity';
 import { Link } from '@tanstack/react-router';
 import { ResponseTimelineChart } from '../stacks-block/response-timeline-chart';
 
@@ -49,6 +54,7 @@ export function StacksBlock() {
     if (!block?.minerPublicKey) return null;
     return hex.encode(ripemd160(sha256(hex.decode(block.minerPublicKey))));
   }, [block?.minerPublicKey]);
+  const minerIdentity = block ? minerDisplay(block) : null;
 
   if (!(block && minerPkHash && responseOutcome)) return null;
   return (
@@ -92,6 +98,11 @@ export function StacksBlock() {
             <Timestamp timestamp={block.processedAt} />
           </DataRow>
         )}
+        {minerIdentity ? (
+          <DataRow label="miner">
+            <MinerNameTag identity={minerIdentity} />
+          </DataRow>
+        ) : null}
         <DataRow label="miner public key">
           <Hex>{block.minerPublicKey}</Hex>
         </DataRow>

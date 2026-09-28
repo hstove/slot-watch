@@ -13,29 +13,8 @@ export const MAX_COMMIT_BLOCKS = 1008;
 /** Upper bound on bars in the spend chart. */
 export const MAX_CHART_BARS = 144;
 
-const PALETTE = [
-  '#f59e0b',
-  '#3b82f6',
-  '#10b981',
-  '#ec4899',
-  '#8b5cf6',
-  '#06b6d4',
-  '#ef4444',
-  '#84cc16',
-];
 export const UNRESOLVED_COLOR = '#6b7280';
 export const UNRESOLVED_KEY = 'unresolved';
-
-/** Stable colour per miner: keys are sorted so the mapping survives re-ordering. */
-export function minerColorMap(keys: Iterable<string>) {
-  const sorted = [...new Set(keys)].filter((k) => k !== UNRESOLVED_KEY).sort();
-  const map = new Map<string, string>();
-  sorted.forEach((key, i) => {
-    map.set(key, PALETTE[i % PALETTE.length] ?? UNRESOLVED_COLOR);
-  });
-  map.set(UNRESOLVED_KEY, UNRESOLVED_COLOR);
-  return map;
-}
 
 export function minerKey(address: string | null | undefined) {
   return address ?? UNRESOLVED_KEY;

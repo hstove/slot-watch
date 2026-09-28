@@ -1,3 +1,4 @@
+import type { MinerIdentity } from './miner-names';
 import type { NetworkKey } from './networks';
 import type { ApiBlockProposal, ApiStacksBlock } from './server-types';
 import type { TypeMerge } from './utils';
@@ -15,7 +16,7 @@ interface StacksBlockBase {
   txFees: number;
 }
 
-interface _ProposalOnlyBlock extends StacksBlockBase {
+interface _ProposalOnlyBlock extends StacksBlockBase, MinerIdentity {
   minerPublicKey: string | null;
   proposedAt: string;
   serverVersion: string | null;
@@ -59,6 +60,9 @@ export function mergeBlockData(
       blockHash: proposal.signerSignatureHash,
       blockHeight: proposal.chainLength,
       minerPublicKey: proposal.minerPublicKey,
+      minerLabel: proposal.minerLabel,
+      minerColor: proposal.minerColor,
+      minerAnimal: proposal.minerAnimal,
       txCount: proposal.txCount ?? 0,
       tenureChangeCause: proposal.tenureChangeCause,
       consensusHash: proposal.consensusHash,
@@ -84,6 +88,9 @@ export function mergeBlockData(
     blockHash: proposal.signerSignatureHash,
     blockHeight: proposal.chainLength,
     minerPublicKey: proposal.minerPublicKey,
+    minerLabel: proposal.minerLabel,
+    minerColor: proposal.minerColor,
+    minerAnimal: proposal.minerAnimal,
     txCount: proposal.txCount ?? 0,
     tenureChangeCause: proposal.tenureChangeCause,
     consensusHash: proposal.consensusHash,

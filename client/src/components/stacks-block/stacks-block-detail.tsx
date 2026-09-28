@@ -19,6 +19,7 @@ import {
 } from '@/store/responses-store';
 import type { ApiBlockForBurnBlock } from '@/lib/slots-api';
 import { PublicKey } from '@/components/public-key';
+import { MinerNameTag } from '@/components/miners/miner-identity';
 import { Badge } from '@/components/ui/badge';
 import { TenureChangeCause } from '@stacks/transactions';
 import {
@@ -32,7 +33,7 @@ import { Link } from '@tanstack/react-router';
 import { SimpleTooltip } from '@/components/simple-tooltip';
 import { BlockCosts } from '@/components/blocks-v2/burn-block-costs';
 import { MAINNET_COST_LIMITS } from '@/lib/costs';
-import { percentString } from 'slot-watch-common';
+import { minerDisplay, percentString } from 'slot-watch-common';
 import { ResponseTimelineChart } from '@/components/stacks-block/response-timeline-chart';
 import { signersApiAtom, thresholdAtom } from '@/store/signers-store';
 
@@ -127,6 +128,7 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
     if (!block?.minerPublicKey) return null;
     return hex.encode(ripemd160(sha256(hex.decode(block.minerPublicKey))));
   }, [block?.minerPublicKey]);
+  const minerIdentity = minerDisplay(block);
 
   return (
     <div className="flex flex-col gap-6">
@@ -287,6 +289,20 @@ export function StacksBlockDetail({ block }: StacksBlockDetailProps) {
       <div className="space-y-3">
         <h2 className={textStyles('h3')}>Miner Information</h2>
         <div className="grid gap-3 grid-cols-[minmax(140px,min-content)_1fr] items-center">
+          {block.minerPublicKey && minerIdentity && (
+            <>
+              <DataLabel>Miner</DataLabel>
+              <DataValue>
+                <Link
+                  to="/miners/$publicKey"
+                  params={{ publicKey: block.minerPublicKey }}
+                  className="hover:underline"
+                >
+                  <MinerNameTag identity={minerIdentity} />
+                </Link>
+              </DataValue>
+            </>
+          )}
           {block.minerPublicKey && (
             <>
               <DataLabel>Miner Public Key</DataLabel>

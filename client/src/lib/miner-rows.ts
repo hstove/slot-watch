@@ -1,16 +1,22 @@
 import type {
   MinerEconomicsMiner,
   MinerEconomicsMinersResponse,
+  MinerName,
 } from 'slot-watch-common';
-import { getStacksAddress, getVersionFromString } from 'slot-watch-common';
-import type { ApiMinerStat } from './slots-api';
 import {
-  minerColorMap,
+  getStacksAddress,
+  getVersionFromString,
+  minerDisplay,
+} from 'slot-watch-common';
+import type { ApiMinerStat } from './slots-api';
+import { truncateMiddle } from './utils';
+import {
   minerKey,
   satsPerStx,
   parseUsd,
   totalRevenue,
   totalSpend,
+  UNRESOLVED_COLOR,
   UNRESOLVED_KEY,
 } from './miner-economics';
 
@@ -18,6 +24,9 @@ export interface MinerRow {
   key: string;
   address: string | null;
   publicKey: string | null;
+  identity: MinerName | null;
+  /** Display name: the miner nickname, else a truncated address. */
+  label: string;
   color: string;
   commits: number;
   wins: number;
@@ -47,12 +56,14 @@ export interface MinerRow {
   recentWins: number;
 }
 
-function emptyRow(key: string, color: string): MinerRow {
+function emptyRow(key: string): MinerRow {
   return {
     key,
     address: key === UNRESOLVED_KEY ? null : key,
     publicKey: null,
-    color,
+    identity: null,
+    label: key === UNRESOLVED_KEY ? 'unresolved' : truncateMiddle(key, 6, 4),
+    color: UNRESOLVED_COLOR,
     commits: 0,
     wins: 0,
     spendSats: 0,
@@ -102,16 +113,11 @@ export function buildMinerRows({
     const address = statsAddress(stat, networkKey);
     if (address) statsByAddress.set(address, stat);
   }
-  const keys = new Set<string>([
-    ...economics.miners.map((m) => minerKey(m.minerAddress)),
-    ...statsByAddress.keys(),
-  ]);
-  const colors = minerColorMap(keys);
   const rows = new Map<string, MinerRow>();
   const rowFor = (key: string) => {
     const existing = rows.get(key);
     if (existing) return existing;
-    const row = emptyRow(key, colors.get(key) ?? '#6b7280');
+    const row = emptyRow(key);
     rows.set(key, row);
     return row;
   };
@@ -123,16 +129,23 @@ export function buildMinerRows({
   for (const [address, stat] of statsByAddress) {
     const row = rowFor(address);
     row.publicKey ??= stat.publicKey;
+    row.identity ??= minerDisplay(stat);
     row.version = stat.version;
     row.shortVersion = getVersionFromString(stat.version);
     row.latestBlock = stat.latestBlock;
     row.recentWins = stat.count;
+  }
+  for (const row of rows.values()) {
+    if (!row.identity) continue;
+    row.label = row.identity.label;
+    row.color = row.identity.hex;
   }
   return [...rows.values()].sort((a, b) => totalSpend(b) - totalSpend(a));
 }
 
 function applyEconomics(row: MinerRow, m: MinerEconomicsMiner) {
   row.publicKey ??= m.minerPublicKey;
+  row.identity ??= minerDisplay(m);
   row.commits = m.commits;
   row.wins = m.wins;
   row.spendSats = m.spendSats;

@@ -4,9 +4,9 @@ import { SimpleTooltip } from '@/components/simple-tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { MinerVersionHistory } from 'slot-watch-common';
 import type { ApiMinerDetail } from '@/lib/slots-api';
-import { getStacksAddress } from 'slot-watch-common';
+import { getStacksAddress, minerDisplay } from 'slot-watch-common';
 import { Metric } from './miner-overview';
-import { CopyValue } from './miner-identity';
+import { CopyValue, MinerNameTag } from './miner-identity';
 import {
   MinerEconomicsPanel,
   type MinerEconomicsData,
@@ -104,6 +104,7 @@ export function MinerDetail({
   networkKey,
 }: MinerDetailProps) {
   const { miner } = minerDetail;
+  const identity = minerDisplay(miner);
   const stxAddress = safeAddress(() =>
     getStacksAddress(miner.publicKey, networkKey)
   );
@@ -112,7 +113,9 @@ export function MinerDetail({
     <div className="flex flex-col gap-2">
       <section className="border border-border bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
-          <h1 className="font-mono text-sm font-medium">miner</h1>
+          <h1 className="font-mono text-sm font-medium">
+            {identity ? <MinerNameTag identity={identity} /> : 'miner'}
+          </h1>
           <span className="font-mono text-[10px] text-muted-foreground">
             {miner.currentVersion ?? 'unknown version'}
           </span>

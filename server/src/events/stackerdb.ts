@@ -31,6 +31,7 @@ import {
   type DecodedChunk,
   type ApiBlockPreCommit,
   type NetworkKey,
+  getMinerIdentity,
 } from 'slot-watch-common';
 import { setLatestBlockResponses } from '../db/block-responses';
 import {
@@ -128,6 +129,7 @@ const handleBlockProposal = ({
       networkKey: dbBlockProposal.networkKey as NetworkKey,
       chunkId: dbBlockProposal.chunkId ?? null,
       minerPublicKey: dbBlockProposal.minerPublicKey,
+      ...getMinerIdentity(dbBlockProposal.minerPublicKey),
       consensusHash: dbBlockProposal.consensusHash,
       tenureChangeCause: dbBlockProposal.tenureChangeCause ?? null,
       txCount: dbBlockProposal.txCount,

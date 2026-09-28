@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link } from '@tanstack/react-router';
-import type { MinerCommitsBlock } from 'slot-watch-common';
+import {
+  type MinerCommit,
+  type MinerCommitsBlock,
+  minerDisplay,
+} from 'slot-watch-common';
 import { formatSats, minerKey, percent } from '@/lib/miner-economics';
 import type { MinerRow } from '@/lib/miner-rows';
 import { cn, truncateMiddle } from '@/lib/utils';
@@ -17,7 +21,14 @@ interface CommitRow {
   blockSats: number;
   commits: number;
   outcome: 'won' | 'lost' | 'none';
+  /** Winner display label. */
   winner: string | null;
+}
+
+function winnerLabel(commit: MinerCommit) {
+  const identity = minerDisplay(commit);
+  if (identity) return identity.label;
+  return commit.minerAddress ? truncateMiddle(commit.minerAddress, 6, 4) : null;
 }
 
 function toRows(blocks: MinerCommitsBlock[], key: string): CommitRow[] {
@@ -39,7 +50,7 @@ function toRows(blocks: MinerCommitsBlock[], key: string): CommitRow[] {
       ),
       commits: block.commits.length,
       outcome,
-      winner: winner?.minerAddress ?? null,
+      winner: winner ? winnerLabel(winner) : null,
     });
   }
   return rows.reverse();
@@ -69,7 +80,7 @@ function Outcome({ row, color }: { row: CommitRow; color: string }) {
   if (row.outcome === 'lost') {
     return (
       <span className="font-mono text-xs text-muted-foreground">
-        lost · {row.winner ? truncateMiddle(row.winner, 6, 4) : 'unresolved'}
+        lost · {row.winner ?? 'unresolved'}
       </span>
     );
   }

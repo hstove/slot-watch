@@ -1,6 +1,14 @@
 import { Schema } from 'effect';
 import type { StateMachineUpdateMinerStateInactive } from './codec/state-machine';
 import { NetworkKeySchema } from './networks';
+import { MINER_ANIMAL_KEYS, MINER_COLOR_KEYS } from './miner-names';
+
+/** Deterministic miner nickname, derived from the miner's public key. See `miner-names.ts`. */
+const MinerIdentityFields = {
+  minerLabel: Schema.NullOr(Schema.String),
+  minerColor: Schema.NullOr(Schema.Literals(MINER_COLOR_KEYS)),
+  minerAnimal: Schema.NullOr(Schema.Literals(MINER_ANIMAL_KEYS)),
+};
 
 // RecentSigner schema
 export const RecentSignerSchema = Schema.Struct({
@@ -172,6 +180,7 @@ export const ApiBlockProposalSchema = Schema.Struct({
   networkKey: NetworkKeySchema,
   chunkId: Schema.NullOr(Schema.String),
   minerPublicKey: Schema.String,
+  ...MinerIdentityFields,
   consensusHash: Schema.String,
   tenureChangeCause: Schema.NullOr(Schema.Number),
   txCount: Schema.Number,
@@ -366,6 +375,7 @@ export interface StateMachineUpdatesResponse
 // MinerSummary schema (for list view)
 export const MinerSummarySchema = Schema.Struct({
   publicKey: Schema.String,
+  ...MinerIdentityFields,
   count: Schema.Number,
   latestBlock: Schema.Number,
   version: Schema.String,
@@ -454,6 +464,7 @@ export const MinerEconomicsMinerSchema = Schema.Struct({
   /** STX address derived from the miner's key. Null groups commits whose sender is unresolved. */
   minerAddress: Schema.NullOr(Schema.String),
   minerPublicKey: Schema.NullOr(Schema.String),
+  ...MinerIdentityFields,
   /** Block commits mined in the range. */
   commits: Schema.Number,
   /** Commits that won their sortition (matched to a Stacks block's miner txid). */
@@ -496,6 +507,7 @@ export const MinerCommitSchema = Schema.Struct({
   /** Null while the Bitcoin sender is unresolved. */
   minerAddress: Schema.NullOr(Schema.String),
   minerPublicKey: Schema.NullOr(Schema.String),
+  ...MinerIdentityFields,
   /** Bitcoin address the commit's first input spent from. Null if unresolved. */
   btcAddress: Schema.NullOr(Schema.String),
   spendSats: Schema.Number,
@@ -548,6 +560,7 @@ export interface MinerWindowStats
 export const MinerDetailResponseSchema = Schema.Struct({
   miner: Schema.Struct({
     publicKey: Schema.String,
+    ...MinerIdentityFields,
     /** Address of the miner's latest block commit input. */
     btcAddress: Schema.NullOr(Schema.String),
     stats: Schema.Struct({

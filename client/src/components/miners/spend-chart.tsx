@@ -21,7 +21,7 @@ import { truncateMiddle } from '@/lib/utils';
 
 function minerLabel(row: MinerRow | undefined, key: string) {
   if (key === UNRESOLVED_KEY) return 'unresolved';
-  return truncateMiddle(row?.address ?? key, 6, 4);
+  return row?.label ?? truncateMiddle(key, 6, 4);
 }
 
 function BucketTooltip({

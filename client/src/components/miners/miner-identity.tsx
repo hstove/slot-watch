@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { useToast } from '@/hooks/use-toast';
 import { cn, truncateMiddle } from '@/lib/utils';
+import type { MinerName } from 'slot-watch-common';
 import type { MinerRow } from '@/lib/miner-rows';
 import type { MinerWindow } from '@/lib/miner-economics';
 import { SimpleTooltip } from '../simple-tooltip';
@@ -58,6 +59,21 @@ export function MinerSwatch({
   );
 }
 
+export function MinerNameTag({
+  identity,
+  className,
+}: {
+  identity: MinerName;
+  className?: string;
+}) {
+  return (
+    <span className={cn('inline-flex items-center gap-1.5', className)}>
+      <MinerSwatch color={identity.hex} />
+      {identity.label}
+    </span>
+  );
+}
+
 export function MinerIdentity({
   miner,
   networkKey,
@@ -67,9 +83,7 @@ export function MinerIdentity({
   networkKey: string;
   windowKey: MinerWindow;
 }) {
-  const label = miner.address
-    ? truncateMiddle(miner.address, 8, 6)
-    : 'unresolved sender';
+  const label = miner.address ? miner.label : 'unresolved sender';
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <span
@@ -92,13 +106,18 @@ export function MinerIdentity({
             {label}
           </div>
         )}
-        {miner.publicKey ? (
-          <CopyValue value={miner.publicKey} head={8} tail={6} />
-        ) : (
-          <span className="font-mono text-[10px] leading-3 text-muted-foreground/60">
-            no public key
-          </span>
-        )}
+        <div className="flex min-w-0 gap-1.5">
+          {miner.identity && miner.address ? (
+            <CopyValue value={miner.address} head={5} tail={4} />
+          ) : null}
+          {miner.publicKey ? (
+            <CopyValue value={miner.publicKey} head={6} tail={4} />
+          ) : (
+            <span className="font-mono text-[10px] leading-3 text-muted-foreground/60">
+              no public key
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
