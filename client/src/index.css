@@ -80,3 +80,16 @@
 .block-list-col {
   @apply flex flex-row gap-2 items-center min-h-[40px] px-1;
 }
+
+@keyframes commit-flash {
+  from {
+    background-color: hsl(var(--primary) / 0.25);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.commit-flash {
+  animation: commit-flash 2s ease-out;
+}

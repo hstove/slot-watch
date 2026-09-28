@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from '@tanstack/react-router';
 import { Route } from '../../routes/miners/index';
 import { buildMinerRows } from '@/lib/miner-rows';
 import { MINER_WINDOWS, sumUsdTotals } from '@/lib/miner-economics';
@@ -45,7 +46,15 @@ export const Miners = () => {
               blocks
             </span>
           </div>
-          <WindowSwitch active={data.windowKey} network={search.network} />
+          <div className="flex items-center gap-3">
+            <Link
+              to="/miners/live"
+              className="font-mono text-[10px] text-muted-foreground hover:text-foreground"
+            >
+              → live commits
+            </Link>
+            <WindowSwitch active={data.windowKey} network={search.network} />
+          </div>
         </div>
         <MinerMetrics
           rows={rows}

@@ -496,6 +496,8 @@ export const MinerCommitSchema = Schema.Struct({
   /** Null while the Bitcoin sender is unresolved. */
   minerAddress: Schema.NullOr(Schema.String),
   minerPublicKey: Schema.NullOr(Schema.String),
+  /** Bitcoin address the commit's first input spent from. Null if unresolved. */
+  btcAddress: Schema.NullOr(Schema.String),
   spendSats: Schema.Number,
   burnSats: Schema.Number,
   /** Index of the commit tx within its Bitcoin block. 0 if unresolved. */
