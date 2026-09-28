@@ -206,6 +206,7 @@ async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
       id: blockProposals.id,
       minerPublicKey: blockProposals.minerPublicKey,
       serverVersion: blockProposals.serverVersion,
+      blockTimestamp: blockProposals.blockTimestamp,
     })
     .from(blockProposals)
     .where(
@@ -242,11 +243,14 @@ async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
     )
     .limit(500);
 
-  return recentBlocks;
+  return recentBlocks.map((block) => ({
+    ...block,
+    blockTimestamp: block.blockTimestamp.toISOString(),
+  }));
 }
 
 export const fetchRecentMinerBlocksCache = memoizeCache(
-  (networkKey: string) => `recent-miner-blocks-v3:${networkKey}`,
+  (networkKey: string) => `recent-miner-blocks-v4:${networkKey}`,
   // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (networkKey: string, db: Db) => {
     return _fetchRecentMinerBlocks(networkKey, db);
@@ -299,26 +303,26 @@ export async function fetchBlockProposalsByHash(
   return R.map(blockProposalsList, serializeBlockProposal);
 }
 
-function buildVersionHistory(
-  minerBlocks: Array<{ serverVersion: string | null; blockTimestamp: Date }>
-) {
+type RecentMinerBlock = Awaited<ReturnType<typeof _fetchRecentMinerBlocks>>[0];
+
+function buildVersionHistory(tenures: RecentMinerBlock[]) {
   const versionMap = new Map<
     string,
-    { firstSeen: Date; lastSeen: Date; blockCount: number }
+    { firstSeen: string; lastSeen: string; tenureCount: number }
   >();
-  for (const block of minerBlocks) {
-    const version = block.serverVersion ?? 'Unknown';
+  for (const tenure of tenures) {
+    const version = tenure.serverVersion ?? 'Unknown';
+    const timestamp = tenure.blockTimestamp;
     const existing = versionMap.get(version);
-    const timestamp = block.blockTimestamp;
     if (existing) {
-      existing.blockCount++;
+      existing.tenureCount++;
       if (timestamp < existing.firstSeen) existing.firstSeen = timestamp;
       if (timestamp > existing.lastSeen) existing.lastSeen = timestamp;
     } else {
       versionMap.set(version, {
         firstSeen: timestamp,
         lastSeen: timestamp,
-        blockCount: 1,
+        tenureCount: 1,
       });
     }
   }
@@ -327,13 +331,9 @@ function buildVersionHistory(
     .map(([version, data]) => ({
       version,
       versionShort: getVersionFromString(version),
-      firstSeen: data.firstSeen.toISOString(),
-      lastSeen: data.lastSeen.toISOString(),
-      blockCount: data.blockCount,
+      ...data,
     }))
-    .sort(
-      (a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime()
-    );
+    .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
 }
 
 export async function fetchMinerDetail(
@@ -341,81 +341,29 @@ export async function fetchMinerDetail(
   publicKey: string,
   db: Db
 ) {
-  const minerBlocks = await db
-    .select({
-      burnBlockHeight: blockProposals.burnBlockHeight,
-      chainLength: blockProposals.chainLength,
-      signerSignatureHash: blockProposals.signerSignatureHash,
-      blockTimestamp: blockProposals.blockTimestamp,
-      serverVersion: blockProposals.serverVersion,
-      txCount: blockProposals.txCount,
-      id: blockProposals.id,
-    })
-    .from(blockProposals)
-    .where(
-      and(
-        eq(blockProposals.networkKey, networkKey),
-        eq(blockProposals.minerPublicKey, publicKey)
-      )
-    )
-    .orderBy(desc(blockProposals.id))
-    .limit(500);
-
-  if (minerBlocks.length === 0) {
-    return null;
-  }
-
-  const recentMinerBlocks = await fetchRecentMinerBlocksCache.get(
-    networkKey,
-    db
+  const recentTenures = await fetchRecentMinerBlocksCache.get(networkKey, db);
+  const minerTenures = recentTenures.filter(
+    (tenure) => tenure.minerPublicKey === publicKey
   );
-  const totalRecentBlocks = recentMinerBlocks.length;
-  const minerRecentCount = recentMinerBlocks.filter(
-    (b) => b.minerPublicKey === publicKey
-  ).length;
-
-  const versionHistory = buildVersionHistory(minerBlocks);
-
-  const latestBlock = minerBlocks[0];
-  const currentVersion = latestBlock?.serverVersion ?? null;
-
-  const recentBlocks = minerBlocks.slice(0, 50).map((block) => ({
-    burnBlockHeight: block.burnBlockHeight,
-    chainLength: block.chainLength,
-    signerSignatureHash: block.signerSignatureHash,
-    blockTimestamp: block.blockTimestamp.toISOString(),
-    serverVersion: block.serverVersion,
-    serverVersionShort: block.serverVersion
-      ? getVersionFromString(block.serverVersion)
-      : null,
-    txCount: block.txCount,
-  }));
-
-  const oldestBlock = minerBlocks.at(-1);
-  const firstSeen = oldestBlock?.blockTimestamp.toISOString() ?? null;
+  const currentVersion = minerTenures[0]?.serverVersion ?? null;
 
   return {
     miner: {
       publicKey,
       stats: {
         last500: {
-          blocksWon: minerRecentCount,
+          tenuresWon: minerTenures.length,
           percentage:
-            totalRecentBlocks > 0
-              ? (minerRecentCount / totalRecentBlocks) * 100
+            recentTenures.length > 0
+              ? (minerTenures.length / recentTenures.length) * 100
               : 0,
-        },
-        allTime: {
-          blocksWon: minerBlocks.length,
-          firstSeen,
         },
       },
       currentVersion,
       currentVersionShort: currentVersion
         ? getVersionFromString(currentVersion)
         : null,
-      versionHistory,
+      versionHistory: buildVersionHistory(minerTenures),
     },
-    recentBlocks,
   };
 }
