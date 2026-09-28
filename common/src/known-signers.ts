@@ -77,7 +77,7 @@ export const knownSigners: Record<string, string> = {
   '038cb1e945144ca7669b0f33656b8379bcb3c17795b4d8665e42dea76eb3f86d2f':
     'L2-Labs-3',
   '022150d4ea6dc60e75e162455553a92adea0a0f3000c192cc55d0bffed22c0a8e0':
-    'Assymetric Labs',
+    'Asymmetric Labs',
   '03815f036a90512671911fd66cca53dd88d421beaa3253083635f267dc614ee888':
     'Nansen',
   '02778d476704afa540ac01438f62c371dc38741b00f35fb895e5cd48d070ebab41':
