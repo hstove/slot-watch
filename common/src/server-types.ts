@@ -544,6 +544,8 @@ export interface MinerWindowStats
 export const MinerDetailResponseSchema = Schema.Struct({
   miner: Schema.Struct({
     publicKey: Schema.String,
+    /** Address of the miner's latest block commit input. */
+    btcAddress: Schema.NullOr(Schema.String),
     stats: Schema.Struct({
       last500: MinerWindowStatsSchema,
     }),

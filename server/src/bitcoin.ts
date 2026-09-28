@@ -13,7 +13,7 @@ const COMPRESSED_PUBKEY = /^0[23][0-9a-f]{64}$/;
 interface EsploraVin {
   scriptsig_asm?: string;
   witness?: string[];
-  prevout?: { scriptpubkey_type?: string };
+  prevout?: { scriptpubkey_type?: string; scriptpubkey_address?: string };
 }
 
 /**
@@ -32,15 +32,20 @@ export function inputPublicKey(vin: EsploraVin | undefined): string | null {
   return key && COMPRESSED_PUBKEY.test(key) ? key : null;
 }
 
+export interface TxSender {
+  publicKey: string;
+  btcAddress: string | null;
+}
+
 /**
- * Fetch the public key that funded a Bitcoin transaction. Returns null if
- * every API fails or the input type isn't single-key, so callers can store
- * the row and resolve the miner later.
+ * Fetch the public key and address that funded a Bitcoin transaction. Returns
+ * null if every API fails or the input type isn't single-key, so callers can
+ * store the row and resolve the miner later.
  */
-export async function fetchTxSenderPublicKey(
+export async function fetchTxSender(
   txid: string,
   fetchImpl: typeof fetch = fetch
-): Promise<string | null> {
+): Promise<TxSender | null> {
   for (const host of ESPLORA_HOSTS) {
     try {
       const res = await fetchImpl(`${host}/tx/${txid}`, {
@@ -48,7 +53,13 @@ export async function fetchTxSenderPublicKey(
       });
       if (!res.ok) continue;
       const tx = (await res.json()) as { vin?: EsploraVin[] };
-      return inputPublicKey(tx.vin?.[0]);
+      const vin = tx.vin?.[0];
+      const publicKey = inputPublicKey(vin);
+      if (!publicKey) return null;
+      return {
+        publicKey,
+        btcAddress: vin?.prevout?.scriptpubkey_address ?? null,
+      };
     } catch {
       // try next host
     }

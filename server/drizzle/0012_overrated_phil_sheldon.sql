@@ -1,0 +1,1 @@
+ALTER TABLE "miner_spends" ADD COLUMN "miner_btc_address" varchar;

@@ -6,12 +6,13 @@
  *
  * Usage (from repo root):
  *   bun run --cwd server --env-file=../.env.local scripts/backfill-miner-spends.ts \
- *     [--from 2026-07-01] [--network mainnet] [--dry-run] [--only winners|spends|senders|gap]
+ *     [--from 2026-07-01] [--network mainnet] [--dry-run] [--only winners|spends|senders|gap|btc]
  *
  * `senders` re-resolves rows whose miner is null. `gap` covers burn blocks the
  * dump lacks (or the Worker missed): winning txids from the Hiro API and
  * commit rows rebuilt from each miner's Bitcoin address history. Both only
- * need the Hiro DB for the start height and are safe to re-run.
+ * need the Hiro DB for the start height and are safe to re-run. `btc` sets
+ * miner_btc_address on each miner's latest commit, which the miner page shows.
  *
  * Env: DATABASE_URL (target, prod), HIRO_PG_URL (source, defaults to local hiro_api)
  */
@@ -538,6 +539,7 @@ function commitRow(
     recipientCount: payouts.length,
     minerPublicKey: key,
     minerAddress: minerAddressFromPublicKey(key, networkKey),
+    minerBtcAddress: address,
   };
 }
 
@@ -612,6 +614,28 @@ async function gapSpends() {
   log(`gap spends: burn block totals corrected=${fixed.rowCount}`);
 }
 
+/** Record the input address of each miner's latest commit. */
+async function backfillBtcAddresses() {
+  const latest = await db.execute<{ id: string; txid: string }>(sql`
+    select distinct on (miner_public_key) id, txid
+    from miner_spends
+    where network_key = ${networkKey} and miner_public_key is not null
+    order by miner_public_key, burn_block_height desc`);
+  let updated = 0;
+  for (const { id, txid } of latest.rows) {
+    const tx = await esplora<EsploraTx>(`/tx/${txid}`);
+    const address = tx?.vin[0]?.prevout?.scriptpubkey_address;
+    if (!(address && inputPublicKey(tx.vin[0])) || dryRun) continue;
+    const res = await db
+      .update(minerSpends)
+      .set({ minerBtcAddress: address })
+      .where(and(eq(minerSpends.id, id), isNull(minerSpends.minerBtcAddress)))
+      .returning({ id: minerSpends.id });
+    updated += res.length;
+  }
+  log(`btc: ${latest.rows.length} miners, updated=${updated}`);
+}
+
 async function report() {
   const [summary] = await db
     .select({
@@ -661,6 +685,7 @@ if (!only || only === 'gap') {
   await gapWinners();
   await gapSpends();
 }
+if (!only || only === 'btc') await backfillBtcAddresses();
 await report();
 
 await hiro.end();
