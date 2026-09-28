@@ -1,0 +1,1 @@
+ALTER TABLE "miner_spends" ADD COLUMN "vtxindex" integer DEFAULT 0 NOT NULL;
