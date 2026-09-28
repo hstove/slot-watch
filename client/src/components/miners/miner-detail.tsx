@@ -4,7 +4,7 @@ import { SimpleTooltip } from '@/components/simple-tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { MinerVersionHistory } from 'slot-watch-common';
 import type { ApiMinerDetail } from '@/lib/slots-api';
-import { getBtcAddress, getStacksAddress } from 'slot-watch-common';
+import { getStacksAddress } from 'slot-watch-common';
 import { Metric } from './miner-overview';
 import { CopyValue } from './miner-identity';
 import {
@@ -107,7 +107,6 @@ export function MinerDetail({
   const stxAddress = safeAddress(() =>
     getStacksAddress(miner.publicKey, networkKey)
   );
-  const btcAddress = safeAddress(() => getBtcAddress(miner.publicKey));
 
   return (
     <div className="flex flex-col gap-2">
@@ -124,8 +123,8 @@ export function MinerDetail({
             {stxAddress ? (
               <IdentityRow label="stx address" value={stxAddress} />
             ) : null}
-            {btcAddress ? (
-              <IdentityRow label="btc address" value={btcAddress} />
+            {miner.btcAddress ? (
+              <IdentityRow label="btc address" value={miner.btcAddress} />
             ) : null}
           </div>
           <div className="grid grid-cols-2">

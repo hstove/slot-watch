@@ -8,6 +8,7 @@ import {
   inArray,
   getTableColumns,
   gte,
+  isNotNull,
   lte,
   sql,
 } from 'drizzle-orm';
@@ -21,18 +22,20 @@ import {
   type BlockProposalDb,
   blockProposals,
   burnBlocks,
+  minerSpends,
   stacksBlocks,
 } from './schema';
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from './block-responses';
 import { getVersionFromString, type ApiBlockProposal } from 'slot-watch-common';
 import { stringify } from 'superjson';
-import { logger } from '../logger';
+import { log, logger } from '../logger';
 import { memoizeCache } from '../cache';
 import { env } from 'cloudflare:workers';
 import { getCreatedAt } from '../utils';
 import * as R from 'remeda';
 import { serializeBlockProposal } from './serializers';
+import { minerAddressFromPublicKey } from '../bitcoin';
 
 const LAST_BLOCK_PROPOSAL_KEY = 'last-block-proposal';
 
@@ -336,12 +339,44 @@ function buildVersionHistory(tenures: RecentMinerBlock[]) {
     .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
 }
 
+/** Address of the miner's latest block commit input, which may be p2wpkh. */
+async function fetchMinerBtcAddress(
+  networkKey: string,
+  publicKey: string,
+  db: Db
+) {
+  try {
+    const [row] = await db
+      .select({ btcAddress: minerSpends.minerBtcAddress })
+      .from(minerSpends)
+      .where(
+        and(
+          eq(minerSpends.networkKey, networkKey),
+          eq(
+            minerSpends.minerAddress,
+            minerAddressFromPublicKey(publicKey, networkKey)
+          ),
+          isNotNull(minerSpends.minerBtcAddress)
+        )
+      )
+      .orderBy(desc(minerSpends.burnBlockHeight))
+      .limit(1);
+    return row?.btcAddress ?? null;
+  } catch (error) {
+    log.withError(error).error('Failed to fetch miner BTC address');
+    return null;
+  }
+}
+
 export async function fetchMinerDetail(
   networkKey: string,
   publicKey: string,
   db: Db
 ) {
-  const recentTenures = await fetchRecentMinerBlocksCache.get(networkKey, db);
+  const [recentTenures, btcAddress] = await Promise.all([
+    fetchRecentMinerBlocksCache.get(networkKey, db),
+    fetchMinerBtcAddress(networkKey, publicKey, db),
+  ]);
   const minerTenures = recentTenures.filter(
     (tenure) => tenure.minerPublicKey === publicKey
   );
@@ -350,6 +385,7 @@ export async function fetchMinerDetail(
   return {
     miner: {
       publicKey,
+      btcAddress,
       stats: {
         last500: {
           tenuresWon: minerTenures.length,

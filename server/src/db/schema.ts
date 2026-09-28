@@ -331,6 +331,8 @@ export const minerSpends = pgTable(
     minerPublicKey: text('miner_public_key', { length: 66 }),
     /** STX address derived from `minerPublicKey`. */
     minerAddress: text('miner_address'),
+    /** Bitcoin address the commit's first input spent from (p2pkh or p2wpkh). */
+    minerBtcAddress: text('miner_btc_address'),
   },
   (table) => [
     unique('miner_spends_network_key_txid_idx').on(

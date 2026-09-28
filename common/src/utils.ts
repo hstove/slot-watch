@@ -1,5 +1,4 @@
 import { hex } from '@scure/base';
-import { p2pkh } from '@scure/btc-signer';
 import { decodeChunkMaybe, SignerMessageTypePrefix } from './codec';
 import {
   addressToString,
@@ -101,10 +100,6 @@ export function getStacksAddress(publicKey: string, networkKey: string) {
     publicKeys
   );
   return addressToString(address);
-}
-
-export function getBtcAddress(publicKey: string) {
-  return p2pkh(hex.decode(publicKey)).address ?? '';
 }
 
 export function hash160(data: string | Uint8Array) {
