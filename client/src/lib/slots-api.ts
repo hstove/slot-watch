@@ -296,7 +296,7 @@ export async function getMinerDetail(networkKey: string, publicKey: string) {
     param: { networkKey: asNetworkKey(networkKey), publicKey },
   });
   if (!response.ok) {
-    throw new Error('Miner not found');
+    throw new Error(`Failed to fetch miner detail (${response.status})`);
   }
   return response.json();
 }

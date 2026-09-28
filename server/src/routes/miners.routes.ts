@@ -54,25 +54,13 @@ export const minersRoutes = new Hono<ServerType>()
     describeRoute({
       summary: 'Get miner detail',
       description:
-        'Get detailed information for a specific miner including stats, version history, and recent blocks',
+        "Get a miner's share of the last 500 tenures and its version history over those tenures. Miners with no recent tenures return zeros.",
       tags: ['Miners'],
       responses: {
         200: {
           description: 'Miner detail',
           content: {
             'application/json': { schema: resolver(minerDetailResponse) },
-          },
-        },
-        404: {
-          description: 'Miner not found',
-          content: {
-            'application/json': {
-              schema: resolver(
-                Schema.toStandardSchemaV1(
-                  Schema.Struct({ error: Schema.String })
-                )
-              ),
-            },
           },
         },
       },
@@ -85,9 +73,6 @@ export const minersRoutes = new Hono<ServerType>()
         publicKey,
         c.get('db')
       );
-      if (!minerDetail) {
-        return c.json({ error: 'Miner not found' }, 404);
-      }
       return c.json(minerDetail);
     }
   );

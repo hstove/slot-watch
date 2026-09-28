@@ -71,10 +71,10 @@ const versionHistoryColumns: ColumnDef<MinerVersionHistory>[] = [
     ),
   },
   {
-    header: 'Blocks',
-    accessorKey: 'blockCount',
+    header: 'Tenures',
+    accessorKey: 'tenureCount',
     enableSorting: false,
-    cell: ({ row }) => row.original.blockCount.toLocaleString(),
+    cell: ({ row }) => row.original.tenureCount.toLocaleString(),
   },
 ];
 
@@ -87,7 +87,7 @@ function VersionHistoryCard({ version }: { version: MinerVersionHistory }) {
             {version.versionShort || version.version}
           </div>
           <div className="text-xs text-muted-foreground">
-            {version.blockCount.toLocaleString()} blocks
+            {version.tenureCount.toLocaleString()} tenures
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right">
@@ -132,7 +132,7 @@ export function MinerDetail({
             <Metric
               label="last 500"
               value={`${miner.stats.last500.percentage.toFixed(1)}%`}
-              detail={`${miner.stats.last500.blocksWon} tenures won`}
+              detail={`${miner.stats.last500.tenuresWon} tenures won`}
             />
             <Metric label="version" value={miner.currentVersionShort ?? '–'} />
           </div>
@@ -151,7 +151,7 @@ export function MinerDetail({
       {miner.versionHistory.length > 0 && (
         <section className="border border-border bg-card">
           <div className="border-b border-border px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            version history
+            version history · last 500 tenures
           </div>
           {/* Mobile: card list */}
           <div className="md:hidden">
