@@ -12,7 +12,11 @@ import {
   minerSpends,
   stacksBlocks,
 } from '../db/schema';
-import { fetchTxSender, minerAddressFromPublicKey } from '../bitcoin';
+import {
+  fetchBlockTxids,
+  fetchTxSender,
+  minerAddressFromPublicKey,
+} from '../bitcoin';
 import { recentBlocksHealthCache } from '../db/block-proposals';
 import { and, eq, inArray, isNull, type InferInsertModel } from 'drizzle-orm';
 import { TenureChangeCause } from '@stacks/transactions';
@@ -192,11 +196,13 @@ const storeMinerSpends = (
     if (poxTransactions.length === 0) return;
     const db = yield* DbService;
     const { networkKey } = payload;
-    const rows = yield* Effect.promise(() =>
-      Promise.all(
+    const rows = yield* Effect.promise(async () => {
+      const blockTxids = await fetchBlockTxids(payload.payload.burnBlockHash);
+      return Promise.all(
         poxTransactions.map(async (tx, i) => {
           const txid = tx.txid.startsWith('0x') ? tx.txid.slice(2) : tx.txid;
           const sender = await fetchTxSender(txid);
+          const vtxindex = blockTxids?.indexOf(txid) ?? -1;
           return {
             id: uuidv7({ msecs: new Date(payload.receivedAt).getTime() + i }),
             networkKey,
@@ -212,10 +218,11 @@ const storeMinerSpends = (
               ? minerAddressFromPublicKey(sender.publicKey, networkKey)
               : null,
             minerBtcAddress: sender?.btcAddress ?? null,
+            vtxindex: Math.max(vtxindex, 0),
           } satisfies InferInsertModel<typeof minerSpends>;
         })
-      )
-    );
+      );
+    });
     yield* db.withDb((db) =>
       db.insert(minerSpends).values(rows).onConflictDoNothing()
     );

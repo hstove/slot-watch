@@ -67,6 +67,25 @@ export async function fetchTxSender(
   return null;
 }
 
+/** Ordered txids of a Bitcoin block, so a tx's index is its vtxindex. Null if every API fails. */
+export async function fetchBlockTxids(
+  blockHash: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<string[] | null> {
+  for (const host of ESPLORA_HOSTS) {
+    try {
+      const res = await fetchImpl(`${host}/block/${blockHash}/txids`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) continue;
+      return (await res.json()) as string[];
+    } catch {
+      // try next host
+    }
+  }
+  return null;
+}
+
 /** STX address for a miner's public key; equals `miner_rewards.miner_address`. */
 export function minerAddressFromPublicKey(
   publicKey: string,

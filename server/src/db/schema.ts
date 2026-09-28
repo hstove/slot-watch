@@ -333,6 +333,8 @@ export const minerSpends = pgTable(
     minerAddress: text('miner_address'),
     /** Bitcoin address the commit's first input spent from (p2pkh or p2wpkh). */
     minerBtcAddress: text('miner_btc_address'),
+    /** Index of the commit tx within its Bitcoin block. 0 if unresolved. */
+    vtxindex: integer('vtxindex').default(0).notNull(),
   },
   (table) => [
     unique('miner_spends_network_key_txid_idx').on(

@@ -493,6 +493,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
             minerPublicKey: minerSpends.minerPublicKey,
             spendSats: minerSpends.spendSats,
             burnSats: minerSpends.burnSats,
+            vtxindex: minerSpends.vtxindex,
           })
           .from(minerSpends)
           .where(
@@ -513,6 +514,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
           minerPublicKey: row.minerPublicKey,
           spendSats: Number(row.spendSats),
           burnSats: Number(row.burnSats),
+          vtxindex: row.vtxindex,
         });
         byHash.set(row.burnBlockHash, list);
       }

@@ -498,6 +498,8 @@ export const MinerCommitSchema = Schema.Struct({
   minerPublicKey: Schema.NullOr(Schema.String),
   spendSats: Schema.Number,
   burnSats: Schema.Number,
+  /** Index of the commit tx within its Bitcoin block. 0 if unresolved. */
+  vtxindex: Schema.Number,
 }).annotate({ identifier: 'MinerCommit' });
 export interface MinerCommit
   extends Schema.Schema.Type<typeof MinerCommitSchema> {}
