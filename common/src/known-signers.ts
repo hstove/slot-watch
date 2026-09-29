@@ -99,6 +99,10 @@ export const knownSigners: Record<string, string> = {
     'Xverse',
   '027af6b78b484b2c129dab7e490e8438f9a6eb4890071335a5781d483073866b9a':
     'HashKey',
+  '0216436e7785e1dc55cf4350ac1f90e45daf0ec5b57bce13a32551a513446e71d1':
+    'HashKey',
+  '025e6a2fdb9962638262cb6fde940355718908ff5f13f8cbb71e34ed1982577a1e':
+    'HashKey',
   '0285f4c617c4065e429d1666dcfd885c52e223acfc042aa2c2855adc93034e6975':
     'Xverse',
   '02bcfeb0fd2bafa20d865999467d5b9a00d4ef5e37fbaca27d45ee0dbaf13e0596':
