@@ -115,4 +115,7 @@ export const knownSigners: Record<string, string> = {
     'Foundry',
   '038265445ac9fa77d96bf6f3eee74e287deb10aeef2f2e3f96581a6bb765de8240':
     'Juicy Stake',
+  '023f96d7650baa87d09beca7d024a14a3f84dada24de608d2221d81a967f82c368':
+    'PlanBetter',
+  '021e5bc15e37b6946ec0d384e746386e62e82ffee1054b778f8ad22d85bb7f9056': 'Meria',
 };
