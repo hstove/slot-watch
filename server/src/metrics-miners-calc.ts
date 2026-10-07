@@ -6,8 +6,8 @@
  * `bun test`, like `metrics-precommit-calc.ts`.
  *
  * Two revenue bases:
- * - `expected`: tenures won in the live window, at the base coinbase plus
- *   the won tenures' Stacks tx fees, valued at the latest STX-USD open.
+ * - `expected`: tenures won in the live window, at the recent average
+ *   coinbase per win plus the won tenures' Stacks tx fees, valued at the latest STX-USD open.
  * - `matured`: `miner_rewards` for tenures earned in the latest fully
  *   matured window (same span, ending at the matured-through height), valued
  *   at the earning hour. Cost for this basis covers the same heights.
@@ -144,7 +144,7 @@ function economicsSamples(
 
 interface CalcContext {
   aliases: Map<string, string>;
-  baseCoinbaseUstx: number | null;
+  coinbasePerWinUstx: number | null;
   stxUsd: number | null;
 }
 
@@ -215,9 +215,9 @@ function expectedSamples(
   ctx: CalcContext
 ) {
   const coinbaseUstx =
-    ctx.baseCoinbaseUstx === null
+    ctx.coinbasePerWinUstx === null
       ? null
-      : (expected?.wins ?? 0) * ctx.baseCoinbaseUstx;
+      : Math.round((expected?.wins ?? 0) * ctx.coinbasePerWinUstx);
   const txFeesUstx = expected?.txFeesUstx ?? 0;
   const revenueUsd =
     coinbaseUstx === null || ctx.stxUsd === null
@@ -307,17 +307,17 @@ export function minerGaugeSamples(
     aliases: new Map(
       snapshot.rewardAliases.map((a) => [a.rewardAddress, a.spendAddress])
     ),
-    baseCoinbaseUstx: snapshot.baseCoinbaseUstx,
+    coinbasePerWinUstx: snapshot.coinbasePerWinUstx,
     stxUsd: currentStxUsd(snapshot),
   };
   const samples = snapshot.windows.flatMap((win) =>
     windowSamples(win, miners, ctx)
   );
-  if (snapshot.baseCoinbaseUstx !== null)
+  if (snapshot.coinbasePerWinUstx !== null)
     samples.push({
       gauge: 'expectedCoinbasePerWinUstx',
       labels: {},
-      value: snapshot.baseCoinbaseUstx,
+      value: snapshot.coinbasePerWinUstx,
     });
   return samples;
 }

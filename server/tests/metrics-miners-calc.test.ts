@@ -69,7 +69,7 @@ function snapshot(
     computedAt: NOW,
     tipHeight: 1143,
     maturedThroughHeight: 1000,
-    baseCoinbaseUstx: 1_000_000_000,
+    coinbasePerWinUstx: 1_000_000_000,
     latestStxUsd: { hourStart: '2026-10-07T12:00:00.000Z', openPrice: '0.5' },
     rewardAliases: [],
     windows: [window()],
