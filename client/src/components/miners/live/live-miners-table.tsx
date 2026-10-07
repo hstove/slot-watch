@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { formatFeeRate, type LiveRow } from '@/lib/live-commits';
-import type { FeeStatus } from '@/lib/mempool-space';
+import type { FeeStatus } from 'slot-watch-common';
 import { formatSats } from '@/lib/miner-economics';
 import { cn } from '@/lib/utils';
 import { SimpleTooltip } from '../../simple-tooltip';

@@ -1,5 +1,5 @@
 import { formatFeeRate, type LiveRow } from '@/lib/live-commits';
-import type { MempoolBlock } from '@/lib/mempool-space';
+import type { MempoolBlock } from 'slot-watch-common';
 import { cn } from '@/lib/utils';
 import { SimpleTooltip } from '../../simple-tooltip';
 

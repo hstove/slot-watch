@@ -9,7 +9,7 @@ import {
   type MempoolTipBlock,
   fetchAddressMempool,
   parseBlockCommit,
-} from '@/lib/mempool-space';
+} from 'slot-watch-common';
 
 const MAX_EVENTS = 200;
 const RECONNECT_MS = 3000;
@@ -46,7 +46,7 @@ export interface LiveState {
 }
 
 type Action =
-  | { type: 'seed'; address: string; txs: EsploraTx[] }
+  | { type: 'seed'; address: string; txs: readonly EsploraTx[] }
   | { type: 'address'; address: string; txs: AddressTransactions }
   | { type: 'mempool-blocks'; blocks: MempoolBlock[] }
   | { type: 'tip'; block: MempoolTipBlock; isNew: boolean };
@@ -75,7 +75,7 @@ function pushEvents(state: LiveState, events: LiveEventBody[]) {
   return [...stamped.reverse(), ...state.events].slice(0, MAX_EVENTS);
 }
 
-function commitsOf(txs: EsploraTx[], seenAt: number) {
+function commitsOf(txs: readonly EsploraTx[], seenAt: number) {
   return txs.flatMap((tx) => parseBlockCommit(tx, seenAt) ?? []);
 }
 

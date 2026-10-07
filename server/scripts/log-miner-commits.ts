@@ -49,7 +49,7 @@ import {
   type MempoolBlock,
   type MempoolTipBlock,
   parseBlockCommit,
-} from '../../client/src/lib/mempool-space';
+} from 'slot-watch-common';
 
 const API = 'https://api.slotwatch.dev';
 const RECENT_BLOCKS = 12;

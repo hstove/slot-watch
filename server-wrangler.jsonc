@@ -13,6 +13,22 @@
       "preview_id": "4d65a9f9771f4b2d8887dc2c89cf766f"
     }
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MINER_COMMITS",
+        "class_name": "MinerCommitsWatcher",
+        "script_name": "slot-watch-worker"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MinerCommitsWatcher"],
+      "new_classes": []
+    }
+  ],
   "hyperdrive": [
     {
       "binding": "DB",

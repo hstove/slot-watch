@@ -99,6 +99,13 @@
       "when": 1790607962724,
       "tag": "0013_black_human_robot",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791380881132,
+      "tag": "0014_miner_commit_txs",
+      "breakpoints": true
     }
   ]
 }

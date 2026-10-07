@@ -14,6 +14,7 @@ import {
   primaryKey,
   check,
   json,
+  real,
   // sqliteTable as pgTable,
   // text as,
 } from 'drizzle-orm/pg-core';
@@ -416,6 +417,167 @@ export const minerRewards = pgTable(
 );
 
 export type MinerRewardDb = InferSelectModel<typeof minerRewards>;
+
+export const MINER_COMMIT_STATUSES = [
+  'pending',
+  'confirmed',
+  'replaced',
+  'dropped',
+] as const;
+export type MinerCommitStatus = (typeof MINER_COMMIT_STATUSES)[number];
+
+/** `ws`: our mempool.space WebSocket saw it; `mempool_space`: mempool.space's own first-seen time (seconds). */
+export const FIRST_SEEN_SOURCES = ['ws', 'mempool_space', 'logger'] as const;
+export type FirstSeenSource = (typeof FIRST_SEEN_SOURCES)[number];
+
+/**
+ * One row per block-commit tx version seen in the mempool or confirmed,
+ * including RBF-replaced versions. Written by the `MinerCommitsWatcher`
+ * Durable Object. Versions that spend the same first input (`chainInput`) form
+ * one replacement chain; confirmed rows join `miner_spends` by `txid`.
+ */
+export const minerCommitTxs = pgTable(
+  'miner_commit_txs',
+  {
+    /** uuidv7 from `firstSeenAt` (or insert time when unknown). */
+    id: text().primaryKey(),
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    txid: text('txid', { length: 64 }).notNull(),
+    /** `txid:vout` of the first input; RBF versions share it. */
+    chainInput: text('chain_input', { length: 80 }).notNull(),
+    replacesTxid: text('replaces_txid', { length: 64 }),
+    replacedByTxid: text('replaced_by_txid', { length: 64 }),
+    /** 0-based position in the replacement chain. */
+    chainPosition: integer('chain_position').default(0).notNull(),
+    minerBtcAddress: text('miner_btc_address').notNull(),
+    minerPublicKey: text('miner_public_key', { length: 66 }),
+    minerAddress: text('miner_address'),
+    bidSats: bigint('bid_sats', { mode: 'number' }).notNull(),
+    feeSats: bigint('fee_sats', { mode: 'number' }).notNull(),
+    vsize: real('vsize').notNull(),
+    feeRate: real('fee_rate').notNull(),
+    parentHeight: integer('parent_height').notNull(),
+    parentVtx: integer('parent_vtx').notNull(),
+    burnModulus: integer('burn_modulus').notNull(),
+    firstSeenAt: timestamp('first_seen_at', {
+      withTimezone: true,
+      precision: 3,
+    }),
+    firstSeenSource: text('first_seen_source', {
+      length: 16,
+      enum: FIRST_SEEN_SOURCES,
+    }),
+    status: text('status', { length: 16, enum: MINER_COMMIT_STATUSES })
+      .default('pending')
+      .notNull(),
+    /** When it was replaced, dropped or confirmed, where known. */
+    leftMempoolAt: timestamp('left_mempool_at', {
+      withTimezone: true,
+      precision: 3,
+    }),
+    confirmedHeight: integer('confirmed_height'),
+    fullRbf: boolean('full_rbf'),
+    /** Set once the chain was checked against mempool.space's RBF tree. */
+    reconciledAt: timestamp('reconciled_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('miner_commit_txs_network_key_txid_idx').on(
+      table.networkKey,
+      table.txid
+    ),
+    index('miner_commit_txs_network_key_chain_input_idx').on(
+      table.networkKey,
+      table.chainInput
+    ),
+    index('miner_commit_txs_network_key_confirmed_height_idx').on(
+      table.networkKey,
+      table.confirmedHeight
+    ),
+    index('miner_commit_txs_network_key_miner_address_id_idx').on(
+      table.networkKey,
+      table.minerAddress,
+      table.id
+    ),
+  ]
+);
+
+export type MinerCommitTxDb = InferSelectModel<typeof minerCommitTxs>;
+
+/**
+ * Per Bitcoin block data from outside the Stacks event stream: mempool.space
+ * block stats and the node's sortition outcome. Separate from `burn_blocks` so
+ * that table stays purely event-sourced.
+ */
+export const bitcoinBlocks = pgTable(
+  'bitcoin_blocks',
+  {
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    burnBlockHash: text('burn_block_hash', { length: 64 }).notNull(),
+    burnBlockHeight: integer('burn_block_height').notNull(),
+    headerTimestamp: timestamp('header_timestamp', { withTimezone: true }),
+    /** When the watcher's WebSocket announced the block. Null if backfilled. */
+    observedAt: timestamp('observed_at', { withTimezone: true, precision: 3 }),
+    /** False when the null miner won or no commit was valid. */
+    wasSortition: boolean('was_sortition'),
+    /** Hash160 of the sortition winner's key, even if it never produced a block. */
+    sortitionMinerPkHash160: text('sortition_miner_pk_hash160', {
+      length: 40,
+    }),
+    medianFeeRate: real('median_fee_rate'),
+    /** [min, p10, p25, p50, p75, p90, max] sat/vB. */
+    feeRange: real('fee_range').array(),
+    totalFeesSats: bigint('total_fees_sats', { mode: 'number' }),
+    txCount: integer('tx_count'),
+    weight: integer('weight'),
+    poolName: text('pool_name'),
+    fetchedAt: timestamp('fetched_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: 'bitcoin_blocks_network_key_hash_pk',
+      columns: [table.networkKey, table.burnBlockHash],
+    }),
+    index('bitcoin_blocks_network_key_height_idx').on(
+      table.networkKey,
+      table.burnBlockHeight
+    ),
+  ]
+);
+
+export type BitcoinBlockDb = InferSelectModel<typeof bitcoinBlocks>;
+
+/**
+ * Compact projected-mempool fee snapshots: the next projected block's median
+ * and fee range, plus the second block's minimum. Taken every 30s and at
+ * each new block (the ladder the block was mined against).
+ */
+export const mempoolFeeSnapshots = pgTable(
+  'mempool_fee_snapshots',
+  {
+    networkKey: text('network_key', { length: 20 }).notNull(),
+    observedAt: timestamp('observed_at', {
+      withTimezone: true,
+      precision: 3,
+    }).notNull(),
+    tipHeight: integer('tip_height').notNull(),
+    nextMedianFeeRate: real('next_median_fee_rate').notNull(),
+    /** [min, p10, p25, p50, p75, p90, max] sat/vB. */
+    nextFeeRange: real('next_fee_range').array().notNull(),
+    /** Under ~900k vB the next block takes everything, so its min isn't a threshold. */
+    nextBlockVsize: integer('next_block_vsize').notNull(),
+    secondMinFeeRate: real('second_min_fee_rate'),
+  },
+  (table) => [
+    primaryKey({
+      name: 'mempool_fee_snapshots_network_key_observed_at_pk',
+      columns: [table.networkKey, table.observedAt],
+    }),
+  ]
+);
+
+export type MempoolFeeSnapshotDb = InferSelectModel<typeof mempoolFeeSnapshots>;
 
 export const stateMachineUpdates = pgTable(
   'state_machine_updates',

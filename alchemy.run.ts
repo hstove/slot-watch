@@ -1,5 +1,6 @@
 import alchemy from 'alchemy';
 import {
+  DurableObjectNamespace,
   KVNamespace,
   Worker,
   WranglerJson,
@@ -46,6 +47,12 @@ const db = await Hyperdrive('slot-watch-pg', {
   },
 });
 
+/** Holds the mempool.space WebSocket and persists miner commit activity. */
+const minerCommits = DurableObjectNamespace('miner-commits-watcher', {
+  className: 'MinerCommitsWatcher',
+  sqlite: true,
+});
+
 export const worker = await Worker('slot-watch-worker', {
   name: 'slot-watch-worker',
   entrypoint: 'server/src/server.ts',
@@ -70,6 +77,7 @@ export const worker = await Worker('slot-watch-worker', {
     CF_KV_ACCOUNT_ID: alchemy.secret(process.env.CF_KV_ACCOUNT_ID),
     KV_NAMESPACE_ID: alchemy.secret(process.env.KV_NAMESPACE_ID),
     HIRO_API_KEY: alchemy.secret(process.env.HIRO_API_KEY),
+    MINER_COMMITS: minerCommits,
   },
   adopt: true,
 });
