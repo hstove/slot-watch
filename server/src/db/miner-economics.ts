@@ -202,8 +202,8 @@ export type MinerMetricWindow = (typeof MINER_METRIC_WINDOWS)[number]['window'];
 
 /** Burn heights to scan back from the tip when resolving windows by time. */
 const WINDOW_LOOKBACK_HEIGHTS = 2000;
-/** Burn heights of matured tenures used to derive the base coinbase. */
-const BASE_COINBASE_LOOKBACK_HEIGHTS = 1008;
+/** Burn heights of matured tenures used to derive the coinbase per win. */
+const COINBASE_PER_WIN_LOOKBACK_HEIGHTS = 1008;
 
 export interface HeightRange {
   fromHeight: number;
@@ -269,8 +269,8 @@ export interface MinerMetricsSnapshot {
   computedAt: string;
   tipHeight: number;
   maturedThroughHeight: number;
-  /** Most common per-tenure coinbase among recent matured tenures. */
-  baseCoinbaseUstx: number | null;
+  /** Average coinbase actually paid per won tenure, recently matured. */
+  coinbasePerWinUstx: number | null;
   latestStxUsd: { hourStart: string; openPrice: string } | null;
   rewardAliases: RewardAlias[];
   windows: MinerMetricsWindowSnapshot[];
@@ -432,10 +432,12 @@ async function loadWindowStarts(db: Db, networkKey: string, now: number) {
 }
 
 /**
- * Most common per-tenure coinbase in recently matured tenures. Accumulated
- * coinbases from missed sortitions are larger, so the mode is the base.
+ * Average coinbase paid per won tenure in recently matured tenures. A win
+ * after missed sortitions also collects their coinbases, so this is above the
+ * base emission. The base would under-report expected revenue by roughly the
+ * null-sortition rate.
  */
-async function loadBaseCoinbase(
+async function loadCoinbasePerWin(
   db: Db,
   networkKey: string,
   maturedThroughHeight: number
@@ -452,7 +454,7 @@ async function loadBaseCoinbase(
         eq(minerRewards.networkKey, networkKey),
         between(
           minerRewards.earnedBurnBlockHeight,
-          maturedThroughHeight - BASE_COINBASE_LOOKBACK_HEIGHTS,
+          maturedThroughHeight - COINBASE_PER_WIN_LOOKBACK_HEIGHTS,
           maturedThroughHeight
         )
       )
@@ -463,7 +465,7 @@ async function loadBaseCoinbase(
     .select({
       coinbaseUstx: sql<
         number | null
-      >`mode() within group (order by ${perTenure.coinbaseUstx})`,
+      >`avg(${perTenure.coinbaseUstx})`,
     })
     .from(perTenure)
     .where(sql`${perTenure.coinbaseUstx} > 0`);
@@ -612,8 +614,8 @@ export async function getMinerMetricsSnapshot(
     1,
     ...ranges.map(({ live }) => live.toHeight - live.fromHeight)
   );
-  const [baseCoinbaseUstx, rewardAliases, windows] = await Promise.all([
-    loadBaseCoinbase(db, networkKey, maturedThroughHeight),
+  const [coinbasePerWinUstx, rewardAliases, windows] = await Promise.all([
+    loadCoinbasePerWin(db, networkKey, maturedThroughHeight),
     loadRewardAliases(db, networkKey, {
       fromHeight: maturedThroughHeight - longest,
       toHeight: maturedThroughHeight,
@@ -629,7 +631,7 @@ export async function getMinerMetricsSnapshot(
     computedAt: new Date(now).toISOString(),
     tipHeight,
     maturedThroughHeight,
-    baseCoinbaseUstx,
+    coinbasePerWinUstx,
     latestStxUsd,
     rewardAliases,
     windows,

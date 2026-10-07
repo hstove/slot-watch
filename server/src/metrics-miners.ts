@@ -90,7 +90,7 @@ const gauges: Record<MinerGaugeName, Gauge<string>> = {
   }),
   expectedCoinbasePerWinUstx: new Gauge({
     name: 'slot_watch_expected_coinbase_per_win_ustx',
-    help: 'Base coinbase used for expected revenue: the most common per-tenure coinbase among recently matured tenures',
+    help: 'Coinbase per win used for expected revenue: the average coinbase paid per won tenure among recently matured tenures, including coinbases accumulated from missed sortitions',
   }),
 };
 

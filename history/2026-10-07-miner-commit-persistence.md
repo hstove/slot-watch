@@ -1,8 +1,8 @@
 # Persisting miner commit activity (RBFs, first-seen, fee context)
 
 Status: implemented with **Option B** (Durable Object), deployed 2026-10-07.
-Migration `0014_miner_commit_txs` is applied. The backfill script is not
-written yet (rollout step 4).
+Migration `0014_miner_commit_txs` is applied. The logger backfill ran
+2026-10-07 (`server/scripts/backfill-miner-commits.ts`, see below).
 
 ## As built
 
@@ -251,6 +251,25 @@ Run a one-off script, `server/scripts/backfill-miner-commits.ts`, locally with
    `mempool_fee_snapshots` (24k rows; drop the per-miner part).
 7. Record the 15 `ws_close` gaps in the script's output so analysis knows the
    coverage holes. Don't store them in the DB.
+
+As run (2026-10-07):
+
+- The cutoff is the watcher's first fee snapshot (14:06Z). Chains first seen
+  after it, or already in the DB, are the watcher's. The overlap was diffed
+  instead: 16/16 logger versions were in the DB, with 0 link mismatches and
+  `first_seen_at` within 0.8s median (5.6s max; the watcher was earlier).
+- 10,234 versions in 6,654 chains, all confirmed (`miner_spends` had every
+  one). 10,222 have a logger `first_seen_at`.
+- 81 chains have a version *after* the confirmed one: a late RBF that the
+  block beat (sometimes by ~30 min, when the block's template had the older
+  version). They are stored like the watcher does it: linked after the
+  confirmed row, with status `replaced`. Query them with
+  `status = 'confirmed' and replaced_by_txid is not null`.
+- No `commit_dropped` events exist in the log, so nothing is `dropped`.
+- Block stats and sortitions for 969026..970351. `observed_at` comes from the
+  logger's `block` events. 25.5k snapshots.
+- Coverage holes: 2026-09-28 22:47–23:06Z (the laptop session ended) and 15
+  ~3s reconnects.
 
 Pre-logger history can't be recovered: mempool.space's RBF cache only goes back
 ~24h. Coverage starts 2026-09-28 17:11Z.
