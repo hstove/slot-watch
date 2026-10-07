@@ -1,17 +1,6 @@
 import { Hono } from 'hono';
 import { Schema } from 'effect';
-import {
-  and,
-  asc,
-  between,
-  desc,
-  eq,
-  isNotNull,
-  max,
-  sql,
-  type SQLWrapper,
-} from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
+import { and, asc, between, desc, eq, sql } from 'drizzle-orm';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { timeout } from 'hono/timeout';
 import {
@@ -23,8 +12,16 @@ import {
   getMinerIdentity,
 } from 'slot-watch-common';
 import {
+  btcPrice,
+  completeUsd,
+  getMaturedThroughHeight,
+  minerRevenueTotals,
+  minerSpendTotals,
+  observedHour,
+  stxPrice,
+} from '../db/miner-economics';
+import {
   burnBlocks,
-  hourlyPrices,
   minerRewards,
   minerSpends,
   stacksBlocks,
@@ -37,16 +34,6 @@ import { COINBASE_SOURCE } from '../prices/coinbase';
 const MAX_SPAN = 4032;
 /** One week of Bitcoin blocks; the commits route returns a row per commit. */
 const MAX_COMMITS_SPAN = 1008;
-const btcPrice = alias(hourlyPrices, 'btc_price');
-const stxPrice = alias(hourlyPrices, 'stx_price');
-
-function observedHour(id: SQLWrapper) {
-  return sql<string>`date_trunc('hour', to_timestamp(uuid7_ms(${id}) / 1000.0), 'UTC')`;
-}
-
-function completeUsd(pricedUsd: string | null, missing: number | null) {
-  return Number(missing ?? 0) === 0 ? pricedUsd : null;
-}
 
 const HeightRangeQuerySchema = Schema.toStandardSchemaV1(
   Schema.Struct({
@@ -167,7 +154,7 @@ Caveats:
 
       const hour = observedHour(deduped.id);
 
-      const [rows, [matured]] = await Promise.all([
+      const [rows, maturedThroughHeight] = await Promise.all([
         db
           .select({
             id: deduped.id,
@@ -215,19 +202,11 @@ Caveats:
             )
           )
           .orderBy(asc(deduped.burnBlockHeight)),
-        db
-          .select({ height: max(minerRewards.earnedBurnBlockHeight) })
-          .from(minerRewards)
-          .where(
-            and(
-              eq(minerRewards.networkKey, networkKey),
-              isNotNull(minerRewards.earnedBurnBlockHeight)
-            )
-          ),
+        getMaturedThroughHeight(db, networkKey),
       ]);
 
       return c.json({
-        maturedThroughHeight: Number(matured?.height ?? 0),
+        maturedThroughHeight,
         blocks: rows.map((row) => ({
           burnBlockHeight: row.burnBlockHeight,
           burnBlockHash: row.burnBlockHash,
@@ -285,106 +264,10 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
       if (rangeError) return c.json({ error: rangeError }, 400);
 
       const db = c.get('db');
-      const won = sql<boolean>`exists (select 1 from ${burnBlocks} bb where bb.network_key = ${minerSpends.networkKey} and bb.burn_block_hash = ${minerSpends.burnBlockHash} and bb.winning_txid = ${minerSpends.txid})`;
-      // Postgres can't hash a full join on `is not distinct from`, so group
-      // unresolved miners under '' and join on equality.
-      const spend = db
-        .select({
-          minerKey: sql<string>`coalesce(${minerSpends.minerAddress}, '')`.as(
-            'spend_miner_key'
-          ),
-          minerPublicKey: sql<
-            string | null
-          >`max(${minerSpends.minerPublicKey})`.as('miner_public_key'),
-          commits: sql<number>`count(*)`.as('commits'),
-          wins: sql<number>`count(*) filter (where ${won})`.as('wins'),
-          spendSats: sql<number>`sum(${minerSpends.spendSats})`.as(
-            'spend_sats'
-          ),
-          burnSats: sql<number>`sum(${minerSpends.burnSats})`.as('burn_sats'),
-          pricedSpendUsd: sql<
-            string | null
-          >`round(sum((${minerSpends.spendSats}::numeric + ${minerSpends.burnSats}::numeric) / 100000000 * ${btcPrice.openPrice}), 8)::text`.as(
-            'priced_spend_usd'
-          ),
-          spendPriceMissing:
-            sql<number>`count(*) filter (where ${btcPrice.openPrice} is null)`.as(
-              'spend_price_missing'
-            ),
-        })
-        .from(minerSpends)
-        .leftJoin(
-          burnBlocks,
-          and(
-            eq(burnBlocks.networkKey, minerSpends.networkKey),
-            eq(burnBlocks.burnBlockHash, minerSpends.burnBlockHash)
-          )
-        )
-        .leftJoin(
-          btcPrice,
-          and(
-            eq(btcPrice.source, COINBASE_SOURCE),
-            eq(btcPrice.productId, 'BTC-USD'),
-            eq(btcPrice.hourStart, observedHour(burnBlocks.id))
-          )
-        )
-        .where(
-          and(
-            eq(minerSpends.networkKey, networkKey),
-            between(minerSpends.burnBlockHeight, fromHeight, toHeight)
-          )
-        )
-        .groupBy(sql`coalesce(${minerSpends.minerAddress}, '')`)
-        .as('spend');
-      const revenue = db
-        .select({
-          minerKey: sql<string>`coalesce(${minerRewards.minerAddress}, '')`.as(
-            'revenue_miner_key'
-          ),
-          coinbaseUstx: sql<number>`sum(${minerRewards.coinbaseUstx})`.as(
-            'coinbase_ustx'
-          ),
-          txFeesUstx:
-            sql<number>`sum(${minerRewards.txFeesAnchoredUstx} + ${minerRewards.txFeesStreamedConfirmedUstx} + ${minerRewards.txFeesStreamedProducedUstx})`.as(
-              'tx_fees_ustx'
-            ),
-          rewardRows: sql<number>`count(*)`.as('reward_rows'),
-          pricedRevenueUsd: sql<
-            string | null
-          >`round(sum((${minerRewards.coinbaseUstx}::numeric + ${minerRewards.txFeesAnchoredUstx}::numeric + ${minerRewards.txFeesStreamedConfirmedUstx}::numeric + ${minerRewards.txFeesStreamedProducedUstx}::numeric) / 1000000 * ${stxPrice.openPrice}), 8)::text`.as(
-            'priced_revenue_usd'
-          ),
-          revenuePriceMissing:
-            sql<number>`count(*) filter (where ${stxPrice.openPrice} is null)`.as(
-              'revenue_price_missing'
-            ),
-        })
-        .from(minerRewards)
-        .leftJoin(
-          burnBlocks,
-          and(
-            eq(burnBlocks.networkKey, minerRewards.networkKey),
-            eq(burnBlocks.consensusHash, minerRewards.earnedConsensusHash)
-          )
-        )
-        .leftJoin(
-          stxPrice,
-          and(
-            eq(stxPrice.source, COINBASE_SOURCE),
-            eq(stxPrice.productId, 'STX-USD'),
-            eq(stxPrice.hourStart, observedHour(burnBlocks.id))
-          )
-        )
-        .where(
-          and(
-            eq(minerRewards.networkKey, networkKey),
-            between(minerRewards.earnedBurnBlockHeight, fromHeight, toHeight)
-          )
-        )
-        .groupBy(sql`coalesce(${minerRewards.minerAddress}, '')`)
-        .as('revenue');
+      const spend = minerSpendTotals(db, networkKey, fromHeight, toHeight);
+      const revenue = minerRevenueTotals(db, networkKey, fromHeight, toHeight);
 
-      const [rows, [matured]] = await Promise.all([
+      const [rows, maturedThroughHeight] = await Promise.all([
         db
           .select({
             minerAddress: sql<
@@ -406,21 +289,13 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
           .from(spend)
           .fullJoin(revenue, eq(spend.minerKey, revenue.minerKey))
           .orderBy(desc(spend.spendSats)),
-        db
-          .select({ height: max(minerRewards.earnedBurnBlockHeight) })
-          .from(minerRewards)
-          .where(
-            and(
-              eq(minerRewards.networkKey, networkKey),
-              isNotNull(minerRewards.earnedBurnBlockHeight)
-            )
-          ),
+        getMaturedThroughHeight(db, networkKey),
       ]);
 
       return c.json({
         fromHeight,
         toHeight,
-        maturedThroughHeight: Number(matured?.height ?? 0),
+        maturedThroughHeight,
         miners: rows.map((row) => ({
           minerAddress: row.minerAddress,
           minerPublicKey: row.minerPublicKey ?? null,

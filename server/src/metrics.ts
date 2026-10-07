@@ -11,6 +11,7 @@ import {
   type PhaseBlock,
 } from './metrics-precommit-calc';
 import type { Db } from './db/db';
+import { warmMinerMetrics } from './metrics-miners';
 
 const acceptanceRateLastBlocks = new Gauge({
   name: 'slot_watch_block_acceptance_rate',
@@ -262,6 +263,16 @@ export async function warmupMetrics(db: Db) {
     logger.error(
       { error: String(error) },
       'Failed to warm pre-commit metrics; skipping those gauges'
+    );
+  }
+
+  // Isolated for the same reason: miner economics are diagnostic.
+  try {
+    await warmMinerMetrics(db);
+  } catch (error) {
+    logger.error(
+      { error: String(error) },
+      'Failed to warm miner metrics; skipping those gauges'
     );
   }
 

@@ -1,7 +1,41 @@
 # Miner economics in `/metrics`
 
-Status: idea capture, for later. Depends partly on
-`2026-10-07-miner-commit-persistence.md`.
+Status: implemented and deployed 2026-10-07, all three steps of "Order of
+work" (`bitcoin_blocks` and `miner_commit_txs` had landed).
+
+## As built
+
+- Queries: `server/src/db/miner-economics.ts`. The `/miners` route now uses
+  the same `minerSpendTotals` / `minerRevenueTotals` subqueries. The spend one
+  also carries commit tx fees from `miner_commit_txs`.
+- Math: `server/src/metrics-miners-calc.ts` (tests in
+  `server/tests/metrics-miners-calc.test.ts`). Gauges and warmup:
+  `server/src/metrics-miners.ts`, called from `warmupMetrics` in its own
+  try/catch. The snapshot is KV-cached for 5 minutes (~1.5s uncached).
+- Differences from the sketch below:
+  - `slot_watch_miner_cost_usd` has a `basis` label. Matured profit needs
+    the cost of the matured window's heights, not the live window's.
+  - Reward-address aliases: one miner funds commits from a different key than
+    the one rewards are paid to (`SP1HYS…` spends, `SP28K1…` is paid). Matured
+    revenue is re-keyed by matching coinbase rows (they go to the tenure
+    winner) to the winning commit's address. The per-miner route still shows
+    them as two rows.
+  - Reward rows: each tenure has two rows. One is the winner's coinbase. The
+    other is the *previous* tenure's miner's streamed tx fees. Grouping by
+    `miner_address` attributes them correctly, but matured fees are shifted by
+    one tenure at the window edges.
+  - Extra gauges: `slot_watch_miner_btc_tx_fees_missing_commits` (cost is
+    unset when > 0) and `slot_watch_expected_coinbase_per_win_ustx`.
+  - The expected basis ignores the latest STX-USD open if it is more than 3h
+    old.
+  - The null-miner rate uses `bitcoin_blocks.was_sortition` directly. Heights
+    without a known outcome are excluded from both sides.
+- First results (2026-10-07, 7d): expected fees track matured fees within a
+  few percent. But the mode base coinbase (1000 STX) is ~25–30% below the
+  realized coinbase per win (~1311 STX, from accumulated coinbases after
+  ~15–19% null sortitions). So expected profit reads negative for every miner
+  while matured profit is mostly positive. Consider switching the base to
+  the realized matured coinbase per win.
 
 ## Goal
 
