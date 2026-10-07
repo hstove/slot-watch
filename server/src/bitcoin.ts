@@ -2,7 +2,7 @@ import { getAddressFromPublicKey } from '@stacks/transactions';
 import { stacksExplorerNetworkKey } from 'slot-watch-common';
 
 /** Esplora-compatible APIs, tried in order; the first is team-hosted. */
-const ESPLORA_HOSTS = [
+export const ESPLORA_HOSTS = [
   'https://leather.mempool.space/api',
   'https://mempool.space/api',
   'https://blockstream.info/api',
@@ -11,9 +11,12 @@ const ESPLORA_HOSTS = [
 const COMPRESSED_PUBKEY = /^0[23][0-9a-f]{64}$/;
 
 interface EsploraVin {
-  scriptsig_asm?: string;
-  witness?: string[];
-  prevout?: { scriptpubkey_type?: string; scriptpubkey_address?: string };
+  readonly scriptsig_asm?: string;
+  readonly witness?: readonly string[];
+  readonly prevout?: {
+    readonly scriptpubkey_type?: string;
+    readonly scriptpubkey_address?: string;
+  } | null;
 }
 
 /**

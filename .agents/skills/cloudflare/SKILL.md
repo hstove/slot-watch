@@ -20,6 +20,7 @@ Use this skill for production management and incident response involving Cloudfl
 - Hyperdrive binding: `DB`
 - Hyperdrive id: `0d80e28aec7241daa9692ec6f7d0e409`
 - Streamer URL: `https://slot-watch-streamer.fly.dev`
+- Durable Object: `MinerCommitsWatcher` (binding `MINER_COMMITS`, one instance named `mainnet`, SQLite-backed). Status JSON at `https://api.slotwatch.dev/miner-commits/status` (connection, counts, outbox depth, dead letters, last error). Its logs carry `annotations.topic = miner-commits`. A 15s alarm keeps it running and restarts it after deploys.
 
 Important Worker secrets/bindings:
 

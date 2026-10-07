@@ -17,6 +17,7 @@ declare namespace Cloudflare {
 		HIRO_API_KEY: string;
 		ALCHEMY_STATE_TOKEN: string;
 		DB: Hyperdrive;
+		MINER_COMMITS: DurableObjectNamespace<import("./src/miner-commits/durable-object").MinerCommitsWatcher>;
 	}
 }
 interface CloudflareBindings extends Cloudflare.Env {}

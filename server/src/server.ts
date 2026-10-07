@@ -23,6 +23,16 @@ import { Effect } from 'effect';
 import { FetchHttpClient } from 'effect/unstable/http';
 import { startOfHour, HOUR_MS } from './prices/coinbase';
 import { syncHourlyPrices } from './prices/sync';
+import { env } from 'cloudflare:workers';
+
+// The Durable Object class must be exported from the Worker's entrypoint.
+// biome-ignore lint/performance/noBarrelFile: required by the Workers runtime
+export { MinerCommitsWatcher } from './miner-commits/durable-object';
+
+/** The single watcher instance; any request also (re)starts it. */
+function minerCommitsWatcher() {
+  return env.MINER_COMMITS.get(env.MINER_COMMITS.idFromName('mainnet'));
+}
 
 const api = new Hono<ServerType>()
   .route('/', blockRoutes)
@@ -89,6 +99,13 @@ export const app = new Hono<ServerType>()
 
   .get('/docs', Scalar({ url: '/openapi.json' }))
 
+  .get('/miner-commits/status', async () => {
+    const response = await minerCommitsWatcher().fetch(
+      'https://miner-commits/status'
+    );
+    return new Response(response.body, response);
+  })
+
   .get('/metrics', async (c) => {
     await warmupMetrics(c.get('db'));
     // @ts-expect-error
@@ -126,6 +143,12 @@ export type SlotWatchServer = typeof app;
 export default {
   fetch: app.fetch,
   async scheduled(controller: ScheduledController) {
+    // Backstop for the watcher's own alarm; separate so it can't fail prices.
+    try {
+      await minerCommitsWatcher().fetch('https://miner-commits/status');
+    } catch (error) {
+      log.withError(error).error('Failed to ping miner commits watcher');
+    }
     const to = new Date(
       startOfHour(new Date(controller.scheduledTime)).getTime() + HOUR_MS
     );

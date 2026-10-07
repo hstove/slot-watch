@@ -11,7 +11,7 @@ import {
   isStaleCommit,
   type LiveCommit,
   type MempoolBlock,
-} from '@/lib/mempool-space';
+} from 'slot-watch-common';
 import { UNRESOLVED_COLOR } from '@/lib/miner-economics';
 import { truncateMiddle } from '@/lib/utils';
 

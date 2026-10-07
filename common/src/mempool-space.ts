@@ -7,20 +7,29 @@ const BURN_BLOCK_MINED_AT_MODULUS = 5;
 const COMMIT_PREFIX = '6a4c5058325b';
 
 export interface EsploraTx {
-  txid: string;
-  vin: {
-    txid: string;
-    vout: number;
-    prevout: { scriptpubkey_address?: string; value: number } | null;
+  readonly txid: string;
+  readonly vin: readonly {
+    readonly txid: string;
+    readonly vout: number;
+    readonly prevout: {
+      readonly scriptpubkey_address?: string;
+      readonly scriptpubkey_type?: string;
+      readonly value: number;
+    } | null;
+    readonly scriptsig_asm?: string;
+    readonly witness?: readonly string[];
   }[];
-  vout: {
-    scriptpubkey: string;
-    scriptpubkey_address?: string;
-    value: number;
+  readonly vout: readonly {
+    readonly scriptpubkey: string;
+    readonly scriptpubkey_address?: string;
+    readonly value: number;
   }[];
-  weight: number;
-  fee: number;
-  status: { confirmed: boolean; block_height?: number };
+  readonly weight: number;
+  readonly fee: number;
+  readonly status: {
+    readonly confirmed: boolean;
+    readonly block_height?: number;
+  };
 }
 
 export interface MempoolBlock {
@@ -39,9 +48,9 @@ export interface MempoolTipBlock {
 }
 
 export interface AddressTransactions {
-  mempool: EsploraTx[];
-  confirmed: EsploraTx[];
-  removed: EsploraTx[];
+  readonly mempool: readonly EsploraTx[];
+  readonly confirmed: readonly EsploraTx[];
+  readonly removed: readonly EsploraTx[];
 }
 
 export interface LiveCommit {

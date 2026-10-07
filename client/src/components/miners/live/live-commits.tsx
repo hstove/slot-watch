@@ -15,7 +15,7 @@ import {
   type TrackedMiner,
   trackedMiners,
 } from '@/lib/live-commits';
-import type { LiveCommit } from '@/lib/mempool-space';
+import type { LiveCommit } from 'slot-watch-common';
 import { formatSats } from '@/lib/miner-economics';
 import { formatTimestamp } from '@/hooks/use-timestamp';
 import { cn } from '@/lib/utils';
