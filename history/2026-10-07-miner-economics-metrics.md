@@ -30,12 +30,14 @@ work" (`bitcoin_blocks` and `miner_commit_txs` had landed).
     old.
   - The null-miner rate uses `bitcoin_blocks.was_sortition` directly. Heights
     without a known outcome are excluded from both sides.
-- First results (2026-10-07, 7d): expected fees track matured fees within a
-  few percent. But the mode base coinbase (1000 STX) is ~25–30% below the
-  realized coinbase per win (~1311 STX, from accumulated coinbases after
-  ~15–19% null sortitions). So expected profit reads negative for every miner
-  while matured profit is mostly positive. Consider switching the base to
-  the realized matured coinbase per win.
+- Expected coinbase uses the realized average coinbase per won tenure over
+  the last 1008 matured heights (~1304 STX on 2026-10-07), not the mode or
+  minimum suggested below. On the first results, the mode (1000 STX) was
+  ~25–30% under the realized coinbase per win, because a win after missed
+  sortitions also collects their coinbases (~15–19% null sortitions). With
+  the mode, expected profit read negative for every miner while matured
+  profit was mostly positive. Expected tx fees track matured fees within a
+  few percent.
 
 ## Goal
 
