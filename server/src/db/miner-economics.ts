@@ -463,9 +463,7 @@ async function loadCoinbasePerWin(
     .as('per_tenure');
   const [row] = await db
     .select({
-      coinbaseUstx: sql<
-        number | null
-      >`avg(${perTenure.coinbaseUstx})`,
+      coinbaseUstx: sql<number | null>`avg(${perTenure.coinbaseUstx})`,
     })
     .from(perTenure)
     .where(sql`${perTenure.coinbaseUstx} > 0`);

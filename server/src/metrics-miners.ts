@@ -50,7 +50,7 @@ const gauges: Record<MinerGaugeName, Gauge<string>> = {
   }),
   coinbaseUstx: new Gauge({
     name: 'slot_watch_miner_coinbase_ustx',
-    help: 'Coinbase earned (uSTX). expected: wins x base coinbase (excludes coinbases accumulated from missed sortitions); matured: miner_rewards coinbase in the matured window',
+    help: 'Coinbase earned (uSTX). expected: wins x recent average coinbase per win (see expected_coinbase_per_win_ustx); matured: miner_rewards coinbase in the matured window',
     labelNames: basisLabels,
   }),
   revenueUsd: new Gauge({

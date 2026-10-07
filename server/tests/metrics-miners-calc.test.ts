@@ -120,7 +120,7 @@ describe('minerGaugeSamples', () => {
     ).toBe(857);
   });
 
-  test('expected basis: wins x base coinbase + tenure fees at the latest price', () => {
+  test('expected basis: wins x coinbase per win + tenure fees at the latest price', () => {
     const samples = minerGaugeSamples(snapshot(), name);
     const labels = { basis: 'expected' };
     expect(value(samples, 'coinbaseUstx', labels)).toBe(2_000_000_000);
@@ -130,6 +130,16 @@ describe('minerGaugeSamples', () => {
     expect(value(samples, 'costUsd', labels)).toBe(1005);
     expect(value(samples, 'profitUsd', labels)).toBe(20);
     expect(value(samples, 'margin', labels)).toBeCloseTo(20 / 1025);
+  });
+
+  test('expected coinbase uses the average per win, rounded to uSTX', () => {
+    const samples = minerGaugeSamples(
+      snapshot({ coinbasePerWinUstx: 1_311_123_456.7 }),
+      name
+    );
+    expect(value(samples, 'coinbaseUstx', { basis: 'expected' })).toBe(
+      2_622_246_913
+    );
   });
 
   test('matured basis uses matured revenue and matured-window cost', () => {
