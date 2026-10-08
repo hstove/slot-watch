@@ -8,15 +8,14 @@ import {
   costUsd,
   currentStxUsd,
   type GaugeSample,
-  mergeRevenue,
   minerGaugeSamples,
 } from '../src/metrics-miners-calc';
 
 /**
  * Covers the per-miner economics math. The properties that matter: values
  * that can't be computed honestly (missing prices or tx fees, zero
- * denominators) are omitted rather than reported as 0, and matured rewards
- * paid to a different address than the commit key land on the right miner.
+ * denominators) are omitted rather than reported as 0. Re-keying rewards paid
+ * to a different address happens in SQL (`rewardAddressMap`).
  */
 
 const NOW = '2026-10-07T12:30:00.000Z';
@@ -71,7 +70,6 @@ function snapshot(
     maturedThroughHeight: 1000,
     coinbasePerWinUstx: 1_000_000_000,
     latestStxUsd: { hourStart: '2026-10-07T12:00:00.000Z', openPrice: '0.5' },
-    rewardAliases: [],
     windows: [window()],
     ...overrides,
   };
@@ -205,34 +203,6 @@ describe('minerGaugeSamples', () => {
     expect(value(samples, 'coinbaseUstx', { basis: 'matured' })).toBe(1);
   });
 
-  test('reward aliases re-key matured revenue to the commit key', () => {
-    const samples = minerGaugeSamples(
-      snapshot({
-        rewardAliases: [{ rewardAddress: 'SPREWARD', spendAddress: 'SPA' }],
-        windows: [
-          window({
-            maturedRevenue: [
-              {
-                minerKey: 'SPREWARD',
-                coinbaseUstx: 1_000_000_000,
-                txFeesUstx: 0,
-                pricedRevenueUsd: '500',
-                revenuePriceMissing: 0,
-              },
-            ],
-          }),
-        ],
-      }),
-      name
-    );
-    expect(value(samples, 'coinbaseUstx', { basis: 'matured' })).toBe(
-      1_000_000_000
-    );
-    expect(
-      find(samples, 'commits', { miner_address: 'SPREWARD' })
-    ).toHaveLength(0);
-  });
-
   test('only miners with commits get series; zero revenue gives no margin', () => {
     const samples = minerGaugeSamples(
       snapshot({
@@ -289,34 +259,6 @@ describe('minerGaugeSamples', () => {
 describe('helpers', () => {
   test('costUsd is 0 for a miner with no commits in the range', () => {
     expect(costUsd(undefined)).toBe(0);
-  });
-
-  test('mergeRevenue sums rows that alias to one miner', () => {
-    const merged = mergeRevenue(
-      [
-        {
-          minerKey: 'SPA',
-          coinbaseUstx: 1,
-          txFeesUstx: 2,
-          pricedRevenueUsd: '3',
-          revenuePriceMissing: 0,
-        },
-        {
-          minerKey: 'SPB',
-          coinbaseUstx: 10,
-          txFeesUstx: 20,
-          pricedRevenueUsd: '30',
-          revenuePriceMissing: 1,
-        },
-      ],
-      new Map([['SPB', 'SPA']])
-    );
-    expect(merged.get('SPA')).toEqual({
-      coinbaseUstx: 11,
-      txFeesUstx: 22,
-      usd: 33,
-      missing: 1,
-    });
   });
 
   test('currentStxUsd rejects non-positive prices', () => {

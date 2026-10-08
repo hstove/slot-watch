@@ -28,7 +28,7 @@ This workspace is an API server for Slot Watch.
   - `block-proposals.ts`: Functions for working with block proposals
 - `src/miner-commits/`: `MinerCommitsWatcher` Durable Object. Holds the mempool.space WebSocket for recent miners' commit txs (first-seen, RBFs, drops), compact fee snapshots and Bitcoin block stats, and writes them to `miner_commit_txs`, `mempool_fee_snapshots` and `bitcoin_blocks` through a durable outbox in the DO's SQLite storage. All writes are idempotent so restarts/deploys replay safely; a per-block reconcile job backfills missed RBF versions from mempool.space's RBF tree. Status: `GET /miner-commits/status`.
 - `src/metrics.ts`, `src/metrics-miners.ts`: Prometheus gauges for `GET /metrics`. Per-miner economics (wins, spend, revenue/profit by `expected`/`matured` basis) come from `src/db/miner-economics.ts` (queries shared with the miner-economics routes) and `src/metrics-miners-calc.ts` (pure math)
-- `src/bitcoin.ts`: Resolves a block commit's miner from its Bitcoin input key (Esplora APIs); the derived STX address joins `miner_spends` to `miner_rewards`
+- `src/bitcoin.ts`: Resolves a block commit's miner from its Bitcoin input key (Esplora APIs); the derived STX address keys miners. Rewards paid to a different `miner_address` are re-keyed to it by `rewardAddressMap` in `src/db/miner-economics.ts`
 - `scripts/backfill-miner-economics.ts`, `scripts/backfill-miner-spends.ts`: Backfill/repair miner spend and revenue from a local Hiro DB dump plus Bitcoin APIs
 
 ## Understanding the data flow
