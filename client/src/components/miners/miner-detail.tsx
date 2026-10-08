@@ -26,6 +26,21 @@ function safeAddress(fn: () => string) {
   }
 }
 
+/** Addresses this miner's rewards are paid under, other than its own. */
+function otherRewardAddresses(
+  economics: MinerEconomicsData | null,
+  stxAddress: string | null
+) {
+  if (!(economics && stxAddress)) return [];
+  const miners = [
+    ...economics.economics.miners,
+    ...(economics.matured?.miners ?? []),
+  ].filter((m) => m.minerAddress === stxAddress);
+  const addresses = new Set(miners.flatMap((m) => m.rewardAddresses));
+  addresses.delete(stxAddress);
+  return [...addresses];
+}
+
 function IdentityRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5 border-b border-border/50 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 last:border-b-0">
@@ -108,6 +123,7 @@ export function MinerDetail({
   const stxAddress = safeAddress(() =>
     getStacksAddress(miner.publicKey, networkKey)
   );
+  const rewardAddresses = otherRewardAddresses(economics, stxAddress);
 
   return (
     <div className="flex flex-col gap-2">
@@ -126,6 +142,13 @@ export function MinerDetail({
             {stxAddress ? (
               <IdentityRow label="stx address" value={stxAddress} />
             ) : null}
+            {rewardAddresses.map((address) => (
+              <IdentityRow
+                key={address}
+                label="reward address"
+                value={address}
+              />
+            ))}
             {miner.btcAddress ? (
               <IdentityRow label="btc address" value={miner.btcAddress} />
             ) : null}

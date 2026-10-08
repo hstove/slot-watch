@@ -10,7 +10,8 @@
  *   coinbase per win plus the won tenures' Stacks tx fees, valued at the latest STX-USD open.
  * - `matured`: `miner_rewards` for tenures earned in the latest fully
  *   matured window (same span, ending at the matured-through height), valued
- *   at the earning hour. Cost for this basis covers the same heights.
+ *   at the earning hour and already keyed by commit-funding address. Cost for
+ *   this basis covers the same heights.
  */
 import type {
   ExpectedFeesRow,
@@ -57,40 +58,6 @@ export function costUsd(row: SpendTotalsRow | undefined) {
   if (!row) return 0;
   if (row.spendPriceMissing > 0 || row.btcTxFeeMissing > 0) return null;
   return Number(row.pricedSpendUsd ?? 0) + Number(row.pricedBtcTxFeeUsd ?? 0);
-}
-
-interface MergedRevenue {
-  coinbaseUstx: number;
-  txFeesUstx: number;
-  /** Priced USD; complete only when `missing` is 0. */
-  usd: number;
-  missing: number;
-}
-
-/**
- * Sum matured revenue per miner, re-keying reward addresses that belong to a
- * different commit-funding key.
- */
-export function mergeRevenue(
-  rows: RevenueTotalsRow[],
-  aliases: Map<string, string>
-) {
-  const merged = new Map<string, MergedRevenue>();
-  for (const row of rows) {
-    const key = aliases.get(row.minerKey) ?? row.minerKey;
-    const entry = merged.get(key) ?? {
-      coinbaseUstx: 0,
-      txFeesUstx: 0,
-      usd: 0,
-      missing: 0,
-    };
-    entry.coinbaseUstx += row.coinbaseUstx;
-    entry.txFeesUstx += row.txFeesUstx;
-    entry.usd += Number(row.pricedRevenueUsd ?? 0);
-    entry.missing += row.revenuePriceMissing;
-    merged.set(key, entry);
-  }
-  return merged;
 }
 
 /** Latest STX-USD open, or null when missing or stale. */
@@ -143,7 +110,6 @@ function economicsSamples(
 }
 
 interface CalcContext {
-  aliases: Map<string, string>;
   coinbasePerWinUstx: number | null;
   stxUsd: number | null;
 }
@@ -231,11 +197,11 @@ function expectedSamples(
 
 function maturedSamples(
   labels: Record<string, string>,
-  revenue: MergedRevenue | undefined,
+  revenue: RevenueTotalsRow | undefined,
   spend: SpendTotalsRow | undefined
 ) {
-  let revenueUsd: number | null = revenue?.usd ?? 0;
-  if (revenue && revenue.missing > 0) revenueUsd = null;
+  let revenueUsd: number | null = Number(revenue?.pricedRevenueUsd ?? 0);
+  if (revenue && revenue.revenuePriceMissing > 0) revenueUsd = null;
   return economicsSamples(
     { ...labels, basis: 'matured' },
     {
@@ -260,7 +226,7 @@ function windowSamples(
   const liveSpend = byMiner(win.liveSpend);
   const maturedSpend = byMiner(win.maturedSpend);
   const expectedFees = byMiner(win.expectedFees);
-  const maturedRevenue = mergeRevenue(win.maturedRevenue, ctx.aliases);
+  const maturedRevenue = byMiner(win.maturedRevenue);
 
   for (const [key, miner] of miners) {
     const labels = { ...miner, window: win.window };
@@ -304,9 +270,6 @@ export function minerGaugeSamples(
   }
 
   const ctx: CalcContext = {
-    aliases: new Map(
-      snapshot.rewardAliases.map((a) => [a.rewardAddress, a.spendAddress])
-    ),
     coinbasePerWinUstx: snapshot.coinbasePerWinUstx,
     stxUsd: currentStxUsd(snapshot),
   };

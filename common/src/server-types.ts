@@ -477,6 +477,9 @@ export const MinerEconomicsMinerSchema = Schema.Struct({
   coinbaseUstx: Schema.Number,
   txFeesUstx: Schema.Number,
   rewardRows: Schema.Number,
+  /** `miner_rewards.miner_address`es attributed to this miner. Usually just
+   * `minerAddress`, but some miners are paid under a different address. */
+  rewardAddresses: Schema.mutable(Schema.Array(Schema.String)),
   /** Sum of each commit's spend valued at its burn block's observed hour.
    * Null if any commit lacks a matching block or BTC candle. */
   spendUsd: Schema.NullOr(Schema.String),

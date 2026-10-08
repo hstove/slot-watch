@@ -375,7 +375,11 @@ export const minerRewards = pgTable(
     networkKey: text('network_key', { length: 20 }).notNull(),
     /** STX principal receiving the reward (may be a contract). */
     recipient: text('recipient').notNull(),
-    /** The winning miner's STX address. */
+    /**
+     * The winning miner's STX address, from its coinbase tx. Usually equals
+     * `miner_spends.miner_address`, but some miners use a different key; see
+     * `rewardAddressMap`.
+     */
     minerAddress: text('miner_address'),
     coinbaseUstx: bigint('coinbase_ustx', { mode: 'number' }).notNull(),
     txFeesAnchoredUstx: bigint('tx_fees_anchored_ustx', {

@@ -118,10 +118,68 @@ export function minerSpendTotals(
     .as('spend');
 }
 
+/** Earned heights before a revenue range also scanned to pair reward addresses. */
+const REWARD_ADDRESS_LOOKBACK_HEIGHTS = 1008;
+
+/**
+ * Maps each reward `miner_address` to the commit-funding address that won the
+ * most tenures paying it. Some miners sign their coinbase with a different key
+ * than the one funding their commits and proposals, so their rewards would
+ * otherwise show up as a separate miner. Matched through coinbase rows, which
+ * go to the tenure's winner (the other row per tenure is the previous miner's
+ * streamed fees). Self-pairings count too, so a stray mismatch can't re-key a
+ * miner.
+ */
+export function rewardAddressMap(
+  db: Db,
+  networkKey: string,
+  fromHeight: number,
+  toHeight: number
+) {
+  return db
+    .selectDistinctOn([minerRewards.minerAddress], {
+      rewardAddress: sql<string>`${minerRewards.minerAddress}`.as(
+        'reward_address'
+      ),
+      minerAddress: sql<string>`${minerSpends.minerAddress}`.as(
+        'mapped_miner_address'
+      ),
+    })
+    .from(minerRewards)
+    .innerJoin(
+      burnBlocks,
+      and(
+        eq(burnBlocks.networkKey, minerRewards.networkKey),
+        eq(burnBlocks.consensusHash, minerRewards.earnedConsensusHash),
+        between(burnBlocks.burnBlockHeight, fromHeight, toHeight)
+      )
+    )
+    .innerJoin(
+      minerSpends,
+      and(
+        eq(minerSpends.networkKey, burnBlocks.networkKey),
+        eq(minerSpends.txid, burnBlocks.winningTxid)
+      )
+    )
+    .where(
+      and(
+        eq(minerRewards.networkKey, networkKey),
+        between(minerRewards.earnedBurnBlockHeight, fromHeight, toHeight),
+        sql`${minerRewards.coinbaseUstx} > 0`,
+        isNotNull(minerRewards.minerAddress),
+        isNotNull(minerSpends.minerAddress)
+      )
+    )
+    .groupBy(minerRewards.minerAddress, minerSpends.minerAddress)
+    .orderBy(minerRewards.minerAddress, desc(sql`count(*)`))
+    .as('reward_address_map');
+}
+
 /**
  * Per-miner matured rewards for tenures earned in an inclusive burn height
- * range, keyed by `miner_rewards.miner_address` (`''` if missing). Revenue is
- * valued at the STX-USD open for the earning burn block's observed hour.
+ * range, keyed like `minerSpendTotals` (`''` if missing): reward addresses
+ * are mapped to their commit-funding address by `rewardAddressMap`. Revenue
+ * is valued at the STX-USD open for the earning burn block's observed hour.
  */
 export function minerRevenueTotals(
   db: Db,
@@ -129,10 +187,20 @@ export function minerRevenueTotals(
   fromHeight: number,
   toHeight: number
 ) {
+  const addressMap = rewardAddressMap(
+    db,
+    networkKey,
+    fromHeight - REWARD_ADDRESS_LOOKBACK_HEIGHTS,
+    toHeight
+  );
+  const minerKey = sql<string>`coalesce(${addressMap.minerAddress}, ${minerRewards.minerAddress}, '')`;
   return db
     .select({
-      minerKey: sql<string>`coalesce(${minerRewards.minerAddress}, '')`.as(
-        'revenue_miner_key'
+      minerKey: minerKey.as('revenue_miner_key'),
+      rewardAddresses: sql<
+        string[] | null
+      >`array_agg(distinct ${minerRewards.minerAddress}) filter (where ${minerRewards.minerAddress} is not null)`.as(
+        'reward_addresses'
       ),
       coinbaseUstx: sql<number>`sum(${minerRewards.coinbaseUstx})`.as(
         'coinbase_ustx'
@@ -168,13 +236,17 @@ export function minerRevenueTotals(
         eq(stxPrice.hourStart, observedHour(burnBlocks.id))
       )
     )
+    .leftJoin(
+      addressMap,
+      eq(addressMap.rewardAddress, minerRewards.minerAddress)
+    )
     .where(
       and(
         eq(minerRewards.networkKey, networkKey),
         between(minerRewards.earnedBurnBlockHeight, fromHeight, toHeight)
       )
     )
-    .groupBy(sql`coalesce(${minerRewards.minerAddress}, '')`)
+    .groupBy(minerKey)
     .as('revenue');
 }
 
@@ -247,12 +319,6 @@ export interface BurnBlockStats {
   nullWins: number;
 }
 
-/** A reward `miner_address` that differs from the key funding its commits. */
-export interface RewardAlias {
-  rewardAddress: string;
-  spendAddress: string;
-}
-
 export interface MinerMetricsWindowSnapshot {
   window: MinerMetricWindow;
   live: HeightRange;
@@ -272,7 +338,6 @@ export interface MinerMetricsSnapshot {
   /** Average coinbase actually paid per won tenure, recently matured. */
   coinbasePerWinUstx: number | null;
   latestStxUsd: { hourStart: string; openPrice: string } | null;
-  rewardAliases: RewardAlias[];
   windows: MinerMetricsWindowSnapshot[];
 }
 
@@ -470,71 +535,6 @@ async function loadCoinbasePerWin(
   return row?.coinbaseUstx == null ? null : Number(row.coinbaseUstx);
 }
 
-/**
- * Reward `miner_address`es that differ from the address derived from the
- * winning commit's key. Some miners fund commits from a different key than
- * the one paid rewards, so per-miner revenue needs to be re-keyed to join
- * spend. Matched through coinbase rows, which go to the tenure's winner (the
- * other row per tenure is the previous miner's streamed fees).
- */
-async function loadRewardAliases(
-  db: Db,
-  networkKey: string,
-  range: HeightRange
-): Promise<RewardAlias[]> {
-  const rows = await db
-    .select({
-      rewardAddress: minerRewards.minerAddress,
-      spendAddress: minerSpends.minerAddress,
-      tenures: sql<number>`count(*)`,
-    })
-    .from(minerRewards)
-    .innerJoin(
-      burnBlocks,
-      and(
-        eq(burnBlocks.networkKey, minerRewards.networkKey),
-        eq(burnBlocks.consensusHash, minerRewards.earnedConsensusHash)
-      )
-    )
-    .innerJoin(
-      minerSpends,
-      and(
-        eq(minerSpends.networkKey, burnBlocks.networkKey),
-        eq(minerSpends.txid, burnBlocks.winningTxid)
-      )
-    )
-    .where(
-      and(
-        eq(minerRewards.networkKey, networkKey),
-        between(
-          minerRewards.earnedBurnBlockHeight,
-          range.fromHeight,
-          range.toHeight
-        ),
-        sql`${minerRewards.coinbaseUstx} > 0`,
-        sql`${minerRewards.minerAddress} is distinct from ${minerSpends.minerAddress}`,
-        isNotNull(minerRewards.minerAddress),
-        isNotNull(minerSpends.minerAddress)
-      )
-    )
-    .groupBy(minerRewards.minerAddress, minerSpends.minerAddress)
-    .orderBy(desc(sql`count(*)`));
-  // Keep the most frequent pairing per reward address.
-  const aliases = new Map<string, string>();
-  for (const row of rows) {
-    if (
-      row.rewardAddress &&
-      row.spendAddress &&
-      !aliases.has(row.rewardAddress)
-    )
-      aliases.set(row.rewardAddress, row.spendAddress);
-  }
-  return [...aliases].map(([rewardAddress, spendAddress]) => ({
-    rewardAddress,
-    spendAddress,
-  }));
-}
-
 async function loadLatestStxUsd(db: Db) {
   const [row] = await db
     .select({
@@ -608,16 +608,8 @@ export async function getMinerMetricsSnapshot(
       ? []
       : [{ window, live: { fromHeight, toHeight: tipHeight } }]
   );
-  const longest = Math.max(
-    1,
-    ...ranges.map(({ live }) => live.toHeight - live.fromHeight)
-  );
-  const [coinbasePerWinUstx, rewardAliases, windows] = await Promise.all([
+  const [coinbasePerWinUstx, windows] = await Promise.all([
     loadCoinbasePerWin(db, networkKey, maturedThroughHeight),
-    loadRewardAliases(db, networkKey, {
-      fromHeight: maturedThroughHeight - longest,
-      toHeight: maturedThroughHeight,
-    }),
     Promise.all(
       ranges.map(({ window, live }) =>
         loadWindow(db, networkKey, window, live, maturedThroughHeight)
@@ -631,7 +623,6 @@ export async function getMinerMetricsSnapshot(
     maturedThroughHeight,
     coinbasePerWinUstx,
     latestStxUsd,
-    rewardAliases,
     windows,
   };
 }

@@ -239,7 +239,7 @@ Caveats:
     '/miner-economics/:networkKey/miners',
     describeRoute({
       summary: 'Get per-miner spend and revenue',
-      description: `Aggregates each miner's block commits (\`miner_spends\`, by the burn height the commit was mined in) and matured rewards (\`miner_rewards\`, by the burn height the tenure was earned in) over an inclusive height range of at most ${MAX_SPAN} blocks. Miners are keyed by the STX address derived from the key that funds their commits, which is the same key that signs their block proposals and receives their rewards.
+      description: `Aggregates each miner's block commits (\`miner_spends\`, by the burn height the commit was mined in) and matured rewards (\`miner_rewards\`, by the burn height the tenure was earned in) over an inclusive height range of at most ${MAX_SPAN} blocks. Miners are keyed by the STX address derived from the key that funds their commits (the same key that signs their block proposals). Some miners are paid rewards under a different \`miner_address\`; each reward address is attributed to the commit address that won the most tenures paying it, and \`rewardAddresses\` lists the addresses merged into a row.
 
 A commit counts as a win when its burn block's \`winningTxid\` matches it. USD totals sum per-row values at each burn block's observed hourly open. If any row lacks its block or price, that total is null and the missing count reports coverage. Rewards mature about 100 tenures after they are earned, so ranges ending above \`maturedThroughHeight\` under-report revenue. A row with a null \`minerAddress\` holds commits whose Bitcoin sender has not been resolved yet.`,
       tags: ['Miner Economics'],
@@ -281,6 +281,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
             coinbaseUstx: revenue.coinbaseUstx,
             txFeesUstx: revenue.txFeesUstx,
             rewardRows: revenue.rewardRows,
+            rewardAddresses: revenue.rewardAddresses,
             pricedSpendUsd: spend.pricedSpendUsd,
             pricedRevenueUsd: revenue.pricedRevenueUsd,
             spendPriceMissing: spend.spendPriceMissing,
@@ -307,6 +308,7 @@ A commit counts as a win when its burn block's \`winningTxid\` matches it. USD t
           coinbaseUstx: Number(row.coinbaseUstx ?? 0),
           txFeesUstx: Number(row.txFeesUstx ?? 0),
           rewardRows: Number(row.rewardRows ?? 0),
+          rewardAddresses: row.rewardAddresses ?? [],
           pricedSpendUsd: row.pricedSpendUsd,
           pricedRevenueUsd: row.pricedRevenueUsd,
           spendUsd: completeUsd(row.pricedSpendUsd, row.spendPriceMissing),
