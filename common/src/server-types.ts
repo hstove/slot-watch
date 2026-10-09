@@ -374,8 +374,13 @@ export interface StateMachineUpdatesResponse
 
 // MinerSummary schema (for list view)
 export const MinerSummarySchema = Schema.Struct({
+  /** The miner's commit key when known, else its block-signing key. */
   publicKey: Schema.String,
   ...MinerIdentityFields,
+  /** STX address of the miner's block commits, linked via won tenures. */
+  minerAddress: Schema.NullOr(Schema.String),
+  /** Keys that signed the miner's blocks. Usually just `publicKey`. */
+  signingPublicKeys: Schema.mutable(Schema.Array(Schema.String)),
   count: Schema.Number,
   latestBlock: Schema.Number,
   version: Schema.String,
@@ -562,8 +567,15 @@ export interface MinerWindowStats
 // Full miner detail response
 export const MinerDetailResponseSchema = Schema.Struct({
   miner: Schema.Struct({
+    /** The requested key: a commit key or a block-signing key. */
     publicKey: Schema.String,
     ...MinerIdentityFields,
+    /** Key funding the miner's block commits, linked via won tenures. */
+    commitPublicKey: Schema.NullOr(Schema.String),
+    /** STX address of the miner's block commits. */
+    minerAddress: Schema.NullOr(Schema.String),
+    /** Keys that signed the miner's blocks over the last 500 tenures. */
+    signingPublicKeys: Schema.mutable(Schema.Array(Schema.String)),
     /** Address of the miner's latest block commit input. */
     btcAddress: Schema.NullOr(Schema.String),
     stats: Schema.Struct({

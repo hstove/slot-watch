@@ -81,10 +81,14 @@ function ownCommits(data: MinerEconomicsData, row: MinerRow) {
 export function MinerEconomicsPanel({
   data,
   publicKey,
+  minerAddress,
   networkKey,
 }: {
   data: MinerEconomicsData;
+  /** Key in the page URL, kept by the window switch. */
   publicKey: string;
+  /** Commit address, which keys the economics rows. */
+  minerAddress: string | null;
   networkKey: string;
 }) {
   const rows = React.useMemo(
@@ -97,7 +101,9 @@ export function MinerEconomicsPanel({
       }),
     [data, networkKey]
   );
-  const row = rows.find((r) => r.publicKey === publicKey);
+  const row = minerAddress
+    ? rows.find((r) => r.address === minerAddress)
+    : undefined;
   const blocks = data.tip - data.fromHeight + 1;
   const commitBlocks = React.useMemo(
     () => (row ? ownCommits(data, row) : []),

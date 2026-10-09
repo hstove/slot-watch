@@ -133,10 +133,6 @@ export const knownMiners: Record<string, MinerNameSeed> = {
     color: 'blue',
     animal: 'sloth',
   },
-  '021f5e677fe25b4d9a255923cf3f6cc6a345559aa8a9c1f2633b737bc4beb06f97': {
-    color: 'amber',
-    animal: 'leopard',
-  },
   '0300710a046b5d8f9093bb7b14b7fbef4fb9a84b2047a1712166659dd5119ae7b2': {
     color: 'green',
     animal: 'croc',
@@ -149,6 +145,16 @@ export const knownMiners: Record<string, MinerNameSeed> = {
     color: 'lime',
     animal: 'turkey',
   },
+};
+
+/**
+ * Block-signing keys of miners that sign with a different key than the one
+ * funding their commits, mapped to the commit key so both share one name.
+ */
+export const minerKeyAliases: Record<string, string> = {
+  // Mainnet: Lime Turkey
+  '021f5e677fe25b4d9a255923cf3f6cc6a345559aa8a9c1f2633b737bc4beb06f97':
+    '02d2ce43867f5b8fdd1246b1535717aac9b73147b05eba7ff8698c39d42701fc93',
 };
 
 const knownSeeds = Object.values(knownMiners);
@@ -193,7 +199,8 @@ const cache = new Map<string, MinerName>();
 export function getMinerName(publicKey: string): MinerName {
   const cached = cache.get(publicKey);
   if (cached) return cached;
-  const seed = knownMiners[publicKey] ?? pickSeed(publicKey);
+  const key = minerKeyAliases[publicKey] ?? publicKey;
+  const seed = knownMiners[key] ?? pickSeed(key);
   const short = capitalize(seed.animal);
   const result: MinerName = {
     color: seed.color,
