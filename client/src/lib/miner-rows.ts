@@ -89,7 +89,9 @@ function emptyRow(key: string): MinerRow {
   };
 }
 
+/** Commit address, which keys economics rows; falls back to the key's own. */
 function statsAddress(stat: ApiMinerStat, networkKey: string) {
+  if (stat.minerAddress) return stat.minerAddress;
   try {
     return getStacksAddress(stat.publicKey, networkKey);
   } catch {

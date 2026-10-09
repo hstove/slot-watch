@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getMinerName, knownMiners } from '../src/miner-names';
+import { getMinerName, knownMiners, minerKeyAliases } from '../src/miner-names';
 
 test('known miners have unique colors and animals', () => {
   const seeds = Object.values(knownMiners);
@@ -22,4 +22,11 @@ test('unknown miners are deterministic and avoid known picks', () => {
   const seeds = Object.values(knownMiners);
   expect(seeds.map((s) => s.color)).not.toContain(a.color);
   expect(seeds.map((s) => s.animal)).not.toContain(a.animal);
+});
+
+test('signing-key aliases share their commit key name', () => {
+  for (const [signingKey, commitKey] of Object.entries(minerKeyAliases)) {
+    expect(knownMiners[signingKey]).toBeUndefined();
+    expect(getMinerName(signingKey)).toEqual(getMinerName(commitKey));
+  }
 });

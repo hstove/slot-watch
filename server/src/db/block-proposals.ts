@@ -206,6 +206,11 @@ export const recentBlocksHealthCache = memoizeCache(
   }
 );
 
+/**
+ * The latest proposal of each of the last 500 tenures, with the winning block
+ * commit's key. A miner can sign blocks with a different key than the one
+ * funding its commits, so `commitPublicKey`/`commitAddress` link the two.
+ */
 async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
   const recentBlocks = await db
     .selectDistinctOn([blockProposals.burnBlockHeight], {
@@ -215,22 +220,27 @@ async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
       minerPublicKey: blockProposals.minerPublicKey,
       serverVersion: blockProposals.serverVersion,
       blockTimestamp: blockProposals.blockTimestamp,
+      commitPublicKey: minerSpends.minerPublicKey,
+      commitAddress: minerSpends.minerAddress,
     })
     .from(blockProposals)
+    .innerJoin(
+      burnBlocks,
+      and(
+        eq(burnBlocks.consensusHash, blockProposals.consensusHash),
+        eq(burnBlocks.networkKey, networkKey)
+      )
+    )
+    .leftJoin(
+      minerSpends,
+      and(
+        eq(minerSpends.networkKey, networkKey),
+        eq(minerSpends.txid, burnBlocks.winningTxid)
+      )
+    )
     .where(
       and(
         eq(blockProposals.networkKey, networkKey),
-        exists(
-          db
-            .select({ one: sql`1` })
-            .from(burnBlocks)
-            .where(
-              and(
-                eq(burnBlocks.consensusHash, blockProposals.consensusHash),
-                eq(burnBlocks.networkKey, networkKey)
-              )
-            )
-        ),
         exists(
           db
             .select({ one: sql`1` })
@@ -258,15 +268,56 @@ async function _fetchRecentMinerBlocks(networkKey: string, db: Db) {
 }
 
 export const fetchRecentMinerBlocksCache = memoizeCache(
-  (networkKey: string) => `recent-miner-blocks-v4:${networkKey}`,
+  (networkKey: string) => `recent-miner-blocks-v5:${networkKey}`,
   // biome-ignore lint/suspicious/useAwait: ignored using `--suppress`
   async (networkKey: string, db: Db) => {
     return _fetchRecentMinerBlocks(networkKey, db);
   }
 );
 
+interface CommitIdentity {
+  publicKey: string;
+  address: string | null;
+}
+
+/**
+ * Commit identity per block-signing key: the winning commit seen most often
+ * among that key's tenures. Most miners sign with their commit key, but some
+ * use a separate signing key.
+ */
+function commitIdentityBySigner(tenures: RecentMinerBlock[]) {
+  const votes = new Map<string, Map<string, CommitIdentity & { n: number }>>();
+  for (const tenure of tenures) {
+    if (!tenure.commitPublicKey) continue;
+    const bySigner = votes.get(tenure.minerPublicKey) ?? new Map();
+    votes.set(tenure.minerPublicKey, bySigner);
+    const vote = bySigner.get(tenure.commitPublicKey) ?? {
+      publicKey: tenure.commitPublicKey,
+      address: tenure.commitAddress,
+      n: 0,
+    };
+    vote.n++;
+    bySigner.set(tenure.commitPublicKey, vote);
+  }
+  const identities = new Map<string, CommitIdentity>();
+  for (const [signer, bySigner] of votes) {
+    const [top] = [...bySigner.values()].sort((x, y) => y.n - x.n);
+    if (top)
+      identities.set(signer, {
+        publicKey: top.publicKey,
+        address: top.address,
+      });
+  }
+  return identities;
+}
+
+/**
+ * Tenure counts over the last 500 tenures, one entry per miner. Tenures are
+ * grouped under the miner's commit key, merging separate signing keys.
+ */
 export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
   const recentBlocks = await fetchRecentMinerBlocksCache.get(networkKey, db);
+  const commitIdentities = commitIdentityBySigner(recentBlocks);
 
   const miners: Record<
     string,
@@ -275,21 +326,29 @@ export const fetchRecentMinerStats = async (networkKey: string, db: Db) => {
       count: number;
       latestBlock: number;
       publicKey: string;
+      minerAddress: string | null;
+      signingPublicKeys: string[];
     }
   > = {};
 
   for (const block of recentBlocks) {
-    const minerPublicKey = block.minerPublicKey ?? '';
+    const signingKey = block.minerPublicKey ?? '';
+    const commit = commitIdentities.get(signingKey);
+    const publicKey = commit?.publicKey ?? signingKey;
     const serverVersion = block.serverVersion ?? '';
-    const miner = miners[minerPublicKey] ?? {
+    const miner = miners[publicKey] ?? {
       version: serverVersion,
       shortVersion: getVersionFromString(serverVersion),
       count: 0,
       latestBlock: block.burnBlockHeight,
-      publicKey: minerPublicKey,
-      ...getMinerIdentity(minerPublicKey),
+      publicKey,
+      minerAddress: commit?.address ?? null,
+      signingPublicKeys: [],
+      ...getMinerIdentity(publicKey),
     };
-    miners[minerPublicKey] = {
+    if (!miner.signingPublicKeys.includes(signingKey))
+      miner.signingPublicKeys.push(signingKey);
+    miners[publicKey] = {
       ...miner,
       count: miner.count + 1,
     };
@@ -348,9 +407,10 @@ function buildVersionHistory(tenures: RecentMinerBlock[]) {
 /** Address of the miner's latest block commit input, which may be p2wpkh. */
 async function fetchMinerBtcAddress(
   networkKey: string,
-  publicKey: string,
+  minerAddress: string | null,
   db: Db
 ) {
+  if (!minerAddress) return null;
   try {
     const [row] = await db
       .select({ btcAddress: minerSpends.minerBtcAddress })
@@ -358,10 +418,7 @@ async function fetchMinerBtcAddress(
       .where(
         and(
           eq(minerSpends.networkKey, networkKey),
-          eq(
-            minerSpends.minerAddress,
-            minerAddressFromPublicKey(publicKey, networkKey)
-          ),
+          eq(minerSpends.minerAddress, minerAddress),
           isNotNull(minerSpends.minerBtcAddress)
         )
       )
@@ -374,24 +431,50 @@ async function fetchMinerBtcAddress(
   }
 }
 
+function safeMinerAddress(publicKey: string, networkKey: string) {
+  try {
+    return minerAddressFromPublicKey(publicKey, networkKey);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `publicKey` may be either the miner's commit key or one of its signing keys;
+ * both resolve to the same miner.
+ */
 export async function fetchMinerDetail(
   networkKey: string,
   publicKey: string,
   db: Db
 ) {
-  const [recentTenures, btcAddress] = await Promise.all([
-    fetchRecentMinerBlocksCache.get(networkKey, db),
-    fetchMinerBtcAddress(networkKey, publicKey, db),
-  ]);
-  const minerTenures = recentTenures.filter(
-    (tenure) => tenure.minerPublicKey === publicKey
+  const recentTenures = await fetchRecentMinerBlocksCache.get(networkKey, db);
+  const commitIdentities = commitIdentityBySigner(recentTenures);
+  const commit =
+    commitIdentities.get(publicKey) ??
+    [...commitIdentities.values()].find((c) => c.publicKey === publicKey) ??
+    null;
+  const signingPublicKeys = commit
+    ? [...commitIdentities]
+        .filter(([, c]) => c.publicKey === commit.publicKey)
+        .map(([signer]) => signer)
+    : [publicKey];
+  const minerAddress =
+    commit?.address ??
+    safeMinerAddress(commit?.publicKey ?? publicKey, networkKey);
+  const btcAddress = await fetchMinerBtcAddress(networkKey, minerAddress, db);
+  const minerTenures = recentTenures.filter((tenure) =>
+    signingPublicKeys.includes(tenure.minerPublicKey)
   );
   const currentVersion = minerTenures[0]?.serverVersion ?? null;
 
   return {
     miner: {
       publicKey,
-      ...getMinerIdentity(publicKey),
+      ...getMinerIdentity(commit?.publicKey ?? publicKey),
+      commitPublicKey: commit?.publicKey ?? null,
+      minerAddress,
+      signingPublicKeys,
       btcAddress,
       stats: {
         last500: {

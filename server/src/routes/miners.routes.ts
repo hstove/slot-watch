@@ -29,7 +29,8 @@ export const minersRoutes = new Hono<ServerType>()
     '/:networkKey/miners',
     describeRoute({
       summary: 'Get miner statistics',
-      description: 'Get recent mining statistics for all active miners',
+      description:
+        'Tenures won by each active miner over the last 500 tenures. Miners are grouped by commit key, so a miner that signs blocks with a separate key is still one entry; `signingPublicKeys` lists the keys that signed its blocks.',
       tags: ['Miners'],
       responses: {
         200: {
@@ -54,7 +55,7 @@ export const minersRoutes = new Hono<ServerType>()
     describeRoute({
       summary: 'Get miner detail',
       description:
-        "Get a miner's share of the last 500 tenures and its version history over those tenures. Miners with no recent tenures return zeros.",
+        "Get a miner's share of the last 500 tenures and its version history over those tenures. `publicKey` may be the miner's commit key or one of its block-signing keys. Miners with no recent tenures return zeros.",
       tags: ['Miners'],
       responses: {
         200: {

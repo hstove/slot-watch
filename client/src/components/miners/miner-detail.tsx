@@ -120,9 +120,11 @@ export function MinerDetail({
 }: MinerDetailProps) {
   const { miner } = minerDetail;
   const identity = minerDisplay(miner);
-  const stxAddress = safeAddress(() =>
-    getStacksAddress(miner.publicKey, networkKey)
-  );
+  const commitKey = miner.commitPublicKey ?? miner.publicKey;
+  const stxAddress =
+    miner.minerAddress ??
+    safeAddress(() => getStacksAddress(commitKey, networkKey));
+  const signingKeys = miner.signingPublicKeys.filter((k) => k !== commitKey);
   const rewardAddresses = otherRewardAddresses(economics, stxAddress);
 
   return (
@@ -138,7 +140,13 @@ export function MinerDetail({
         </div>
         <div className="grid md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div className="border-b border-border px-3 py-2 md:border-r md:border-b-0">
-            <IdentityRow label="public key" value={miner.publicKey} />
+            <IdentityRow
+              label={signingKeys.length > 0 ? 'commit key' : 'public key'}
+              value={commitKey}
+            />
+            {signingKeys.map((key) => (
+              <IdentityRow key={key} label="signing key" value={key} />
+            ))}
             {stxAddress ? (
               <IdentityRow label="stx address" value={stxAddress} />
             ) : null}
@@ -168,6 +176,7 @@ export function MinerDetail({
         <MinerEconomicsPanel
           data={economics}
           publicKey={miner.publicKey}
+          minerAddress={stxAddress}
           networkKey={networkKey}
         />
       ) : null}
