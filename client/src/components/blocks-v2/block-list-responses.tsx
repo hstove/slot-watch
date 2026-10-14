@@ -94,14 +94,14 @@ const BlockListResponse = ({
             </>
           ) : null}
 
-          {signer.signerManager ? (
-            <>
+          {signer.signerManagers.map((signerManager) => (
+            <React.Fragment key={signerManager}>
               <DataLabel>Signer Manager</DataLabel>
               <DataValue>
-                <PublicKey publicKey={signer.signerManager} head={8} tail={8} />
+                <PublicKey publicKey={signerManager} head={8} tail={8} />
               </DataValue>
-            </>
-          ) : null}
+            </React.Fragment>
+          ))}
 
           <DataLabel>Public Key</DataLabel>
           <DataValue>

@@ -29,13 +29,13 @@ export type StackerSetSigner = {
   signing_key: string;
   weight: number;
   stacked_amt: string;
-  signerManager: string | null;
+  signerManagers: string[];
 };
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 export type StackerSet = {
   stacker_set: {
-    signers: Omit<StackerSetSigner, 'signerManager'>[];
+    signers: Omit<StackerSetSigner, 'signerManagers'>[];
   };
 };
 
@@ -82,15 +82,16 @@ export async function getStackerSet(
     stackerSetResponse,
     stackerSetUrl
   );
-  const signerManagersByKey = new Map(
-    registeredSigners.map(({ signer, signer_key }) => [
-      signer_key.replace(HEX_PREFIX, ''),
-      signer,
-    ])
-  );
+  const signerManagersByKey = new Map<string, string[]>();
+  for (const { signer, signer_key } of registeredSigners) {
+    const key = signer_key.replace(HEX_PREFIX, '');
+    const managers = signerManagersByKey.get(key) ?? [];
+    managers.push(signer);
+    signerManagersByKey.set(key, managers);
+  }
   return data.stacker_set.signers.map((signer) => ({
     ...signer,
-    signerManager: signerManagersByKey.get(signer.signing_key) ?? null,
+    signerManagers: signerManagersByKey.get(signer.signing_key) ?? [],
   }));
 }
 

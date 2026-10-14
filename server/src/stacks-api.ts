@@ -17,13 +17,13 @@ import { env } from 'cloudflare:workers';
 
 const getStackerSetCache = memoizeCache(
   (networkKey: string, rewardCycle: number, contractId: string) =>
-    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_${contractId}_v4`,
+    `stacker_set_${getApiUrl(networkKey)}_${rewardCycle}_${contractId}_v5`,
   (networkKey: string, rewardCycle: number, _contractId: string) =>
     getStackerSetInner(networkKey, rewardCycle, env.HIRO_API_KEY)
 );
 
 const getLatestStackerSetCache = memoizeCache(
-  (networkKey: string) => `stacker_set_latest_v3_${networkKey}`,
+  (networkKey: string) => `stacker_set_latest_v4_${networkKey}`,
   async (networkKey: string) => {
     const poxInfo = await getPoxInfo.get(networkKey);
     return getStackerSetCache.get(
