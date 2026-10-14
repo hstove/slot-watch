@@ -35,14 +35,14 @@ export const SignerBarItem = ({
           <DataValue>
             <PublicKey publicKey={signer.publicKey} />
           </DataValue>
-          {signer.signerManager ? (
-            <>
+          {signer.signerManagers.map((signerManager) => (
+            <React.Fragment key={signerManager}>
               <DataLabel>Signer Manager</DataLabel>
               <DataValue>
-                <PublicKey publicKey={signer.signerManager} />
+                <PublicKey publicKey={signerManager} />
               </DataValue>
-            </>
-          ) : null}
+            </React.Fragment>
+          ))}
           <DataLabel>Weight</DataLabel>
           <DataValue>{signer.weightPercentStr}</DataValue>
           <DataLabel>Version</DataLabel>

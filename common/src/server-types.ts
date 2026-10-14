@@ -22,7 +22,7 @@ export const RecentSignerSchema = Schema.Struct({
   weightPercent: Schema.Number,
   weightPercentStr: Schema.String,
   name: Schema.NullOr(Schema.String),
-  signerManager: Schema.NullOr(Schema.String),
+  signerManagers: Schema.mutable(Schema.Array(Schema.String)),
   degradation10: Schema.Number,
   degradation25: Schema.Number,
   degradation50: Schema.Number,
@@ -270,7 +270,7 @@ export const StackerSetSignerSchema = Schema.Struct({
   weightPercent: Schema.Number,
   weightPercentStr: Schema.String,
   name: Schema.NullOr(Schema.String),
-  signerManager: Schema.NullOr(Schema.String),
+  signerManagers: Schema.mutable(Schema.Array(Schema.String)),
   label: Schema.String,
 }).annotate({ identifier: 'StackerSetSigner' });
 export interface ApiStackerSetSigner

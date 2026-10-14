@@ -7,10 +7,19 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowDownIcon, ArrowUpIcon, Pencil1Icon } from '@radix-ui/react-icons';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronDownIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  Pencil1Icon,
+} from '@radix-ui/react-icons';
+import { useAtomValue } from 'jotai';
 import { differenceInSeconds, format, isToday } from 'date-fns';
 import {
   getSortableVersion,
+  getStacksExplorerUrl,
   percentString,
   versionSort,
 } from 'slot-watch-common';
@@ -20,6 +29,12 @@ import { useEntity } from '@/hooks/use-entity';
 import { isKnownSigner, saveSigner } from '@/lib/local-signers';
 import { cn, truncateMiddle } from '@/lib/utils';
 import { useCopyToClipboard } from 'usehooks-ts';
+import { networkIdAtom } from '@/store/network';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { SimpleTooltip } from '../simple-tooltip';
 import { RenameSignerDialog } from './rename-signer-dialog';
 
@@ -138,8 +153,14 @@ function CompactIdentifier({
   );
 }
 
+function contractNameOf(principal: string) {
+  const separator = principal.lastIndexOf('.');
+  return separator === -1 ? principal : principal.slice(separator + 1);
+}
+
 function SignerManager({ signer }: { signer: RecentSignerWithLatestResponse }) {
-  if (!signer.signerManager) {
+  const [primary, ...others] = signer.signerManagers;
+  if (!primary) {
     return (
       <span className="font-mono text-[10px] text-muted-foreground/60">
         not reported
@@ -147,19 +168,110 @@ function SignerManager({ signer }: { signer: RecentSignerWithLatestResponse }) {
     );
   }
 
-  const separator = signer.signerManager.lastIndexOf('.');
-  const contractName =
-    separator === -1
-      ? signer.signerManager
-      : signer.signerManager.slice(separator + 1);
-
   return (
     <div className="min-w-0 border-l-2 border-primary/50 pl-2">
-      <div className="truncate font-mono text-xs font-medium leading-4 text-foreground">
-        {contractName}
+      <div className="flex min-w-0 items-center gap-1.5">
+        <div className="truncate font-mono text-xs font-medium leading-4 text-foreground">
+          {contractNameOf(primary)}
+        </div>
+        {others.length > 0 ? (
+          <SignerManagersPopover managers={signer.signerManagers} />
+        ) : null}
       </div>
-      <CompactIdentifier value={signer.signerManager} head={9} tail={9} />
+      <CompactIdentifier value={primary} head={9} tail={9} />
     </div>
+  );
+}
+
+function SignerManagersPopover({ managers }: { managers: string[] }) {
+  const [open, setOpen] = React.useState(false);
+  const closeTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const networkKey = useAtomValue(networkIdAtom);
+  const { toast } = useToast();
+  const [, copy] = useCopyToClipboard();
+
+  const show = () => {
+    clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const hide = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            'flex h-4 shrink-0 items-center gap-0.5 border border-border px-1 font-mono text-[10px] leading-none text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground',
+            open && 'border-primary/60 text-foreground'
+          )}
+          aria-label={`${managers.length} signer manager contracts`}
+          onPointerEnter={(e) => e.pointerType === 'mouse' && show()}
+          onPointerLeave={(e) => e.pointerType === 'mouse' && hide()}
+          onClick={(e) => {
+            if ((e.nativeEvent as PointerEvent).pointerType === 'mouse') {
+              e.preventDefault();
+              show();
+            }
+          }}
+        >
+          +{managers.length - 1}
+          <ChevronDownIcon className="h-2.5 w-2.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-auto max-w-[min(34rem,calc(100vw-2rem))] rounded-none p-0"
+        onPointerEnter={show}
+        onPointerLeave={hide}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <div className="border-b border-border bg-muted/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          {managers.length} signer managers
+        </div>
+        <ul>
+          {managers.map((manager) => (
+            <li
+              key={manager}
+              className="flex items-center gap-3 border-b border-border/70 px-3 py-1.5 last:border-b-0"
+            >
+              <div className="min-w-0 flex-1 border-l-2 border-primary/50 pl-2">
+                <div className="truncate font-mono text-xs font-medium leading-4">
+                  {contractNameOf(manager)}
+                </div>
+                <div className="truncate font-mono text-[10px] leading-3 text-muted-foreground">
+                  {manager}
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-0.5">
+                <button
+                  type="button"
+                  className="p-1 text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="copy contract"
+                  onClick={() => {
+                    copy(manager);
+                    toast({ title: 'Copied to clipboard' });
+                  }}
+                >
+                  <CopyIcon className="h-3 w-3" />
+                </button>
+                <a
+                  href={getStacksExplorerUrl(`/txid/${manager}`, networkKey)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-1 text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="view in explorer"
+                >
+                  <ExternalLinkIcon className="h-3 w-3" />
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -257,7 +369,7 @@ const columns: ColumnDef<RecentSignerWithLatestResponse>[] = [
   },
   {
     id: 'signerManager',
-    accessorFn: (signer) => signer.signerManager ?? '',
+    accessorFn: (signer) => signer.signerManagers[0] ?? '',
   },
   {
     id: 'weightPercent',
