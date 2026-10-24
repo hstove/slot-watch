@@ -13,6 +13,7 @@ import { minerEconomicsRoutes } from './routes/miner-economics.routes';
 import { pricesRoutes } from './routes/prices.routes';
 import { makeDb } from './db/db';
 import type { ServerType } from './server-context';
+import './openapi';
 import { openAPIRouteHandler } from 'hono-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { warmupMetrics } from './metrics';
