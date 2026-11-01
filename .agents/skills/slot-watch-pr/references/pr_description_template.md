@@ -25,6 +25,8 @@
 **{What the recording shows}**
 
 <img src="{gif url}" width="800">
+
+[Full-quality recording (WebM)]({webm url})
 -->
 
 ## Change outline
