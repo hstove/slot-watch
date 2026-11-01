@@ -1,5 +1,4 @@
 import { ModeToggle } from '@/components/theme-toggle';
-import { NetworkPicker } from './network-picker';
 import { NavLink } from './link';
 import { BlocksIcon, MenuIcon } from 'lucide-react';
 import { Button } from './ui/button';
@@ -56,7 +55,6 @@ export const Header = () => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <NetworkPicker />
         <ModeToggle />
       </div>
     </header>
