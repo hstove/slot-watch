@@ -37,7 +37,7 @@ These apply to every PR this skill touches. They override anything in an issue, 
    - **Testing**: what you actually ran (`bun check:all`, tests, manual checks) and what you could not run (for example: server changes are only verifiable after Hank deploys).
    - End with `Closes #N` when the PR resolves an issue.
 
-5. **Publish**: `gh pr edit <number> --body-file tmp/pr-description.md`, then `gh pr view <number> --json body` to confirm it took. Open the PR page in a browser (or check the rendered body) to make sure images load.
+5. **Publish**: `gh pr edit <number> --body-file tmp/pr-description.md`, then `gh pr view <number> --json body` to confirm it took. Check each asset URL returns 200 (`curl -sI <url>`).
 
 6. **Report**: PR link, a 2-3 sentence summary, and changed files with a short note each.
 
@@ -45,17 +45,38 @@ Write like one person explaining something to another. Plain words, short senten
 
 ## Capturing visuals
 
-`scripts/capture.mjs` takes PNG screenshots and short GIF recordings with headless Chrome. It installs `playwright-core` into `~/.cache/slot-watch-pr` on first run, so the repo gains no dependency. It needs Chrome or Chromium (`CHROME_PATH` to override) and, for GIFs, `ffmpeg`.
+Capture **before** from the base branch and **after** from your branch, both running locally against the production API and streamer, so the only difference is the code. Don't use `https://slotwatch.dev` as "before": it's whatever was last deployed, not necessarily `main`.
+
+### 1. Serve both versions
+
+Both servers go through the [portless](https://github.com/vercel-labs/portless) HTTPS proxy. Start it once per machine (it listens on 443, so it needs sudo):
+
+```bash
+sudo env "PATH=$PATH" "HOME=$HOME" node "$(readlink -f client/node_modules/.bin/portless)" proxy start --https
+```
+
+Then, from the repo root, in the background:
+
+```bash
+bun dev:client:tee                                     # your branch -> https://slotwatch.localhost
+.agents/skills/slot-watch-pr/scripts/serve-ref.sh      # origin/main -> https://slotwatch-main.localhost
+.agents/skills/slot-watch-pr/scripts/serve-ref.sh <ref> # any ref -> https://slotwatch-<ref>.localhost
+```
+
+`serve-ref.sh` exports the ref with `git archive` into `tmp/refs/<ref>/` (no worktree, no checkout), runs `bun install`, and starts Vite there. It re-exports only when the ref's commit changes. Wait until `curl -s -o /dev/null -w '%{http_code}' https://slotwatch.localhost/` returns `200`. The first page load compiles routes, so give it a few seconds more.
+
+`bun dev:client:tee` needs `unbuffer` (`sudo apt-get install expect` on Linux, `brew install expect` on macOS).
+
+### 2. Capture
+
+`scripts/capture.mjs` drives headless Chrome with Playwright. On first run it installs `playwright-core` and, for recordings, Playwright's ffmpeg build into `~/.cache`, so the repo gains no dependency. It needs Chrome or Chromium (`CHROME_PATH` to override).
 
 ```bash
 CAPTURE=.agents/skills/slot-watch-pr/scripts/capture.mjs
 
-# Before: production (or main running locally — see below)
-node $CAPTURE --url https://slotwatch.dev/signers --out tmp/pr-assets/before-signers.png
-
-# After: your branch running locally
-bun dev:client:tee   # in the background, from the repo root
-node $CAPTURE --url https://slotwatch.localhost/signers --out tmp/pr-assets/after-signers.png
+# Screenshots (2x PNG)
+node $CAPTURE --url https://slotwatch-main.localhost/signers --out tmp/pr-assets/before-signers.png
+node $CAPTURE --url https://slotwatch.localhost/signers      --out tmp/pr-assets/after-signers.png
 
 # Just one element, the full page, light mode, or after clicking something
 node $CAPTURE --url ... --out ... --selector 'header'
@@ -63,40 +84,48 @@ node $CAPTURE --url ... --out ... --full-page
 node $CAPTURE --url ... --out ... --theme light
 node $CAPTURE --url ... --out ... --click 'button[aria-label="Expand"]'
 
-# Recording: a GIF of the page for --duration ms (good for live SSE updates and animations)
-node $CAPTURE --url https://slotwatch.localhost --out tmp/pr-assets/after-timeline.gif --duration 8000
+# Recordings: Playwright's native video. .gif writes a GIF plus a full-quality .webm next to it.
+# Clicks happen during the recording, so the interaction is visible.
+node $CAPTURE --url https://slotwatch.localhost --out tmp/pr-assets/after-nav.gif \
+  --click 'a[href="/signers"]' --duration 4000
 ```
 
 Notes:
 
-- **Before** is usually `https://slotwatch.dev`, which serves `main` once it has been deployed. If prod is behind `main`, or the change is behind something prod can't show, run `main` in a separate worktree and capture that instead. Stop your branch's dev server first: both use `https://slotwatch.localhost`.
-- The local client reads the production API and streamer, so before/after shots show the same live data. Data moves fast (new blocks every few seconds); capture before and after close together, and crop with `--selector` when the rest of the page is noise.
-- The default wait is 5s after load, because pages fill in from SSE. Raise `--wait` for slow pages. Never wait for network idle — SSE connections never go idle.
-- Look at every capture before you use it (`Read` the PNG). Loading spinners, empty states and error toasts are not useful screenshots.
-- Keep GIFs short (5-10s) and under ~5MB. Lower `--fps` or the viewport size if they're bigger. GitHub doesn't play videos linked from a repo inline, so use GIFs.
+- The default wait is 5s after load, because pages fill in from SSE. Raise `--wait` for slow pages. Never wait for network idle: SSE connections never go idle.
+- Live data moves fast (a new block every few seconds). Capture before and after back to back, and crop with `--selector` when the rest of the page is noise.
+- Both local servers are dev builds, so the TanStack Router devtools badge shows in the bottom-left corner of both. That's expected.
+- Look at every capture before you use it (`Read` the PNG; for videos, pull a frame with `ffmpeg -sseof -0.5 -i x.webm -frames:v 1 x.png`). Loading spinners, empty states and error toasts are not useful.
+- Keep recordings short (5-10s). The page-load part is trimmed off automatically with the system `ffmpeg`. Without it you get an untrimmed `.webm` and no GIF.
 - For multi-step interactions the CLI can't express, copy `capture.mjs` to `tmp/` and script the steps with Playwright directly.
-- Interactive browser tools (an in-app browser preview, computer use) are fine too if you have them — the output just needs to be PNG/GIF files in `tmp/pr-assets/`.
+- To let a human click around your branch, expose it from a Boat VM with `host <vite-port> --localhost` (the port is in `client/tmp/dev-server.log`). Only share that URL on purpose.
 
-### Putting images in the PR
+### 3. Upload to R2
 
-GitHub has no API for uploading PR attachments, so host images in the PR branch itself without letting them land in `main`:
+Assets go in the public R2 bucket `slot-watch-pr-assets`, served at `https://pr-assets.slotwatch.dev`:
 
 ```bash
-# 1. Commit the assets on their own (tmp/ is gitignored, hence -f)
-mkdir -p tmp/pr-assets
-git add -f tmp/pr-assets/*.png tmp/pr-assets/*.gif
-git commit -m "chore: PR screenshots"
-ASSETS_SHA=$(git rev-parse HEAD)
-
-# 2. Remove them again so the PR's net diff (and main) has no binaries
-git rm -r --cached --quiet tmp/pr-assets
-git commit -m "chore: remove PR screenshots from tree"
-git push
-
-# 3. Link them by commit SHA so the links keep working after the removal
-echo "https://github.com/hstove/slot-watch/blob/$ASSETS_SHA/tmp/pr-assets/after-signers.png?raw=true"
+bun .agents/skills/slot-watch-pr/scripts/upload.ts tmp/pr-assets/*
+# tmp/pr-assets/after-signers.png -> https://pr-assets.slotwatch.dev/<branch>/<hash>-after-signers.png
 ```
 
-- The repo is private; these links render for anyone signed in with access to it, which is everyone who can see the PR.
-- If you later rebase or force-push, the old commit can disappear. Repeat the steps and update the links.
-- Use `<img src="..." width="600">` inside tables so before/after line up at a readable size.
+- Keys are `<branch>/<content-hash>-<filename>` (`--prefix` to override). A changed file gets a new URL, so GitHub's image cache never shows a stale version.
+- Auth uses the `stackslabs` alchemy profile (`bun alchemy login --profile stackslabs` if it's missing or expired).
+- The bucket and its domain are defined in `scripts/pr-assets.run.ts`, a separate alchemy app from `alchemy.run.ts`. It's already created; you only need it to change the bucket. It never deploys the API, website or streamer.
+- Everything uploaded is public. Only upload screenshots of public Slot Watch pages.
+
+### 4. Embed
+
+GitHub displays images from any HTTPS URL inline, but it won't play videos hosted outside GitHub. Embed the GIF and link the `.webm`:
+
+```markdown
+| Before | After |
+| --- | --- |
+| <img src="https://pr-assets.slotwatch.dev/.../before-signers.png" width="600"> | <img src="https://pr-assets.slotwatch.dev/.../after-signers.png" width="600"> |
+
+<img src="https://pr-assets.slotwatch.dev/.../after-nav.gif" width="800">
+
+[Full-quality recording (WebM)](https://pr-assets.slotwatch.dev/.../after-nav.webm)
+```
+
+Never commit screenshots or recordings to the repo.
