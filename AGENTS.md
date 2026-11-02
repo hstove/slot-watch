@@ -55,7 +55,7 @@ Use the `/slot-watch-pr` skill (`./.agents/skills/slot-watch-pr/SKILL.md`) whene
 
 ### CI & preview deployments
 
-CI runs `bun check:all` on every PR and fails if it leaves a diff, so run `bun check:all` before pushing. Contributors' PRs also get an Alchemy preview stage (`pr-<N>`: website at `pr-<N>-preview.slotwatch.dev`, API on `workers.dev`, read-only DB, no ingest) that is destroyed when the PR closes. Any stage other than `prod` is a preview in `alchemy.run.ts`. Details and one-time setup: `history/2026-11-02-preview-deployments.md`.
+CI runs `bun check:all` on every PR and fails if it leaves a diff, so run `bun check:all` before pushing. Contributors' PRs also get an Alchemy preview stage (`pr-<N>`: website at `pr-<N>-preview.slotwatch.dev`, API on `workers.dev`, read-only DB, no ingest) that is destroyed when the PR closes. Any stage other than `prod` is a preview in `alchemy.run.ts`. Background: `history/2026-11-02-preview-deployments.md`.
 
 ### Managing Planning Documents
 

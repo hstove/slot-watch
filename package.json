@@ -15,7 +15,6 @@
     "check:all": "bun check:fix && bun typecheck",
     "dev": "turbo dev --filter=slot-watch-ui",
     "deploy:alchemy": "bun alchemy deploy --env-file .env.local --profile stackslabs",
-    "setup:github": "bun --env-file .env.local scripts/setup-github.ts",
     "knip": "knip"
   },
   "devDependencies": {
