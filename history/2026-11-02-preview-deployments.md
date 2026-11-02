@@ -27,8 +27,9 @@ Any stage other than `prod` is a preview:
 - Resources are suffixed with the stage (`slot-watch-worker-pr-12`, a fresh KV
   namespace, Hyperdrive config, Durable Object namespace) and never adopt prod
   resources.
-- Served from `workers.dev`. No custom domains, no `WranglerJson` rewrites, no
-  streamer deploy.
+- The website is served at `https://<stage>.preview.slotwatch.dev` (e.g.
+  `pr-12.preview.slotwatch.dev`). The API stays on `workers.dev`. No prod
+  domains, no `WranglerJson` rewrites, no streamer deploy.
 - The client is built with `VITE_SLOTS_API_URL` set to the preview Worker URL.
   It reads realtime data from the prod streamer, which is read-only SSE.
 - The database connection uses the read-only `slot_watch_readonly` role.
