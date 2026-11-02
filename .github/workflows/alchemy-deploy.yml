@@ -9,6 +9,11 @@ jobs:
     name: Deploy with Alchemy
     runs-on: ubuntu-latest
     concurrency: deploy-group
+    # Records each run as a deployment to the repo's existing "Production"
+    # environment, so the latest prod deploy shows up on GitHub.
+    environment:
+      name: Production
+      url: https://slotwatch.dev
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
