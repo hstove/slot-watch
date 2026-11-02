@@ -51,6 +51,7 @@ const DB_NAME = 'postgres';
 const PREVIEW_DB_USER = 'slot_watch_readonly';
 const PROD_API_URL = 'https://api.slotwatch.dev';
 const PROD_STREAMER_URL = 'https://slot-watch-streamer.fly.dev';
+const SLOTWATCH_ZONE_ID = '121c1d3bc83456fd77bf1957012e03bc';
 
 const app = await alchemy('slot-watch', {
   stage,
@@ -178,7 +179,7 @@ const website = await Website('slot-watch-website', {
 if (isProd) {
   await CustomDomain('slot-watch-api-domain', {
     name: 'api.slotwatch.dev',
-    zoneId: '121c1d3bc83456fd77bf1957012e03bc',
+    zoneId: SLOTWATCH_ZONE_ID,
     workerName: worker.name,
     adopt: true,
   });
@@ -195,7 +196,7 @@ if (isProd) {
 
   await CustomDomain('slot-watch-website-domain', {
     name: 'slotwatch.dev',
-    zoneId: '121c1d3bc83456fd77bf1957012e03bc',
+    zoneId: SLOTWATCH_ZONE_ID,
     workerName: website.name,
     adopt: true,
   });
@@ -221,13 +222,20 @@ if (isProd) {
     command: 'bun run check:fix',
   });
 } else {
-  console.log(`Preview website: ${website.url}`);
+  // e.g. https://pr-17.preview.slotwatch.dev. Removed by `alchemy destroy`.
+  const previewDomain = await CustomDomain('slot-watch-website-domain', {
+    name: `${stage}.preview.slotwatch.dev`,
+    zoneId: SLOTWATCH_ZONE_ID,
+    workerName: website.name,
+  });
+  const websiteUrl = `https://${previewDomain.name}`;
+  console.log(`Preview website: ${websiteUrl} (also ${website.url})`);
   console.log(`Preview API: ${apiUrl}`);
   // Surface the URLs to the GitHub Actions job (environment URL + summary).
   if (process.env.GITHUB_OUTPUT) {
     appendFileSync(
       process.env.GITHUB_OUTPUT,
-      `website_url=${website.url}\napi_url=${apiUrl}\n`
+      `website_url=${websiteUrl}\napi_url=${apiUrl}\n`
     );
   }
 }
