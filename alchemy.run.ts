@@ -117,7 +117,8 @@ export const worker = await Worker('slot-watch-worker', {
   observability: {
     enabled: true,
   },
-  // Previews are served from workers.dev; prod uses custom domains.
+  // The preview API is served from workers.dev (the client is built against
+  // this URL); prod uses api.slotwatch.dev.
   ...(isProd ? {} : { url: true }),
   bindings: {
     CACHE: kv,
@@ -168,7 +169,6 @@ const website = await Website('slot-watch-website', {
   },
   compatibilityFlags: ['nodejs_compat'],
   compatibilityDate: '2025-05-29',
-  ...(isProd ? {} : { url: true }),
   bindings: {
     VITE_SLOTS_API_URL: apiUrl,
     API_WORKER: worker,
@@ -234,7 +234,7 @@ if (isProd) {
     }
   );
   const websiteUrl = `https://${previewDomain.name}`;
-  console.log(`Preview website: ${websiteUrl} (also ${website.url})`);
+  console.log(`Preview website: ${websiteUrl}`);
   console.log(`Preview API: ${apiUrl}`);
   // Surface the URLs to the GitHub Actions job (environment URL + summary).
   if (process.env.GITHUB_OUTPUT) {
