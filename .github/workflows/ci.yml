@@ -1,0 +1,28 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, format & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        name: Install Dependencies
+      - run: bun check:all
+        name: bun check:all
+      # check:all auto-fixes; fail if it changed anything so fixes get committed.
+      - run: git diff --exit-code
+        name: Ensure no unformatted or auto-fixable changes
