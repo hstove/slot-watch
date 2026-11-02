@@ -11,6 +11,7 @@ The primary focus of slot watch is around how Signers sign proposed blocks. Each
 - `./client`: Frontend React application. Learn more in `./client/AGENTS.md`.
 - `./streamer`: Rust-based event streaming service
 - `./.agents/skills/cloudflare/SKILL.md`: Local Cloudflare operations skill for production management, Worker logs, deploys, KV/cache state, and incident response.
+- `./.agents/skills/slot-watch-pr/SKILL.md`: `/slot-watch-pr` skill for opening and updating pull requests, including before/after screenshots and recordings for UI changes.
 
 ## Root-level Commands
 
@@ -43,6 +44,14 @@ Run the client with `bun dev:client:tee` from the repo root, then open `https://
 Read `./.agents/skills/cloudflare/SKILL.md` first — it has the production map (Worker names, domains, KV/Hyperdrive bindings, secrets), the incident workflow, and known failure patterns.
 
 For inspecting prod, use the `executor` MCP tool with the Cloudflare integration. Tools live under `tools.cloudflare.org.stackslabs.*`; discover them with `tools.search({ namespace: "cloudflare", query: "..." })` and inspect shapes with `tools.describe.tool({ path })`. Useful for Worker versions/deployments (confirming your deploy is actually the one serving traffic) and KV reads. Worker observability log queries go through the Cloudflare API's telemetry query endpoint — see the skill for the filters that matter (`$metadata.service`, `$metadata.trigger`, `$workers.scriptVersion.id`).
+
+### Database migrations: never run them without permission
+
+Non-breaking backend changes (new routes, new optional fields, new nullable columns or tables) are fine. You may edit `server/src/db/schema.ts` and generate migration files with `bun --cwd server generate-migrations`. But never run migrations (`bun migrate`, `drizzle-kit migrate`, `drizzle-kit push`, or schema-changing SQL) unless Hank explicitly gives permission in the conversation. `.env.local` points at the production database, so running one is a production change.
+
+### Pull requests
+
+Use the `/slot-watch-pr` skill (`./.agents/skills/slot-watch-pr/SKILL.md`) whenever you open or update a PR. UI changes need before/after screenshots, or a short recording for motion and live updates. Call out any migrations and breaking changes in the PR description.
 
 ### Managing Planning Documents
 
