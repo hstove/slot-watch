@@ -31,7 +31,7 @@ Any stage other than `prod` is a preview:
   `pr-12-preview.slotwatch.dev`). It's kept one level deep so the zone's
   `*.slotwatch.dev` Universal SSL cert covers it right away. A deeper name
   like `pr-12.preview.slotwatch.dev` waited about 3 minutes for a dedicated
-  cert. The deploy job also waits for HTTPS before it publishes the link.
+  cert.
   The API stays on `workers.dev`. No prod
   domains, no `WranglerJson` rewrites, no streamer deploy.
 - The client is built with `VITE_SLOTS_API_URL` set to the preview Worker URL.
