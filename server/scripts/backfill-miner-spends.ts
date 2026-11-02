@@ -137,13 +137,13 @@ async function backfillWinners() {
 // miner_spends rows (miner unresolved) from Hiro burn_block_pox_txs
 // ---------------------------------------------------------------------------
 async function backfillSpends() {
-  type Row = {
+  interface Row {
     burn_block_height: number;
     burn_block_hash: string;
     txid: string;
     spend: string;
     recipients: number;
-  };
+  }
   const { rows } = await hiro.query<Row>(
     // Hiro's canonical flag tracks Stacks forks, not Bitcoin ones, so a real
     // burn block can be marked non-canonical. Keep every distinct output and
@@ -498,12 +498,12 @@ async function gapWinners() {
   log(`gap winners: updated=${updated}`);
 }
 
-type GapBlock = {
+interface GapBlock {
   id: string;
   burn_block_height: number;
   burn_block_hash: string;
   consensus_hash: string;
-};
+}
 
 /** A miner_spends row for a commit tx, or null if it isn't a commit by `key`. */
 function commitRow(

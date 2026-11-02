@@ -72,12 +72,12 @@ async function backfillSpend() {
   // pox_spend = sum of every commit's reward outputs (matches sumPoxSpendSats
   // over pox_transactions). burn_amount comes from burnchain_rewards, which
   // repeats the burn block's top-level burn_amount on every recipient row.
-  type SpendRow = {
+  interface SpendRow {
     burn_block_hash: string;
     burn_block_height: number;
     pox_spend: string | null;
     burn_amount: string | null;
-  };
+  }
   const { rows } = await hiro.query<SpendRow>(
     `
     with heights as (
@@ -155,7 +155,7 @@ async function backfillSpend() {
 // Miner revenue: miner_rewards
 // ---------------------------------------------------------------------------
 async function backfillRewards() {
-  type RewardRow = {
+  interface RewardRow {
     recipient: string;
     miner_address: string | null;
     coinbase_amount: string;
@@ -168,7 +168,7 @@ async function backfillRewards() {
     matured_burn_block_height: number;
     matured_block_time: number;
     earned_burn_block_height: number | null;
-  };
+  }
   // Hiro's miner_rewards.block_hash is the earning block's hash
   // (from_stacks_block_hash); index_block_hash is the maturing block's.
   // Upsert so rows ingested before the two-entry fix get their fee shares.

@@ -4,6 +4,7 @@
   "compatibility_date": "2025-05-29",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
+    "SLOT_WATCH_STAGE": "prod",
     "STREAMER_URL": "https://slot-watch-streamer.fly.dev"
   },
   "kv_namespaces": [
