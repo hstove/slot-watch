@@ -17,6 +17,9 @@ declare namespace Cloudflare {
 		KV_NAMESPACE_ID: string;
 		HIRO_API_KEY: string;
 		ALCHEMY_STATE_TOKEN: string;
+		BETTER_AUTH_SECRET?: string;
+		GOOGLE_CLIENT_ID?: string;
+		GOOGLE_CLIENT_SECRET?: string;
 		DB: Hyperdrive;
 		MINER_COMMITS: DurableObjectNamespace<import("./src/miner-commits/durable-object").MinerCommitsWatcher>;
 	}

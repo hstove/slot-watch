@@ -95,6 +95,23 @@ const db = await Hyperdrive('slot-watch-pg', {
   },
 });
 
+/**
+ * better-auth (Google sign-in) is only wired up when all of its secrets are
+ * set. Previews never get them: their database is read-only, so sessions
+ * couldn't be stored anyway. Without them the API's auth routes return 503.
+ */
+const authBindings =
+  isProd &&
+  process.env.BETTER_AUTH_SECRET &&
+  process.env.GOOGLE_CLIENT_ID &&
+  process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
+        GOOGLE_CLIENT_ID: alchemy.secret(process.env.GOOGLE_CLIENT_ID),
+        GOOGLE_CLIENT_SECRET: alchemy.secret(process.env.GOOGLE_CLIENT_SECRET),
+      }
+    : {};
+
 /** Holds the mempool.space WebSocket and persists miner commit activity. */
 const minerCommits = DurableObjectNamespace('miner-commits-watcher', {
   className: 'MinerCommitsWatcher',
@@ -145,6 +162,7 @@ export const worker = await Worker('slot-watch-worker', {
     ),
     HIRO_API_KEY: alchemy.secret(process.env.HIRO_API_KEY),
     MINER_COMMITS: minerCommits,
+    ...authBindings,
   },
   adopt: isProd,
 });

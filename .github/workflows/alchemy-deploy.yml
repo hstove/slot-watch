@@ -33,6 +33,10 @@ jobs:
           CF_KV_ACCOUNT_ID: ${{ secrets.CF_KV_ACCOUNT_ID }}
           KV_NAMESPACE_ID: ${{ secrets.KV_NAMESPACE_ID }}
           HIRO_API_KEY: ${{ secrets.HIRO_API_KEY }}
+          # Optional: auth routes return 503 until all three are set.
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
