@@ -44,6 +44,21 @@ jobs:
           HIRO_API_KEY: ${{ secrets.HIRO_API_KEY }}
           # Read-only DB role; previews never receive prod DB credentials.
           PREVIEW_DATABASE_PASSWORD: ${{ secrets.PREVIEW_DATABASE_PASSWORD }}
+      # A brand-new custom domain can take a few minutes to serve HTTPS. Wait
+      # for it so the PR's environment link works when it appears.
+      - name: Wait for preview HTTPS
+        env:
+          WEBSITE_URL: ${{ steps.deploy.outputs.website_url }}
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$WEBSITE_URL/" || true)
+            if [ "$code" = 200 ]; then
+              echo "$WEBSITE_URL is up after $((i * 10 - 10))s"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::$WEBSITE_URL did not serve HTTPS within 10 minutes (last status: $code)"
       - name: Summary
         env:
           WEBSITE_URL: ${{ steps.deploy.outputs.website_url }}
