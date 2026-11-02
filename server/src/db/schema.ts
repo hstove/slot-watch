@@ -15,6 +15,7 @@ import {
   check,
   json,
   real,
+  text as pgText,
   // sqliteTable as pgTable,
   // text as,
 } from 'drizzle-orm/pg-core';
@@ -604,3 +605,76 @@ export const stateMachineUpdates = pgTable(
 );
 
 export type StateMachineUpdateDb = InferSelectModel<typeof stateMachineUpdates>;
+
+/**
+ * better-auth tables (see `src/better-auth.ts`). Keys in `authSchema` are
+ * better-auth's model names; columns follow its default field names.
+ */
+export const authUsers = pgTable('auth_users', {
+  id: pgText('id').primaryKey(),
+  name: pgText('name').notNull(),
+  email: pgText('email').notNull().unique(),
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  image: pgText('image'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: pgText('id').primaryKey(),
+    expiresAt: timestamp('expires_at').notNull(),
+    token: pgText('token').notNull().unique(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    ipAddress: pgText('ip_address'),
+    userAgent: pgText('user_agent'),
+    userId: pgText('user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+  },
+  (table) => [index('auth_sessions_user_id_idx').on(table.userId)]
+);
+
+export const authAccounts = pgTable(
+  'auth_accounts',
+  {
+    id: pgText('id').primaryKey(),
+    accountId: pgText('account_id').notNull(),
+    providerId: pgText('provider_id').notNull(),
+    userId: pgText('user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    accessToken: pgText('access_token'),
+    refreshToken: pgText('refresh_token'),
+    idToken: pgText('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at'),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+    scope: pgText('scope'),
+    password: pgText('password'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [index('auth_accounts_user_id_idx').on(table.userId)]
+);
+
+export const authVerifications = pgTable(
+  'auth_verifications',
+  {
+    id: pgText('id').primaryKey(),
+    identifier: pgText('identifier').notNull(),
+    value: pgText('value').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [index('auth_verifications_identifier_idx').on(table.identifier)]
+);
+
+export const authSchema = {
+  user: authUsers,
+  session: authSessions,
+  account: authAccounts,
+  verification: authVerifications,
+};
