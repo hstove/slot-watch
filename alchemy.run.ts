@@ -222,12 +222,17 @@ if (isProd) {
     command: 'bun run check:fix',
   });
 } else {
-  // e.g. https://pr-17.preview.slotwatch.dev. Removed by `alchemy destroy`.
-  const previewDomain = await CustomDomain('slot-watch-website-domain', {
-    name: `${stage}.preview.slotwatch.dev`,
-    zoneId: SLOTWATCH_ZONE_ID,
-    workerName: website.name,
-  });
+  // e.g. https://pr-17-preview.slotwatch.dev. Kept one level deep so the
+  // zone's `*.slotwatch.dev` Universal SSL cert covers it immediately, instead
+  // of waiting minutes for a dedicated cert. Removed by `alchemy destroy`.
+  const previewDomain = await CustomDomain(
+    'slot-watch-website-preview-domain',
+    {
+      name: `${stage}-preview.slotwatch.dev`,
+      zoneId: SLOTWATCH_ZONE_ID,
+      workerName: website.name,
+    }
+  );
   const websiteUrl = `https://${previewDomain.name}`;
   console.log(`Preview website: ${websiteUrl} (also ${website.url})`);
   console.log(`Preview API: ${apiUrl}`);
