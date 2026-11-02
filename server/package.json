@@ -43,6 +43,7 @@
     "@stacks/stacks-blockchain-api-types": "^7.14.1",
     "@stacks/transactions": "^7.6.0",
     "@upstash/redis": "^1.34.9",
+    "better-auth": "^1.7.15",
     "cloudflare": "^4.4.1",
     "drizzle-orm": "^0.45.1",
     "effect": "4.0.0-rc.117",

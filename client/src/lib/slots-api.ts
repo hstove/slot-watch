@@ -17,7 +17,7 @@ import {
 import type { O } from 'ts-toolbelt';
 import { createQueryKeyStore } from '@lukemorales/query-key-factory';
 
-const slotsApiUrl =
+export const slotsApiUrl =
   import.meta.env.VITE_SLOTS_API_URL ?? 'https://api.slotwatch.dev';
 
 export const slotsStreamerUrl =
