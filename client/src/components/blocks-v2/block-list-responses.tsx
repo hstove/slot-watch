@@ -36,7 +36,6 @@ const BlockListResponse = ({
 }: {
   blockHash: string;
   signerPublicKey: string;
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: its fine
 }) => {
   const signer = useAtomValue(signersAtomFamily(signerPublicKey));
   const totalWeight = useAtomValue(totalWeightAtom);
