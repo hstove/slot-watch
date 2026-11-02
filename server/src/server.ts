@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { honoLogger, log } from './logger';
 import eventsRoutes from './routes/events.routes';
-import { cors } from 'hono/cors';
 import { blockRoutes } from './routes/blocks.routes';
 import { prettyJSON } from 'hono/pretty-json';
 import { healthRoutes } from './routes/health.routes';
@@ -25,6 +24,7 @@ import { FetchHttpClient } from 'effect/unstable/http';
 import { startOfHour, HOUR_MS } from './prices/coinbase';
 import { syncHourlyPrices } from './prices/sync';
 import { env } from 'cloudflare:workers';
+import { AUTH_BASE_PATH, apiCors, authHandler } from './better-auth';
 
 // The Durable Object class must be exported from the Worker's entrypoint.
 // biome-ignore lint/performance/noBarrelFile: required by the Workers runtime
@@ -61,7 +61,7 @@ export const app = new Hono<ServerType>()
   .use('*', requestId())
   .use(honoLogger)
   .use(prettyJSON())
-  .use(cors())
+  .use(apiCors)
 
   .get('/', (c) => c.text('Hello World'))
 
@@ -100,6 +100,8 @@ export const app = new Hono<ServerType>()
       },
     })
   )
+
+  .on(['GET', 'POST'], `${AUTH_BASE_PATH}/*`, authHandler)
 
   .route('/', eventsRoutes)
   .route('/', api)
