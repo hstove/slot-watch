@@ -30,6 +30,12 @@ import { env } from 'cloudflare:workers';
 // biome-ignore lint/performance/noBarrelFile: required by the Workers runtime
 export { MinerCommitsWatcher } from './miner-commits/durable-object';
 
+/**
+ * Preview deployments (any stage other than `prod`) use a read-only database
+ * and must not start the writer-side miner-commits watcher.
+ */
+const isPreview = env.SLOT_WATCH_STAGE !== 'prod';
+
 /** The single watcher instance; any request also (re)starts it. */
 function minerCommitsWatcher() {
   return env.MINER_COMMITS.get(env.MINER_COMMITS.idFromName('mainnet'));
@@ -100,7 +106,13 @@ export const app = new Hono<ServerType>()
 
   .get('/docs', Scalar({ url: '/openapi.json' }))
 
-  .get('/miner-commits/status', async () => {
+  .get('/miner-commits/status', async (c) => {
+    if (isPreview) {
+      return c.json(
+        { error: 'Miner commits watcher is disabled in previews' },
+        503
+      );
+    }
     const response = await minerCommitsWatcher().fetch(
       'https://miner-commits/status'
     );
@@ -144,6 +156,9 @@ export type SlotWatchServer = typeof app;
 export default {
   fetch: app.fetch,
   async scheduled(controller: ScheduledController) {
+    if (isPreview) {
+      return;
+    }
     // Backstop for the watcher's own alarm; separate so it can't fail prices.
     try {
       await minerCommitsWatcher().fetch('https://miner-commits/status');

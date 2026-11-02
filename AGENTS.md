@@ -53,6 +53,10 @@ Non-breaking backend changes (new routes, new optional fields, new nullable colu
 
 Use the `/slot-watch-pr` skill (`./.agents/skills/slot-watch-pr/SKILL.md`) whenever you open or update a PR. UI changes need before/after screenshots, or a short recording for motion and live updates. Call out any migrations and breaking changes in the PR description.
 
+### CI & preview deployments
+
+CI runs `bun check:all` on every PR and fails if it leaves a diff, so run `bun check:all` before pushing. Contributors' PRs also get an Alchemy preview stage (`pr-<N>`: API + website on `workers.dev`, read-only DB, no ingest) that is destroyed when the PR closes. Any stage other than `prod` is a preview in `alchemy.run.ts`. Details and one-time setup: `history/2026-11-02-preview-deployments.md`.
+
 ### Managing Planning Documents
 
 Often times, we'll want to create and use planning documents when working on larger features. These should live under a `./history` directory. For project-wide planning, use the root-level `./history` directory. Otherwise, use the `./${workspace}/history` directory.
