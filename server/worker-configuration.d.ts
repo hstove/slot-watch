@@ -7,6 +7,7 @@ declare namespace Cloudflare {
 	}
 	interface Env {
 		CACHE: KVNamespace;
+		SLOT_WATCH_STAGE: "prod";
 		STREAMER_URL: "https://slot-watch-streamer.fly.dev";
 		OBSERVER_TOKEN: string;
 		ALCHEMY_PASSWORD: string;
@@ -25,7 +26,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "STREAMER_URL" | "OBSERVER_TOKEN" | "ALCHEMY_PASSWORD" | "DATABASE_URL" | "KV_API_TOKEN" | "CF_KV_ACCOUNT_ID" | "KV_NAMESPACE_ID" | "HIRO_API_KEY" | "ALCHEMY_STATE_TOKEN">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "SLOT_WATCH_STAGE" | "STREAMER_URL" | "OBSERVER_TOKEN" | "ALCHEMY_PASSWORD" | "DATABASE_URL" | "KV_API_TOKEN" | "CF_KV_ACCOUNT_ID" | "KV_NAMESPACE_ID" | "HIRO_API_KEY" | "ALCHEMY_STATE_TOKEN">> {}
 }
 
 // Begin runtime types

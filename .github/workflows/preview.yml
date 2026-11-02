@@ -1,0 +1,77 @@
+name: Preview Deployment
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+# One run at a time per PR, never cancelled midway, so a destroy always runs
+# after (not during) a deploy of the same stage.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  STAGE: pr-${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    name: Deploy preview
+    # Only for contributors' PRs from this repo (forks never get secrets), and
+    # only once previews have been enabled via the PREVIEW_DEPLOYMENTS variable.
+    if: >-
+      github.event.action != 'closed' &&
+      vars.PREVIEW_DEPLOYMENTS == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association)
+    runs-on: ubuntu-latest
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.website_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        name: Install Dependencies
+      - run: bunx alchemy deploy --stage "$STAGE"
+        id: deploy
+        name: Deploy with Alchemy
+        env:
+          ALCHEMY_PASSWORD: ${{ secrets.ALCHEMY_PASSWORD }}
+          ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          HIRO_API_KEY: ${{ secrets.HIRO_API_KEY }}
+          # Read-only DB role; previews never receive prod DB credentials.
+          PREVIEW_DATABASE_PASSWORD: ${{ secrets.PREVIEW_DATABASE_PASSWORD }}
+      - name: Summary
+        env:
+          WEBSITE_URL: ${{ steps.deploy.outputs.website_url }}
+          API_URL: ${{ steps.deploy.outputs.api_url }}
+        run: |
+          {
+            echo "### Preview \`$STAGE\`"
+            echo ""
+            echo "- Website: $WEBSITE_URL"
+            echo "- API: $API_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  destroy:
+    name: Destroy preview
+    # Runs for every closed/merged same-repo PR, so previews are cleaned up
+    # even if the author's association or the opt-in variable changed.
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        name: Install Dependencies
+      - run: bunx alchemy destroy --stage "$STAGE"
+        name: Destroy with Alchemy
+        env:
+          ALCHEMY_PASSWORD: ${{ secrets.ALCHEMY_PASSWORD }}
+          ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
