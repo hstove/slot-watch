@@ -1,0 +1,30 @@
+name: Setup
+description: >-
+  Install Bun and the workspace's dependencies, restoring Bun's package cache
+  and Turbo's local task cache (typecheck, client build) from earlier runs.
+
+runs:
+  using: composite
+  steps:
+    - uses: oven-sh/setup-bun@v2
+
+    - name: Cache Bun packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        restore-keys: bun-${{ runner.os }}-
+
+    # Turbo hashes each task's inputs (and VITE_* env for builds), so a
+    # restored entry is only replayed when nothing relevant changed. A new
+    # key per commit, falling back to the latest one, keeps it fresh.
+    - name: Cache Turbo tasks
+      uses: actions/cache@v4
+      with:
+        path: .turbo/cache
+        key: turbo-${{ runner.os }}-${{ github.sha }}
+        restore-keys: turbo-${{ runner.os }}-
+
+    - name: Install Dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
