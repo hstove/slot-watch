@@ -63,10 +63,61 @@ const app = await alchemy('slot-watch', {
     }),
 });
 
-const kv = await KVNamespace('cache', {
-  title: named('slot-watch-cache'),
-  adopt: isProd,
-});
+/**
+ * Deploy speed: resources run concurrently wherever they don't depend on each
+ * other, instead of one `await` after another. Each resource pays ~1s of
+ * state-store round trips on top of its own work, so overlapping them matters.
+ *
+ * `inBackground` starts a resource now and returns its promise, which you
+ * await later. If it fails before then, the failure still surfaces at that
+ * `await` instead of crashing the process as an unhandled rejection.
+ */
+function inBackground<T>(promise: Promise<T>) {
+  promise.catch(() => undefined);
+  return promise;
+}
+
+/**
+ * The streamer (Fly.io) doesn't depend on anything in Cloudflare, so its
+ * deploy starts first and overlaps with everything else. It's memoized on its
+ * sources, CI included: a Fly deploy takes ~50s, and most pushes don't touch
+ * the streamer. Patterns are relative to `cwd`. Set FORCE_STREAMER_DEPLOY=1
+ * to redeploy it anyway.
+ */
+const streamerDeploy = isProd
+  ? inBackground(
+      Exec('deploy-streamer', {
+        command: 'flyctl deploy --depot --depot-scope app',
+        cwd: 'streamer',
+        memoize: process.env.FORCE_STREAMER_DEPLOY
+          ? false
+          : {
+              patterns: [
+                'src/**/*.rs',
+                'Cargo.toml',
+                'Cargo.lock',
+                'Dockerfile',
+                'fly.toml',
+                '.dockerignore',
+              ],
+            },
+      })
+    )
+  : undefined;
+
+const buildClient = (apiUrl: string) =>
+  Exec('build', {
+    command: 'bun run build:client',
+    env: {
+      VITE_SLOTS_API_URL: apiUrl,
+    },
+  });
+
+// Prod's API URL is fixed, so the client build can start right away and
+// overlap with the Worker deploy. Previews build against the Worker's URL.
+const prodClientBuild = isProd
+  ? inBackground(buildClient(PROD_API_URL))
+  : undefined;
 
 const previewDbPassword = isProd
   ? undefined
@@ -76,24 +127,30 @@ const previewDbUrl = `postgresql://${PREVIEW_DB_USER}:${encodeURIComponent(
   previewDbPassword ?? ''
 )}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
 
-const db = await Hyperdrive('slot-watch-pg', {
-  name: named('slot-watch-pg-hyperdrive'),
-  origin: {
-    host: DB_HOST,
-    port: DB_PORT,
-    user: isProd ? 'postgres' : PREVIEW_DB_USER,
-    database: DB_NAME,
-    password: alchemy.secret(
-      isProd ? process.env.DATABASE_PASSWORD : previewDbPassword
-    ),
-  },
-  dev: {
-    origin: alchemy.secret(isProd ? process.env.DATABASE_URL : previewDbUrl),
-  },
-  caching: {
-    disabled: true,
-  },
-});
+const [kv, db] = await Promise.all([
+  KVNamespace('cache', {
+    title: named('slot-watch-cache'),
+    adopt: isProd,
+  }),
+  Hyperdrive('slot-watch-pg', {
+    name: named('slot-watch-pg-hyperdrive'),
+    origin: {
+      host: DB_HOST,
+      port: DB_PORT,
+      user: isProd ? 'postgres' : PREVIEW_DB_USER,
+      database: DB_NAME,
+      password: alchemy.secret(
+        isProd ? process.env.DATABASE_PASSWORD : previewDbPassword
+      ),
+    },
+    dev: {
+      origin: alchemy.secret(isProd ? process.env.DATABASE_URL : previewDbUrl),
+    },
+    caching: {
+      disabled: true,
+    },
+  }),
+]);
 
 /**
  * better-auth (Google sign-in) is only wired up when all of its secrets are
@@ -172,12 +229,26 @@ if (!apiUrl) {
   throw new Error(`Worker ${worker.name} has no URL`);
 }
 
-await Exec('build', {
-  command: 'bun run build:client',
-  env: {
-    VITE_SLOTS_API_URL: apiUrl,
-  },
-});
+// These only need the Worker, so they overlap with the client build and
+// website deploy.
+const prodWorkerExtras = isProd
+  ? inBackground(
+      Promise.all([
+        CustomDomain('slot-watch-api-domain', {
+          name: 'api.slotwatch.dev',
+          zoneId: SLOTWATCH_ZONE_ID,
+          workerName: worker.name,
+          adopt: true,
+        }),
+        WranglerJson({
+          worker,
+          path: 'server-wrangler.jsonc',
+        }),
+      ])
+    )
+  : undefined;
+
+await (prodClientBuild ?? buildClient(apiUrl));
 
 const website = await Website('slot-watch-website', {
   name: named('slot-watch-website'),
@@ -195,50 +266,28 @@ const website = await Website('slot-watch-website', {
 });
 
 if (isProd) {
-  await CustomDomain('slot-watch-api-domain', {
-    name: 'api.slotwatch.dev',
-    zoneId: SLOTWATCH_ZONE_ID,
-    workerName: worker.name,
-    adopt: true,
-  });
+  await Promise.all([
+    CustomDomain('slot-watch-website-domain', {
+      name: 'slotwatch.dev',
+      zoneId: SLOTWATCH_ZONE_ID,
+      workerName: website.name,
+      adopt: true,
+    }),
+    WranglerJson({
+      worker: website,
+      path: 'client/wrangler.jsonc',
+    }),
+    prodWorkerExtras,
+    streamerDeploy,
+  ]);
 
-  await WranglerJson({
-    worker,
-    path: 'server-wrangler.jsonc',
-  });
-
-  await WranglerJson({
-    worker: website,
-    path: 'client/wrangler.jsonc',
-  });
-
-  await CustomDomain('slot-watch-website-domain', {
-    name: 'slotwatch.dev',
-    zoneId: SLOTWATCH_ZONE_ID,
-    workerName: website.name,
-    adopt: true,
-  });
-
-  await Exec('deploy-streamer', {
-    command: 'flyctl deploy --depot --depot-scope app',
-    cwd: 'streamer',
-    memoize: process.env.CI
-      ? false
-      : {
-          patterns: [
-            './streamer/**/*.rs',
-            './streamer/Cargo.toml',
-            './streamer/Cargo.lock',
-            './streamer/Dockerfile',
-            './streamer/fly.toml',
-            './streamer/.dockerignore',
-          ],
-        },
-  });
-
-  await Exec('format', {
-    command: 'bun run check:fix',
-  });
+  // Formats the generated wrangler.jsonc files. Only useful locally, where
+  // they get committed; in CI the result is thrown away.
+  if (!process.env.CI) {
+    await Exec('format', {
+      command: 'bun run check:fix',
+    });
+  }
 } else {
   // e.g. https://pr-17-preview.slotwatch.dev. Kept one level deep so the
   // zone's `*.slotwatch.dev` Universal SSL cert covers it immediately, instead

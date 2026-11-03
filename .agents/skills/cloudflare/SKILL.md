@@ -91,7 +91,7 @@ If deploy auth is broken, re-authenticate first:
 bunx alchemy login cloudflare
 ```
 
-The deploy is defined in `alchemy.run.ts`. It can update the API Worker, website Worker/assets, Wrangler config files, and Fly streamer. Generated Wrangler config formatting changes are expected after Alchemy deploys.
+The deploy is defined in `alchemy.run.ts`. It can update the API Worker, website Worker/assets, Wrangler config files, and Fly streamer. Generated Wrangler config formatting changes are expected after Alchemy deploys. Independent resources deploy concurrently. The Fly streamer deploy is memoized on `streamer/` sources (in CI too), so it's skipped unless they changed; set `FORCE_STREAMER_DEPLOY=1` to redeploy it anyway.
 
 ## Known Failure Pattern: Signer Recency 1101
 
