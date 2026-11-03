@@ -31,9 +31,7 @@ jobs:
       url: ${{ steps.deploy.outputs.website_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-        name: Install Dependencies
+      - uses: ./.github/actions/setup
       - run: bunx alchemy deploy --stage "$STAGE"
         id: deploy
         name: Deploy with Alchemy
@@ -66,9 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-        name: Install Dependencies
+      - uses: ./.github/actions/setup
       - run: bunx alchemy destroy --stage "$STAGE"
         name: Destroy with Alchemy
         env:
