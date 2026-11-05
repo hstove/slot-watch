@@ -21,8 +21,6 @@ export function BtcBlock() {
       <BurnBlock
         burnBlockHash={loaderData.btcBlock.burnBlockHash}
         consensusHash={loaderData.btcBlock.consensusHash}
-        miner={loaderData.miner}
-        alwaysShowBlocks
       />
       <BlockModal />
     </>
