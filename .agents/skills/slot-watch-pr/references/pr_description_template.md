@@ -40,10 +40,4 @@
 - React component tree, including important hooks, Jotai atoms and data sources (API query vs SSE)
 - call tree or data flow (event observer -> DB -> streamer -> client)}
 
-## Testing
-
-- {What you ran and its result, e.g. `bun check:all` passes.}
-- {Manual checks, e.g. compared /signers locally against prod.}
-- {What could not be verified yet and why, e.g. server change needs a deploy to verify against live data.}
-
 Closes #{N}
