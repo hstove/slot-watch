@@ -305,10 +305,10 @@ export type HourlyPriceDb = InferSelectModel<typeof hourlyPrices>;
 /**
  * One row per block-commit transaction in a burn block, from
  * `pox_transactions` in `/new_burn_block`. The miner is identified by the
- * commit's input public key (fetched from a Bitcoin API), which is the same
- * key that signs the miner's block proposals. `minerAddress` is the STX
- * address derived from that key and equals `miner_rewards.miner_address`, so
- * spend and revenue join on it. A commit won its sortition when
+ * commit's input public key (fetched from a Bitcoin API). `minerAddress` is
+ * the STX address derived from that key. It usually equals
+ * `miner_rewards.miner_address`, but a miner may sign block proposals and its
+ * coinbase with other keys; `rewardAddressMap` joins spend and revenue. A commit won its sortition when
  * `stacks_blocks.miner_txid = txid`; its tenure is `consensusHash`, which
  * equals `miner_rewards.earned_consensus_hash`.
  */
