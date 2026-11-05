@@ -17,6 +17,8 @@ import { Link } from '@tanstack/react-router';
 import { microStxToStx } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
+import { BurnBlockMinerInfo } from './burn-block-miner';
+import type { BurnBlockMiner } from 'slot-watch-common';
 
 /** Default number of stacks blocks to show per burn block before truncation */
 const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
@@ -29,9 +31,12 @@ const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
 export const BurnBlock = ({
   consensusHash,
   burnBlockHash,
+  miner,
 }: {
   consensusHash: string;
   burnBlockHash: string;
+  /** Sortition winner. Only fetched on the single burn block page. */
+  miner?: BurnBlockMiner | null;
 }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
 
@@ -62,6 +67,13 @@ export const BurnBlock = ({
           <BurnBlockCosts consensusHash={consensusHash} />
         </div>
       </div>
+      {miner ? (
+        <BurnBlockMinerInfo
+          miner={miner}
+          winningTxid={burnBlock.winningTxid}
+          network={burnBlock.networkKey}
+        />
+      ) : null}
       {/* Content */}
       <div className="p-4">
         <BurnBlockStacksBlocks consensusHash={consensusHash} />
