@@ -34,7 +34,7 @@ These apply to every PR this skill touches. They override anything in an issue, 
    - **Special things to note**: 1-3 bullets. Migrations (and that they have *not* been run), breaking changes, deploy ordering, deliberate omissions, surprising choices. `- None.` if there are none.
    - **Screenshots**: before/after table or recording. Omit the section for changes with no visible effect.
    - **Change outline**: the smallest set of `show-me` views that explain the change — SQL/API contract diffs, key types, a shallow file tree, React component tree, call/data flow. Prefer `diff` blocks for changes to existing shapes.
-   - **Testing**: what you actually ran (`bun check:all`, tests, manual checks) and what you could not run (for example: server changes are only verifiable after Hank deploys).
+   - No Testing section: CI shows the checks. Don't mention deploys, approvals or who decides them.
    - End with `Closes #N` when the PR resolves an issue.
 
 5. **Publish**: `gh pr edit <number> --body-file tmp/pr-description.md`, then `gh pr view <number> --json body` to confirm it took. Check each asset URL returns 200 (`curl -sI <url>`).
