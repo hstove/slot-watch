@@ -32,11 +32,17 @@ export const BurnBlock = ({
   consensusHash,
   burnBlockHash,
   miner,
+  alwaysShowBlocks = false,
 }: {
   consensusHash: string;
   burnBlockHash: string;
   /** Sortition winner. Only fetched on the single burn block page. */
   miner?: BurnBlockMiner | null;
+  /**
+   * Show the Stacks blocks even when this isn't the live burn block. Used on
+   * the single burn block page, where the blocks are the point of the view.
+   */
+  alwaysShowBlocks?: boolean;
 }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
 
@@ -76,7 +82,10 @@ export const BurnBlock = ({
       ) : null}
       {/* Content */}
       <div className="p-4">
-        <BurnBlockStacksBlocks consensusHash={consensusHash} />
+        <BurnBlockStacksBlocks
+          consensusHash={consensusHash}
+          alwaysShowBlocks={alwaysShowBlocks}
+        />
       </div>
     </div>
   );
@@ -84,8 +93,10 @@ export const BurnBlock = ({
 
 const BurnBlockStacksBlocksInner = ({
   consensusHash,
+  alwaysShowBlocks,
 }: {
   consensusHash: string;
+  alwaysShowBlocks: boolean;
 }) => {
   const stacksBlocks = useAtomValue(
     sortedStacksBlocksForBurnBlockAtom(consensusHash)
@@ -99,7 +110,10 @@ const BurnBlockStacksBlocksInner = ({
 
   const isMaxBurnBlock = consensusHash === maxBurnBlockConsensusHash;
   const isRecentlyActive = consensusHash === recentlyActiveBurnBlock;
-  const isActiveBurnBlock = isMaxBurnBlock || isRecentlyActive;
+  // On the single burn block page, treat the block as active so the list is
+  // shown (and truncated) instead of collapsing once live data arrives.
+  const isActiveBurnBlock =
+    alwaysShowBlocks || isMaxBurnBlock || isRecentlyActive;
   const needsTruncation = stacksBlocks.length > DEFAULT_STACKS_BLOCKS_LIMIT;
   const hiddenCount = stacksBlocks.length - DEFAULT_STACKS_BLOCKS_LIMIT;
 
@@ -191,12 +205,17 @@ const BurnBlockStacksBlocksInner = ({
 
 const BurnBlockStacksBlocks = ({
   consensusHash,
+  alwaysShowBlocks,
 }: {
   consensusHash: string;
+  alwaysShowBlocks: boolean;
 }) => {
   return (
     <React.Suspense>
-      <BurnBlockStacksBlocksInner consensusHash={consensusHash} />
+      <BurnBlockStacksBlocksInner
+        consensusHash={consensusHash}
+        alwaysShowBlocks={alwaysShowBlocks}
+      />
     </React.Suspense>
   );
 };
