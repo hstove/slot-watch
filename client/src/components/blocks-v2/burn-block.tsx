@@ -13,15 +13,29 @@ import { BtcIcon } from '../icons/btc-icon';
 import { Timestamp } from '../timestamp';
 import { BurnBlockCosts } from './burn-block-costs';
 import { PublicKey } from '../public-key';
-import { Link } from '@tanstack/react-router';
+import { Link, useMatch } from '@tanstack/react-router';
 import { microStxToStx } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
 import { BurnBlockMinerInfo } from './burn-block-miner';
-import type { BurnBlockMiner } from 'slot-watch-common';
 
 /** Default number of stacks blocks to show per burn block before truncation */
 const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
+
+/**
+ * When the current route is the single burn block page for this block,
+ * returns that page's loader data. Lets this component adapt to the page
+ * without the page passing props down.
+ */
+function useBurnBlockPage(consensusHash: string) {
+  const match = useMatch({
+    from: '/btc-blocks/$heightOrHash',
+    shouldThrow: false,
+  });
+  const loaderData = match?.loaderData;
+  if (loaderData?.btcBlock.consensusHash !== consensusHash) return null;
+  return loaderData;
+}
 
 /** Tracks which burn blocks have expanded their stacks blocks list */
 const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
@@ -31,20 +45,13 @@ const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
 export const BurnBlock = ({
   consensusHash,
   burnBlockHash,
-  miner,
-  alwaysShowBlocks = false,
 }: {
   consensusHash: string;
   burnBlockHash: string;
-  /** Sortition winner. Only fetched on the single burn block page. */
-  miner?: BurnBlockMiner | null;
-  /**
-   * Show the Stacks blocks even when this isn't the live burn block. Used on
-   * the single burn block page, where the blocks are the point of the view.
-   */
-  alwaysShowBlocks?: boolean;
 }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
+  // The sortition winner is only fetched on the single burn block page.
+  const miner = useBurnBlockPage(consensusHash)?.miner;
 
   if (!burnBlock) return null;
 
@@ -82,10 +89,7 @@ export const BurnBlock = ({
       ) : null}
       {/* Content */}
       <div className="p-4">
-        <BurnBlockStacksBlocks
-          consensusHash={consensusHash}
-          alwaysShowBlocks={alwaysShowBlocks}
-        />
+        <BurnBlockStacksBlocks consensusHash={consensusHash} />
       </div>
     </div>
   );
@@ -93,10 +97,8 @@ export const BurnBlock = ({
 
 const BurnBlockStacksBlocksInner = ({
   consensusHash,
-  alwaysShowBlocks,
 }: {
   consensusHash: string;
-  alwaysShowBlocks: boolean;
 }) => {
   const stacksBlocks = useAtomValue(
     sortedStacksBlocksForBurnBlockAtom(consensusHash)
@@ -110,10 +112,11 @@ const BurnBlockStacksBlocksInner = ({
 
   const isMaxBurnBlock = consensusHash === maxBurnBlockConsensusHash;
   const isRecentlyActive = consensusHash === recentlyActiveBurnBlock;
-  // On the single burn block page, treat the block as active so the list is
-  // shown (and truncated) instead of collapsing once live data arrives.
-  const isActiveBurnBlock =
-    alwaysShowBlocks || isMaxBurnBlock || isRecentlyActive;
+  // On its own page the blocks are the point of the view, so treat the block
+  // as active: the list is shown (and truncated) instead of collapsing once
+  // live data shows it isn't the latest burn block.
+  const isBlockPage = useBurnBlockPage(consensusHash) !== null;
+  const isActiveBurnBlock = isBlockPage || isMaxBurnBlock || isRecentlyActive;
   const needsTruncation = stacksBlocks.length > DEFAULT_STACKS_BLOCKS_LIMIT;
   const hiddenCount = stacksBlocks.length - DEFAULT_STACKS_BLOCKS_LIMIT;
 
@@ -205,17 +208,12 @@ const BurnBlockStacksBlocksInner = ({
 
 const BurnBlockStacksBlocks = ({
   consensusHash,
-  alwaysShowBlocks,
 }: {
   consensusHash: string;
-  alwaysShowBlocks: boolean;
 }) => {
   return (
     <React.Suspense>
-      <BurnBlockStacksBlocksInner
-        consensusHash={consensusHash}
-        alwaysShowBlocks={alwaysShowBlocks}
-      />
+      <BurnBlockStacksBlocksInner consensusHash={consensusHash} />
     </React.Suspense>
   );
 };
