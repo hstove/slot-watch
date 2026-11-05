@@ -31,6 +31,7 @@ import {
   getMinerIdentity,
   getVersionFromString,
   type ApiBlockProposal,
+  type BurnBlockMiner,
   type MinerIdentity,
 } from 'slot-watch-common';
 import { stringify } from 'superjson';
@@ -491,5 +492,62 @@ export async function fetchMinerDetail(
         : null,
       versionHistory: buildVersionHistory(minerTenures),
     },
+  };
+}
+
+/**
+ * The miner that won a burn block's sortition: the winning commit (via
+ * `winningTxid`) and the key that signed the tenure's latest proposal.
+ * Returns null when neither is known.
+ */
+export async function fetchBurnBlockMiner(
+  burnBlock: {
+    networkKey: string;
+    consensusHash: string;
+    winningTxid: string | null;
+  },
+  db: Db
+): Promise<BurnBlockMiner | null> {
+  const { networkKey, consensusHash, winningTxid } = burnBlock;
+  const [[proposal], [commit]] = await Promise.all([
+    db
+      .select({ minerPublicKey: blockProposals.minerPublicKey })
+      .from(blockProposals)
+      .where(
+        and(
+          eq(blockProposals.consensusHash, consensusHash),
+          eq(blockProposals.networkKey, networkKey)
+        )
+      )
+      .orderBy(desc(blockProposals.chainLength), desc(blockProposals.id))
+      .limit(1),
+    winningTxid
+      ? db
+          .select({
+            minerPublicKey: minerSpends.minerPublicKey,
+            minerBtcAddress: minerSpends.minerBtcAddress,
+            spendSats: minerSpends.spendSats,
+            burnSats: minerSpends.burnSats,
+          })
+          .from(minerSpends)
+          .where(
+            and(
+              eq(minerSpends.networkKey, networkKey),
+              eq(minerSpends.txid, winningTxid)
+            )
+          )
+          .limit(1)
+      : Promise.resolve([]),
+  ]);
+  if (!(proposal || commit)) return null;
+  const signingPublicKey = proposal?.minerPublicKey ?? null;
+  const commitPublicKey = commit?.minerPublicKey ?? null;
+  return {
+    signingPublicKey,
+    commitPublicKey,
+    commitBtcAddress: commit?.minerBtcAddress ?? null,
+    commitSpendSats: commit ? commit.spendSats + commit.burnSats : null,
+    // Name the miner the same way the miner detail page does.
+    ...getMinerIdentity(commitPublicKey ?? signingPublicKey),
   };
 }

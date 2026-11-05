@@ -411,9 +411,29 @@ export const BurnBlockBlocksResponseSchema = Schema.Struct({
 export interface BurnBlockBlocksResponse
   extends Schema.Schema.Type<typeof BurnBlockBlocksResponseSchema> {}
 
+/**
+ * The miner that won a burn block's sortition. Miners can use separate keys
+ * for their block commit and for signing blocks, so both are reported.
+ */
+export const BurnBlockMinerSchema = Schema.Struct({
+  /** Key the tenure's blocks were signed with. Null if no proposal was seen. */
+  signingPublicKey: Schema.NullOr(Schema.String),
+  /** Key from the winning commit's first input. Null if unresolved. */
+  commitPublicKey: Schema.NullOr(Schema.String),
+  /** Bitcoin address the winning commit spent from. Null if unresolved. */
+  commitBtcAddress: Schema.NullOr(Schema.String),
+  /** Winning commit's total spend (PoX + burn) in satoshis. Null if the commit is unknown. */
+  commitSpendSats: Schema.NullOr(Schema.Number),
+  ...MinerIdentityFields,
+}).annotate({ identifier: 'BurnBlockMiner' });
+export interface BurnBlockMiner
+  extends Schema.Schema.Type<typeof BurnBlockMinerSchema> {}
+
 // Single burn block response
 export const BurnBlockResponseSchema = Schema.Struct({
   btcBlock: Schema.NullOr(ApiBurnBlockSchema),
+  /** Sortition winner. Null if neither a winning commit nor a proposal is known. */
+  miner: Schema.optional(Schema.NullOr(BurnBlockMinerSchema)),
 }).annotate({ identifier: 'BurnBlockResponse' });
 export interface BurnBlockResponse
   extends Schema.Schema.Type<typeof BurnBlockResponseSchema> {}

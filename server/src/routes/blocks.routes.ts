@@ -10,6 +10,7 @@ import {
 import { getPoxInfo, getStackerSet } from '../stacks-api';
 import { mapSignerDataToResponses } from '../db/block-responses';
 import { getBlockPreCommits } from '../db/pre-commits';
+import { fetchBurnBlockMiner } from '../db/block-proposals';
 import {
   serializeBurnBlock,
   serializeStacksBlock,
@@ -302,8 +303,21 @@ const blockRoutes = new Hono<ServerType>()
         )
         .orderBy(desc(burnBlocks.id))
         .limit(1);
+      // The miner lookup is supplementary: never fail the route over it.
+      const miner = btcBlock
+        ? await fetchBurnBlockMiner(btcBlock, c.get('db')).catch(
+            (error: unknown) => {
+              log
+                .withError(error)
+                .withMetadata({ networkKey, heightOrHash })
+                .error('Failed to fetch burn block miner');
+              return null;
+            }
+          )
+        : null;
       return c.json({
         btcBlock: btcBlock ? serializeBurnBlock(btcBlock) : null,
+        miner,
       });
     }
   )
