@@ -28,26 +28,25 @@ function safeAddress(fn: () => string) {
 }
 
 /**
- * Reward addresses beyond the commit-derived `stxAddress`: `coinbase` are the
- * addresses signing this miner's coinbase txs (`miner_rewards.miner_address`),
- * and `recipients` are where those rewards were paid, when different.
+ * `coinbase`: addresses signing this miner's coinbase txs
+ * (`miner_rewards.miner_address`). `recipients`: where those rewards were
+ * paid, when that differs (the coinbase's alternate recipient).
  */
-function rewardIdentities(
+function coinbaseIdentities(
   economics: MinerEconomicsData | null,
-  stxAddress: string | null
+  economicsKey: string | null
 ) {
-  if (!(economics && stxAddress)) return { coinbase: [], recipients: [] };
+  if (!(economics && economicsKey)) return { coinbase: [], recipients: [] };
   const miners = [
     ...economics.economics.miners,
     ...(economics.matured?.miners ?? []),
-  ].filter((m) => m.minerAddress === stxAddress);
+  ].filter((m) => m.minerAddress === economicsKey);
   const coinbase = new Set(miners.flatMap((m) => m.rewardAddresses));
   const recipients = new Set(
     // Absent until the server change is deployed.
     miners.flatMap((m) => m.rewardRecipients ?? [])
   );
-  for (const address of [stxAddress, ...coinbase]) recipients.delete(address);
-  coinbase.delete(stxAddress);
+  for (const address of coinbase) recipients.delete(address);
   return { coinbase: [...coinbase], recipients: [...recipients] };
 }
 
@@ -147,12 +146,13 @@ export function MinerDetail({
   const { miner } = minerDetail;
   const identity = minerDisplay(miner);
   const commitKey = miner.commitPublicKey ?? miner.publicKey;
-  const stxAddress =
+  // Economics rows are keyed by the commit key's STX address. That address
+  // isn't real on-chain, so it's only used for lookups, never displayed.
+  const economicsKey =
     miner.minerAddress ??
     safeAddress(() => getStacksAddress(commitKey, networkKey));
   const signingKeys = miner.signingPublicKeys.filter((k) => k !== commitKey);
-  const rewards = rewardIdentities(economics, stxAddress);
-  const multiKey = signingKeys.length > 0 || rewards.coinbase.length > 0;
+  const { coinbase, recipients } = coinbaseIdentities(economics, economicsKey);
 
   return (
     <div className="flex flex-col gap-2">
@@ -180,32 +180,29 @@ export function MinerDetail({
                 value={key}
               />
             ))}
-            {stxAddress ? (
+            {miner.btcAddress ? (
               <IdentityRow
-                label={multiKey ? 'commit stx address' : 'stx address'}
-                hint="STX address of the commit key. Slot Watch identifies miners by this address."
-                value={stxAddress}
+                label="btc address"
+                hint="Bitcoin address funding this miner's block commits"
+                value={miner.btcAddress}
               />
             ) : null}
-            {rewards.coinbase.map((address) => (
+            {coinbase.map((address) => (
               <IdentityRow
                 key={address}
                 label="coinbase address"
-                hint="Sender of this miner's coinbase transactions (a different key than the commit key)"
+                hint="Sender of this miner's coinbase transactions"
                 value={address}
               />
             ))}
-            {rewards.recipients.map((address) => (
+            {recipients.map((address) => (
               <IdentityRow
                 key={address}
-                label="reward recipient"
+                label="coinbase recipient"
                 hint="Where this miner's block rewards are paid (the coinbase's alternate recipient)"
                 value={address}
               />
             ))}
-            {miner.btcAddress ? (
-              <IdentityRow label="btc address" value={miner.btcAddress} />
-            ) : null}
           </div>
           <div className="grid grid-cols-2">
             <Metric
@@ -222,7 +219,7 @@ export function MinerDetail({
         <MinerEconomicsPanel
           data={economics}
           publicKey={miner.publicKey}
-          minerAddress={stxAddress}
+          minerAddress={economicsKey}
           networkKey={networkKey}
         />
       ) : null}
