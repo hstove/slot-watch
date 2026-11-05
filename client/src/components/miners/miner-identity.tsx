@@ -107,9 +107,6 @@ export function MinerIdentity({
           </div>
         )}
         <div className="flex min-w-0 gap-1.5">
-          {miner.identity && miner.address ? (
-            <CopyValue value={miner.address} head={5} tail={4} />
-          ) : null}
           {miner.publicKey ? (
             <CopyValue value={miner.publicKey} head={6} tail={4} />
           ) : (

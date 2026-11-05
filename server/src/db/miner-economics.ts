@@ -123,9 +123,11 @@ const REWARD_ADDRESS_LOOKBACK_HEIGHTS = 1008;
 
 /**
  * Maps each reward `miner_address` to the commit-funding address that won the
- * most tenures paying it. Some miners sign their coinbase with a different key
- * than the one funding their commits and proposals, so their rewards would
- * otherwise show up as a separate miner. Matched through coinbase rows, which
+ * most tenures paying it. A miner can use up to three keys: the Bitcoin key
+ * funding its commits, the mining key signing its block proposals, and the
+ * node key signing its coinbase (whose address is `miner_address`). When the
+ * coinbase key differs from the commit key, rewards would otherwise show up as
+ * a separate miner. Matched through coinbase rows, which
  * go to the tenure's winner (the other row per tenure is the previous miner's
  * streamed fees). Self-pairings count too, so a stray mismatch can't re-key a
  * miner.
@@ -202,6 +204,9 @@ export function minerRevenueTotals(
       >`array_agg(distinct ${minerRewards.minerAddress}) filter (where ${minerRewards.minerAddress} is not null)`.as(
         'reward_addresses'
       ),
+      rewardRecipients: sql<
+        string[] | null
+      >`array_agg(distinct ${minerRewards.recipient})`.as('reward_recipients'),
       coinbaseUstx: sql<number>`sum(${minerRewards.coinbaseUstx})`.as(
         'coinbase_ustx'
       ),

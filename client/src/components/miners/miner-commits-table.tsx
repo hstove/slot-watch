@@ -28,7 +28,7 @@ interface CommitRow {
 function winnerLabel(commit: MinerCommit) {
   const identity = minerDisplay(commit);
   if (identity) return identity.label;
-  return commit.minerAddress ? truncateMiddle(commit.minerAddress, 6, 4) : null;
+  return commit.btcAddress ? truncateMiddle(commit.btcAddress, 6, 4) : null;
 }
 
 function toRows(blocks: MinerCommitsBlock[], key: string): CommitRow[] {

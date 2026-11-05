@@ -482,9 +482,13 @@ export const MinerEconomicsMinerSchema = Schema.Struct({
   coinbaseUstx: Schema.Number,
   txFeesUstx: Schema.Number,
   rewardRows: Schema.Number,
-  /** `miner_rewards.miner_address`es attributed to this miner. Usually just
-   * `minerAddress`, but some miners are paid under a different address. */
+  /** `miner_rewards.miner_address`es attributed to this miner: the addresses
+   * of the keys signing its coinbase txs. Usually just `minerAddress`, but
+   * some miners sign their coinbase with a different key than their commits. */
   rewardAddresses: Schema.mutable(Schema.Array(Schema.String)),
+  /** `miner_rewards.recipient`s: where the rewards were actually paid. Differs
+   * from `rewardAddresses` when the coinbase names an alternate recipient. */
+  rewardRecipients: Schema.mutable(Schema.Array(Schema.String)),
   /** Sum of each commit's spend valued at its burn block's observed hour.
    * Null if any commit lacks a matching block or BTC candle. */
   spendUsd: Schema.NullOr(Schema.String),

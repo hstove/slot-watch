@@ -89,7 +89,7 @@ export async function fetchBlockTxids(
   return null;
 }
 
-/** STX address for a miner's public key; usually equals `miner_rewards.miner_address`. */
+/** STX address for a miner's public key. For a commit key this often, but not always, equals `miner_rewards.miner_address`. */
 export function minerAddressFromPublicKey(
   publicKey: string,
   networkKey: string
