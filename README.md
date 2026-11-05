@@ -1,6 +1,6 @@
 # Slot Watch
 
-Slot Watch monitors the [Stacks](https://stacks.co) blockchain, with a focus on how signers sign proposed blocks. Each signer has an assigned "slot", hence the name. It's built for core developers and anyone who wants to dig into the details of blocks, signer responses and miners.
+Power tools for Stacks developers.
 
 Live at [slotwatch.dev](https://slotwatch.dev).
 
@@ -20,8 +20,6 @@ Then open **https://slotwatch.localhost**.
 ```bash
 PORTLESS=0 bun dev   # then open the http://localhost URL Vite prints
 ```
-
-Everything works on a plain port except Google sign-in, which only accepts `slotwatch.dev` and `slotwatch.localhost` as origins.
 
 To point the frontend at a different backend, set these before `bun dev`:
 
