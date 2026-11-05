@@ -11,14 +11,13 @@ export const Route = createFileRoute('/btc-blocks/$heightOrHash')({
     return { network };
   },
   loader: async ({ params: { heightOrHash }, deps: { network } }) => {
-    // const { btcBlock } = await getBtcBlock(network, heightOrHash);
-    const [{ btcBlock }, signers] = await Promise.all([
+    const [{ btcBlock, miner }, signers] = await Promise.all([
       getBtcBlock(network ?? 'mainnet', heightOrHash),
       getSigners(network ?? 'mainnet'),
     ]);
     if (!btcBlock) {
       throw new Error('BTC block not found');
     }
-    return { btcBlock, signers, network };
+    return { btcBlock, miner: miner ?? null, signers, network };
   },
 });
