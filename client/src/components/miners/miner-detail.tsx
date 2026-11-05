@@ -1,6 +1,7 @@
 import { DataTable } from '@/components/ui/data-table';
 import { Timestamp } from '@/components/timestamp';
 import { SimpleTooltip } from '@/components/simple-tooltip';
+import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { MinerVersionHistory } from 'slot-watch-common';
 import type { ApiMinerDetail } from '@/lib/slots-api';
@@ -26,27 +27,51 @@ function safeAddress(fn: () => string) {
   }
 }
 
-/** Addresses this miner's rewards are paid under, other than its own. */
-function otherRewardAddresses(
+/**
+ * `coinbase`: addresses signing this miner's coinbase txs
+ * (`miner_rewards.miner_address`). `recipients`: where those rewards were
+ * paid, when that differs (the coinbase's alternate recipient).
+ */
+function coinbaseIdentities(
   economics: MinerEconomicsData | null,
-  stxAddress: string | null
+  economicsKey: string | null
 ) {
-  if (!(economics && stxAddress)) return [];
+  if (!(economics && economicsKey)) return { coinbase: [], recipients: [] };
   const miners = [
     ...economics.economics.miners,
     ...(economics.matured?.miners ?? []),
-  ].filter((m) => m.minerAddress === stxAddress);
-  const addresses = new Set(miners.flatMap((m) => m.rewardAddresses));
-  addresses.delete(stxAddress);
-  return [...addresses];
+  ].filter((m) => m.minerAddress === economicsKey);
+  const coinbase = new Set(miners.flatMap((m) => m.rewardAddresses));
+  const recipients = new Set(
+    // Absent until the server change is deployed.
+    miners.flatMap((m) => m.rewardRecipients ?? [])
+  );
+  for (const address of coinbase) recipients.delete(address);
+  return { coinbase: [...coinbase], recipients: [...recipients] };
 }
 
-function IdentityRow({ label, value }: { label: string; value: string }) {
+function IdentityRow({
+  label,
+  hint,
+  value,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+}) {
+  const labelEl = (
+    <span
+      className={cn(
+        'shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground',
+        hint && 'cursor-help underline decoration-dotted underline-offset-2'
+      )}
+    >
+      {label}
+    </span>
+  );
   return (
     <div className="flex flex-col gap-0.5 border-b border-border/50 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 last:border-b-0">
-      <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
+      {hint ? <SimpleTooltip content={hint}>{labelEl}</SimpleTooltip> : labelEl}
       <CopyValue
         value={value}
         head={value.length}
@@ -121,11 +146,13 @@ export function MinerDetail({
   const { miner } = minerDetail;
   const identity = minerDisplay(miner);
   const commitKey = miner.commitPublicKey ?? miner.publicKey;
-  const stxAddress =
+  // Economics rows are keyed by the commit key's STX address. That address
+  // isn't real on-chain, so it's only used for lookups, never displayed.
+  const economicsKey =
     miner.minerAddress ??
     safeAddress(() => getStacksAddress(commitKey, networkKey));
   const signingKeys = miner.signingPublicKeys.filter((k) => k !== commitKey);
-  const rewardAddresses = otherRewardAddresses(economics, stxAddress);
+  const { coinbase, recipients } = coinbaseIdentities(economics, economicsKey);
 
   return (
     <div className="flex flex-col gap-2">
@@ -142,24 +169,40 @@ export function MinerDetail({
           <div className="border-b border-border px-3 py-2 md:border-r md:border-b-0">
             <IdentityRow
               label={signingKeys.length > 0 ? 'commit key' : 'public key'}
+              hint="Bitcoin key funding this miner's block commits"
               value={commitKey}
             />
             {signingKeys.map((key) => (
-              <IdentityRow key={key} label="signing key" value={key} />
-            ))}
-            {stxAddress ? (
-              <IdentityRow label="stx address" value={stxAddress} />
-            ) : null}
-            {rewardAddresses.map((address) => (
               <IdentityRow
-                key={address}
-                label="reward address"
-                value={address}
+                key={key}
+                label="signing key"
+                hint="Mining key signing this miner's block proposals"
+                value={key}
               />
             ))}
             {miner.btcAddress ? (
-              <IdentityRow label="btc address" value={miner.btcAddress} />
+              <IdentityRow
+                label="btc address"
+                hint="Bitcoin address funding this miner's block commits"
+                value={miner.btcAddress}
+              />
             ) : null}
+            {coinbase.map((address) => (
+              <IdentityRow
+                key={address}
+                label="coinbase address"
+                hint="Sender of this miner's coinbase transactions"
+                value={address}
+              />
+            ))}
+            {recipients.map((address) => (
+              <IdentityRow
+                key={address}
+                label="coinbase recipient"
+                hint="Where this miner's block rewards are paid (the coinbase's alternate recipient)"
+                value={address}
+              />
+            ))}
           </div>
           <div className="grid grid-cols-2">
             <Metric
@@ -176,7 +219,7 @@ export function MinerDetail({
         <MinerEconomicsPanel
           data={economics}
           publicKey={miner.publicKey}
-          minerAddress={stxAddress}
+          minerAddress={economicsKey}
           networkKey={networkKey}
         />
       ) : null}
