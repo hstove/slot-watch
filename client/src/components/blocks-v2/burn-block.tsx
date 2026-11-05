@@ -13,13 +13,29 @@ import { BtcIcon } from '../icons/btc-icon';
 import { Timestamp } from '../timestamp';
 import { BurnBlockCosts } from './burn-block-costs';
 import { PublicKey } from '../public-key';
-import { Link } from '@tanstack/react-router';
+import { Link, useMatch } from '@tanstack/react-router';
 import { microStxToStx } from 'slot-watch-common';
 import { SimpleTooltip } from '../simple-tooltip';
 import { Badge } from '../ui/badge';
+import { BurnBlockMinerInfo } from './burn-block-miner';
 
 /** Default number of stacks blocks to show per burn block before truncation */
 const DEFAULT_STACKS_BLOCKS_LIMIT = 10;
+
+/**
+ * When the current route is the single burn block page for this block,
+ * returns that page's loader data. Lets this component adapt to the page
+ * without the page passing props down.
+ */
+function useBurnBlockPage(consensusHash: string) {
+  const match = useMatch({
+    from: '/btc-blocks/$heightOrHash',
+    shouldThrow: false,
+  });
+  const loaderData = match?.loaderData;
+  if (loaderData?.btcBlock.consensusHash !== consensusHash) return null;
+  return loaderData;
+}
 
 /** Tracks which burn blocks have expanded their stacks blocks list */
 const expandedBurnBlocksAtom = atomFamily((_consensusHash: string) =>
@@ -34,6 +50,8 @@ export const BurnBlock = ({
   burnBlockHash: string;
 }) => {
   const burnBlock = useAtomValue(burnBlocksAtomFamily(burnBlockHash));
+  // The sortition winner is only fetched on the single burn block page.
+  const miner = useBurnBlockPage(consensusHash)?.miner;
 
   if (!burnBlock) return null;
 
@@ -62,6 +80,13 @@ export const BurnBlock = ({
           <BurnBlockCosts consensusHash={consensusHash} />
         </div>
       </div>
+      {miner ? (
+        <BurnBlockMinerInfo
+          miner={miner}
+          winningTxid={burnBlock.winningTxid}
+          network={burnBlock.networkKey}
+        />
+      ) : null}
       {/* Content */}
       <div className="p-4">
         <BurnBlockStacksBlocks consensusHash={consensusHash} />
@@ -87,7 +112,11 @@ const BurnBlockStacksBlocksInner = ({
 
   const isMaxBurnBlock = consensusHash === maxBurnBlockConsensusHash;
   const isRecentlyActive = consensusHash === recentlyActiveBurnBlock;
-  const isActiveBurnBlock = isMaxBurnBlock || isRecentlyActive;
+  // On its own page the blocks are the point of the view, so treat the block
+  // as active: the list is shown (and truncated) instead of collapsing once
+  // live data shows it isn't the latest burn block.
+  const isBlockPage = useBurnBlockPage(consensusHash) !== null;
+  const isActiveBurnBlock = isBlockPage || isMaxBurnBlock || isRecentlyActive;
   const needsTruncation = stacksBlocks.length > DEFAULT_STACKS_BLOCKS_LIMIT;
   const hiddenCount = stacksBlocks.length - DEFAULT_STACKS_BLOCKS_LIMIT;
 
