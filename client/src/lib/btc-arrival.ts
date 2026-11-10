@@ -1,4 +1,5 @@
 import {
+  ArrivalDistribution,
   type ArrivalEstimate,
   type ArrivalForecast,
   type ArrivalInput,
@@ -367,4 +368,89 @@ export function fromDateTimeLocal(value: string): number | null {
   if (!value) return null;
   const ms = new Date(value).getTime();
   return Number.isFinite(ms) ? ms / 1000 : null;
+}
+
+// ---------------------------------------------------------------- 10-minute baseline
+
+export const TARGET_BLOCK_SECONDS = 600;
+
+/** "9:41" per block. */
+export function formatPace(seconds: number) {
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+const PACE_PATTERN = /^(\d{1,3})(?::(\d{1,2}))?$/;
+
+/** Parse "9:41", "10" (minutes) or "9:5" into seconds per block; null if invalid. */
+export function parsePace(value: string): number | null {
+  const match = PACE_PATTERN.exec(value.trim());
+  if (!match) return null;
+  const minutes = Number(match[1]);
+  const seconds = match[2] === undefined ? 0 : Number(match[2]);
+  if (seconds >= 60) return null;
+  const total = minutes * 60 + seconds;
+  return total >= 1 ? total : null;
+}
+
+export interface BaselineForecast {
+  median: number;
+  q10: number;
+  q90: number;
+  q025: number;
+  q975: number;
+  meanSeconds: number;
+  /** Rehydratable params (same construction and sigma as the model). */
+  distribution: ArrivalForecast['distribution'];
+}
+
+/**
+ * The same target forecast with user-chosen paces instead of the model's:
+ * `paceUntil` for the blocks left in the current difficulty epoch and
+ * `paceAfter` for every block from the retarget on. Uses the model's own
+ * Gamma + rate-uncertainty construction and sigma(n), so with 10:00 / 10:00
+ * it is "flat 600 s/block from now" with comparable intervals.
+ */
+export function baselineForecast(
+  forecast: ArrivalForecast,
+  paceUntil: number,
+  paceAfter: number
+): BaselineForecast {
+  const { currentEpoch, nextEpoch, beyond } = forecast.components;
+  const meanSeconds =
+    currentEpoch.blocks * paceUntil +
+    (nextEpoch.blocks + beyond.blocks) * paceAfter;
+  const distribution = { ...forecast.distribution, meanSeconds };
+  const dist = new ArrivalDistribution(distribution);
+  return {
+    median: dist.quantile(0.5),
+    q10: dist.quantile(0.1),
+    q90: dist.quantile(0.9),
+    q025: dist.quantile(0.025),
+    q975: dist.quantile(0.975),
+    meanSeconds,
+    distribution,
+  };
+}
+
+export interface PaceStat {
+  /** Mean seconds per block over the window. */
+  mean: number;
+  blocks: number;
+  /** Approximate 95% band for the underlying pace (normal approx. to the mean of exponential intervals). */
+  lo: number;
+  hi: number;
+}
+
+/** Average block time between two known blocks, with its sampling noise band. */
+export function paceStat(
+  from: { height: number; time: number },
+  to: { height: number; time: number }
+): PaceStat | null {
+  const blocks = to.height - from.height;
+  const seconds = to.time - from.time;
+  if (!(blocks > 0 && seconds > 0)) return null;
+  const mean = seconds / blocks;
+  const half = (1.96 * mean) / Math.sqrt(blocks);
+  return { mean, blocks, lo: mean - half, hi: mean + half };
 }
