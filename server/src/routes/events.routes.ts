@@ -161,6 +161,12 @@ const eventsRoutes = new Hono<Env>()
       `${networkKey}: Got proposal response`
     );
     return new Response('OK', { status: 200 });
-  });
+  })
+
+  // Unhandled event dispatcher paths; a non-200 makes the node retry forever.
+  .post(
+    '/:path{new_mempool_tx|drop_mempool_tx|new_microblocks|mined_block|mined_microblock|mined_nakamoto_block|attachments/new}',
+    (c) => c.text('OK', 200)
+  );
 
 export default eventsRoutes;

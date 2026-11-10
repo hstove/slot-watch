@@ -149,7 +149,7 @@ export const app = new Hono<ServerType>()
 
   .notFound((c) => {
     log.debug(`${c.req.method} ${c.req.url} not found`);
-    return c.text('Not Found', 200);
+    return c.text('Not Found', 404);
   });
 
 export type SlotWatchServer = typeof app;
