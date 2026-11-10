@@ -20,6 +20,33 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
+type OnSelect = (height: number) => void;
+
+/** A block height that retargets the page when clicked. */
+function HeightButton({
+  height,
+  onSelect,
+  className,
+}: {
+  height: number;
+  onSelect: OnSelect;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(height)}
+      title={`forecast block ${fmt(height)}`}
+      className={cn(
+        'tabular-nums underline decoration-dotted underline-offset-2 hover:text-foreground hover:decoration-solid',
+        className
+      )}
+    >
+      {fmt(height)}
+    </button>
+  );
+}
+
 /** Vertical marker at `pct` across a bar or a stack of lanes. */
 function Marker({
   pct,
@@ -40,6 +67,25 @@ function Marker({
 }
 
 /**
+ * Distribution cycles are half a staking cycle: one starts at the first
+ * block of every staking cycle and one at its midpoint.
+ */
+function distributionCycle(
+  height: number,
+  pos: NonNullable<ReturnType<typeof poxPosition>>,
+  len: number
+) {
+  const mid = pos.cycleStart + len / 2;
+  const secondHalf = height >= mid;
+  return {
+    mid,
+    secondHalf,
+    startsHere: height === pos.cycleStart || height === mid,
+    next: secondHalf ? pos.nextCycleStart : mid,
+  };
+}
+
+/**
  * Where `height` falls in its PoX reward cycle: the reward and prepare
  * segments, with the target (and the tip, when it is in the same cycle).
  */
@@ -47,10 +93,12 @@ function CycleBar({
   height,
   tip,
   pox,
+  onSelect,
 }: {
   height: number;
   tip: number;
   pox: PoxParams;
+  onSelect: OnSelect;
 }) {
   const pos = poxPosition(height, pox);
   if (!pos) return null;
@@ -58,9 +106,20 @@ function CycleBar({
   const pct = (h: number) => ((h - pos.cycleStart) / len) * 100;
   const rewardPct = pct(pos.prepareStart);
   const tipInCycle = tip >= pos.cycleStart && tip < pos.nextCycleStart;
-  const status = pos.inPrepare
-    ? `prepare phase · block ${fmt(height - pos.prepareStart + 1)}/${PREPARE_PHASE_LENGTH} · anchors cycle ${pos.cycle + 1}`
-    : `reward phase · block ${fmt(pos.index + 1)}/${fmt(len - PREPARE_PHASE_LENGTH)} · prepare in ${fmt(pos.prepareStart - height)} (${fmt(pos.prepareStart)})`;
+  const status = pos.inPrepare ? (
+    <>
+      prepare phase · block {fmt(height - pos.prepareStart + 1)}/
+      {PREPARE_PHASE_LENGTH} · anchors cycle {pos.cycle + 1}
+    </>
+  ) : (
+    <>
+      reward phase · block {fmt(pos.index + 1)}/
+      {fmt(len - PREPARE_PHASE_LENGTH)} · prepare{' '}
+      <HeightButton height={pos.prepareStart} onSelect={onSelect} /> in{' '}
+      {fmt(pos.prepareStart - height)}
+    </>
+  );
+  const dist = distributionCycle(height, pos, len);
   return (
     <div>
       <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 font-mono text-xs">
@@ -95,6 +154,11 @@ function CycleBar({
           className="absolute inset-y-0 left-0 bg-foreground/10"
           style={{ width: `${pct(height)}%` }}
         />
+        <div
+          className="absolute inset-y-0 border-l border-dashed border-sky-500/80"
+          style={{ left: `${pct(dist.mid)}%` }}
+          title={`distribution cycle starts ${fmt(dist.mid)}`}
+        />
         {tipInCycle && tip !== height ? (
           <Marker
             pct={pct(tip)}
@@ -109,10 +173,25 @@ function CycleBar({
         />
       </div>
       <div className="relative mt-1 h-3 font-mono text-[10px] tabular-nums text-muted-foreground">
-        <span className="absolute left-0">{fmt(pos.cycleStart)}</span>
-        <span className="absolute right-0">
-          cycle {pos.cycle + 1} · {fmt(pos.nextCycleStart)}
+        <span className="absolute left-0">
+          <HeightButton height={pos.cycleStart} onSelect={onSelect} />
         </span>
+        <span className="absolute left-1/2 -translate-x-1/2">
+          <HeightButton height={dist.mid} onSelect={onSelect} />
+        </span>
+        <span className="absolute right-0">
+          cycle {pos.cycle + 1} ·{' '}
+          <HeightButton height={pos.nextCycleStart} onSelect={onSelect} />
+        </span>
+      </div>
+      <div className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+        <span className="text-sky-600 dark:text-sky-400">
+          distribution cycle
+        </span>{' '}
+        · {dist.startsHere ? 'this block starts one · ' : ''}
+        {dist.secondHalf ? 'second' : 'first'} half of cycle {pos.cycle} · next
+        starts <HeightButton height={dist.next} onSelect={onSelect} /> in{' '}
+        {fmt(dist.next - height)}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">
@@ -120,6 +199,10 @@ function CycleBar({
         </span>
         <span className="flex items-center gap-1">
           <i className="h-1.5 w-3 bg-amber-500/30" /> prepare phase
+        </span>
+        <span className="flex items-center gap-1">
+          <i className="h-2.5 border-l border-dashed border-sky-500/80" />{' '}
+          distribution cycle
         </span>
         <span className="flex items-center gap-1">
           <i className="h-2.5 w-0.5 bg-foreground" /> this block
@@ -141,17 +224,30 @@ const PHASE_TEXT: Record<BondPhase, string> = {
   unlocked: 'unlocked',
 };
 
-function bondDetail(bond: Bond, height: number, phase: BondPhase) {
-  switch (phase) {
-    case 'upcoming':
-      return `closes in ${fmt(bond.enrollmentCutoff - height)}`;
-    case 'closed':
-      return `opens in ${fmt(bond.activation - height)}`;
-    case 'locked':
-      return `unlocks in ${fmt(bond.unlock - height)}`;
-    default:
-      return `since ${fmt(bond.unlock)}`;
-  }
+function BondDetail({
+  bond,
+  height,
+  phase,
+  onSelect,
+}: {
+  bond: Bond;
+  height: number;
+  phase: BondPhase;
+  onSelect: OnSelect;
+}) {
+  const at: Record<BondPhase, [string, number]> = {
+    upcoming: ['closes', bond.enrollmentCutoff],
+    closed: ['opens', bond.activation],
+    locked: ['unlocks', bond.unlock],
+    unlocked: ['unlocked', bond.unlock],
+  };
+  const [verb, target] = at[phase];
+  return (
+    <>
+      {verb} <HeightButton height={target} onSelect={onSelect} />
+      {target > height ? ` in ${fmt(target - height)}` : ''}
+    </>
+  );
 }
 
 /**
@@ -162,10 +258,12 @@ function BondLanes({
   height,
   bonds,
   pox,
+  onSelect,
 }: {
   height: number;
   bonds: readonly Bond[];
   pox: PoxParams | null;
+  onSelect: OnSelect;
 }) {
   const cycleLen = pox?.rewardCycleLength ?? 2100;
   const relevant = bonds.filter(
@@ -194,7 +292,8 @@ function BondLanes({
           {locked.length} bond{locked.length === 1 ? '' : 's'} locked
         </span>
         <span className="text-[10px] text-muted-foreground">
-          {fmt(lo)} – {fmt(hi)}
+          <HeightButton height={lo} onSelect={onSelect} /> –{' '}
+          <HeightButton height={hi} onSelect={onSelect} />
         </span>
       </div>
       <div className="flex flex-col gap-1">
@@ -203,7 +302,7 @@ function BondLanes({
           return (
             <div
               key={bond.index}
-              className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-2 font-mono text-[10px] sm:grid-cols-[3.5rem_minmax(0,1fr)_12rem]"
+              className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-2 font-mono text-[10px] sm:grid-cols-[3.5rem_minmax(0,1fr)_15rem]"
             >
               <span
                 className={cn(
@@ -251,7 +350,13 @@ function BondLanes({
                 >
                   {PHASE_TEXT[phase]}
                 </span>{' '}
-                · {bondDetail(bond, height, phase)}
+                ·{' '}
+                <BondDetail
+                  bond={bond}
+                  height={height}
+                  phase={phase}
+                  onSelect={onSelect}
+                />
               </span>
             </div>
           );
@@ -278,20 +383,23 @@ export function ScheduleStatus({
   tip,
   pox,
   bonds,
+  onSelect,
 }: {
   height: number;
   tip: number;
   pox: PoxParams | null;
   bonds: readonly Bond[];
+  /** Change the page's target height. */
+  onSelect: OnSelect;
 }) {
   return (
     <div className="grid grid-cols-1 gap-x-6 gap-y-3 px-3 py-3 md:grid-cols-2">
       <div className="min-w-0">
         <div className="mb-1.5">
-          <Label>stacking cycle</Label>
+          <Label>staking cycle</Label>
         </div>
         {pox ? (
-          <CycleBar height={height} tip={tip} pox={pox} />
+          <CycleBar height={height} tip={tip} pox={pox} onSelect={onSelect} />
         ) : (
           <div className="font-mono text-[10px] text-muted-foreground">
             pox parameters unavailable
@@ -302,7 +410,12 @@ export function ScheduleStatus({
         <div className="mb-1.5">
           <Label>bonds</Label>
         </div>
-        <BondLanes height={height} bonds={bonds} pox={pox} />
+        <BondLanes
+          height={height}
+          bonds={bonds}
+          pox={pox}
+          onSelect={onSelect}
+        />
       </div>
     </div>
   );

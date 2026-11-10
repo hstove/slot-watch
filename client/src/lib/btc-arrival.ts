@@ -162,6 +162,14 @@ function cycleMilestones(tip: number, pox: PoxParams | null): Milestone[] {
       kinds: ['cycle'],
     },
   ];
+  const mid = here.cycleStart + len / 2;
+  out.push({
+    key: 'distribution',
+    label: 'next distribution cycle',
+    detail: 'half a staking cycle',
+    height: tip < mid ? mid : here.nextCycleStart,
+    kinds: ['cycle'],
+  });
   for (let i = 0; i < CYCLES_AHEAD; i++) {
     const cycle = here.cycle + 1 + i;
     out.push({
