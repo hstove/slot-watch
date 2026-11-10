@@ -612,3 +612,136 @@ export const MinerDetailResponseSchema = Schema.Struct({
 }).annotate({ identifier: 'MinerDetailResponse' });
 export interface MinerDetailResponse
   extends Schema.Schema.Type<typeof MinerDetailResponseSchema> {}
+
+// ---------------------------------------------------------------------------
+// Bitcoin block arrival estimates: GET /burn-blocks/:networkKey/arrival
+// The model itself lives in `./btc-arrival`; every number below is unix SECONDS.
+// ---------------------------------------------------------------------------
+
+export const ARRIVAL_TIME_SOURCES = [
+  'header-bitcoin-blocks',
+  'header-stacks-blocks',
+  'ingest-time',
+] as const;
+export type ArrivalTimeSource = (typeof ARRIVAL_TIME_SOURCES)[number];
+export const ArrivalTimeSourceSchema = Schema.Literals(ARRIVAL_TIME_SOURCES);
+
+export const ArrivalDistributionParamsSchema = Schema.Struct({
+  construction: Schema.Literal('gamma-rate-uncertainty/v1'),
+  now: Schema.Number,
+  blocks: Schema.Number,
+  meanSeconds: Schema.Number,
+  sigma80: Schema.Number,
+  sigma95: Schema.Number,
+}).annotate({ identifier: 'ArrivalDistributionParams' });
+
+const PaceSegmentSchema = Schema.Struct({
+  secondsPerBlock: Schema.Number,
+  blocks: Schema.Number,
+});
+
+export const ArrivalComponentsSchema = Schema.Struct({
+  blocksRemaining: Schema.Number,
+  currentEpoch: PaceSegmentSchema,
+  nextEpoch: PaceSegmentSchema,
+  beyond: PaceSegmentSchema,
+  retarget: Schema.Struct({
+    height: Schema.Number,
+    projectedTime: Schema.Number,
+    projectedDifficultyChangePct: Schema.Number,
+    projectedEpochSeconds: Schema.Number,
+  }),
+  hashratePace: Schema.Struct({
+    measuredSecondsPerBlock: Schema.NullOr(Schema.Number),
+    shrunkSecondsPerBlock: Schema.Number,
+    priorBlocks: Schema.Number,
+    effectiveBlocks: Schema.Number,
+    dataWeight: Schema.Number,
+    chunksUsed: Schema.Number,
+  }),
+}).annotate({ identifier: 'ArrivalComponents' });
+
+export const ArrivalQualitySchema = Schema.Struct({
+  sampleHeightsRequested: Schema.Number,
+  sampleHeightsAvailable: Schema.Number,
+  tipAgeSeconds: Schema.Number,
+  clockSkew: Schema.Boolean,
+  flatFallback: Schema.Boolean,
+}).annotate({ identifier: 'ArrivalQuality' });
+
+export const ArrivalForecastSchema = Schema.Struct({
+  status: Schema.Literal('forecast'),
+  modelVersion: Schema.String,
+  now: Schema.Number,
+  tipHeight: Schema.Number,
+  targetHeight: Schema.Number,
+  blocksRemaining: Schema.Number,
+  /** Point estimate to display. */
+  median: Schema.Number,
+  mean: Schema.Number,
+  q025: Schema.Number,
+  q10: Schema.Number,
+  q90: Schema.Number,
+  q975: Schema.Number,
+  distribution: ArrivalDistributionParamsSchema,
+  components: ArrivalComponentsSchema,
+  quality: ArrivalQualitySchema,
+}).annotate({ identifier: 'ArrivalForecast' });
+
+export const MinedArrivalSchema = Schema.Struct({
+  status: Schema.Literal('mined'),
+  modelVersion: Schema.String,
+  targetHeight: Schema.Number,
+  time: Schema.NullOr(Schema.Number),
+  /** Where the known time came from; null when the time is unknown. */
+  timeSource: Schema.NullOr(ArrivalTimeSourceSchema),
+}).annotate({ identifier: 'MinedArrival' });
+
+export const InvalidArrivalSchema = Schema.Struct({
+  status: Schema.Literal('invalid'),
+  modelVersion: Schema.String,
+  targetHeight: Schema.Number,
+  reason: Schema.String,
+}).annotate({ identifier: 'InvalidArrival' });
+
+export const ArrivalEstimateSchema = Schema.Union([
+  ArrivalForecastSchema,
+  MinedArrivalSchema,
+  InvalidArrivalSchema,
+]);
+
+export const ArrivalSampleSchema = Schema.Struct({
+  height: Schema.Number,
+  time: Schema.Number,
+  source: ArrivalTimeSourceSchema,
+}).annotate({ identifier: 'ArrivalSample' });
+export interface ArrivalSample
+  extends Schema.Schema.Type<typeof ArrivalSampleSchema> {}
+
+export const ArrivalTipSchema = Schema.Struct({
+  height: Schema.Number,
+  hash: Schema.String,
+  time: Schema.Number,
+  timeSource: ArrivalTimeSourceSchema,
+}).annotate({ identifier: 'ArrivalTip' });
+export interface ArrivalTip
+  extends Schema.Schema.Type<typeof ArrivalTipSchema> {}
+
+export const BurnBlockArrivalResponseSchema = Schema.Struct({
+  modelVersion: Schema.String,
+  /** ISO 8601 time this response was assembled (the tip+samples payload may be up to a minute older than the tip). */
+  generatedAt: Schema.String,
+  tip: ArrivalTipSchema,
+  /**
+   * Times of `requiredHeights(tip.height)` that could be resolved, ascending.
+   * Feed `{ now, tip, samples }` to `arrivalInputFromSamples` + `estimateArrival`
+   * to forecast any target height client-side with a live `now`.
+   */
+  samples: Schema.mutable(Schema.Array(ArrivalSampleSchema)),
+  /** Present only when `?heights=` was given: one entry per requested height, in request order. */
+  estimates: Schema.optional(
+    Schema.mutable(Schema.Array(ArrivalEstimateSchema))
+  ),
+}).annotate({ identifier: 'BurnBlockArrivalResponse' });
+export interface BurnBlockArrivalResponse
+  extends Schema.Schema.Type<typeof BurnBlockArrivalResponseSchema> {}
