@@ -45,7 +45,7 @@ const stateMachines: NavItem = {
 };
 const stateMachineHistory: NavItem = {
   to: '/state-machine-history',
-  label: 'sm history',
+  label: 'state machine history',
   description: 'state machine updates over time',
 };
 const extend: NavItem = {
