@@ -17,6 +17,7 @@ import { Route as StateMachineHistoryRouteImport } from './routes/state-machine-
 import { Route as SignersRouteImport } from './routes/signers'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MinersIndexRouteImport } from './routes/miners/index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks/index'
@@ -65,6 +66,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForecastRoute = ForecastRouteImport.update({
+  id: '/forecast',
+  path: '/forecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -103,6 +109,7 @@ const BtcBlocksHeightOrHashRoute = BtcBlocksHeightOrHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/signers': typeof SignersRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forecast'
     | '/login'
     | '/mcp'
     | '/signers'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forecast'
     | '/login'
     | '/mcp'
     | '/signers'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/forecast'
     | '/login'
     | '/mcp'
     | '/signers'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ForecastRoute: typeof ForecastRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
   SignersRoute: typeof SignersRoute
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forecast': {
+      id: '/forecast'
+      path: '/forecast'
+      fullPath: '/forecast'
+      preLoaderRoute: typeof ForecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -337,6 +357,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ForecastRoute: ForecastRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
   SignersRoute: SignersRoute,
