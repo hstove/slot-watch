@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+export type Theme = 'dark' | 'light' | 'system';
 
 // biome-ignore lint/style/useConsistentTypeDefinitions: ignored using `--suppress`
 type ThemeProviderProps = {
