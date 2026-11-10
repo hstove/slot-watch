@@ -180,14 +180,14 @@ export function Forecast() {
       : null,
   };
 
+  // Push (not replace) so the back button steps through visited heights.
+  const currentHeight = search.height;
   const setHeight = React.useCallback(
     (height: number | undefined) => {
-      navigate({
-        search: (prev) => ({ ...prev, height }),
-        replace: true,
-      });
+      if (height === currentHeight) return;
+      navigate({ search: (prev) => ({ ...prev, height }) });
     },
-    [navigate]
+    [navigate, currentHeight]
   );
 
   const mined = useMinedLookup(loader.networkKey, target, tip);
