@@ -88,10 +88,13 @@ export function ArrivalChart({
   forecast,
   now,
   deadline,
+  baselineMedian,
 }: {
   forecast: ArrivalForecast;
   now: number;
   deadline?: number | null;
+  /** Median of the fixed-pace baseline, drawn for comparison. */
+  baselineMedian?: number | null;
 }) {
   const data = React.useMemo(() => {
     const dist = ArrivalDistribution.fromParams(forecast.distribution);
@@ -216,6 +219,22 @@ export function ArrivalChart({
                 fontSize: 10,
                 fontFamily: 'monospace',
                 fill: MUTED,
+              }}
+            />
+          ) : null}
+          {inRange(baselineMedian) ? (
+            <ReferenceLine
+              yAxisId="density"
+              x={baselineMedian}
+              stroke="#0ea5e9"
+              strokeWidth={1.5}
+              strokeDasharray="5 3"
+              label={{
+                value: 'baseline',
+                position: 'insideBottomRight',
+                fontSize: 10,
+                fontFamily: 'monospace',
+                fill: '#0ea5e9',
               }}
             />
           ) : null}

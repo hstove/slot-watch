@@ -7,7 +7,10 @@ import {
 } from 'slot-watch-common';
 import { Route } from '@/routes/forecast';
 import {
+  baselineForecast,
   HALVING_INTERVAL,
+  paceStat,
+  parsePace,
   type Milestone,
   nextCycleStart,
   type PoxParams,
@@ -29,6 +32,7 @@ import {
 import { cn } from '@/lib/utils';
 import { type Bond, upcomingBonds } from '@/lib/bonds';
 import { ArrivalChart } from './arrival-chart';
+import { type BaselineControls, BaselineRow, DEFAULT_PACE } from './baseline';
 import { DateTimeField } from './date-time-field';
 import { ScheduleStatus } from './schedule-status';
 import {
@@ -40,6 +44,7 @@ import {
   useModelNow,
   useNow,
   useBondSchedule,
+  useRecentBlockTimes,
 } from './use-live-arrival';
 
 const LADDER = [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95];
@@ -155,6 +160,25 @@ export function Forecast() {
   // Lives here, not in the result panel, so it survives changing the height
   // (including passing through mined heights while typing).
   const [deadlineInput, setDeadlineInput] = React.useState('');
+  const [paceUntil, setPaceUntil] = React.useState(DEFAULT_PACE);
+  const [paceAfter, setPaceAfter] = React.useState(DEFAULT_PACE);
+  const blockTimes = useRecentBlockTimes(loader.networkKey, tip);
+  const tipPoint = React.useMemo(
+    () => ({ height: tip, time: data.tip.time }),
+    [tip, data.tip.time]
+  );
+  const baselineControls: BaselineControls = {
+    paceUntil,
+    paceAfter,
+    onPaceUntil: setPaceUntil,
+    onPaceAfter: setPaceAfter,
+    trailing: blockTimes.trailing
+      ? paceStat(blockTimes.trailing, tipPoint)
+      : null,
+    epochAvg: blockTimes.epochStart
+      ? paceStat(blockTimes.epochStart, tipPoint)
+      : null,
+  };
 
   const setHeight = React.useCallback(
     (height: number | undefined) => {
@@ -210,6 +234,7 @@ export function Forecast() {
         deadlineInput={deadlineInput}
         onDeadlineChange={setDeadlineInput}
         bonds={bondSchedule}
+        baseline={baselineControls}
       />
 
       <MilestoneTable
@@ -234,6 +259,7 @@ function TargetResult({
   deadlineInput,
   onDeadlineChange,
   bonds,
+  baseline,
 }: {
   target: number;
   tip: number;
@@ -246,6 +272,7 @@ function TargetResult({
   deadlineInput: string;
   onDeadlineChange: (value: string) => void;
   bonds: readonly Bond[];
+  baseline: BaselineControls;
 }) {
   const schedule = (
     <ScheduleStatus height={target} tip={tip} pox={pox} bonds={bonds} />
@@ -273,6 +300,7 @@ function TargetResult({
       deadlineInput={deadlineInput}
       onDeadlineChange={onDeadlineChange}
       schedule={schedule}
+      baselineControls={baseline}
     />
   );
 }
@@ -465,6 +493,7 @@ function ForecastResult({
   deadlineInput,
   onDeadlineChange,
   schedule,
+  baselineControls,
 }: {
   forecast: ArrivalForecast;
   chartForecast: ArrivalForecast;
@@ -472,7 +501,17 @@ function ForecastResult({
   deadlineInput: string;
   onDeadlineChange: (value: string) => void;
   schedule: React.ReactNode;
+  baselineControls: BaselineControls;
 }) {
+  const paceUntil = parsePace(baselineControls.paceUntil);
+  const paceAfter = parsePace(baselineControls.paceAfter);
+  const paces = paceUntil !== null && paceAfter !== null;
+  const baseline = paces
+    ? baselineForecast(forecast, paceUntil, paceAfter)
+    : null;
+  const chartBaseline = paces
+    ? baselineForecast(chartForecast, paceUntil, paceAfter).median
+    : null;
   const deadline = fromDateTimeLocal(deadlineInput);
   const dist = React.useMemo(
     () => ArrivalDistribution.fromParams(chartForecast.distribution),
@@ -526,6 +565,13 @@ function ForecastResult({
         </div>
       </div>
 
+      <div className="border-b border-border">
+        <BaselineRow
+          forecast={forecast}
+          baseline={baseline}
+          controls={baselineControls}
+        />
+      </div>
       <div className="border-b border-border">{schedule}</div>
       <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
         <div className="min-w-0 border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
@@ -539,12 +585,16 @@ function ForecastResult({
                 <i className="w-3 border-t border-dashed border-foreground" />{' '}
                 arrived by
               </span>
+              <span className="flex items-center gap-1">
+                <i className="h-2.5 w-0.5 bg-sky-500" /> baseline median
+              </span>
             </span>
           </div>
           <ArrivalChart
             forecast={chartForecast}
             now={now}
             deadline={deadline}
+            baselineMedian={chartBaseline}
           />
         </div>
         <div className="min-w-0 px-3 py-2.5">

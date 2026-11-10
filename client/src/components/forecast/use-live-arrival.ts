@@ -149,3 +149,59 @@ export function useBondSchedule(networkKey: string, tipHeight: number) {
   }, [networkKey]);
   return bonds;
 }
+
+export interface RecentBlockTimes {
+  /** Time of block `tip - 100`, unix seconds. */
+  trailing: { height: number; time: number } | null;
+  /** Time of the first block of the current difficulty epoch. */
+  epochStart: { height: number; time: number } | null;
+}
+
+const TRAILING_BLOCKS = 100;
+const NO_TIMES: RecentBlockTimes = { trailing: null, epochStart: null };
+
+/**
+ * Known times of `tip - 100` and the current epoch's first block, resolved by
+ * the arrival route (`?heights=` handles mined heights up to 2,016 back).
+ * Refetched when the tip moves; failures leave the panel empty.
+ */
+export function useRecentBlockTimes(
+  networkKey: string,
+  tipHeight: number
+): RecentBlockTimes {
+  const [times, setTimes] = React.useState<RecentBlockTimes>(NO_TIMES);
+  React.useEffect(() => {
+    let cancelled = false;
+    const trailing = tipHeight - TRAILING_BLOCKS;
+    const epochStart = Math.floor(tipHeight / 2016) * 2016;
+    const heights = [...new Set([trailing, epochStart])].filter(
+      (h) => h >= 0 && h < tipHeight
+    );
+    if (heights.length === 0) {
+      setTimes(NO_TIMES);
+      return;
+    }
+    getBurnBlockArrival(networkKey, heights)
+      .then((res) => {
+        if (cancelled) return;
+        const known = new Map<number, number>();
+        for (const e of res.estimates ?? []) {
+          if (e.status === 'mined' && e.time !== null) {
+            known.set(e.targetHeight, e.time);
+          }
+        }
+        const at = (height: number) => {
+          const time = known.get(height);
+          return time === undefined ? null : { height, time };
+        };
+        setTimes({ trailing: at(trailing), epochStart: at(epochStart) });
+      })
+      .catch(() => {
+        if (!cancelled) setTimes(NO_TIMES);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [networkKey, tipHeight]);
+  return times;
+}
