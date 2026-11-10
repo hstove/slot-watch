@@ -27,9 +27,10 @@ import {
   upcomingMilestones,
 } from '@/lib/btc-arrival';
 import { cn } from '@/lib/utils';
-import type { Bond } from '@/lib/bonds';
+import { type Bond, upcomingBonds } from '@/lib/bonds';
 import { ArrivalChart } from './arrival-chart';
 import { DateTimeField } from './date-time-field';
+import { ScheduleStatus } from './schedule-status';
 import {
   type MinedLookup,
   type ModelState,
@@ -38,7 +39,7 @@ import {
   useModel,
   useModelNow,
   useNow,
-  useUpcomingBonds,
+  useBondSchedule,
 } from './use-live-arrival';
 
 const LADDER = [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95];
@@ -134,7 +135,11 @@ export function Forecast() {
   const model = useModel(data, modelNow);
   const tip = data.tip.height;
 
-  const bonds = useUpcomingBonds(loader.networkKey, tip);
+  const bondSchedule = useBondSchedule(loader.networkKey, tip);
+  const bonds = React.useMemo(
+    () => upcomingBonds(bondSchedule, tip),
+    [bondSchedule, tip]
+  );
   const milestones = React.useMemo(
     () => upcomingMilestones(tip, loader.pox, bonds),
     [tip, loader.pox, bonds]
@@ -204,6 +209,7 @@ export function Forecast() {
         network={search.network}
         deadlineInput={deadlineInput}
         onDeadlineChange={setDeadlineInput}
+        bonds={bondSchedule}
       />
 
       <MilestoneTable
@@ -227,6 +233,7 @@ function TargetResult({
   network,
   deadlineInput,
   onDeadlineChange,
+  bonds,
 }: {
   target: number;
   tip: number;
@@ -238,7 +245,11 @@ function TargetResult({
   network?: string;
   deadlineInput: string;
   onDeadlineChange: (value: string) => void;
+  bonds: readonly Bond[];
 }) {
+  const schedule = (
+    <ScheduleStatus height={target} tip={tip} pox={pox} bonds={bonds} />
+  );
   if (target <= tip) {
     return (
       <MinedResult
@@ -246,8 +257,8 @@ function TargetResult({
         tip={tip}
         now={now}
         lookup={mined}
-        pox={pox}
         network={network}
+        schedule={schedule}
       />
     );
   }
@@ -259,9 +270,9 @@ function TargetResult({
       forecast={forecast}
       chartForecast={chartForecast}
       now={now}
-      pox={pox}
       deadlineInput={deadlineInput}
       onDeadlineChange={onDeadlineChange}
+      schedule={schedule}
     />
   );
 }
@@ -434,34 +445,16 @@ function minedTimeText(lookup: MinedLookup | null, now: number) {
   return `${formatDateTime(time)} · ${formatRelative(time, now)}`;
 }
 
-function PoxTags({ height, pox }: { height: number; pox: PoxParams | null }) {
+function EpochTag({ height }: { height: number }) {
   const epoch = Math.floor(height / RETARGET_INTERVAL);
   const epochIndex = height % RETARGET_INTERVAL;
-  const pos = pox ? poxPosition(height, pox) : null;
   return (
-    <div className="flex flex-wrap gap-1 font-mono text-[10px]">
-      {pos && pox ? (
-        <span
-          className={cn(
-            'border px-1.5 py-0.5',
-            pos.inPrepare
-              ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
-              : 'border-border text-muted-foreground'
-          )}
-        >
-          cycle {pos.cycle} · {pos.inPrepare ? 'prepare' : 'reward'} phase ·{' '}
-          {(pos.index + 1).toLocaleString()}/
-          {pox.rewardCycleLength.toLocaleString()}
-          {pos.inPrepare ? ` · anchors cycle ${pos.cycle + 1}` : ''}
-        </span>
-      ) : null}
-      <span className="border border-border px-1.5 py-0.5 text-muted-foreground">
-        difficulty epoch {epoch} ·{' '}
-        {epochIndex === 0
-          ? 'retarget block'
-          : `${(epochIndex + 1).toLocaleString()}/${RETARGET_INTERVAL.toLocaleString()}`}
-      </span>
-    </div>
+    <span className="inline-block border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+      difficulty epoch {epoch} ·{' '}
+      {epochIndex === 0
+        ? 'retarget block'
+        : `${(epochIndex + 1).toLocaleString()}/${RETARGET_INTERVAL.toLocaleString()}`}
+    </span>
   );
 }
 
@@ -469,16 +462,16 @@ function ForecastResult({
   forecast,
   chartForecast,
   now,
-  pox,
   deadlineInput,
   onDeadlineChange,
+  schedule,
 }: {
   forecast: ArrivalForecast;
   chartForecast: ArrivalForecast;
   now: number;
-  pox: PoxParams | null;
   deadlineInput: string;
   onDeadlineChange: (value: string) => void;
+  schedule: React.ReactNode;
 }) {
   const deadline = fromDateTimeLocal(deadlineInput);
   const dist = React.useMemo(
@@ -499,7 +492,7 @@ function ForecastResult({
           <div className="mt-1.5 mb-2 font-mono text-[10px] text-muted-foreground">
             {n.toLocaleString()} block{n === 1 ? '' : 's'} ahead of the tip
           </div>
-          <PoxTags height={forecast.targetHeight} pox={pox} />
+          <EpochTag height={forecast.targetHeight} />
         </div>
         <div className="border-b border-border px-3 py-3 md:border-r md:border-b-0">
           <PanelLabel>most likely (median)</PanelLabel>
@@ -533,6 +526,7 @@ function ForecastResult({
         </div>
       </div>
 
+      <div className="border-b border-border">{schedule}</div>
       <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
         <div className="min-w-0 border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
           <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -730,14 +724,14 @@ function MinedResult({
   tip,
   now,
   lookup,
-  pox,
   network,
+  schedule,
 }: {
   target: number;
   tip: number;
   now: number;
   lookup: MinedLookup | null;
-  pox: PoxParams | null;
+  schedule: React.ReactNode;
   network?: string;
 }) {
   const behind = tip - target;
@@ -769,8 +763,9 @@ function MinedResult({
         {minedTimeText(lookup, now)}
       </div>
       <div className="mt-2">
-        <PoxTags height={target} pox={pox} />
+        <EpochTag height={target} />
       </div>
+      <div className="-mx-3 -mb-3 mt-3 border-t border-border">{schedule}</div>
     </section>
   );
 }
