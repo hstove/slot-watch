@@ -11,3 +11,5 @@ export * from './utils';
 export * from './codec/transactions';
 export * from './codec/state-machine';
 export * from './mempool-space';
+
+export * from './btc-arrival';

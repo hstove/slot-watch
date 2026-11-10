@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { honoLogger, log } from './logger';
 import eventsRoutes from './routes/events.routes';
+import { arrivalRoutes } from './routes/arrival.routes';
 import { blockRoutes } from './routes/blocks.routes';
 import { prettyJSON } from 'hono/pretty-json';
 import { healthRoutes } from './routes/health.routes';
@@ -42,6 +43,9 @@ function minerCommitsWatcher() {
 }
 
 const api = new Hono<ServerType>()
+  // Must precede blockRoutes: `/burn-blocks/:networkKey/arrival` would
+  // otherwise match `/burn-blocks/:networkKey/:heightOrHash`.
+  .route('/', arrivalRoutes)
   .route('/', blockRoutes)
   .route('/', signersRoutes)
   .route('/', stateMachineRoutes)
