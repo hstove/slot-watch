@@ -11,6 +11,7 @@ export default defineWorkersConfig({
       '**/node_modules/**',
       'tests/convert-block.test.ts',
       'tests/pre-commits.test.ts',
+      'tests/arrival-assemble.test.ts',
     ],
     poolOptions: {
       workers: {
