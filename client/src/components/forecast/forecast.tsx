@@ -53,7 +53,7 @@ const TABLE_FILTERS = ['all', 'cycle', 'bond', 'bitcoin'] as const;
 type TableFilter = (typeof TABLE_FILTERS)[number];
 const FILTER_LABELS: Record<TableFilter, string> = {
   all: 'all',
-  cycle: 'stacking cycles',
+  cycle: 'staking cycles',
   bond: 'bonds',
   bitcoin: 'bitcoin',
 };
@@ -73,7 +73,7 @@ function quickPicks(
   const cycle = nextCycleStart(tip, pox);
   const pos = pox ? poxPosition(tip, pox) : null;
   if (cycle !== null && pos && pox) {
-    chips.push({ label: 'next stacking cycle', height: cycle });
+    chips.push({ label: 'next staking cycle', height: cycle });
     chips.push({
       label: 'next prepare phase',
       height: pos.inPrepare
@@ -235,6 +235,7 @@ export function Forecast() {
         onDeadlineChange={setDeadlineInput}
         bonds={bondSchedule}
         baseline={baselineControls}
+        onSelect={setHeight}
       />
 
       <MilestoneTable
@@ -260,6 +261,7 @@ function TargetResult({
   onDeadlineChange,
   bonds,
   baseline,
+  onSelect,
 }: {
   target: number;
   tip: number;
@@ -273,9 +275,16 @@ function TargetResult({
   onDeadlineChange: (value: string) => void;
   bonds: readonly Bond[];
   baseline: BaselineControls;
+  onSelect: (height: number) => void;
 }) {
   const schedule = (
-    <ScheduleStatus height={target} tip={tip} pox={pox} bonds={bonds} />
+    <ScheduleStatus
+      height={target}
+      tip={tip}
+      pox={pox}
+      bonds={bonds}
+      onSelect={onSelect}
+    />
   );
   if (target <= tip) {
     return (
@@ -565,13 +574,6 @@ function ForecastResult({
         </div>
       </div>
 
-      <div className="border-b border-border">
-        <BaselineRow
-          forecast={forecast}
-          baseline={baseline}
-          controls={baselineControls}
-        />
-      </div>
       <div className="border-b border-border">{schedule}</div>
       <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
         <div className="min-w-0 border-b border-border px-3 py-2.5 md:border-r md:border-b-0">
@@ -586,7 +588,8 @@ function ForecastResult({
                 arrived by
               </span>
               <span className="flex items-center gap-1">
-                <i className="h-2.5 w-0.5 bg-sky-500" /> baseline median
+                <i className="h-2.5 w-0.5 bg-sky-500" /> 10 minute block time
+                baseline
               </span>
             </span>
           </div>
@@ -643,6 +646,13 @@ function ForecastResult({
         </div>
       </div>
       <ModelDetails forecast={forecast} now={now} />
+      <div className="border-t border-border">
+        <BaselineRow
+          forecast={forecast}
+          baseline={baseline}
+          controls={baselineControls}
+        />
+      </div>
     </section>
   );
 }
