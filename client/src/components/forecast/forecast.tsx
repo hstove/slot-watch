@@ -181,11 +181,16 @@ export function Forecast() {
   };
 
   // Push (not replace) so the back button steps through visited heights.
+  // The height input replaces within one edit, so each edit is one entry.
   const currentHeight = search.height;
   const setHeight = React.useCallback(
-    (height: number | undefined) => {
-      if (height === currentHeight) return;
-      navigate({ search: (prev) => ({ ...prev, height }) });
+    (height: number | undefined, options?: { replace?: boolean }) => {
+      if (height === currentHeight) return false;
+      navigate({
+        search: (prev) => ({ ...prev, height }),
+        replace: options?.replace ?? false,
+      });
+      return true;
     },
     [navigate, currentHeight]
   );
@@ -361,11 +366,19 @@ function HeightPicker({
   tip: number;
   model: ModelState;
   chips: Chip[];
-  onChange: (height: number | undefined) => void;
+  /** Returns whether the height actually changed. */
+  onChange: (
+    height: number | undefined,
+    options?: { replace?: boolean }
+  ) => boolean;
 }) {
   const [value, setValue] = React.useState(explicit ? String(target) : '');
   const [date, setDate] = React.useState('');
   const debounce = React.useRef<number>();
+  const pending = React.useRef<(() => void) | null>(null);
+  // One history entry per edit (focus to blur/Enter): the first change in an
+  // edit pushes, later ones replace it, so the view still updates as you type.
+  const pushedThisEdit = React.useRef(false);
   React.useEffect(() => () => window.clearTimeout(debounce.current), []);
   // Follow height changes made elsewhere (chips, table rows, the URL).
   React.useEffect(() => {
@@ -376,23 +389,39 @@ function HeightPicker({
     });
   }, [target, explicit]);
 
+  const commit = (height: number | undefined) => {
+    const changed = onChange(height, { replace: pushedThisEdit.current });
+    if (changed) pushedThisEdit.current = true;
+  };
+  const schedule = (height: number | undefined) => {
+    window.clearTimeout(debounce.current);
+    const run = () => {
+      pending.current = null;
+      commit(height);
+    };
+    pending.current = run;
+    debounce.current = window.setTimeout(run, INPUT_DEBOUNCE_MS);
+  };
+  const endEdit = () => {
+    window.clearTimeout(debounce.current);
+    pending.current?.();
+    pushedThisEdit.current = false;
+  };
+
   const onInput = (next: string) => {
     setValue(next);
-    window.clearTimeout(debounce.current);
     const trimmed = next.replaceAll(',', '').trim();
     if (trimmed === '') {
-      debounce.current = window.setTimeout(
-        () => onChange(undefined),
-        INPUT_DEBOUNCE_MS
-      );
+      schedule(undefined);
       return;
     }
     const height = Number(trimmed);
-    if (!(Number.isSafeInteger(height) && height >= 0)) return;
-    debounce.current = window.setTimeout(
-      () => onChange(height),
-      INPUT_DEBOUNCE_MS
-    );
+    if (!(Number.isSafeInteger(height) && height >= 0)) {
+      window.clearTimeout(debounce.current);
+      pending.current = null;
+      return;
+    }
+    schedule(height);
   };
 
   const dateTime = fromDateTimeLocal(date);
@@ -412,6 +441,10 @@ function HeightPicker({
           placeholder={target.toLocaleString()}
           value={value}
           onChange={(e) => onInput(e.target.value)}
+          onBlur={endEdit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') endEdit();
+          }}
           className="h-9 w-full border border-input bg-transparent px-3 font-mono text-sm tabular-nums placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         <div className="flex flex-wrap gap-1">
