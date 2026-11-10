@@ -23,17 +23,36 @@ The primary focus of slot watch is around how Signers sign proposed blocks. Each
 
 > Note: `CLAUDE.md` is a symlink to `AGENTS.md`. Only edit `AGENTS.md`.
 
-### Server: don't run it locally
+### Server: no local ingest
 
-The API server can't meaningfully be run locally. All of its data comes from a live Stacks node emitting event-observer webhooks at the deployed Worker, so a local server has no real data to work with. Don't waste time booting it or trying to synthesize events.
+The API server can't ingest data locally. All of its data comes from a live Stacks node emitting event-observer webhooks at the deployed Worker, so don't try to synthesize events or test write paths on your machine.
 
-The actual loop for server changes is:
+The loop for server changes is:
 
 1. Make the change, then `bun check:all`.
 2. Deploy to production with `bun deploy:alchemy` (defined in `alchemy.run.ts`).
 3. Verify against the live API (`curl -i https://api.slotwatch.dev/...`) and by reading Worker logs.
 
 This means server changes are deployed to prod to be tested. Keep changes resilient — a failure in diagnostic/metrics code shouldn't take down user-facing routes.
+
+#### Read-only routes: run locally if you have a read-only DB token
+
+If your `.env.local` has `PREVIEW_DATABASE_PASSWORD` (the password for the `slot_watch_readonly` role that previews use), you can run the Worker locally against the real database to test read-only routes before deploying. Not every contributor has this token; without it, use the deploy loop above or a PR preview.
+
+```sh
+cd server
+set -a && . ../.env.local && set +a
+PW=$(node -e 'process.stdout.write(encodeURIComponent(process.env.PREVIEW_DATABASE_PASSWORD))')
+# Host, port and database name are DB_HOST / DB_PORT / DB_NAME in alchemy.run.ts.
+export WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_DB="postgresql://slot_watch_readonly:${PW}@<DB_HOST>:5432/postgres"
+bunx wrangler dev --config ../server-wrangler.jsonc --port 8799 --var SLOT_WATCH_STAGE:local
+```
+
+Then `curl http://127.0.0.1:8799/...`. The first requests take ~15 seconds while the Worker boots.
+
+- Always pass a non-`prod` `SLOT_WATCH_STAGE`. That keeps the writer-side miner-commits watcher and the cron work off, the same as in previews.
+- Use the read-only role, never the `DATABASE_URL` from `.env.local`, which is the production writer.
+- KV is simulated locally, so cache behaviour isn't representative, and anything that writes to the database will fail.
 
 ### Client: run locally against prod
 
