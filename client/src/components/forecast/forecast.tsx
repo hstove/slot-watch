@@ -7,7 +7,9 @@ import {
 } from 'slot-watch-common';
 import { Route } from '@/routes/forecast';
 import {
+  HALVING_INTERVAL,
   type Milestone,
+  nextCycleStart,
   type PoxParams,
   RETARGET_INTERVAL,
   forecastFor,
@@ -25,7 +27,9 @@ import {
   upcomingMilestones,
 } from '@/lib/btc-arrival';
 import { cn } from '@/lib/utils';
+import type { Bond } from '@/lib/bonds';
 import { ArrivalChart } from './arrival-chart';
+import { DateTimeField } from './date-time-field';
 import {
   type MinedLookup,
   type ModelState,
@@ -34,11 +38,60 @@ import {
   useModel,
   useModelNow,
   useNow,
+  useUpcomingBonds,
 } from './use-live-arrival';
 
 const LADDER = [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95];
 const INPUT_DEBOUNCE_MS = 300;
-const CHIP_KEYS = new Set(['next', 'retarget', 'prepare', 'cycle', 'halving']);
+const TABLE_FILTERS = ['all', 'cycle', 'bond', 'bitcoin'] as const;
+type TableFilter = (typeof TABLE_FILTERS)[number];
+const FILTER_LABELS: Record<TableFilter, string> = {
+  all: 'all',
+  cycle: 'stacking cycles',
+  bond: 'bonds',
+  bitcoin: 'bitcoin',
+};
+
+interface Chip {
+  label: string;
+  height: number;
+}
+
+/** Quick picks above the height input; each names one event even when rows merge. */
+function quickPicks(
+  tip: number,
+  pox: PoxParams | null,
+  bonds: readonly Bond[]
+): Chip[] {
+  const chips: Chip[] = [{ label: 'next block', height: tip + 1 }];
+  const cycle = nextCycleStart(tip, pox);
+  const pos = pox ? poxPosition(tip, pox) : null;
+  if (cycle !== null && pos && pox) {
+    chips.push({ label: 'next stacking cycle', height: cycle });
+    chips.push({
+      label: 'next prepare phase',
+      height: pos.inPrepare
+        ? pos.prepareStart + pox.rewardCycleLength
+        : pos.prepareStart,
+    });
+  }
+  const bond = bonds[0];
+  if (bond) {
+    chips.push({
+      label: `bond ${bond.index} enrollment closes`,
+      height: bond.enrollmentCutoff,
+    });
+  }
+  chips.push({
+    label: 'difficulty adjustment',
+    height: (Math.floor(tip / RETARGET_INTERVAL) + 1) * RETARGET_INTERVAL,
+  });
+  chips.push({
+    label: 'halving',
+    height: (Math.floor(tip / HALVING_INTERVAL) + 1) * HALVING_INTERVAL,
+  });
+  return chips;
+}
 
 function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -81,13 +134,22 @@ export function Forecast() {
   const model = useModel(data, modelNow);
   const tip = data.tip.height;
 
+  const bonds = useUpcomingBonds(loader.networkKey, tip);
   const milestones = React.useMemo(
-    () => upcomingMilestones(tip, loader.pox),
-    [tip, loader.pox]
+    () => upcomingMilestones(tip, loader.pox, bonds),
+    [tip, loader.pox, bonds]
+  );
+  const chips = React.useMemo(
+    () => quickPicks(tip, loader.pox, bonds),
+    [tip, loader.pox, bonds]
   );
   const defaultHeight =
-    milestones.find((m) => m.key === 'retarget')?.height ?? tip + 1;
+    nextCycleStart(tip, loader.pox) ??
+    (Math.floor(tip / RETARGET_INTERVAL) + 1) * RETARGET_INTERVAL;
   const target = search.height ?? defaultHeight;
+  // Lives here, not in the result panel, so it survives changing the height
+  // (including passing through mined heights while typing).
+  const [deadlineInput, setDeadlineInput] = React.useState('');
 
   const setHeight = React.useCallback(
     (height: number | undefined) => {
@@ -126,7 +188,7 @@ export function Forecast() {
           explicit={search.height !== undefined}
           tip={tip}
           model={model}
-          milestones={milestones}
+          chips={chips}
           onChange={setHeight}
         />
       </section>
@@ -140,6 +202,8 @@ export function Forecast() {
         mined={mined}
         pox={loader.pox}
         network={search.network}
+        deadlineInput={deadlineInput}
+        onDeadlineChange={setDeadlineInput}
       />
 
       <MilestoneTable
@@ -161,6 +225,8 @@ function TargetResult({
   mined,
   pox,
   network,
+  deadlineInput,
+  onDeadlineChange,
 }: {
   target: number;
   tip: number;
@@ -170,6 +236,8 @@ function TargetResult({
   mined: MinedLookup | null;
   pox: PoxParams | null;
   network?: string;
+  deadlineInput: string;
+  onDeadlineChange: (value: string) => void;
 }) {
   if (target <= tip) {
     return (
@@ -192,6 +260,8 @@ function TargetResult({
       chartForecast={chartForecast}
       now={now}
       pox={pox}
+      deadlineInput={deadlineInput}
+      onDeadlineChange={onDeadlineChange}
     />
   );
 }
@@ -235,14 +305,14 @@ function HeightPicker({
   explicit,
   tip,
   model,
-  milestones,
+  chips,
   onChange,
 }: {
   target: number;
   explicit: boolean;
   tip: number;
   model: ModelState;
-  milestones: Milestone[];
+  chips: Chip[];
   onChange: (height: number | undefined) => void;
 }) {
   const [value, setValue] = React.useState(explicit ? String(target) : '');
@@ -297,36 +367,32 @@ function HeightPicker({
           className="h-9 w-full border border-input bg-transparent px-3 font-mono text-sm tabular-nums placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         <div className="flex flex-wrap gap-1">
-          {milestones
-            .filter((m) => CHIP_KEYS.has(m.key))
-            .map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => onChange(m.height)}
-                className={cn(
-                  'border border-border px-2 py-0.5 font-mono text-[10px] transition-colors hover:bg-muted/30 hover:text-foreground',
-                  m.height === target
-                    ? 'bg-muted/40 text-foreground'
-                    : 'text-muted-foreground'
-                )}
-              >
-                {m.label}
-              </button>
-            ))}
+          {chips.map((chip) => (
+            <button
+              key={chip.label}
+              type="button"
+              onClick={() => onChange(chip.height)}
+              className={cn(
+                'border border-border px-2 py-0.5 font-mono text-[10px] transition-colors hover:bg-muted/30 hover:text-foreground',
+                chip.height === target
+                  ? 'bg-muted/40 text-foreground'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {chip.label}
+            </button>
+          ))}
         </div>
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="forecast-date">
           <PanelLabel>or find the block at a date</PanelLabel>
         </label>
-        <input
+        <DateTimeField
           id="forecast-date"
-          type="datetime-local"
           value={date}
           min={toDateTimeLocal(model.input.now)}
-          onChange={(e) => setDate(e.target.value)}
-          className="h-9 w-full border border-input bg-transparent px-3 font-mono text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          onChange={setDate}
         />
         <div className="min-h-5 font-mono text-[10px] text-muted-foreground">
           {atDate === null ? (
@@ -404,13 +470,16 @@ function ForecastResult({
   chartForecast,
   now,
   pox,
+  deadlineInput,
+  onDeadlineChange,
 }: {
   forecast: ArrivalForecast;
   chartForecast: ArrivalForecast;
   now: number;
   pox: PoxParams | null;
+  deadlineInput: string;
+  onDeadlineChange: (value: string) => void;
 }) {
-  const [deadlineInput, setDeadlineInput] = React.useState('');
   const deadline = fromDateTimeLocal(deadlineInput);
   const dist = React.useMemo(
     () => ArrivalDistribution.fromParams(chartForecast.distribution),
@@ -509,12 +578,11 @@ function ForecastResult({
             <label htmlFor="forecast-deadline">
               <PanelLabel>chance by a deadline</PanelLabel>
             </label>
-            <input
+            <DateTimeField
               id="forecast-deadline"
-              type="datetime-local"
+              size="sm"
               value={deadlineInput}
-              onChange={(e) => setDeadlineInput(e.target.value)}
-              className="h-8 w-full border border-input bg-transparent px-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              onChange={onDeadlineChange}
             />
             {deadlineP !== null ? (
               <div className="font-mono text-xs">
@@ -719,10 +787,32 @@ function MilestoneTable({
   onSelect: (height: number) => void;
 }) {
   const { input, plan } = model;
+  const [filter, setFilter] = React.useState<TableFilter>('all');
+  const rows =
+    filter === 'all'
+      ? milestones
+      : milestones.filter((m) => m.kinds.includes(filter));
   return (
     <section className="border border-border bg-card">
-      <div className="border-b border-border px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
         <PanelLabel>upcoming</PanelLabel>
+        <div className="flex">
+          {TABLE_FILTERS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={cn(
+                'border border-border px-2 py-0.5 font-mono text-[10px] uppercase transition-colors hover:bg-muted/30 hover:text-foreground [&+&]:border-l-0',
+                key === filter
+                  ? 'bg-muted/40 text-foreground'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {FILTER_LABELS[key]}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full font-mono text-xs tabular-nums">
@@ -738,7 +828,7 @@ function MilestoneTable({
             </tr>
           </thead>
           <tbody>
-            {milestones.map((m) => {
+            {rows.map((m) => {
               const f = forecastFor(input, m.height, plan);
               const n = m.height - input.tipHeight;
               const rough = input.now + n * 600;
