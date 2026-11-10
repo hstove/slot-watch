@@ -7,6 +7,7 @@ import {
   buildArrivalPlan,
 } from 'slot-watch-common';
 import { MAX_MINED_LOOKBACK } from '@/lib/btc-arrival';
+import { type Bond, getUpcomingBonds } from '@/lib/bonds';
 import { getBurnBlockArrival } from '@/lib/slots-api';
 
 /** The tip and samples move slowly; the server caches them for up to 2 minutes. */
@@ -119,4 +120,31 @@ export function useMinedLookup(
   if (tooOld) return { status: 'too-old' };
   if (result?.height !== height) return { status: 'loading' };
   return { status: 'done', arrival: result.arrival };
+}
+
+const NO_BONDS: Bond[] = [];
+
+/**
+ * The next six bonds' schedules from the Stacks API. Loaded after the page
+ * renders and refreshed only when the network changes; a failure just leaves
+ * bonds out of the page.
+ */
+export function useUpcomingBonds(networkKey: string, tipHeight: number) {
+  const [bonds, setBonds] = React.useState<Bond[]>(NO_BONDS);
+  const tipRef = React.useRef(tipHeight);
+  tipRef.current = tipHeight;
+  React.useEffect(() => {
+    let cancelled = false;
+    getUpcomingBonds(networkKey, tipRef.current)
+      .then((next) => {
+        if (!cancelled) setBonds(next);
+      })
+      .catch(() => {
+        if (!cancelled) setBonds(NO_BONDS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [networkKey]);
+  return bonds;
 }

@@ -51,92 +51,169 @@ export function poxPosition(
   };
 }
 
+export type MilestoneKind = 'bitcoin' | 'cycle' | 'bond';
+
 export interface Milestone {
+  /** Stable id; merged rows join their ids. */
   key: string;
   label: string;
   detail: string;
   height: number;
+  kinds: MilestoneKind[];
 }
+
+/** Bond schedule heights, as {@link upcomingMilestones} needs them. */
+export interface BondSchedule {
+  index: number;
+  enrollmentCutoff: number;
+  activation: number;
+}
+
+/** How many upcoming PoX cycle starts to list. */
+export const CYCLES_AHEAD = 12;
 
 const nextMultiple = (tip: number, step: number) =>
   (Math.floor(tip / step) + 1) * step;
 
-/** Upcoming heights worth forecasting, ascending. */
-export function upcomingMilestones(tip: number, pox: PoxParams | null) {
-  const out: Milestone[] = [
-    { key: 'next', label: 'next block', detail: 'tip + 1', height: tip + 1 },
-    {
+/** The first block of the next PoX reward cycle, or null before PoX / without params. */
+export function nextCycleStart(tip: number, pox: PoxParams | null) {
+  const here = pox ? poxPosition(tip, pox) : null;
+  return here ? here.nextCycleStart : null;
+}
+
+/**
+ * Upcoming heights worth forecasting, ascending: bitcoin events, the next
+ * {@link CYCLES_AHEAD} PoX cycle starts (plus the next prepare phase), and
+ * each bond's enrollment cutoff and activation. Events at the same height
+ * are merged into one row.
+ */
+export function upcomingMilestones(
+  tip: number,
+  pox: PoxParams | null,
+  bonds: readonly BondSchedule[] = []
+): Milestone[] {
+  return mergeByHeight([
+    ...bitcoinMilestones(tip),
+    ...cycleMilestones(tip, pox),
+    ...bondMilestones(tip, bonds),
+  ]);
+}
+
+function bitcoinMilestones(tip: number): Milestone[] {
+  const retarget = nextMultiple(tip, RETARGET_INTERVAL);
+  const round = nextMultiple(tip, 10_000);
+  const halving = nextMultiple(tip, HALVING_INTERVAL);
+  const bitcoin = (m: Omit<Milestone, 'kinds'>): Milestone => ({
+    ...m,
+    kinds: ['bitcoin'],
+  });
+  return [
+    bitcoin({
+      key: 'next',
+      label: 'next block',
+      detail: 'tip + 1',
+      height: tip + 1,
+    }),
+    bitcoin({
       key: 'day',
       label: '+144 blocks',
       detail: '≈ one day of blocks',
       height: tip + 144,
+    }),
+    bitcoin({
+      key: 'retarget',
+      label: 'difficulty adjustment',
+      detail: `epoch ${retarget / RETARGET_INTERVAL}`,
+      height: retarget,
+    }),
+    bitcoin({
+      key: 'retarget-2',
+      label: 'following adjustment',
+      detail: `epoch ${retarget / RETARGET_INTERVAL + 1}`,
+      height: retarget + RETARGET_INTERVAL,
+    }),
+    bitcoin({
+      key: 'round',
+      label: round.toLocaleString(),
+      detail: 'round number',
+      height: round,
+    }),
+    bitcoin({
+      key: 'halving',
+      label: 'halving',
+      detail: `subsidy era ${halving / HALVING_INTERVAL + 1}`,
+      height: halving,
+    }),
+  ];
+}
+
+function cycleMilestones(tip: number, pox: PoxParams | null): Milestone[] {
+  const here = pox ? poxPosition(tip, pox) : null;
+  if (!(pox && here)) return [];
+  const len = pox.rewardCycleLength;
+  const anchors = here.inPrepare ? here.cycle + 2 : here.cycle + 1;
+  const out: Milestone[] = [
+    {
+      key: 'prepare',
+      label: `cycle ${anchors} prepare`,
+      detail: `prepare phase · anchors cycle ${anchors}`,
+      height: here.inPrepare ? here.prepareStart + len : here.prepareStart,
+      kinds: ['cycle'],
     },
   ];
-  const retarget = nextMultiple(tip, RETARGET_INTERVAL);
-  out.push({
-    key: 'retarget',
-    label: 'difficulty adjustment',
-    detail: `epoch ${retarget / RETARGET_INTERVAL}`,
-    height: retarget,
-  });
-  out.push({
-    key: 'retarget-2',
-    label: 'following adjustment',
-    detail: `epoch ${retarget / RETARGET_INTERVAL + 1}`,
-    height: retarget + RETARGET_INTERVAL,
-  });
-  const here = pox ? poxPosition(tip, pox) : null;
-  if (pox && here) {
-    const len = pox.rewardCycleLength;
-    if (here.inPrepare) {
-      out.push({
-        key: 'cycle',
-        label: `cycle ${here.cycle + 1} starts`,
-        detail: 'reward phase begins',
-        height: here.nextCycleStart,
-      });
-      out.push({
-        key: 'prepare',
-        label: `cycle ${here.cycle + 2} prepare`,
-        detail: `anchors cycle ${here.cycle + 2}`,
-        height: here.prepareStart + len,
-      });
-    } else {
-      out.push({
-        key: 'prepare',
-        label: `cycle ${here.cycle + 1} prepare`,
-        detail: `anchors cycle ${here.cycle + 1}`,
-        height: here.prepareStart,
-      });
-      out.push({
-        key: 'cycle',
-        label: `cycle ${here.cycle + 1} starts`,
-        detail: 'reward phase begins',
-        height: here.nextCycleStart,
-      });
-    }
+  for (let i = 0; i < CYCLES_AHEAD; i++) {
+    const cycle = here.cycle + 1 + i;
     out.push({
-      key: 'cycle-2',
-      label: `cycle ${here.cycle + 2} starts`,
+      key: i === 0 ? 'cycle' : `cycle-${cycle}`,
+      label: `cycle ${cycle} starts`,
       detail: 'reward phase begins',
-      height: here.nextCycleStart + len,
+      height: here.nextCycleStart + i * len,
+      kinds: ['cycle'],
     });
   }
-  const round = nextMultiple(tip, 10_000);
-  out.push({
-    key: 'round',
-    label: round.toLocaleString(),
-    detail: 'round number',
-    height: round,
-  });
-  const halving = nextMultiple(tip, HALVING_INTERVAL);
-  out.push({
-    key: 'halving',
-    label: 'halving',
-    detail: `subsidy era ${halving / HALVING_INTERVAL + 1}`,
-    height: halving,
-  });
-  return out.sort((a, b) => a.height - b.height);
+  return out;
+}
+
+function bondMilestones(
+  tip: number,
+  bonds: readonly BondSchedule[]
+): Milestone[] {
+  return bonds
+    .flatMap((bond): Milestone[] => [
+      {
+        key: `bond-${bond.index}-cutoff`,
+        label: `bond ${bond.index} enrollment closes`,
+        detail: 'register before this block',
+        height: bond.enrollmentCutoff,
+        kinds: ['bond'],
+      },
+      {
+        key: `bond-${bond.index}-opens`,
+        label: `bond ${bond.index} opens`,
+        detail: 'bond activates',
+        height: bond.activation,
+        kinds: ['bond'],
+      },
+    ])
+    .filter((m) => m.height > tip);
+}
+
+function mergeByHeight(items: Milestone[]): Milestone[] {
+  const byHeight = new Map<number, Milestone>();
+  for (const m of items) {
+    const existing = byHeight.get(m.height);
+    if (!existing) {
+      byHeight.set(m.height, { ...m, kinds: [...m.kinds] });
+      continue;
+    }
+    existing.key = `${existing.key}+${m.key}`;
+    existing.label = `${existing.label} · ${m.label}`;
+    existing.detail = `${existing.detail} · ${m.detail}`;
+    for (const kind of m.kinds) {
+      if (!existing.kinds.includes(kind)) existing.kinds.push(kind);
+    }
+  }
+  return [...byHeight.values()].sort((a, b) => a.height - b.height);
 }
 
 /** The forecast for `height`, or null if it is mined, too far ahead or invalid. */
