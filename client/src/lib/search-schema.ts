@@ -12,3 +12,9 @@ export const minersSearchSchema = basicSearchSchema.extend({
 });
 
 export const validateMinersSearch = zodValidator(minersSearchSchema);
+
+export const forecastSearchSchema = basicSearchSchema.extend({
+  height: z.coerce.number().int().nonnegative().optional().catch(undefined),
+});
+
+export const validateForecastSearch = zodValidator(forecastSearchSchema);

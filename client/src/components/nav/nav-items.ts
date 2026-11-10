@@ -7,6 +7,7 @@ export type NavItem = {
     | '/state-machine-history'
     | '/when-extend'
     | '/miners'
+    | '/forecast'
     | '/mcp';
   label: string;
   description: string;
@@ -58,6 +59,11 @@ const miners: NavItem = {
   label: 'miners',
   description: 'miner stats and block commits',
 };
+const forecast: NavItem = {
+  to: '/forecast',
+  label: 'forecast',
+  description: 'when a bitcoin block height will arrive',
+};
 const mcp: NavItem = {
   to: '/mcp',
   label: 'mcp',
@@ -65,7 +71,13 @@ const mcp: NavItem = {
 };
 
 /** Always-visible links in the desktop header. */
-export const primaryNav: NavItem[] = [timeline, blocks, signers, miners];
+export const primaryNav: NavItem[] = [
+  timeline,
+  blocks,
+  signers,
+  miners,
+  forecast,
+];
 
 /** Desktop "consensus" dropdown. */
 export const consensusNav: NavItem[] = [
