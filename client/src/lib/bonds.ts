@@ -47,11 +47,11 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 /**
- * The next `count` bonds whose enrollment cutoff is still ahead of
- * `tipHeight`. Published bonds come from the list; later ones are the
- * API's projected schedules, fetched by index.
+ * Bond schedules around `tipHeight`: every published bond that has not
+ * unlocked yet, plus enough projected ones (fetched by index) that `count`
+ * bonds still have their enrollment cutoff ahead. Ascending by index.
  */
-export async function getUpcomingBonds(
+export async function getBondSchedule(
   networkKey: string,
   tipHeight: number,
   count = 6
@@ -61,9 +61,7 @@ export async function getUpcomingBonds(
     `${api}/extended/v3/staking/bonds?limit=50`
   );
   const published = page.results.map(normalize);
-  const upcoming = published
-    .filter((b) => b.enrollmentCutoff > tipHeight)
-    .sort((a, b) => a.index - b.index);
+  const upcoming = published.filter((b) => b.enrollmentCutoff > tipHeight);
   const nextIndex = Math.max(0, ...published.map((b) => b.index)) + 1;
   const missing = Math.max(0, count - upcoming.length);
   const indexes = Array.from(
@@ -77,7 +75,30 @@ export async function getUpcomingBonds(
         .catch(() => null)
     )
   );
-  return [...upcoming, ...projected.filter((b): b is Bond => b !== null)]
-    .filter((b) => b.enrollmentCutoff > tipHeight)
-    .slice(0, count);
+  return [
+    ...published.filter((b) => b.unlock > tipHeight),
+    ...projected.filter((b): b is Bond => b !== null),
+  ].sort((a, b) => a.index - b.index);
+}
+
+/** The next `count` bonds whose enrollment cutoff is after `height`. */
+export function upcomingBonds(
+  bonds: readonly Bond[],
+  height: number,
+  count = 6
+): Bond[] {
+  return bonds.filter((b) => b.enrollmentCutoff > height).slice(0, count);
+}
+
+export type BondPhase = 'upcoming' | 'closed' | 'locked' | 'unlocked';
+
+/**
+ * Where `height` falls in a bond's life. The API has no enrollment start, so
+ * everything before the cutoff is just "upcoming".
+ */
+export function bondPhase(bond: Bond, height: number): BondPhase {
+  if (height < bond.enrollmentCutoff) return 'upcoming';
+  if (height < bond.activation) return 'closed';
+  if (height < bond.unlock) return 'locked';
+  return 'unlocked';
 }
