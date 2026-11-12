@@ -6,6 +6,7 @@ import {
   strip0x,
   type TypeMerge,
   type BurnBlocksResponse,
+  type BurnBlockArrivalResponse,
   type SignersResponse,
   type RecentSignersResponse,
   type BlockResponsesResponse,
@@ -47,6 +48,23 @@ export async function getBurnBlocks(
     return response.json();
   }
   throw new Error('Failed to fetch burn blocks');
+}
+
+/**
+ * Tip + block-time samples for the Bitcoin arrival model. Forecasts are
+ * computed client-side from these (so they track a live clock); `heights`
+ * only matters for already-mined targets, whose known time the server resolves.
+ */
+export async function getBurnBlockArrival(
+  networkKey: string,
+  heights?: number[]
+): Promise<BurnBlockArrivalResponse> {
+  const response = await apiClient['burn-blocks'][':networkKey'].arrival.$get({
+    param: { networkKey: asNetworkKey(networkKey) },
+    query: heights?.length ? { heights: heights.join(',') } : {},
+  });
+  if (!response.ok) throw new Error('Failed to fetch arrival estimate data');
+  return response.json();
 }
 
 export async function getBtcBlock(networkKey: string, heightOrHash: string) {
